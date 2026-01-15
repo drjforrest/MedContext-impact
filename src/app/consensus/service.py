@@ -8,7 +8,6 @@ from app.schemas.consensus import (
     ConsensusResponse,
 )
 
-
 _LEGITIMATE_CATEGORIES = {"medical_educational", "clinical_legitimate"}
 
 
@@ -75,9 +74,7 @@ def _categorize_claim(claim) -> str:
 def _determine_consensus(distribution: Dict[str, ConsensusDistributionEntry]) -> str:
     if not distribution:
         return "unknown"
-    sorted_categories = sorted(
-        distribution.items(), key=lambda x: x[1].count, reverse=True
-    )
+    sorted_categories = sorted(distribution.items(), key=lambda x: (-x[1].count, x[0]))
     dominant_category = sorted_categories[0][0]
     dominant_percentage = sorted_categories[0][1].percentage
     if dominant_category in _LEGITIMATE_CATEGORIES:
@@ -85,6 +82,12 @@ def _determine_consensus(distribution: Dict[str, ConsensusDistributionEntry]) ->
             "legitimate_use_dominant"
             if dominant_percentage >= 50
             else "mixed_usage_with_legitimate_primary"
+        )
+    if dominant_category == "deepfake":
+        return (
+            "primarily_used_for_deepfakes"
+            if dominant_percentage >= 50
+            else "mixed_usage_with_deepfake_primary"
         )
     if dominant_category == "false":
         return "primarily_used_for_misinformation"

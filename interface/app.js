@@ -7,10 +7,13 @@ const claimExtractionOutput = document.getElementById("claimExtractionOutput");
 const claimClusterOutput = document.getElementById("claimClusterOutput");
 const consensusOutput = document.getElementById("consensusOutput");
 const decisionSupportOutput = document.getElementById("decisionSupportOutput");
+const consensusBars = document.getElementById("consensusBars");
+const consensusMeta = document.getElementById("consensusMeta");
 let lastTracePayload = null;
 let lastClaims = null;
 let lastConsensus = null;
 let lastIntegrityScore = null;
+let outputFlashTimeout = null;
 
 function getApiBase() {
   return document.getElementById("apiBase").value.trim().replace(/\/$/, "");
@@ -31,6 +34,14 @@ function getContext() {
 
 function setOutput(data) {
   output.textContent = JSON.stringify(data, null, 2);
+  output.classList.add("flash");
+  output.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (outputFlashTimeout) {
+    clearTimeout(outputFlashTimeout);
+  }
+  outputFlashTimeout = setTimeout(() => {
+    output.classList.remove("flash");
+  }, 1200);
 }
 
 function setIntegrityOutput(data) {
@@ -194,6 +205,10 @@ function updateIntegrityVisuals(data) {
   const valueGenealogy = document.getElementById("valueGenealogy");
   const valueSource = document.getElementById("valueSource");
 
+  if (!scoreValue || !scoreLabel || !gaugeFill) {
+    return;
+  }
+
   const scorePercent = Math.max(0, Math.min(1, data.score)) * 100;
   scoreValue.textContent = data.score.toFixed(2);
   gaugeFill.style.width = `${scorePercent}%`;
@@ -214,12 +229,66 @@ function updateIntegrityVisuals(data) {
   const plausibility = data.plausibility ?? 0;
   const genealogy = data.genealogy_consistency ?? 0;
   const sourceRep = data.source_reputation ?? 0;
-  barPlausibility.style.width = `${plausibility * 100}%`;
-  barGenealogy.style.width = `${genealogy * 100}%`;
-  barSource.style.width = `${sourceRep * 100}%`;
-  valuePlausibility.textContent = plausibility.toFixed(2);
-  valueGenealogy.textContent = genealogy.toFixed(2);
-  valueSource.textContent = sourceRep.toFixed(2);
+  if (barPlausibility) {
+    barPlausibility.style.width = `${plausibility * 100}%`;
+  }
+  if (barGenealogy) {
+    barGenealogy.style.width = `${genealogy * 100}%`;
+  }
+  if (barSource) {
+    barSource.style.width = `${sourceRep * 100}%`;
+  }
+  if (valuePlausibility) {
+    valuePlausibility.textContent = plausibility.toFixed(2);
+  }
+  if (valueGenealogy) {
+    valueGenealogy.textContent = genealogy.toFixed(2);
+  }
+  if (valueSource) {
+    valueSource.textContent = sourceRep.toFixed(2);
+  }
+}
+
+function updateConsensusVisuals(data) {
+  if (!data || !data.distribution) {
+    consensusBars.innerHTML = "";
+    consensusMeta.textContent = "No consensus yet.";
+    return;
+  }
+  consensusBars.innerHTML = "";
+  const distribution = data.distribution;
+  const entries = Object.entries(distribution);
+  if (!entries.length) {
+    consensusMeta.textContent = "No consensus yet.";
+    return;
+  }
+  consensusMeta.textContent = `Consensus: ${data.consensus || "unknown"} | Confidence: ${
+    typeof data.confidence_in_consensus === "number"
+      ? data.confidence_in_consensus.toFixed(2)
+      : "--"
+  }`;
+  entries
+    .sort((a, b) => b[1].percentage - a[1].percentage)
+    .forEach(([label, entry]) => {
+      const row = document.createElement("div");
+      row.className = "consensus-row";
+      const labelEl = document.createElement("div");
+      labelEl.className = "consensus-label";
+      labelEl.textContent = label.replace(/_/g, " ");
+      const bar = document.createElement("div");
+      bar.className = "consensus-bar";
+      const fill = document.createElement("div");
+      fill.className = "consensus-fill";
+      fill.style.width = `${entry.percentage}%`;
+      bar.appendChild(fill);
+      const value = document.createElement("div");
+      value.className = "consensus-value";
+      value.textContent = `${entry.percentage.toFixed(1)}%`;
+      row.appendChild(labelEl);
+      row.appendChild(bar);
+      row.appendChild(value);
+      consensusBars.appendChild(row);
+    });
 }
 
 async function fetchIntegrityScore() {
@@ -250,11 +319,51 @@ async function fetchIntegrityScore() {
   return response.json();
 }
 
+function buildConsensusPayload(silent = false) {
+  const raw = document.getElementById("consensusClaimsInput").value.trim();
+  let claims = null;
+  if (raw) {
+    try {
+      claims = JSON.parse(raw);
+    } catch (err) {
+      if (!silent) {
+        alert("Consensus claims JSON is invalid.");
+      }
+      return null;
+    }
+  } else if (lastClaims) {
+    claims = lastClaims.map((claim) => ({
+      claim_text: claim.claim_text,
+      confidence_this_is_claim: claim.confidence_this_is_claim,
+    }));
+  }
+  if (!claims) {
+    if (!silent) {
+      alert("Provide consensus claims JSON or run claim extraction first.");
+    }
+    return null;
+  }
+  return { image_id: getImageId(), claims };
+}
+
+async function computeConsensusScore({ silent = false } = {}) {
+  const payload = buildConsensusPayload(silent);
+  if (!payload) {
+    return null;
+  }
+  const data = await postJson("/api/v1/decision-support/consensus", payload);
+  lastConsensus = data;
+  setConsensusOutput(data);
+  updateConsensusVisuals(data);
+  return data;
+}
+
 document.getElementById("btnRun").addEventListener("click", async () => {
   clearTrace();
   try {
     const data = await postMultipart("/api/v1/orchestrator/run");
     setOutput(data);
+    await computeConsensusScore({ silent: true });
   } catch (err) {
     alert(err.message);
   }
@@ -267,6 +376,7 @@ document
     try {
       const data = await postMultipart("/api/v1/orchestrator/run-langgraph");
       setOutput(data);
+      await computeConsensusScore({ silent: true });
     } catch (err) {
       alert(err.message);
     }
@@ -345,24 +455,7 @@ document.getElementById("btnClusterClaims").addEventListener("click", async () =
 
 document.getElementById("btnConsensusScore").addEventListener("click", async () => {
   try {
-    const raw = document.getElementById("consensusClaimsInput").value.trim();
-    let claims = null;
-    if (raw) {
-      claims = JSON.parse(raw);
-    } else if (lastClaims) {
-      claims = lastClaims.map((claim) => ({
-        claim_text: claim.claim_text,
-        confidence_this_is_claim: claim.confidence_this_is_claim,
-      }));
-    }
-    if (!claims) {
-      alert("Provide consensus claims JSON or run claim extraction first.");
-      return;
-    }
-    const payload = { image_id: getImageId(), claims };
-    const data = await postJson("/api/v1/decision-support/consensus", payload);
-    lastConsensus = data;
-    setConsensusOutput(data);
+    await computeConsensusScore();
   } catch (err) {
     alert(err.message);
   }

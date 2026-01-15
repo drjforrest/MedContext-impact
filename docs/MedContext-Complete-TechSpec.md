@@ -782,6 +782,7 @@ Define a MedContext Integrity Score as a weighted average of:
 
 - `Integrity Score = (w1 × Plausibility) + (w2 × Genealogy_Consistency) + (w3 × Source_Reputation)`
 - Default weights: `w1=0.5`, `w2=0.3`, `w3=0.2` (configurable per deployment or risk profile).
+- Integrity Score is the **primary decision-support composite** used for risk labeling and downstream decisions.
 
 **Score definitions (all normalized to 0.0-1.0):**
 
@@ -793,8 +794,10 @@ Define a MedContext Integrity Score as a weighted average of:
   - Inputs: percentage of uninterrupted provenance hops `PH` (0-1), tamper flag rate `TF` (0-1; higher = worse), chronological consistency `CH` (0-1).
   - Normalization: clamp to [0, 1]; map tamper rate to positive contribution via `(1 - TF)`.
   - Aggregation (default): `G = (0.50 * PH) + (0.30 * CH) + (0.20 * (1 - TF))`.
-- **Source Reputation (S):** Maps to the existing `source_credibility_score` unless a separate reputation model is configured.
-  - Default mapping: `S = source_credibility_score`.
+- **Source Reputation (S):** Derived from a single default reputation signal with an explicit fallback.
+  - Default source (preferred): `global_reputation_store.score` (0-1).
+  - Fallback: if default source is missing, use `ImageMetadata.reputation` (0-1) when available.
+  - Optional separate computation: when neither source is present, compute from DR/CQ/MH if those signals exist.
   - Optional separate computation: domain reputation `DR` (0-1), citation quality `CQ` (0-1), misinformation history `MH` (0-1; higher = worse).
   - Aggregation (default if separate): `S = (0.50 * DR) + (0.30 * CQ) + (0.20 * (1 - MH))`.
 
@@ -813,8 +816,8 @@ Define a MedContext Integrity Score as a weighted average of:
 
 **Missing data handling:**
 
-- If a component is unavailable, renormalize weights across available components.
-- If fewer than two components are available, cap Integrity Score at 0.60 and mark assessment as "incomplete evidence."
+- If a component is unavailable, compute a weighted score from available components and renormalize weights.
+- Always attach an `incomplete_evidence` flag and a confidence interval or uncertainty score when any component is missing.
 
 **Interpretation bands and actions:**
 
@@ -849,7 +852,12 @@ The consensus scoring framework aligns with the Integrity Score by treating each
 **Relationship to Integrity Score:**
 
 - Integrity Score remains the primary composite (P + G + S) for decision support and UI labeling.
-- ConsensusScore is a supporting diagnostic that explains **why** integrity is high/medium/low based on usage patterns and misinformation dynamics.
+- ConsensusScore (MC, CCx, MR, TC) is a supporting diagnostic used for explanation, triage, and analyst context.
+- ConsensusScore may optionally feed into Genealogy Consistency via a configurable mapping, or remain parallel for explanatory UI.
+
+**Configurable policy (example):**
+
+- `G = α * provenance_metrics + β * ConsensusScore` (with `α + β = 1`, defaults `α=1.0`, `β=0.0` to keep scores independent).
 
 ### Database Models
 

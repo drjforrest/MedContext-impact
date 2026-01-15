@@ -24,6 +24,7 @@ The migration system uses `DATABASE_URL` from your environment.
 Toggle providers with `MEDGEMMA_PROVIDER`:
 
 - `huggingface` (default): set `MEDGEMMA_HF_TOKEN` and optionally `MEDGEMMA_HF_MODEL`
+- `local`: uses local `transformers` inference; requires `accelerate` and `MEDGEMMA_HF_MODEL`
 - `vertex`: set `MEDGEMMA_VERTEX_PROJECT`, `MEDGEMMA_VERTEX_LOCATION`, and `MEDGEMMA_VERTEX_ENDPOINT`
 
 ### Recommended for Competition Submissions

@@ -4,7 +4,7 @@ from app.schemas.decision_support import DecisionSupportRequest, DecisionSupport
 
 
 def build_decision_support(payload: DecisionSupportRequest) -> DecisionSupportResponse:
-    audience = payload.audience.lower()
+    audience = (payload.audience or "public").lower()
     consensus = payload.consensus or "unknown"
     integrity_score = payload.integrity_score
     integrity_label = _integrity_label(integrity_score)
@@ -12,7 +12,11 @@ def build_decision_support(payload: DecisionSupportRequest) -> DecisionSupportRe
     headline = _headline_for_audience(audience, consensus, integrity_label)
     summary = _summary_for_audience(audience, consensus, integrity_label)
     recommended_action = _action_for_integrity(integrity_label)
-    evidence = payload.key_findings or _default_evidence(consensus)
+    evidence = (
+        payload.key_findings
+        if payload.key_findings is not None
+        else _default_evidence(consensus)
+    )
     red_flags = _default_red_flags(consensus)
     next_steps = _default_next_steps(audience)
 
@@ -39,7 +43,9 @@ def _integrity_label(score: float | None) -> str:
 
 def _headline_for_audience(audience: str, consensus: str, integrity_label: str) -> str:
     if audience == "clinician":
-        return f"Clinical Brief: {consensus.replace('_', ' ').title()} ({integrity_label})"
+        return (
+            f"Clinical Brief: {consensus.replace('_', ' ').title()} ({integrity_label})"
+        )
     if audience == "journalist":
         return f"Story Lead: Image usage is {consensus.replace('_', ' ')}"
     if audience == "public":
@@ -72,18 +78,20 @@ def _action_for_integrity(integrity_label: str) -> str:
 
 
 def _default_evidence(consensus: str) -> list[str]:
-    if "misinformation" in consensus:
+    consensus_lower = consensus.lower()
+    if "misinformation" in consensus_lower:
         return ["Fact-check alignment indicates false or misleading usage."]
-    if "legitimate" in consensus:
+    if "legitimate" in consensus_lower:
         return ["Usage aligns with MedGemma findings and clinical sources."]
     return ["Evidence mixed; additional verification recommended."]
 
 
 def _default_red_flags(consensus: str) -> list[str]:
     flags = ["Lack of primary source attribution"]
-    if "misinformation" in consensus or "concerns" in consensus:
+    consensus_lower = consensus.lower()
+    if "misinformation" in consensus_lower or "concerns" in consensus_lower:
         flags.append("Narratives conflict with medical consensus")
-    if "unclear" in consensus:
+    if "unclear" in consensus_lower:
         flags.append("Context is ambiguous or incomplete")
     return flags
 
@@ -101,4 +109,6 @@ def _default_next_steps(audience: str) -> list[str]:
         ]
     if audience == "public":
         return ["Check reputable health sources", "Avoid resharing unverified claims"]
+    return ["Gather more data and rerun analysis"]
+    return ["Gather more data and rerun analysis"]
     return ["Gather more data and rerun analysis"]

@@ -5,9 +5,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/medcontext"
     redis_url: str = "redis://localhost:6379"
     medgemma_url: str = "http://localhost:8001"
-    medgemma_provider: str = "huggingface"  # huggingface | vertex
-    medgemma_hf_model: str = "google/medgemma-2b-finetuned"
+    medgemma_provider: str = "huggingface"  # huggingface | local | vllm | vertex
+    medgemma_hf_model: str = "google/medgemma-1.5-4b-it"
     medgemma_hf_token: str = ""
+    medgemma_vllm_url: str = "http://localhost:8001/v1/chat/completions"
     medgemma_vertex_project: str = ""
     medgemma_vertex_location: str = "us-central1"
     medgemma_vertex_endpoint: str = ""

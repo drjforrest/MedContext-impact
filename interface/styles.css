@@ -102,6 +102,11 @@ button:hover {
   white-space: pre-wrap;
 }
 
+.output.flash {
+  border: 1px solid #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
 .graph {
   background: #0b1220;
   border-radius: 8px;
@@ -215,6 +220,70 @@ button:hover {
 }
 
 .bar-value {
+  text-align: right;
+  color: #94a3b8;
+}
+
+.consensus-visuals {
+  background: #0b1220;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #1f2937;
+  margin-bottom: 16px;
+}
+
+.consensus-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.consensus-title {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.consensus-meta {
+  font-size: 12px;
+  color: #cbd5f5;
+}
+
+.consensus-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.consensus-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 70px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.consensus-label {
+  color: #cbd5f5;
+}
+
+.consensus-bar {
+  height: 10px;
+  background: #111827;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #1f2937;
+}
+
+.consensus-fill {
+  height: 100%;
+  width: 0%;
+  background: #a78bfa;
+  transition: width 0.3s ease;
+}
+
+.consensus-value {
   text-align: right;
   color: #94a3b8;
 }
