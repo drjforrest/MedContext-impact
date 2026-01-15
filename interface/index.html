@@ -53,13 +53,121 @@
       </section>
 
       <section class="panel">
+        <h2>Ingestion Helpers</h2>
+        <p class="muted">
+          Build submission context per the data collection framework.
+        </p>
+        <div class="grid">
+          <label>
+            User ID (optional)
+            <input id="userIdInput" type="text" placeholder="user-123" />
+          </label>
+          <label>
+            Source Channel
+            <select id="sourceChannelInput">
+              <option value="web" selected>web</option>
+              <option value="extension">extension</option>
+              <option value="whatsapp">whatsapp</option>
+            </select>
+          </label>
+          <label>
+            Claimed Condition (optional)
+            <input
+              id="claimedConditionInput"
+              type="text"
+              placeholder="e.g. tuberculosis"
+            />
+          </label>
+          <label>
+            Claimed Origin (optional)
+            <input
+              id="claimedOriginInput"
+              type="text"
+              placeholder="e.g. WHO briefing"
+            />
+          </label>
+          <label>
+            Source URL (optional)
+            <input id="sourceUrlInput" type="text" placeholder="https://..." />
+          </label>
+          <label>
+            WhatsApp Group (optional)
+            <input
+              id="sourceWhatsappInput"
+              type="text"
+              placeholder="group name"
+            />
+          </label>
+          <label>
+            Language Code
+            <input id="languageCodeInput" type="text" value="en" />
+          </label>
+          <label class="span-2">
+            Surrounding Text (optional)
+            <textarea
+              id="surroundingTextInput"
+              rows="4"
+              placeholder="Paste claim context or conversation text"
+            ></textarea>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btnIngestWeb">Ingest Web</button>
+          <button id="btnIngestExtension">Ingest Extension</button>
+          <button id="btnIngestAgentic">Ingest + Run Agent</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Contextual Integrity Score</h2>
+        <p class="muted">
+          Weighted blend of plausibility, genealogy consistency, and source reputation.
+        </p>
+        <div class="grid">
+          <label>
+            Plausibility (0-1)
+            <input id="plausibilityInput" type="number" min="0" max="1" step="0.01" />
+          </label>
+          <label>
+            Genealogy Consistency (0-1)
+            <input id="genealogyInput" type="number" min="0" max="1" step="0.01" />
+          </label>
+          <label>
+            Source Reputation (0-1)
+            <input id="sourceRepInput" type="number" min="0" max="1" step="0.01" />
+          </label>
+          <label>
+            Weight: Plausibility
+            <input id="weightPlausibilityInput" type="number" min="0" step="0.05" />
+          </label>
+          <label>
+            Weight: Genealogy
+            <input id="weightGenealogyInput" type="number" min="0" step="0.05" />
+          </label>
+          <label>
+            Weight: Source
+            <input id="weightSourceInput" type="number" min="0" step="0.05" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btnIntegrityScore">Compute Integrity Score</button>
+        </div>
+        <pre id="integrityOutput" class="output"></pre>
+      </section>
+
+      <section class="panel">
         <h2>Trace</h2>
         <div id="traceSummary" class="muted">No trace yet.</div>
+        <div class="actions">
+          <button id="btnDownloadTrace">Download Trace JSON</button>
+          <button id="btnClearTrace">Clear Trace</button>
+        </div>
         <table id="traceTable">
           <thead>
             <tr>
               <th>Node</th>
               <th>Timestamp</th>
+              <th>Elapsed (ms)</th>
               <th>Duration (ms)</th>
               <th>Data</th>
             </tr>

@@ -2,6 +2,8 @@ const output = document.getElementById("output");
 const traceTableBody = document.querySelector("#traceTable tbody");
 const traceSummary = document.getElementById("traceSummary");
 const graphContainer = document.getElementById("graphContainer");
+const integrityOutput = document.getElementById("integrityOutput");
+let lastTracePayload = null;
 
 function getApiBase() {
   return document.getElementById("apiBase").value.trim().replace(/\/$/, "");
@@ -24,26 +26,64 @@ function setOutput(data) {
   output.textContent = JSON.stringify(data, null, 2);
 }
 
+function setIntegrityOutput(data) {
+  integrityOutput.textContent = JSON.stringify(data, null, 2);
+}
+
 function clearTrace() {
   traceTableBody.innerHTML = "";
   traceSummary.textContent = "No trace yet.";
+  lastTracePayload = null;
 }
 
-function renderTrace(traceId, trace) {
+function renderTrace(payload) {
   traceTableBody.innerHTML = "";
-  if (!trace || !trace.length) {
+  if (!payload || !Array.isArray(payload.trace) || !payload.trace.length) {
     traceSummary.textContent = "Trace is empty.";
     return;
   }
-  traceSummary.textContent = `Trace ID: ${traceId}`;
+  const trace = payload.trace;
+  const traceId = payload.trace_id || "unknown";
+  const durations = trace
+    .map((entry) => (typeof entry.duration_ms === "number" ? entry.duration_ms : 0))
+    .filter((value) => Number.isFinite(value));
+  const totalDuration =
+    typeof payload.total_duration_ms === "number"
+      ? payload.total_duration_ms
+      : durations.reduce((acc, value) => acc + value, 0);
+  const maxDuration = durations.length ? Math.max(...durations) : 0;
+  const timestamps = trace
+    .map((entry) => Date.parse(entry.timestamp))
+    .filter((value) => Number.isFinite(value));
+  const baseTime = timestamps.length ? Math.min(...timestamps) : null;
+
+  traceSummary.textContent = `Trace ID: ${traceId} | Nodes: ${trace.length} | Total: ${totalDuration} ms | Max: ${maxDuration} ms`;
   trace.forEach((entry) => {
     const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${entry.node}</td>
-      <td>${entry.timestamp}</td>
-      <td>${entry.duration_ms}</td>
-      <td><pre>${JSON.stringify(entry.data, null, 2)}</pre></td>
-    `;
+    const nodeCell = document.createElement("td");
+    nodeCell.textContent = entry.node ?? "";
+    const timestampCell = document.createElement("td");
+    timestampCell.textContent = entry.timestamp ?? "";
+    const elapsedCell = document.createElement("td");
+    const timestampMs = Date.parse(entry.timestamp);
+    if (baseTime !== null && Number.isFinite(timestampMs)) {
+      elapsedCell.textContent = String(timestampMs - baseTime);
+    } else {
+      elapsedCell.textContent = "-";
+    }
+    const durationCell = document.createElement("td");
+    durationCell.textContent =
+      typeof entry.duration_ms === "number" ? String(entry.duration_ms) : "-";
+    const dataCell = document.createElement("td");
+    const pre = document.createElement("pre");
+    pre.textContent = JSON.stringify(entry.data ?? {}, null, 2);
+    dataCell.appendChild(pre);
+
+    row.appendChild(nodeCell);
+    row.appendChild(timestampCell);
+    row.appendChild(elapsedCell);
+    row.appendChild(durationCell);
+    row.appendChild(dataCell);
     traceTableBody.appendChild(row);
   });
 }
@@ -90,6 +130,43 @@ async function fetchGraph() {
   mermaid.run({ nodes: graphContainer.querySelectorAll(".mermaid") });
 }
 
+function getNumberInput(id) {
+  const value = document.getElementById(id).value.trim();
+  if (!value) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+async function fetchIntegrityScore() {
+  const apiBase = getApiBase();
+  const params = new URLSearchParams();
+  const plausibility = getNumberInput("plausibilityInput");
+  const genealogy = getNumberInput("genealogyInput");
+  const sourceRep = getNumberInput("sourceRepInput");
+  const weightPlausibility = getNumberInput("weightPlausibilityInput");
+  const weightGenealogy = getNumberInput("weightGenealogyInput");
+  const weightSource = getNumberInput("weightSourceInput");
+
+  if (plausibility !== null) params.set("plausibility", plausibility);
+  if (genealogy !== null) params.set("genealogy_consistency", genealogy);
+  if (sourceRep !== null) params.set("source_reputation", sourceRep);
+  if (weightPlausibility !== null)
+    params.set("weight_plausibility", weightPlausibility);
+  if (weightGenealogy !== null)
+    params.set("weight_genealogy", weightGenealogy);
+  if (weightSource !== null) params.set("weight_source", weightSource);
+
+  const response = await fetch(
+    `${apiBase}/api/v1/decision-support/integrity-score?${params.toString()}`
+  );
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+  return response.json();
+}
+
 document.getElementById("btnRun").addEventListener("click", async () => {
   clearTrace();
   try {
@@ -115,8 +192,9 @@ document
 document.getElementById("btnTrace").addEventListener("click", async () => {
   try {
     const data = await postMultipart("/api/v1/orchestrator/trace");
+    lastTracePayload = data;
     setOutput(data);
-    renderTrace(data.trace_id, data.trace);
+    renderTrace(data);
   } catch (err) {
     alert(err.message);
   }
@@ -128,4 +206,42 @@ document.getElementById("btnGraph").addEventListener("click", async () => {
   } catch (err) {
     alert(err.message);
   }
+});
+
+document
+  .getElementById("btnIntegrityScore")
+  .addEventListener("click", async () => {
+    try {
+      const data = await fetchIntegrityScore();
+      setIntegrityOutput(data);
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+document
+  .getElementById("btnDownloadTrace")
+  .addEventListener("click", () => {
+    if (!lastTracePayload) {
+      alert("No trace data to download yet.");
+      return;
+    }
+    const filename = lastTracePayload.trace_id
+      ? `trace-${lastTracePayload.trace_id}.json`
+      : "trace.json";
+    const blob = new Blob([JSON.stringify(lastTracePayload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  });
+
+document.getElementById("btnClearTrace").addEventListener("click", () => {
+  clearTrace();
 });

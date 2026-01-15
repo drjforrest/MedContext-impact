@@ -47,12 +47,24 @@ label {
 }
 
 input[type="text"],
-input[type="file"] {
+input[type="file"],
+input[type="number"],
+textarea,
+select {
   background: #0b1220;
   color: #e2e8f0;
   border: 1px solid #334155;
   border-radius: 8px;
   padding: 8px 10px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+select {
+  appearance: none;
 }
 
 .actions {
@@ -97,6 +109,10 @@ button:hover {
   color: #94a3b8;
   font-size: 13px;
   margin-bottom: 12px;
+}
+
+.span-2 {
+  grid-column: span 2;
 }
 
 table {

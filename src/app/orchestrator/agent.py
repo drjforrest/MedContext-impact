@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from app.clinical.medgemma_client import MedGemmaClient, MedGemmaResult
+from app.forensics.deepfake import run_deepfake_layers
 from app.forensics.service import run_forensics
 from app.provenance.service import build_provenance
 from app.reverse_search.service import run_reverse_search
@@ -37,7 +38,9 @@ class MedContextAgent:
     def run(self, image_bytes: bytes, image_id=None) -> AgentRunResult:
         triage_result = self._triage(image_bytes)
         required_tools = self._extract_required_tools(triage_result)
-        tool_results = self._dispatch_tools(image_bytes, required_tools, image_id)
+        tool_results = self._dispatch_tools(
+            image_bytes, required_tools, image_id, triage_result
+        )
         synthesis_result = self._synthesize(image_bytes, triage_result, tool_results)
         return AgentRunResult(
             triage=triage_result.output,
@@ -97,7 +100,11 @@ class MedContextAgent:
         return inferred
 
     def _dispatch_tools(
-        self, image_bytes: bytes, tools: Iterable[str], image_id=None
+        self,
+        image_bytes: bytes,
+        tools: Iterable[str],
+        image_id=None,
+        triage: MedGemmaResult | None = None,
     ) -> dict[str, Any]:
         results: dict[str, Any] = {}
         resolved_image_id = image_id or self._generate_image_id()
@@ -107,7 +114,16 @@ class MedContextAgent:
                     image_id=resolved_image_id, image_bytes=image_bytes
                 )
             elif tool == "forensics":
-                results[tool] = run_forensics(image_bytes=image_bytes)
+                layers = self._select_forensics_layers(triage)
+                results[tool] = {
+                    "layers": layers,
+                    "results": {
+                        layer: result.__dict__
+                        for layer, result in run_deepfake_layers(
+                            image_bytes, layers
+                        ).items()
+                    },
+                }
             elif tool == "provenance":
                 results[tool] = build_provenance(
                     image_id=resolved_image_id, image_bytes=image_bytes
@@ -118,3 +134,18 @@ class MedContextAgent:
         from uuid import uuid4
 
         return uuid4()
+
+    def _select_forensics_layers(
+        self, triage: MedGemmaResult | None
+    ) -> list[str]:
+        plausibility = None
+        if triage is not None and isinstance(triage.output, dict):
+            plausibility = triage.output.get("plausibility")
+        plausibility_normalized = (
+            plausibility.strip().lower() if isinstance(plausibility, str) else None
+        )
+        if plausibility_normalized == "high":
+            return ["layer_2"]
+        if plausibility_normalized in {"low", "medium"}:
+            return ["layer_1", "layer_2"]
+        return ["layer_1", "layer_2"]

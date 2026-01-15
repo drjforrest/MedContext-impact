@@ -89,6 +89,10 @@ Receive medical images from multiple channels, validate, normalize, and persist 
 - **Image Normalization:** Standardize DICOM handling, compression, orientation
 - **Storage:** Persist to PostgreSQL with metadata
 
+### Edge AI Triage (Hardening)
+- **Privacy-Preserving Triage:** For WhatsApp/mobile ingestion, explore 4-bit quantized MedGemma 1.5 4B (GGUF/CoreML) on-device to classify urgency before sending to the backend.
+- **Why:** Reduce latency and protect sensitive content while still routing complex cases to the full cloud workflow.
+
 ### Database Models
 
 ```python
@@ -450,7 +454,7 @@ async def get_semantic_clusters(
 ## Module 5: Provenance & Blockchain Module
 
 ### Purpose
-Build provenance chains showing image genealogy and detect consensus patterns over time.
+Build provenance chains showing image genealogy and detect consensus patterns over time, acting as a clinical audit trail with a tamper-proof history trusted by health authorities.
 
 ### Database Models
 
@@ -730,10 +734,27 @@ async def get_confidence_metrics(
 
 ---
 
-## Module 7: Decision Support Module
+## Module 7: Agentic Orchestrator & Decision Support Module
 
 ### Purpose
-Provide contextual integrity assessment and recommendations for healthcare providers and the public.
+Coordinate agentic tool use and produce contextual integrity assessments and recommendations for healthcare providers and the public.
+
+### Agentic Orchestration Logic
+MedGemma acts as a clinical investigator that dynamically selects tools based on the image context and its own findings. The current implementation is captured in:
+
+- `src/app/orchestrator/agent.py` for a deterministic flow
+- `src/app/orchestrator/langgraph_agent.py` for a LangGraph-based agentic workflow
+
+The flow emphasizes self-correction: anomalous clinical findings trigger deeper forensics and reverse search before synthesis.
+
+### Contextual Integrity Metric
+Define a MedContext Integrity Score as a weighted average of:
+
+- **Plausibility** (MedGemma)
+- **Genealogy Consistency** (provenance/blockchain)
+- **Source Reputation** (reverse search)
+
+Reference implementation: `src/app/metrics/integrity.py`.
 
 ### Database Models
 

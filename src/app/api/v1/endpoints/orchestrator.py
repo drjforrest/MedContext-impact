@@ -65,10 +65,18 @@ async def run_agent_trace(
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    trace_entries = state.get("trace", [])
+    total_duration_ms = sum(
+        entry.get("duration_ms", 0)
+        for entry in trace_entries
+        if isinstance(entry, dict)
+    )
+
     return TraceResponse(
         trace_id=state.get("trace_id"),
         triage=state.get("triage"),
         tool_results=state.get("tool_results", {}),
         synthesis=state.get("synthesis"),
-        trace=state.get("trace", []),
+        total_duration_ms=total_duration_ms,
+        trace=trace_entries,
     )

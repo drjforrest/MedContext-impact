@@ -26,6 +26,18 @@ Toggle providers with `MEDGEMMA_PROVIDER`:
 - `huggingface` (default): set `MEDGEMMA_HF_TOKEN` and optionally `MEDGEMMA_HF_MODEL`
 - `vertex`: set `MEDGEMMA_VERTEX_PROJECT`, `MEDGEMMA_VERTEX_LOCATION`, and `MEDGEMMA_VERTEX_ENDPOINT`
 
+### Recommended for Competition Submissions
+
+Use Hugging Face for fast, reproducible evaluation:
+
+- **Why:** minimal setup, no GCP account required, easy for judges to run
+- **Config:** `MEDGEMMA_PROVIDER=huggingface`, `MEDGEMMA_HF_TOKEN=...`, optional `MEDGEMMA_HF_MODEL`
+
+Document Vertex AI as the production path:
+
+- **Why:** lower latency and higher scale for real deployments
+- **Config:** `MEDGEMMA_PROVIDER=vertex`, plus the Vertex env vars above
+
 ## Agentic Orchestrator (Deterministic)
 
 `POST /api/v1/orchestrator/run` executes a deterministic agentic flow:
@@ -37,6 +49,10 @@ Toggle providers with `MEDGEMMA_PROVIDER`:
 `POST /api/v1/orchestrator/run-langgraph` runs the same flow using LangGraph.
 `GET /api/v1/orchestrator/graph` returns a Mermaid diagram of the LangGraph.
 `POST /api/v1/orchestrator/trace` returns a trace with timestamps and durations per node.
+
+## Contextual Integrity Metric
+
+`src/app/metrics/integrity.py` defines the MedContext Integrity Score, a weighted blend of plausibility, genealogy consistency, and source reputation.
 
 ## Project Layout
 
@@ -61,6 +77,8 @@ src/
 ## Notes
 
 - The docs mention PostgreSQL + IPFS + Redis; the skeleton is ready for these integrations.
+- Edge AI hardening includes 4-bit quantized MedGemma (GGUF/CoreML) for privacy-preserving triage on WhatsApp/mobile ingestion.
+- See `docs/MedContext-Backend-Architecture.md` for deepfake, provenance, and monitoring architecture.
 - If you want a different stack (e.g., Neo4j first, or Rust services), say the word and I will realign the scaffold.
 
 ## Interface

@@ -16,4 +16,5 @@ class TraceResponse(BaseModel):
     triage: Any
     tool_results: dict[str, Any]
     synthesis: Any
+    total_duration_ms: int
     trace: list[TraceEntry]
