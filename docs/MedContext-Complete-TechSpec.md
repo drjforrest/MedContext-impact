@@ -11,6 +11,7 @@
 ## Executive Summary
 
 MedContext is a seven-module system designed to combat medical image misinformation by:
+
 1. **Ingesting** medical images from multiple channels
 2. **Analyzing** images using MedGemma 1.5 4B for clinical understanding
 3. **Tracing** image distribution across the web and closed messaging platforms
@@ -79,9 +80,11 @@ User Response
 ## Module 1: Image Ingestion Module
 
 ### Purpose
+
 Receive medical images from multiple channels, validate, normalize, and persist to database.
 
 ### Responsibilities
+
 - **WhatsApp Bot Handler:** Parse WhatsApp Business API webhook events
 - **Browser Extension Handler:** Receive images from Chrome/Firefox extension
 - **Web Form Handler:** Simple web upload interface
@@ -90,6 +93,7 @@ Receive medical images from multiple channels, validate, normalize, and persist 
 - **Storage:** Persist to PostgreSQL with metadata
 
 ### Edge AI Triage (Hardening)
+
 - **Privacy-Preserving Triage:** For WhatsApp/mobile ingestion, explore 4-bit quantized MedGemma 1.5 4B (GGUF/CoreML) on-device to classify urgency before sending to the backend.
 - **Why:** Reduce latency and protect sensitive content while still routing complex cases to the full cloud workflow.
 
@@ -103,7 +107,7 @@ from datetime import datetime
 
 class ImageSubmission(Base):
     __tablename__ = "image_submissions"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     source_channel: str = Column(String)  # 'whatsapp', 'extension', 'web'
     user_id: str = Column(String, index=True)
@@ -119,14 +123,14 @@ class ImageSubmission(Base):
     submitted_at: DateTime = Column(DateTime, default=datetime.utcnow, index=True)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
     updated_at: DateTime = Column(DateTime, onupdate=datetime.utcnow)
-    
+
     submissions_context = relationship("SubmissionContext", back_populates="image")
     analyses = relationship("MedGemmaAnalysis", back_populates="image")
 
 
 class SubmissionContext(Base):
     __tablename__ = "submission_contexts"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
     surrounding_text: str = Column(Text)
@@ -136,7 +140,7 @@ class SubmissionContext(Base):
     source_whatsapp_group: str = Column(String, nullable=True)
     language_code: str = Column(String, default="en")
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
-    
+
     image = relationship("ImageSubmission", back_populates="submissions_context")
 ```
 
@@ -173,12 +177,14 @@ async def handle_web_upload(
 ```
 
 ### Development Timeline
+
 - **Week 1:** WhatsApp and web API setup, basic validation
 - **Week 2:** Browser extension integration, image normalization
 - **Week 3:** IPFS integration
 - **Week 4:** Error handling and edge cases
 
 ### Success Criteria
+
 - Accept images from all 3 channels
 - Handle DICOM files correctly
 - <2 second ingestion latency
@@ -189,6 +195,7 @@ async def handle_web_upload(
 ## Module 2: MedGemma Analysis Module
 
 ### Purpose
+
 Use MedGemma 1.5 4B to understand medical images and their clinical context.
 
 ### Database Models
@@ -197,34 +204,34 @@ Use MedGemma 1.5 4B to understand medical images and their clinical context.
 # medgemma_analysis/models.py
 class MedGemmaAnalysis(Base):
     __tablename__ = "medgemma_analyses"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
-    
+
     # Image understanding
     modality: str = Column(String)
     anatomical_region: str = Column(String)
     key_findings: str = Column(Text)
     clinical_impression: str = Column(Text)
     findings_confidence: float = Column(Float)  # 0.0-1.0
-    
+
     # Image quality assessment
     image_quality_score: float = Column(Float)  # 0.0-1.0
     quality_issues: str = Column(Text, nullable=True)
-    
+
     # Context analysis
     claimed_condition_analyzed: bool = Column(Boolean, default=False)
     claimed_vs_actual_match: float = Column(Float, nullable=True)  # 0.0-1.0
     match_explanation: str = Column(Text, nullable=True)
     contextual_inconsistencies: str = Column(Text, nullable=True)
-    
+
     # Metadata
     model_version: str = Column(String)  # "medgemma-1.5-4b"
     inference_time_ms: int = Column(Integer)
     tokens_used: int = Column(Integer)
     analyzed_at: DateTime = Column(DateTime, default=datetime.utcnow, index=True)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
-    
+
     image = relationship("ImageSubmission", back_populates="analyses")
 ```
 
@@ -250,12 +257,14 @@ async def get_analysis(analysis_id: UUID, db: Session = Depends(get_db)):
 ```
 
 ### Development Timeline
+
 - **Week 1:** Local MedGemma setup via Hugging Face or Vertex AI
 - **Week 2:** Prompt engineering and structured output parsing
 - **Week 3:** Context matching analysis
 - **Week 4:** Error handling and optimization
 
 ### Success Criteria
+
 - Accurate modality/anatomy identification
 - Structured JSON output parsing
 - Context matching >85% accuracy
@@ -266,6 +275,7 @@ async def get_analysis(analysis_id: UUID, db: Session = Depends(get_db)):
 ## Module 3: Reverse Image Search Module
 
 ### Purpose
+
 Find all instances of a medical image across the web to build distribution patterns.
 
 ### Database Models
@@ -274,35 +284,35 @@ Find all instances of a medical image across the web to build distribution patte
 # reverse_search/models.py
 class ImageInstance(Base):
     __tablename__ = "image_instances"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     source_image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
-    
+
     # Instance details
     instance_url: str = Column(String, index=True)
     source_type: str = Column(String)  # 'web', 'whatsapp', 'forum', 'social_media'
     domain: str = Column(String, index=True)
-    
+
     # Image matching
     similarity_score: float = Column(Float)  # 0.0-1.0
     match_type: str = Column(String)  # 'exact', 'cropped', 'resized', 'modified'
     modification_detected: str = Column(Text, nullable=True)
-    
+
     # Instance context
     surrounding_text: str = Column(Text)
     claims_with_image: str = Column(Text)
     source_credibility: str = Column(String)  # 'high', 'medium', 'low', 'unknown'
-    
+
     # Timeline
     first_seen: DateTime = Column(DateTime, index=True)
     last_seen: DateTime = Column(DateTime)
     occurrence_count: int = Column(Integer, default=1)
-    
+
     # Metadata
     search_source: str = Column(String)  # 'tineye', 'google_vision', 'custom_crawler'
     discovered_at: DateTime = Column(DateTime, default=datetime.utcnow)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
-    
+
     source_image = relationship("ImageSubmission")
     semantic_cluster = relationship("SemanticCluster", back_populates="instances")
 ```
@@ -332,15 +342,17 @@ async def get_search_results(
 ```
 
 ### Development Timeline
+
 - **Week 1:** TinEye API integration
 - **Week 2:** Google Vision API, parallel execution
 - **Week 3:** WhatsApp crawler, context extraction
 - **Week 4:** Deduplication, credibility scoring
 
 ### Success Criteria
+
 - Find >50 instances per search
 - <15 second search time
-- >80% unique URL deduplication accuracy
+- > 80% unique URL deduplication accuracy
 - Proper domain credibility assessment
 
 ---
@@ -348,6 +360,7 @@ async def get_search_results(
 ## Module 4: Semantic Analysis Module
 
 ### Purpose
+
 Extract claims from each image instance, classify them, and group similar claims.
 
 ### Database Models
@@ -356,61 +369,61 @@ Extract claims from each image instance, classify them, and group similar claims
 # semantic_analysis/models.py
 class HealthClaim(Base):
     __tablename__ = "health_claims"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     image_instance_id: UUID = Column(UUID, ForeignKey("image_instances.id"))
-    
+
     # Claim content
     claim_text: str = Column(Text)
     claim_type: str = Column(String)  # 'vaccine', 'treatment', 'disease', etc.
     condition_mentioned: str = Column(String)
     action_implied: str = Column(String, nullable=True)
-    
+
     # Claim analysis
     medical_accuracy: float = Column(Float)  # 0.0-1.0
     accuracy_assessment: str = Column(Text)
     evidence_quality: str = Column(String)  # 'high', 'medium', 'low', 'none'
-    
+
     # Image-claim alignment
     image_finding_match: float = Column(Float)  # 0.0-1.0
     temporal_consistency: bool = Column(Boolean, nullable=True)
     geographic_plausibility: bool = Column(Boolean, nullable=True)
-    
+
     # Source context
     source_type: str = Column(String)  # 'educational', 'commercial', 'activist', etc.
     source_credibility_score: float = Column(Float)  # 0.0-1.0
-    
+
     # Metadata
     extracted_by: str = Column(String)  # 'medgemma', 'nlp_pipeline', 'manual'
     confidence: float = Column(Float)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
-    
+
     image_instance = relationship("ImageInstance")
     cluster = relationship("SemanticCluster", back_populates="claims")
 
 
 class SemanticCluster(Base):
     __tablename__ = "semantic_clusters"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     source_image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
-    
+
     # Cluster characterization
     cluster_name: str = Column(String)
     cluster_description: str = Column(Text)
     dominant_claim: str = Column(Text)
-    
+
     # Statistics
     instance_count: int = Column(Integer)
     claim_count: int = Column(Integer)
     average_accuracy_score: float = Column(Float)
     average_credibility_score: float = Column(Float)
-    
+
     # Temporal info
     first_appearance: DateTime = Column(DateTime)
     emergence_pattern: str = Column(String)  # 'sudden', 'gradual', 'cyclical'
     growth_rate: float = Column(Float)  # claims per week
-    
+
     claims = relationship("HealthClaim", back_populates="cluster")
     instances = relationship("ImageInstance", back_populates="semantic_cluster")
 ```
@@ -440,11 +453,13 @@ async def get_semantic_clusters(
 ```
 
 ### Development Timeline
+
 - **Week 2:** Claim extraction with regex + NLP
 - **Week 3:** MedGemma analysis, semantic clustering
 - **Week 4:** Clustering optimization
 
 ### Success Criteria
+
 - Extract 3-8 claims per image instance
 - Semantic clustering >0.80 coherence
 - Proper medical terminology handling
@@ -454,6 +469,7 @@ async def get_semantic_clusters(
 ## Module 5: Provenance & Blockchain Module
 
 ### Purpose
+
 Build provenance chains showing image genealogy and detect consensus patterns over time, acting as a clinical audit trail with a tamper-proof history trusted by health authorities.
 
 ### Database Models
@@ -462,85 +478,85 @@ Build provenance chains showing image genealogy and detect consensus patterns ov
 # provenance/models.py
 class ProvenanceChain(Base):
     __tablename__ = "provenance_chains"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     source_image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
-    
+
     # Chain characterization
     root_source: str = Column(String, nullable=True)
     root_source_type: str = Column(String, nullable=True)
     root_date: DateTime = Column(DateTime, nullable=True)
-    
+
     # Consensus tracking
     dominant_consensus: str = Column(String)
     consensus_confidence: float = Column(Float)  # 0.0-1.0
     consensus_stability: str = Column(String)  # 'stable', 'emerging', 'shifting', 'disputed'
-    
+
     # Divergence tracking
     has_divergent_uses: bool = Column(Boolean, default=False)
     divergent_cluster_count: int = Column(Integer, default=0)
     largest_divergence_size: int = Column(Integer, default=0)
-    
+
     # Genealogy
     total_observations: int = Column(Integer, default=0)
     unique_instances: int = Column(Integer, default=0)
     time_span_days: int = Column(Integer, nullable=True)
     growth_rate: float = Column(Float, nullable=True)
-    
+
     last_updated: DateTime = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
-    
+
     source_image = relationship("ImageSubmission")
     blocks = relationship("ProvenanceBlock", back_populates="chain")
 
 
 class ProvenanceBlock(Base):
     __tablename__ = "provenance_blocks"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     chain_id: UUID = Column(UUID, ForeignKey("provenance_chains.id"))
-    
+
     # Block sequence
     block_number: int = Column(Integer)
     previous_block_hash: str = Column(String, nullable=True)
-    
+
     # Block content
     observation_type: str = Column(String)  # 'image_submission', 'instance_found', 'claim_added'
     observation_data: str = Column(Text)  # JSON
-    
+
     # Cluster state
     consensus_at_block: str = Column(String)
     cluster_count_at_block: int = Column(Integer)
     instance_count_at_block: int = Column(Integer)
-    
+
     # Metadata
     block_hash: str = Column(String, unique=True)  # SHA256
     timestamp: DateTime = Column(DateTime, default=datetime.utcnow)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
-    
+
     chain = relationship("ProvenanceChain", back_populates="blocks")
 
 
 class ConsensusPattern(Base):
     __tablename__ = "consensus_patterns"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     provenance_chain_id: UUID = Column(UUID, ForeignKey("provenance_chains.id"))
-    
+
     # Pattern data
     pattern_snapshot_date: DateTime = Column(DateTime)
-    
+
     # Distribution percentages
     educational_percentage: float = Column(Float)  # 0-100
     unclear_percentage: float = Column(Float)
     misinformation_percentage: float = Column(Float)
     other_percentage: float = Column(Float)
-    
+
     # Top cluster
     top_cluster_id: UUID = Column(UUID, ForeignKey("semantic_clusters.id"), nullable=True)
     top_cluster_name: str = Column(String)
     top_cluster_percentage: float = Column(Float)
-    
+
     instances_sampled: int = Column(Integer)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
 ```
@@ -578,11 +594,13 @@ async def get_genealogical_tree(
 ```
 
 ### Development Timeline
+
 - **Week 3:** PostgreSQL models for chains, blocks
 - **Week 4:** Blockchain hashing, chain building
 - **Week 5:** Genealogical timeline generation
 
 ### Success Criteria
+
 - Blockchain integrity verification 100%
 - Timeline generation <500ms
 - Proper parent-child linking
@@ -593,6 +611,7 @@ async def get_genealogical_tree(
 ## Module 6: Consensus Visualization Module
 
 ### Purpose
+
 Generate visualizations showing image usage distribution and consensus patterns.
 
 ### Database Models
@@ -601,24 +620,24 @@ Generate visualizations showing image usage distribution and consensus patterns.
 # visualization/models.py
 class VisualizationData(Base):
     __tablename__ = "visualization_data"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
-    
+
     # Distribution data
     distribution_data: str = Column(Text)  # JSON with percentages
     timeline_data: str = Column(Text)  # JSON with temporal data
     cluster_sizes: str = Column(Text)  # JSON with cluster metadata
-    
+
     # Confidence metrics
     overall_confidence_score: float = Column(Float)  # 0.0-1.0
     confidence_by_use: str = Column(Text)  # JSON breakdown
-    
+
     # Visualization metadata
     generated_at: DateTime = Column(DateTime, default=datetime.utcnow)
     data_freshness: int = Column(Integer)  # hours since last update
     sample_size: int = Column(Integer)  # number of instances analyzed
-    
+
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
     updated_at: DateTime = Column(DateTime, onupdate=datetime.utcnow)
 ```
@@ -722,11 +741,13 @@ async def get_confidence_metrics(
 ```
 
 ### Development Timeline
+
 - **Week 4:** Distribution chart generation
 - **Week 5:** Timeline creation, confidence calculation
 - **Week 6:** UI integration, testing
 
 ### Success Criteria
+
 - Accurate percentage calculations
 - <300ms chart generation time
 - Clear visual differentiation between use types
@@ -737,24 +758,98 @@ async def get_confidence_metrics(
 ## Module 7: Agentic Orchestrator & Decision Support Module
 
 ### Purpose
+
 Coordinate agentic tool use and produce contextual integrity assessments and recommendations for healthcare providers and the public.
 
 ### Agentic Orchestration Logic
-MedGemma acts as a clinical investigator that dynamically selects tools based on the image context and its own findings. The current implementation is captured in:
 
-- `src/app/orchestrator/agent.py` for a deterministic flow
-- `src/app/orchestrator/langgraph_agent.py` for a LangGraph-based agentic workflow
+MedGemma acts as a clinical investigator that dynamically selects tools based on the image context and its own findings. This pre-development spec describes intended behavior only (no file-level implementation references). The planned implementation includes:
+
+- Deterministic orchestration for predictable, auditable flows
+- Agentic workflows (e.g., graph-based routing) for adaptive tool selection
 
 The flow emphasizes self-correction: anomalous clinical findings trigger deeper forensics and reverse search before synthesis.
 
 ### Contextual Integrity Metric
+
 Define a MedContext Integrity Score as a weighted average of:
 
 - **Plausibility** (MedGemma)
 - **Genealogy Consistency** (provenance/blockchain)
 - **Source Reputation** (reverse search)
 
-Reference implementation: `src/app/metrics/integrity.py`.
+**Calculation formula (default):**
+
+- `Integrity Score = (w1 × Plausibility) + (w2 × Genealogy_Consistency) + (w3 × Source_Reputation)`
+- Default weights: `w1=0.5`, `w2=0.3`, `w3=0.2` (configurable per deployment or risk profile).
+
+**Score definitions (all normalized to 0.0-1.0):**
+
+- **Plausibility (P):** Computed from MedGemma outputs by combining normalized plausibility/confidence signals.
+  - Inputs: MedGemma finding confidence `F` (0-1), contradiction score `C` (0-1; higher = more contradictions), optional model self-rated plausibility `MP` (0-1).
+  - Normalization: clamp each input to [0, 1]; if `MP` is unavailable, renormalize weights.
+  - Aggregation (default): `P = (0.60 * F) + (0.40 * (1 - C))`, or `P = (0.50 * F) + (0.30 * (1 - C)) + (0.20 * MP)` when `MP` is available.
+- **Genealogy Consistency (G):** Derived from provenance chains and tamper signals.
+  - Inputs: percentage of uninterrupted provenance hops `PH` (0-1), tamper flag rate `TF` (0-1; higher = worse), chronological consistency `CH` (0-1).
+  - Normalization: clamp to [0, 1]; map tamper rate to positive contribution via `(1 - TF)`.
+  - Aggregation (default): `G = (0.50 * PH) + (0.30 * CH) + (0.20 * (1 - TF))`.
+- **Source Reputation (S):** Maps to the existing `source_credibility_score` unless a separate reputation model is configured.
+  - Default mapping: `S = source_credibility_score`.
+  - Optional separate computation: domain reputation `DR` (0-1), citation quality `CQ` (0-1), misinformation history `MH` (0-1; higher = worse).
+  - Aggregation (default if separate): `S = (0.50 * DR) + (0.30 * CQ) + (0.20 * (1 - MH))`.
+
+**Relationship to Decision Support Engine metrics:**
+
+- Integrity Score combines **plausibility + genealogy + reputation** into a single composite risk signal.
+- Decision Support Engine metrics (authenticity, accuracy, credibility) remain **component-level diagnostics**:
+  - **Authenticity** overlaps most with genealogy consistency but is reported separately for forensic transparency.
+  - **Accuracy** aligns with plausibility but remains a standalone evidence trail from MedGemma outputs.
+  - **Credibility** aligns with source reputation; Integrity Score uses it as an input rather than replacing it.
+
+**Calculation steps (placeholder if signals missing):**
+
+- Clamp each input metric to [0, 1] before weighting.
+- If a sub-signal is unavailable, renormalize that component's sub-weights across available inputs.
+
+**Missing data handling:**
+
+- If a component is unavailable, renormalize weights across available components.
+- If fewer than two components are available, cap Integrity Score at 0.60 and mark assessment as "incomplete evidence."
+
+**Interpretation bands and actions:**
+
+- **> 0.80 (High):** UI label "High Integrity"; default action "Proceed" or "Low Risk".
+- **0.50–0.80 (Medium):** UI label "Moderate Integrity"; action "Review Evidence".
+- **< 0.50 (Low):** UI label "Low Integrity"; action "Escalate" or "Flag for Expert Review".
+
+**Consensus Scoring Architecture (crosswalk):**
+
+The consensus scoring framework aligns with the Integrity Score by treating each layer as a normalized 0-1 component and aggregating with configurable weights.
+
+- **Layer 1: Medical Consensus** → maps to **Plausibility (P)**.
+  - Inputs: MedGemma analysis, anatomical verification, pathology consistency, medical plausibility.
+  - Output: normalized medical consensus score `MC` (0-1).
+- **Layer 2: Contextual Consensus** → contributes to **Genealogy Consistency (G)**.
+  - Inputs: claim type distribution, semantic clustering, platform analysis, geo/linguistic patterns.
+  - Output: normalized contextual continuity score `CCx` (0-1).
+- **Layer 3: Misinformation Consensus** → maps to **Source Reputation (S)** and credibility risk.
+  - Inputs: fact-check alignment, expert verdicts, claim family prevalence, risk severity.
+  - Output: normalized misinformation risk score `MR` (0-1), inverted when used as reputation.
+- **Layer 4: Temporal Consensus** → contributes to **Genealogy Consistency (G)**.
+  - Inputs: usage evolution, narrative emergence timeline, geographic spread, trend stability.
+  - Output: normalized temporal continuity score `TC` (0-1).
+
+**Normalization note:** Each layer score is clamped to 0–1 before weighting; risk-aligned layers (e.g., misinformation) are inverted when used as reputation.
+
+**Ensemble consensus score (default weights):**
+
+- `ConsensusScore = (0.40 * MC) + (0.30 * CCx) + (0.20 * (1 - MR)) + (0.10 * TC)`
+- Weights are configurable and should be aligned with Integrity Score weights in deployment settings.
+
+**Relationship to Integrity Score:**
+
+- Integrity Score remains the primary composite (P + G + S) for decision support and UI labeling.
+- ConsensusScore is a supporting diagnostic that explains **why** integrity is high/medium/low based on usage patterns and misinformation dynamics.
 
 ### Database Models
 
@@ -762,31 +857,31 @@ Reference implementation: `src/app/metrics/integrity.py`.
 # decision_support/models.py
 class ContextualIntegrityAssessment(Base):
     __tablename__ = "contextual_integrity_assessments"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
-    
+
     # Assessment components
     image_authenticity_score: float = Column(Float)  # 0.0-1.0
     image_authenticity_reasoning: str = Column(Text)
-    
+
     claim_accuracy_score: float = Column(Float)  # 0.0-1.0
     claim_accuracy_reasoning: str = Column(Text)
-    
+
     source_credibility_score: float = Column(Float)  # 0.0-1.0
     source_credibility_reasoning: str = Column(Text)
-    
+
     consensus_assessment: str = Column(String)  # 'strong_educational', 'mixed', 'predominantly_inaccurate'
-    
+
     # Risk stratification
     risk_level: str = Column(String)  # 'low', 'medium', 'high', 'critical'
     risk_justification: str = Column(Text)
-    
+
     # Recommendations
     primary_recommendation: str = Column(String)
     recommendation_details: str = Column(Text)
     target_audience: str = Column(String)  # 'clinician', 'public', 'researcher', 'journalist'
-    
+
     # Metadata
     assessment_date: DateTime = Column(DateTime, default=datetime.utcnow)
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
@@ -794,29 +889,29 @@ class ContextualIntegrityAssessment(Base):
 
 class DecisionSupportOutput(Base):
     __tablename__ = "decision_support_outputs"
-    
+
     id: UUID = Column(UUID, primary_key=True)
     assessment_id: UUID = Column(UUID, ForeignKey("contextual_integrity_assessments.id"))
     image_id: UUID = Column(UUID, ForeignKey("image_submissions.id"))
-    
+
     # User-facing summary
     summary_for_clinician: str = Column(Text)
     summary_for_public: str = Column(Text)
     summary_for_researcher: str = Column(Text)
     summary_for_journalist: str = Column(Text)
-    
+
     # Key findings to highlight
     key_findings: str = Column(Text)  # JSON array
-    
+
     # Related resources
     related_resources: str = Column(Text)  # JSON array with links
-    
+
     # Actionable guidance
     clinical_guidance: str = Column(Text, nullable=True)
     public_health_message: str = Column(Text, nullable=True)
     research_implications: str = Column(Text, nullable=True)
     media_guidance: str = Column(Text, nullable=True)
-    
+
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
 ```
 
@@ -826,10 +921,10 @@ class DecisionSupportOutput(Base):
 # decision_support/assessment.py
 class DecisionSupportEngine:
     """Generates contextual integrity assessments and recommendations"""
-    
+
     def __init__(self, db: Session):
         self.db = db
-    
+
     def assess_image(self, image_id: UUID) -> ContextualIntegrityAssessment:
         """
         Comprehensive assessment combining all modules:
@@ -839,7 +934,7 @@ class DecisionSupportEngine:
         4. Consensus (provenance analysis)
         """
         image = self.db.query(ImageSubmission).filter_by(id=image_id).first()
-        
+
         # Get all data from previous modules
         medgemma = self.db.query(MedGemmaAnalysis).filter_by(image_id=image_id).first()
         instances = self.db.query(ImageInstance).filter_by(source_image_id=image_id).all()
@@ -847,19 +942,19 @@ class DecisionSupportEngine:
         consensus = self.db.query(ConsensusPattern).join(
             ProvenanceChain
         ).filter(ProvenanceChain.source_image_id == image_id).first()
-        
+
         # 1. Image Authenticity Assessment
         authenticity_score = self._assess_authenticity(medgemma, instances)
-        
+
         # 2. Claim Accuracy Assessment
         claim_accuracy = self._assess_claim_accuracy(claims)
-        
+
         # 3. Source Credibility Assessment
         source_credibility = self._assess_source_credibility(instances)
-        
+
         # 4. Consensus Assessment
         consensus_assessment = self._assess_consensus(consensus, instances)
-        
+
         # 5. Risk Stratification
         risk_level = self._stratify_risk(
             authenticity_score,
@@ -867,7 +962,7 @@ class DecisionSupportEngine:
             source_credibility,
             consensus_assessment
         )
-        
+
         # 6. Generate Recommendations
         recommendations = self._generate_recommendations(
             risk_level,
@@ -875,7 +970,7 @@ class DecisionSupportEngine:
             claim_accuracy,
             consensus_assessment
         )
-        
+
         # Create and persist assessment
         assessment = ContextualIntegrityAssessment(
             image_id=image_id,
@@ -888,12 +983,12 @@ class DecisionSupportEngine:
             recommendation_details=recommendations['details'],
             target_audience='general'
         )
-        
+
         self.db.add(assessment)
         self.db.commit()
-        
+
         return assessment
-    
+
     def _assess_authenticity(self, medgemma: MedGemmaAnalysis, instances: List[ImageInstance]) -> float:
         """
         Score image authenticity based on:
@@ -903,24 +998,24 @@ class DecisionSupportEngine:
         """
         if not medgemma:
             return 0.5  # Unknown
-        
+
         quality_component = medgemma.image_quality_score  # 0.0-1.0
         consistency_component = self._assess_instance_consistency(instances)
-        
+
         authenticity = (quality_component * 0.6) + (consistency_component * 0.4)
         return min(1.0, max(0.0, authenticity))
-    
+
     def _assess_claim_accuracy(self, claims: List[HealthClaim]) -> float:
         """Average accuracy of all claims associated with image"""
         if not claims:
             return 0.5  # Unknown
-        
+
         accuracies = [c.medical_accuracy for c in claims if c.medical_accuracy]
         if not accuracies:
             return 0.5
-        
+
         return sum(accuracies) / len(accuracies)
-    
+
     def _assess_source_credibility(self, instances: List[ImageInstance]) -> float:
         """
         Aggregate source credibility based on:
@@ -930,7 +1025,7 @@ class DecisionSupportEngine:
         """
         if not instances:
             return 0.5
-        
+
         credibility_scores = []
         for instance in instances:
             if instance.source_credibility == 'high':
@@ -941,9 +1036,9 @@ class DecisionSupportEngine:
                 credibility_scores.append(0.3)
             else:
                 credibility_scores.append(0.5)
-        
+
         return sum(credibility_scores) / len(credibility_scores)
-    
+
     def _assess_consensus(self, consensus: ConsensusPattern, instances: List[ImageInstance]) -> str:
         """
         Categorize consensus type:
@@ -953,14 +1048,14 @@ class DecisionSupportEngine:
         """
         if not consensus:
             return 'unknown'
-        
+
         if consensus.educational_percentage > 70 and consensus.misinformation_percentage < 10:
             return 'strong_educational'
         elif consensus.misinformation_percentage > 60:
             return 'predominantly_inaccurate'
         else:
             return 'mixed'
-    
+
     def _stratify_risk(
         self,
         authenticity: float,
@@ -976,16 +1071,16 @@ class DecisionSupportEngine:
         - critical: deepfakes OR dangerous claims + low credibility
         """
         risk_score = 0.0
-        
+
         # Authenticity component (0.3 weight)
         risk_score += (1.0 - authenticity) * 0.3
-        
+
         # Accuracy component (0.3 weight)
         risk_score += (1.0 - claim_accuracy) * 0.3
-        
+
         # Source credibility component (0.2 weight)
         risk_score += (1.0 - source_credibility) * 0.2
-        
+
         # Consensus component (0.2 weight)
         if consensus == 'strong_educational':
             risk_score += 0.0 * 0.2
@@ -993,7 +1088,7 @@ class DecisionSupportEngine:
             risk_score += 0.5 * 0.2
         else:  # predominantly_inaccurate
             risk_score += 1.0 * 0.2
-        
+
         # Map score to risk level
         if risk_score < 0.2:
             return 'low'
@@ -1003,7 +1098,7 @@ class DecisionSupportEngine:
             return 'high'
         else:
             return 'critical'
-    
+
     def _generate_recommendations(
         self,
         risk_level: str,
@@ -1012,7 +1107,7 @@ class DecisionSupportEngine:
         consensus: str
     ) -> Dict[str, str]:
         """Generate context-specific recommendations"""
-        
+
         recommendations = {
             'primary': '',
             'details': '',
@@ -1021,7 +1116,7 @@ class DecisionSupportEngine:
             'researcher': '',
             'journalist': ''
         }
-        
+
         # Base recommendation on risk level
         if risk_level == 'low':
             recommendations['primary'] = 'Safe for clinical and educational use'
@@ -1029,41 +1124,41 @@ class DecisionSupportEngine:
                 'This image has high authenticity, accurate associated claims, '
                 'and strong educational consensus. Can be confidently used in teaching materials.'
             )
-        
+
         elif risk_level == 'medium':
             recommendations['primary'] = 'Use with caution and context'
             recommendations['details'] = (
                 'This image shows mixed usage patterns. While authenticity is acceptable, '
                 'verify specific claims before clinical use.'
             )
-        
+
         elif risk_level == 'high':
             recommendations['primary'] = 'Significant caution advised'
             recommendations['details'] = (
                 'This image is associated with substantial inaccuracies or low credibility sources. '
                 'Verify through authoritative sources before any use.'
             )
-        
+
         else:  # critical
             recommendations['primary'] = 'Do not use'
             recommendations['details'] = (
                 'This image is associated with significant risks including possible '
                 'authenticity issues or dangerous medical misinformation.'
             )
-        
+
         return recommendations
-    
+
     def _assess_instance_consistency(self, instances: List[ImageInstance]) -> float:
         """How consistently is image used across instances?"""
         if len(instances) < 2:
             return 0.5  # Can't assess consistency with single instance
-        
+
         # Check if all instances show similar claims/context
         claims_set = set()
         for instance in instances:
             if instance.claims_with_image:
                 claims_set.add(instance.claims_with_image)
-        
+
         # High consistency = low variance in claims
         if len(claims_set) < len(instances) * 0.3:  # <30% variance
             return 0.9
@@ -1088,7 +1183,7 @@ async def assess_image(
     """Generate contextual integrity assessment"""
     engine = DecisionSupportEngine(db)
     assessment = engine.assess_image(image_id)
-    
+
     return AssessmentResponse(
         assessment_id=assessment.id,
         risk_level=assessment.risk_level,
@@ -1186,11 +1281,13 @@ async def get_executive_summary(
 ```
 
 ### Development Timeline
+
 - **Week 5:** Core assessment logic
 - **Week 6:** Recommendation generation, audience personalization
 - **Post-launch:** Refinement based on user feedback
 
 ### Success Criteria
+
 - Risk stratification >90% accuracy
 - Recommendations appropriate for target audience
 - <1 second assessment generation time
@@ -1206,10 +1303,10 @@ async def get_executive_summary(
 # tests/e2e_test.py
 class TestMedContextEndToEnd:
     """Integration tests across all modules"""
-    
+
     def test_complete_pipeline(self, client: TestClient, db: Session):
         """Test complete image processing pipeline"""
-        
+
         # 1. Submit image via web
         image_response = client.post(
             "/api/v1/ingest/web",
@@ -1218,38 +1315,38 @@ class TestMedContextEndToEnd:
         )
         image_id = image_response.json()["image_id"]
         assert image_response.status_code == 200
-        
+
         # 2. Verify image stored
         image = db.query(ImageSubmission).filter_by(id=image_id).first()
         assert image is not None
         assert image.source_channel == "web"
-        
+
         # 3. Run MedGemma analysis (background task)
         time.sleep(5)  # Wait for background task
         analysis = db.query(MedGemmaAnalysis).filter_by(image_id=image_id).first()
         assert analysis is not None
         assert analysis.modality is not None
-        
+
         # 4. Run reverse image search (background task)
         time.sleep(10)
         instances = db.query(ImageInstance).filter_by(source_image_id=image_id).all()
         assert len(instances) > 0
-        
+
         # 5. Semantic analysis (background task)
         time.sleep(5)
         clusters = db.query(SemanticCluster).filter_by(source_image_id=image_id).all()
         assert len(clusters) > 0
-        
+
         # 6. Build provenance (background task)
         time.sleep(5)
         chain = db.query(ProvenanceChain).filter_by(source_image_id=image_id).first()
         assert chain is not None
-        
+
         # 7. Get visualization
         viz_response = client.get(f"/api/v1/visualization/distribution/{image_id}")
         assert viz_response.status_code == 200
         assert "distribution" in viz_response.json()
-        
+
         # 8. Get decision support assessment
         assessment_response = client.post(f"/api/v1/decision-support/assess/{image_id}")
         assert assessment_response.status_code == 200
@@ -1262,28 +1359,28 @@ class TestMedContextEndToEnd:
 # tests/performance_test.py
 class TestPerformance:
     """Performance benchmarking"""
-    
+
     def test_image_ingestion_latency(self):
         """<2 second ingestion"""
         start = time.time()
         # Submit image
         duration = time.time() - start
         assert duration < 2.0
-    
+
     def test_medgemma_inference_time(self):
         """<10 seconds per image"""
         start = time.time()
         # Run analysis
         duration = time.time() - start
         assert duration < 10.0
-    
+
     def test_reverse_search_time(self):
         """<15 seconds for parallel searches"""
         start = time.time()
         # Run all searches
         duration = time.time() - start
         assert duration < 15.0
-    
+
     def test_visualization_generation(self):
         """<300ms for chart generation"""
         start = time.time()
@@ -1300,7 +1397,7 @@ class TestPerformance:
 
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 services:
   postgres:
     image: postgres:15
@@ -1323,7 +1420,7 @@ services:
       HUGGINGFACE_TOKEN: ${HF_TOKEN}
     ports:
       - "8001:8000"
-    gpus: all  # Requires GPU
+    gpus: all # Requires GPU
 
   api:
     build: .
@@ -1374,14 +1471,14 @@ ANALYZE;
 
 ### Potential Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| API rate limiting from TinEye/Google | Search delays | Queue system, caching, fallback to local database |
-| MedGemma hallucinations | False claims | Post-processing validation, human review for critical analyses |
-| False positives in misinformation detection | User distrust | Conservative confidence thresholds, transparent scoring |
-| Privacy concerns (WhatsApp data) | Legal/ethical | Explicit consent, data minimization, anonymization |
-| IPFS availability | Data loss | Redundant pinning, backup storage layer |
-| Malicious image submissions | System abuse | File type validation, size limits, rate limiting |
+| Risk                                        | Impact        | Mitigation                                                     |
+| ------------------------------------------- | ------------- | -------------------------------------------------------------- |
+| API rate limiting from TinEye/Google        | Search delays | Queue system, caching, fallback to local database              |
+| MedGemma hallucinations                     | False claims  | Post-processing validation, human review for critical analyses |
+| False positives in misinformation detection | User distrust | Conservative confidence thresholds, transparent scoring        |
+| Privacy concerns (WhatsApp data)            | Legal/ethical | Explicit consent, data minimization, anonymization             |
+| IPFS availability                           | Data loss     | Redundant pinning, backup storage layer                        |
+| Malicious image submissions                 | System abuse  | File type validation, size limits, rate limiting               |
 
 ### Data Security
 
@@ -1391,14 +1488,14 @@ from cryptography.fernet import Fernet
 
 class ImageEncryption:
     """Encrypt sensitive medical images at rest"""
-    
+
     def __init__(self, key: str):
         self.cipher = Fernet(key)
-    
+
     def encrypt_image(self, image_bytes: bytes) -> bytes:
         """Encrypt image before storage"""
         return self.cipher.encrypt(image_bytes)
-    
+
     def decrypt_image(self, encrypted_bytes: bytes) -> bytes:
         """Decrypt image when needed"""
         return self.cipher.decrypt(encrypted_bytes)
@@ -1411,21 +1508,25 @@ class ImageEncryption:
 ### 7-Week Post-Launch Plan
 
 **Week 7-8: Deepfake Detection Module**
+
 - Integrate forensic analysis tools
 - Train classifier on authentic vs. manipulated medical images
 - Real-time detection on ingestion
 
 **Week 9-10: Neo4j Graph Database**
+
 - Migrate provenance chains to Neo4j
 - Enable complex graph queries
 - Implement temporal reasoning
 
 **Week 11-12: Mobile Application**
+
 - Native iOS/Android apps
 - Offline image upload capability
 - Push notifications for claims analysis
 
 **Week 13-14: Public API & Integrations**
+
 - Rate-limited API for researchers
 - Integration with fact-checking platforms
 - Feed to health authorities
@@ -1435,18 +1536,21 @@ class ImageEncryption:
 ## Key Success Metrics
 
 ### Functional Metrics
+
 - Image processing latency <5 seconds end-to-end
 - Reverse search coverage >80% of web instances
 - Semantic clustering coherence >0.80
 - Risk stratification accuracy >90%
 
 ### Operational Metrics
+
 - System uptime >99.5%
 - API response time p95 <500ms
 - Database query p95 <100ms
 - Background job success rate >99%
 
 ### Impact Metrics
+
 - User trust score (survey-based)
 - Reduction in spread of flagged misinformation
 - Adoption by healthcare professionals
@@ -1458,9 +1562,9 @@ class ImageEncryption:
 
 ```
 ImageSubmission (1) ─── (N) SubmissionContext
-         │                    
+         │
          ├─── (N) MedGemmaAnalysis
-         │                    
+         │
          ├─── (N) ImageInstance ─── (N) HealthClaim ─┐
          │           │                                │
          │           └─── (1) SemanticCluster ────────┘
@@ -1569,6 +1673,7 @@ SENTRY_DSN=xxx
 ## Appendix E: Implementation Checklist
 
 ### Phase 1: Foundation (Weeks 1-2)
+
 - [ ] PostgreSQL schema creation
 - [ ] WhatsApp API integration
 - [ ] Web form interface
@@ -1576,6 +1681,7 @@ SENTRY_DSN=xxx
 - [ ] Unit tests for ingestion
 
 ### Phase 2: Analysis (Weeks 2-4)
+
 - [ ] MedGemma integration
 - [ ] TinEye + Google Vision
 - [ ] Semantic analysis pipeline
@@ -1583,6 +1689,7 @@ SENTRY_DSN=xxx
 - [ ] Performance optimization
 
 ### Phase 3: Intelligence (Weeks 4-6)
+
 - [ ] Provenance blockchain
 - [ ] Visualization API
 - [ ] Decision support engine
@@ -1590,6 +1697,7 @@ SENTRY_DSN=xxx
 - [ ] Documentation
 
 ### Phase 4: Hardening (Post-Launch)
+
 - [ ] Security audit
 - [ ] Load testing
 - [ ] User feedback integration
@@ -1600,16 +1708,16 @@ SENTRY_DSN=xxx
 
 ## Appendix F: Cost Estimation
 
-| Component | Cost/Month | Notes |
-|-----------|-----------|-------|
-| Cloud Infrastructure | $500-1,500 | GPU for MedGemma, storage |
-| TinEye API | $100-500 | Based on searches |
-| Google Vision API | $50-200 | Based on requests |
-| WhatsApp Business API | Free-100 | Volume-based pricing |
-| PostgreSQL Database | $100-300 | Managed service |
-| IPFS Hosting | 50-200 | Redundant pinning |
-| Monitoring/Logging | 50-100 | Sentry, DataDog |
-| **Total Estimated** | **$850-2,900/month** | Scales with usage |
+| Component             | Cost/Month           | Notes                     |
+| --------------------- | -------------------- | ------------------------- |
+| Cloud Infrastructure  | $500-1,500           | GPU for MedGemma, storage |
+| TinEye API            | $100-500             | Based on searches         |
+| Google Vision API     | $50-200              | Based on requests         |
+| WhatsApp Business API | Free-100             | Volume-based pricing      |
+| PostgreSQL Database   | $100-300             | Managed service           |
+| IPFS Hosting          | 50-200               | Redundant pinning         |
+| Monitoring/Logging    | 50-100               | Sentry, DataDog           |
+| **Total Estimated**   | **$850-2,900/month** | Scales with usage         |
 
 ---
 
@@ -1618,6 +1726,7 @@ SENTRY_DSN=xxx
 MedContext provides a comprehensive, modular architecture for medical image misinformation detection. The phased 6-week development approach prioritizes functional capability and operational reliability over feature breadth.
 
 Key design decisions:
+
 - **PostgreSQL-first**: Simpler, faster development than Neo4j from start
 - **Asynchronous processing**: Long-running tasks don't block user interactions
 - **Modular architecture**: Each component can be tested, deployed, and scaled independently
@@ -1630,4 +1739,4 @@ The system is production-ready for launch with defined success criteria, compreh
 
 **Document Version:** 1.0  
 **Last Updated:** January 14, 2026  
-**Status:** Ready for Development Kickoff
+**Status:** Complete Pre-Development Planning

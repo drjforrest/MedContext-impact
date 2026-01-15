@@ -1,14 +1,14 @@
 # MedContext
 
-MedContext is a modular system to verify medical image context and detect misinformation. The docs in `docs/` define the MVP architecture; this repo now includes a minimal FastAPI skeleton that mirrors those modules so you can start wiring real logic in small, testable pieces.
+There are few places more terrifying for the emergence of deepfakes than in medical imaging. MedContext is a modular system to verify medical image context and detect misinformation. The docs in `docs/` define the MVP architecture; this repo now includes a minimal FastAPI skeleton that mirrors those modules so you can start wiring real logic in small, testable pieces.
 
 ## Quick Start
 
-1. Create a virtual environment (optional but recommended).
+1. Create a virtual environment with uv (optional but recommended).
 2. Install dependencies:
-   - `pip install -r requirements.txt`
+   - `uv venv && uv run pip install -r requirements.txt`
 3. Run the API:
-   - `uvicorn app.main:app --reload --app-dir src`
+   - `uv run uvicorn app.main:app --reload --app-dir src`
 
 The API exposes placeholder endpoints for each module under `/api/v1/*`. These are safe stubs intended for incremental implementation.
 

@@ -2,8 +2,12 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Query
 
+from app.consensus.service import calculate_consensus
+from app.decision_support.service import build_decision_support
 from app.metrics.integrity import IntegrityWeights, compute_integrity_score
 from app.schemas.common import IntegrityScoreResponse, IntegrityWeightsResponse, JobResponse
+from app.schemas.consensus import ConsensusRequest, ConsensusResponse
+from app.schemas.decision_support import DecisionSupportRequest, DecisionSupportResponse
 
 router = APIRouter()
 
@@ -29,6 +33,20 @@ async def get_executive_summary(image_id: UUID) -> JobResponse:
     return JobResponse(
         job_id=uuid4(), status="completed", detail=f"summary ready for {image_id}"
     )
+
+
+@router.post("/consensus", response_model=ConsensusResponse)
+async def calculate_consensus_endpoint(
+    payload: ConsensusRequest,
+) -> ConsensusResponse:
+    return calculate_consensus(payload)
+
+
+@router.post("/audience-output", response_model=DecisionSupportResponse)
+async def decision_support_output(
+    payload: DecisionSupportRequest,
+) -> DecisionSupportResponse:
+    return build_decision_support(payload)
 
 
 @router.get("/integrity-score", response_model=IntegrityScoreResponse)

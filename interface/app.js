@@ -3,7 +3,14 @@ const traceTableBody = document.querySelector("#traceTable tbody");
 const traceSummary = document.getElementById("traceSummary");
 const graphContainer = document.getElementById("graphContainer");
 const integrityOutput = document.getElementById("integrityOutput");
+const claimExtractionOutput = document.getElementById("claimExtractionOutput");
+const claimClusterOutput = document.getElementById("claimClusterOutput");
+const consensusOutput = document.getElementById("consensusOutput");
+const decisionSupportOutput = document.getElementById("decisionSupportOutput");
 let lastTracePayload = null;
+let lastClaims = null;
+let lastConsensus = null;
+let lastIntegrityScore = null;
 
 function getApiBase() {
   return document.getElementById("apiBase").value.trim().replace(/\/$/, "");
@@ -28,6 +35,22 @@ function setOutput(data) {
 
 function setIntegrityOutput(data) {
   integrityOutput.textContent = JSON.stringify(data, null, 2);
+}
+
+function setClaimOutput(data) {
+  claimExtractionOutput.textContent = JSON.stringify(data, null, 2);
+}
+
+function setClusterOutput(data) {
+  claimClusterOutput.textContent = JSON.stringify(data, null, 2);
+}
+
+function setConsensusOutput(data) {
+  consensusOutput.textContent = JSON.stringify(data, null, 2);
+}
+
+function setDecisionSupportOutput(data) {
+  decisionSupportOutput.textContent = JSON.stringify(data, null, 2);
 }
 
 function clearTrace() {
@@ -118,6 +141,19 @@ async function postMultipart(path, includeContext = false) {
   return response.json();
 }
 
+async function postJson(path, payload) {
+  const apiBase = getApiBase();
+  const response = await fetch(`${apiBase}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+  return response.json();
+}
+
 async function fetchGraph() {
   const apiBase = getApiBase();
   const response = await fetch(`${apiBase}/api/v1/orchestrator/graph`);
@@ -131,12 +167,59 @@ async function fetchGraph() {
 }
 
 function getNumberInput(id) {
-  const value = document.getElementById(id).value.trim();
+  const el = document.getElementById(id);
+  if (!el) {
+    return null;
+  }
+  const value = el.value.trim();
   if (!value) {
     return null;
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function updateIntegrityVisuals(data) {
+  if (!data || typeof data.score !== "number") {
+    return;
+  }
+  lastIntegrityScore = data.score;
+  const scoreValue = document.getElementById("integrityScoreValue");
+  const scoreLabel = document.getElementById("integrityScoreLabel");
+  const gaugeFill = document.getElementById("integrityGaugeFill");
+  const barPlausibility = document.getElementById("barPlausibility");
+  const barGenealogy = document.getElementById("barGenealogy");
+  const barSource = document.getElementById("barSource");
+  const valuePlausibility = document.getElementById("valuePlausibility");
+  const valueGenealogy = document.getElementById("valueGenealogy");
+  const valueSource = document.getElementById("valueSource");
+
+  const scorePercent = Math.max(0, Math.min(1, data.score)) * 100;
+  scoreValue.textContent = data.score.toFixed(2);
+  gaugeFill.style.width = `${scorePercent}%`;
+
+  const labelClass = scoreLabel.classList;
+  labelClass.remove("status-high", "status-medium", "status-low");
+  if (data.score > 0.8) {
+    scoreLabel.textContent = "High Integrity";
+    labelClass.add("status-high");
+  } else if (data.score >= 0.5) {
+    scoreLabel.textContent = "Moderate Integrity";
+    labelClass.add("status-medium");
+  } else {
+    scoreLabel.textContent = "Low Integrity";
+    labelClass.add("status-low");
+  }
+
+  const plausibility = data.plausibility ?? 0;
+  const genealogy = data.genealogy_consistency ?? 0;
+  const sourceRep = data.source_reputation ?? 0;
+  barPlausibility.style.width = `${plausibility * 100}%`;
+  barGenealogy.style.width = `${genealogy * 100}%`;
+  barSource.style.width = `${sourceRep * 100}%`;
+  valuePlausibility.textContent = plausibility.toFixed(2);
+  valueGenealogy.textContent = genealogy.toFixed(2);
+  valueSource.textContent = sourceRep.toFixed(2);
 }
 
 async function fetchIntegrityScore() {
@@ -214,10 +297,106 @@ document
     try {
       const data = await fetchIntegrityScore();
       setIntegrityOutput(data);
+      updateIntegrityVisuals(data);
     } catch (err) {
       alert(err.message);
     }
   });
+
+document.getElementById("btnExtractClaims").addEventListener("click", async () => {
+  try {
+    const text = document.getElementById("claimTextInput").value.trim();
+    if (!text) {
+      alert("Please enter claim text.");
+      return;
+    }
+    const payload = {
+      text,
+      image_id: getImageId(),
+      language: document.getElementById("claimLanguageInput").value.trim() || null,
+    };
+    const data = await postJson("/api/v1/semantic/claims", payload);
+    lastClaims = data.claims || null;
+    setClaimOutput(data);
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+document.getElementById("btnClusterClaims").addEventListener("click", async () => {
+  try {
+    const raw = document.getElementById("clusterClaimsInput").value.trim();
+    let claims = null;
+    if (raw) {
+      claims = JSON.parse(raw);
+    } else if (lastClaims) {
+      claims = lastClaims;
+    }
+    if (!claims) {
+      alert("Provide claims JSON or run claim extraction first.");
+      return;
+    }
+    const data = await postJson("/api/v1/semantic/clusters", { claims });
+    setClusterOutput(data);
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+document.getElementById("btnConsensusScore").addEventListener("click", async () => {
+  try {
+    const raw = document.getElementById("consensusClaimsInput").value.trim();
+    let claims = null;
+    if (raw) {
+      claims = JSON.parse(raw);
+    } else if (lastClaims) {
+      claims = lastClaims.map((claim) => ({
+        claim_text: claim.claim_text,
+        confidence_this_is_claim: claim.confidence_this_is_claim,
+      }));
+    }
+    if (!claims) {
+      alert("Provide consensus claims JSON or run claim extraction first.");
+      return;
+    }
+    const payload = { image_id: getImageId(), claims };
+    const data = await postJson("/api/v1/decision-support/consensus", payload);
+    lastConsensus = data;
+    setConsensusOutput(data);
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+document.getElementById("btnDecisionSupport").addEventListener("click", async () => {
+  try {
+    const audience = document.getElementById("audienceSelect").value;
+    const consensusOverride = document
+      .getElementById("consensusOverrideInput")
+      .value.trim();
+    const integrityOverride = getNumberInput("integrityOverrideInput");
+    const keyFindingsRaw = document
+      .getElementById("decisionKeyFindingsInput")
+      .value.trim();
+    const key_findings = keyFindingsRaw
+      ? keyFindingsRaw.split(",").map((entry) => entry.trim()).filter(Boolean)
+      : null;
+
+    const payload = {
+      image_id: getImageId(),
+      audience,
+      consensus:
+        consensusOverride || (lastConsensus ? lastConsensus.consensus : null),
+      integrity_score:
+        integrityOverride !== null ? integrityOverride : lastIntegrityScore,
+      key_findings,
+    };
+    const data = await postJson("/api/v1/decision-support/audience-output", payload);
+    setDecisionSupportOutput(data);
+  } catch (err) {
+    alert(err.message);
+  }
+});
 
 document
   .getElementById("btnDownloadTrace")

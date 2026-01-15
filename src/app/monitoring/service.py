@@ -20,7 +20,7 @@ def ingest_monitoring_payload(payload: dict[str, Any]) -> MonitoringIngestRespon
     else:
         return MonitoringIngestResponse(
             status="rejected",
-            detail="unknown source; expected whatsapp/facebook/twitter",
+            detail="unknown source; expected whatsapp/facebook/twitter/x",
             metadata={"payload_keys": list(payload.keys())},
         )
 

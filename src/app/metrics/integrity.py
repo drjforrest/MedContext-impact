@@ -30,7 +30,7 @@ def compute_integrity_score(
     """
 
     active_weights = weights or IntegrityWeights()
-    weighted_values: list[tuple[float, float]] = [
+    weighted_values: list[tuple[float, float | None]] = [
         (active_weights.plausibility, plausibility),
         (active_weights.genealogy_consistency, genealogy_consistency),
         (active_weights.source_reputation, source_reputation),

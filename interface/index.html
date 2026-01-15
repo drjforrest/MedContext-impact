@@ -123,6 +123,46 @@
         <p class="muted">
           Weighted blend of plausibility, genealogy consistency, and source reputation.
         </p>
+        <div class="integrity-visuals">
+          <div class="score-header">
+            <div>
+              <div class="score-title">Integrity Score</div>
+              <div class="score-value" id="integrityScoreValue">--</div>
+            </div>
+            <div class="score-label" id="integrityScoreLabel">No score</div>
+          </div>
+          <div class="score-gauge">
+            <div class="score-fill" id="integrityGaugeFill"></div>
+          </div>
+          <div class="score-thresholds">
+            <span class="threshold high">High &gt; 0.80</span>
+            <span class="threshold medium">Medium 0.50–0.80</span>
+            <span class="threshold low">Low &lt; 0.50</span>
+          </div>
+          <div class="component-bars">
+            <div class="component-row">
+              <span class="component-label">Plausibility</span>
+              <div class="bar">
+                <div class="bar-fill" id="barPlausibility"></div>
+              </div>
+              <span class="bar-value" id="valuePlausibility">--</span>
+            </div>
+            <div class="component-row">
+              <span class="component-label">Genealogy Consistency</span>
+              <div class="bar">
+                <div class="bar-fill" id="barGenealogy"></div>
+              </div>
+              <span class="bar-value" id="valueGenealogy">--</span>
+            </div>
+            <div class="component-row">
+              <span class="component-label">Source Reputation</span>
+              <div class="bar">
+                <div class="bar-fill" id="barSource"></div>
+              </div>
+              <span class="bar-value" id="valueSource">--</span>
+            </div>
+          </div>
+        </div>
         <div class="grid">
           <label>
             Plausibility (0-1)
@@ -153,6 +193,114 @@
           <button id="btnIntegrityScore">Compute Integrity Score</button>
         </div>
         <pre id="integrityOutput" class="output"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Claim Extraction</h2>
+        <p class="muted">Extract structured claims from surrounding text.</p>
+        <div class="grid">
+          <label class="span-2">
+            Claim Text
+            <textarea
+              id="claimTextInput"
+              rows="5"
+              placeholder="Paste caption or claim text"
+            ></textarea>
+          </label>
+          <label>
+            Language (optional)
+            <input id="claimLanguageInput" type="text" value="en" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btnExtractClaims">Extract Claims</button>
+        </div>
+        <pre id="claimExtractionOutput" class="output"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Semantic Clustering</h2>
+        <p class="muted">Cluster extracted claims into families.</p>
+        <div class="grid">
+          <label class="span-2">
+            Claims JSON (optional)
+            <textarea
+              id="clusterClaimsInput"
+              rows="4"
+              placeholder='Paste claims array JSON or leave empty to use last extraction'
+            ></textarea>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btnClusterClaims">Cluster Claims</button>
+        </div>
+        <pre id="claimClusterOutput" class="output"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Consensus Scoring</h2>
+        <p class="muted">Compute consensus distribution from claim usage.</p>
+        <div class="grid">
+          <label class="span-2">
+            Claims JSON (optional)
+            <textarea
+              id="consensusClaimsInput"
+              rows="4"
+              placeholder='Paste consensus claims array JSON or leave empty to use last extraction'
+            ></textarea>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btnConsensusScore">Compute Consensus</button>
+        </div>
+        <pre id="consensusOutput" class="output"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Decision Support Output</h2>
+        <p class="muted">Generate audience-specific summary and actions.</p>
+        <div class="grid">
+          <label>
+            Audience
+            <select id="audienceSelect">
+              <option value="clinician">clinician</option>
+              <option value="journalist">journalist</option>
+              <option value="public" selected>public</option>
+              <option value="general">general</option>
+            </select>
+          </label>
+          <label>
+            Consensus (optional)
+            <input
+              id="consensusOverrideInput"
+              type="text"
+              placeholder="leave empty to use last consensus"
+            />
+          </label>
+          <label>
+            Integrity Score (optional)
+            <input
+              id="integrityOverrideInput"
+              type="number"
+              min="0"
+              max="1"
+              step="0.01"
+              placeholder="leave empty to use last integrity score"
+            />
+          </label>
+          <label class="span-2">
+            Key Findings (comma-separated)
+            <textarea
+              id="decisionKeyFindingsInput"
+              rows="3"
+              placeholder="optional supporting points"
+            ></textarea>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btnDecisionSupport">Generate Output</button>
+        </div>
+        <pre id="decisionSupportOutput" class="output"></pre>
       </section>
 
       <section class="panel">

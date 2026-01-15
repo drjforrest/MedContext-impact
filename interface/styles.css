@@ -65,6 +65,10 @@ textarea {
 
 select {
   appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
 }
 
 .actions {
@@ -109,6 +113,125 @@ button:hover {
   color: #94a3b8;
   font-size: 13px;
   margin-bottom: 12px;
+}
+
+.integrity-visuals {
+  background: #0b1220;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #1f2937;
+  margin-bottom: 16px;
+}
+
+.score-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.score-title {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.score-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.score-label {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #1f2937;
+  color: #e2e8f0;
+}
+
+.score-gauge {
+  height: 10px;
+  background: #111827;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #1f2937;
+}
+
+.score-fill {
+  height: 100%;
+  width: 0%;
+  background: #2563eb;
+  transition: width 0.3s ease;
+}
+
+.score-thresholds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 14px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.threshold {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #111827;
+  border: 1px solid #1f2937;
+}
+
+.component-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.component-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 60px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.component-label {
+  color: #cbd5f5;
+}
+
+.bar {
+  height: 8px;
+  background: #111827;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #1f2937;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #38bdf8;
+  transition: width 0.3s ease;
+}
+
+.bar-value {
+  text-align: right;
+  color: #94a3b8;
+}
+
+.status-high {
+  background: #14532d;
+  color: #dcfce7;
+}
+
+.status-medium {
+  background: #78350f;
+  color: #fef3c7;
+}
+
+.status-low {
+  background: #7f1d1d;
+  color: #fee2e2;
 }
 
 .span-2 {

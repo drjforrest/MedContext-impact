@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from __future__ import annotations
-
-from dataclasses import dataclass
-from datetime import datetime
 import hashlib
 import json
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from app.schemas.provenance import ProvenanceChainResponse, ProvenanceBlock
+from app.schemas.provenance import ProvenanceBlock, ProvenanceChainResponse
 
 
 @dataclass(frozen=True)
@@ -100,3 +98,22 @@ def build_provenance_chain(
         created_at=created_at,
         blocks=blocks,
     )
+
+
+def build_provenance(
+    image_id: UUID, image_bytes: bytes | None = None
+) -> ProvenanceChainResponse:
+    image_hash = None
+    if image_bytes:
+        image_hash = hashlib.sha256(image_bytes).hexdigest()
+    observations = [
+        Observation(
+            observation_type="image_submission",
+            observation_data={
+                "image_id": str(image_id),
+                "source": "ingestion",
+                "image_hash": image_hash,
+            },
+        )
+    ]
+    return build_provenance_chain(image_id=image_id, observations=observations)

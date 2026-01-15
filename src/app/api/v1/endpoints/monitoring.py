@@ -9,5 +9,5 @@ router = APIRouter()
 
 
 @router.post("/ingest", response_model=MonitoringIngestResponse)
-async def ingest_monitoring(payload: dict[str, Any]) -> MonitoringIngestResponse:
+def ingest_monitoring(payload: dict[str, Any]) -> MonitoringIngestResponse:
     return ingest_monitoring_payload(payload)
