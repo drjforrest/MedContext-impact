@@ -16,6 +16,7 @@ from app.reverse_search.service import run_reverse_search
 class AgentState(TypedDict, total=False):
     image_bytes: bytes
     image_id: str | None
+    context: str | None
     trace_id: str
     triage: Any
     required_tools: list[str]
@@ -37,11 +38,15 @@ class MedContextLangGraphAgent:
         self.graph = self._build_graph()
 
     def run(
-        self, image_bytes: bytes, image_id: str | None = None
+        self,
+        image_bytes: bytes,
+        image_id: str | None = None,
+        context: str | None = None,
     ) -> LangGraphRunResult:
         state: AgentState = {
             "image_bytes": image_bytes,
             "image_id": image_id,
+            "context": context,
             "trace_id": self._generate_trace_id(),
             "trace": [],
         }
@@ -53,11 +58,15 @@ class MedContextLangGraphAgent:
         )
 
     def run_with_trace(
-        self, image_bytes: bytes, image_id: str | None = None
+        self,
+        image_bytes: bytes,
+        image_id: str | None = None,
+        context: str | None = None,
     ) -> AgentState:
         state: AgentState = {
             "image_bytes": image_bytes,
             "image_id": image_id,
+            "context": context,
             "trace_id": self._generate_trace_id(),
             "trace": [],
         }
@@ -83,7 +92,7 @@ class MedContextLangGraphAgent:
     def _triage_node(self, state: AgentState) -> AgentState:
         start = perf_counter()
         image_bytes = state["image_bytes"]
-        triage = self._triage(image_bytes)
+        triage = self._triage(image_bytes, context=state.get("context"))
         required = self._extract_required_tools(triage)
         state.update({"triage": triage.output, "required_tools": required})
         duration_ms = int((perf_counter() - start) * 1000)
@@ -115,7 +124,12 @@ class MedContextLangGraphAgent:
         image_bytes = state["image_bytes"]
         triage_output = state.get("triage")
         tool_results = state.get("tool_results", {})
-        synth = self._synthesize(image_bytes, triage_output, tool_results)
+        synth = self._synthesize(
+            image_bytes,
+            triage_output,
+            tool_results,
+            context=state.get("context"),
+        )
         state["synthesis"] = synth.output
         duration_ms = int((perf_counter() - start) * 1000)
         self._append_trace(
@@ -126,21 +140,35 @@ class MedContextLangGraphAgent:
         )
         return state
 
-    def _triage(self, image_bytes: bytes) -> MedGemmaResult:
+    def _triage(
+        self, image_bytes: bytes, context: str | None
+    ) -> MedGemmaResult:
         prompt = (
             "You are a clinical investigator. "
             "Return JSON with: required_investigation (list), "
             "primary_findings (string), plausibility (low|medium|high)."
         )
+        if context:
+            prompt += (
+                " Evaluate plausibility as how consistent the image appears "
+                "with the provided usage context. Usage context: "
+                f"{context}"
+            )
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _synthesize(
-        self, image_bytes: bytes, triage: Any, tool_results: dict[str, Any]
+        self,
+        image_bytes: bytes,
+        triage: Any,
+        tool_results: dict[str, Any],
+        context: str | None,
     ) -> MedGemmaResult:
         prompt = (
             "Synthesize a final assessment using triage and tool results. "
             "Return JSON with: verdict, confidence, summary."
         )
+        if context:
+            prompt += f" Usage context: {context}"
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _extract_required_tools(self, triage: MedGemmaResult) -> list[str]:

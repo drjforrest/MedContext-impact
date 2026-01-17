@@ -33,25 +33,35 @@ class MedContextAgent:
     def __init__(self, medgemma: MedGemmaClient | None = None) -> None:
         self.medgemma = medgemma or MedGemmaClient()
 
-    def run(self, image_bytes: bytes, image_id=None) -> AgentRunResult:
-        triage_result = self._triage(image_bytes)
+    def run(
+        self, image_bytes: bytes, image_id=None, context: str | None = None
+    ) -> AgentRunResult:
+        triage_result = self._triage(image_bytes, context=context)
         required_tools = self._extract_required_tools(triage_result)
         tool_results = self._dispatch_tools(
             image_bytes, required_tools, image_id, triage_result
         )
-        synthesis_result = self._synthesize(image_bytes, triage_result, tool_results)
+        synthesis_result = self._synthesize(
+            image_bytes, triage_result, tool_results, context=context
+        )
         return AgentRunResult(
             triage=triage_result.output,
             tool_results=tool_results,
             synthesis=synthesis_result.output,
         )
 
-    def _triage(self, image_bytes: bytes) -> MedGemmaResult:
+    def _triage(self, image_bytes: bytes, context: str | None) -> MedGemmaResult:
         prompt = (
             "You are a clinical investigator. "
             "Return JSON with: required_investigation (list), "
             "primary_findings (string), plausibility (low|medium|high)."
         )
+        if context:
+            prompt += (
+                " Evaluate plausibility as how consistent the image appears "
+                "with the provided usage context. Usage context: "
+                f"{context}"
+            )
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _synthesize(
@@ -59,11 +69,14 @@ class MedContextAgent:
         image_bytes: bytes,
         triage: MedGemmaResult,
         tool_results: dict[str, Any],
+        context: str | None,
     ) -> MedGemmaResult:
         prompt = (
             "Synthesize a final assessment using triage and tool results. "
             "Return JSON with: verdict, confidence, summary."
         )
+        if context:
+            prompt += f" Usage context: {context}"
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _extract_required_tools(self, triage: MedGemmaResult) -> list[str]:

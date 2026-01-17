@@ -9,11 +9,44 @@ const consensusOutput = document.getElementById("consensusOutput");
 const decisionSupportOutput = document.getElementById("decisionSupportOutput");
 const consensusBars = document.getElementById("consensusBars");
 const consensusMeta = document.getElementById("consensusMeta");
+const factualAnswer = document.getElementById("factualAnswer");
+const contextAppropriatenessValue = document.getElementById(
+  "contextAppropriatenessValue"
+);
+const contextAppropriatenessBadge = document.getElementById(
+  "contextAppropriatenessBadge"
+);
+const contextAppropriatenessMeta = document.getElementById(
+  "contextAppropriatenessMeta"
+);
+const urlResolution = document.getElementById("urlResolution");
+const urlResolutionMeta = document.getElementById("urlResolutionMeta");
+const urlResolutionContext = document.getElementById("urlResolutionContext");
+const urlCandidates = document.getElementById("urlCandidates");
+const btnUseContext = document.getElementById("btnUseContext");
+const selectedImageMeta = document.getElementById("selectedImageMeta");
 let lastTracePayload = null;
 let lastClaims = null;
 let lastConsensus = null;
 let lastIntegrityScore = null;
 let outputFlashTimeout = null;
+let lastResolvedContext = null;
+let selectedResolvedImage = null;
+
+function setButtonLoading(button, isLoading, loadingText) {
+  if (!button) {
+    return;
+  }
+  if (isLoading) {
+    button.dataset.originalText = button.textContent;
+    button.textContent = loadingText || "Working...";
+    button.disabled = true;
+  } else {
+    button.textContent = button.dataset.originalText || button.textContent;
+    button.disabled = false;
+    delete button.dataset.originalText;
+  }
+}
 
 function getApiBase() {
   return document.getElementById("apiBase").value.trim().replace(/\/$/, "");
@@ -26,6 +59,10 @@ function getImageId() {
 
 function getFile() {
   return document.getElementById("fileInput").files[0];
+}
+
+function getImageUrl() {
+  return document.getElementById("imageUrlInput").value.trim();
 }
 
 function getContext() {
@@ -62,6 +99,120 @@ function setConsensusOutput(data) {
 
 function setDecisionSupportOutput(data) {
   decisionSupportOutput.textContent = JSON.stringify(data, null, 2);
+}
+
+function extractJsonFromText(text) {
+  if (typeof text !== "string" || !text.trim()) {
+    return null;
+  }
+  const blockMatch = text.match(/```json\s*([\s\S]*?)```/i);
+  const candidates = [];
+  if (blockMatch && blockMatch[1]) {
+    candidates.push(blockMatch[1]);
+  }
+  const braceMatch = text.match(/\{[\s\S]*\}/);
+  if (braceMatch && braceMatch[0]) {
+    candidates.push(braceMatch[0]);
+  }
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (err) {
+      continue;
+    }
+  }
+  return null;
+}
+
+function parseTriageText(text) {
+  const parsed = extractJsonFromText(text);
+  if (parsed && typeof parsed === "object") {
+    return parsed;
+  }
+  if (typeof text !== "string") {
+    return null;
+  }
+  const findingsMatch = text.match(
+    /primary_findings\s*:\s*["']?(.+?)(?:\n|$)/i
+  );
+  const plausibilityMatch = text.match(
+    /plausibility\s*:\s*["']?(low|medium|high)["']?/i
+  );
+  const result = {};
+  if (findingsMatch && findingsMatch[1]) {
+    result.primary_findings = findingsMatch[1].trim().replace(/^"+|"+$/g, "");
+  }
+  if (plausibilityMatch && plausibilityMatch[1]) {
+    result.plausibility = plausibilityMatch[1].toLowerCase();
+  }
+  return Object.keys(result).length ? result : null;
+}
+
+function setContextBadge(level, label) {
+  if (!contextAppropriatenessBadge) {
+    return;
+  }
+  contextAppropriatenessBadge.classList.remove(
+    "badge-high",
+    "badge-medium",
+    "badge-low",
+    "badge-neutral"
+  );
+  contextAppropriatenessBadge.classList.add(level);
+  contextAppropriatenessBadge.textContent = label;
+}
+
+function updateImmediateAnswer(data) {
+  if (!factualAnswer || !contextAppropriatenessValue || !contextAppropriatenessMeta) {
+    return;
+  }
+  const triageText = data?.triage?.text ?? data?.triage ?? "";
+  const synthesisText = data?.synthesis?.text ?? data?.synthesis ?? "";
+  const triage = parseTriageText(triageText);
+  const synthesis = extractJsonFromText(synthesisText);
+  const factual =
+    triage?.primary_findings ||
+    synthesis?.summary ||
+    (typeof triageText === "string" ? triageText : "");
+  factualAnswer.textContent = factual || "--";
+
+  const context = data?.context_used || getContext();
+  if (!context) {
+    contextAppropriatenessValue.textContent = "No context provided";
+    setContextBadge("badge-neutral", "Not evaluated");
+    contextAppropriatenessMeta.textContent =
+      "Add optional context above to evaluate appropriateness.";
+    return;
+  }
+
+  const plausibility = triage?.plausibility;
+  if (plausibility === "high") {
+    contextAppropriatenessValue.textContent = "Consistent with context";
+    setContextBadge("badge-high", "High fit");
+    contextAppropriatenessMeta.textContent =
+      `The medical content appears aligned with the ${
+        data?.context_source || "provided"
+      } usage context.`;
+  } else if (plausibility === "medium") {
+    contextAppropriatenessValue.textContent = "Needs review";
+    setContextBadge("badge-medium", "Medium fit");
+    contextAppropriatenessMeta.textContent =
+      `The content may be loosely related to the ${
+        data?.context_source || "stated"
+      } usage context.`;
+  } else if (plausibility === "low") {
+    contextAppropriatenessValue.textContent = "Likely inconsistent";
+    setContextBadge("badge-low", "Low fit");
+    contextAppropriatenessMeta.textContent =
+      `The content appears inconsistent with the ${
+        data?.context_source || "stated"
+      } usage context.`;
+  } else {
+    contextAppropriatenessValue.textContent = "Unknown";
+    setContextBadge("badge-neutral", "Unknown");
+    contextAppropriatenessMeta.textContent =
+      "The model did not provide a plausibility signal.";
+  }
 }
 
 function clearTrace() {
@@ -122,24 +273,28 @@ function renderTrace(payload) {
   });
 }
 
-async function postMultipart(path, includeContext = false) {
+async function postMultipart(path) {
   const apiBase = getApiBase();
   const file = getFile();
-  if (!file) {
-    alert("Please select an image file.");
+  const imageUrl = getImageUrl();
+  if (!file && !imageUrl) {
+    alert("Please select an image file or provide an image URL.");
     return null;
   }
   const form = new FormData();
-  form.append("file", file);
+  if (file) {
+    form.append("file", file);
+  }
+  if (imageUrl) {
+    form.append("image_url", imageUrl);
+  }
   const imageId = getImageId();
   if (imageId) {
     form.append("image_id", imageId);
   }
-  if (includeContext) {
-    const context = getContext();
-    if (context) {
-      form.append("context", context);
-    }
+  const context = getContext();
+  if (context) {
+    form.append("context", context);
   }
   const response = await fetch(`${apiBase}${path}`, {
     method: "POST",
@@ -163,6 +318,84 @@ async function postJson(path, payload) {
     throw new Error(await response.text());
   }
   return response.json();
+}
+
+async function resolveUrlCandidates(imageUrl) {
+  const apiBase = getApiBase();
+  const response = await fetch(`${apiBase}/api/v1/orchestrator/resolve-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image_url: imageUrl }),
+  });
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+  return response.json();
+}
+
+function renderUrlCandidates(data) {
+  if (!urlResolution || !urlCandidates || !urlResolutionMeta || !urlResolutionContext) {
+    return;
+  }
+  urlCandidates.innerHTML = "";
+  urlResolution.classList.remove("hidden");
+  const images = Array.isArray(data?.images) ? data.images : [];
+  lastResolvedContext = data?.context || null;
+  selectedResolvedImage = null;
+  urlResolutionContext.textContent = lastResolvedContext
+    ? `Suggested context: ${lastResolvedContext}`
+    : "No context found on the page.";
+  if (selectedImageMeta) {
+    selectedImageMeta.textContent = "Select an image to continue.";
+  }
+  urlResolutionMeta.textContent = images.length
+    ? `Found ${images.length} image candidate${images.length === 1 ? "" : "s"}.`
+    : "No images found at this URL.";
+  if (btnUseContext) {
+    btnUseContext.disabled = !lastResolvedContext;
+  }
+  images.forEach((url) => {
+    const card = document.createElement("div");
+    card.className = "url-card";
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "Candidate image";
+    img.loading = "lazy";
+    const body = document.createElement("div");
+    body.className = "url-card-body";
+    const urlText = document.createElement("div");
+    urlText.className = "url-card-url";
+    urlText.textContent = url;
+    const useButton = document.createElement("button");
+    useButton.className = "secondary";
+    useButton.textContent = "Use this image";
+    useButton.addEventListener("click", () => {
+      document.getElementById("imageUrlInput").value = url;
+      document.querySelectorAll(".url-card").forEach((el) => {
+        el.classList.remove("selected");
+      });
+      card.classList.add("selected");
+      selectedResolvedImage = url;
+      if (selectedImageMeta) {
+        selectedImageMeta.textContent = "Selected image is ready to run.";
+      }
+      if (!getContext() && lastResolvedContext) {
+        document.getElementById("contextInput").value = lastResolvedContext;
+      }
+    });
+    const useAndRunButton = document.createElement("button");
+    useAndRunButton.textContent = "Use & run";
+    useAndRunButton.addEventListener("click", async () => {
+      useButton.click();
+      document.getElementById("btnRun").click();
+    });
+    body.appendChild(urlText);
+    body.appendChild(useButton);
+    body.appendChild(useAndRunButton);
+    card.appendChild(img);
+    card.appendChild(body);
+    urlCandidates.appendChild(card);
+  });
 }
 
 async function fetchGraph() {
@@ -363,6 +596,7 @@ document.getElementById("btnRun").addEventListener("click", async () => {
   try {
     const data = await postMultipart("/api/v1/orchestrator/run");
     setOutput(data);
+    updateImmediateAnswer(data);
     await computeConsensusScore({ silent: true });
   } catch (err) {
     alert(err.message);
@@ -376,6 +610,7 @@ document
     try {
       const data = await postMultipart("/api/v1/orchestrator/run-langgraph");
       setOutput(data);
+      updateImmediateAnswer(data);
       await computeConsensusScore({ silent: true });
     } catch (err) {
       alert(err.message);
@@ -398,6 +633,35 @@ document.getElementById("btnGraph").addEventListener("click", async () => {
     await fetchGraph();
   } catch (err) {
     alert(err.message);
+  }
+});
+
+document.getElementById("btnResolveUrl").addEventListener("click", async () => {
+  const button = document.getElementById("btnResolveUrl");
+  try {
+    const imageUrl = getImageUrl();
+    if (!imageUrl) {
+      alert("Please provide a URL to resolve.");
+      return;
+    }
+    setButtonLoading(button, true, "Resolving...");
+    const data = await resolveUrlCandidates(imageUrl);
+    renderUrlCandidates(data);
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setButtonLoading(button, false);
+  }
+});
+
+btnUseContext?.addEventListener("click", () => {
+  if (lastResolvedContext) {
+    document.getElementById("contextInput").value = lastResolvedContext;
+    if (selectedImageMeta && selectedResolvedImage) {
+      selectedImageMeta.textContent = "Selected image and context are ready to run.";
+    }
+  } else {
+    alert("No suggested context available yet.");
   }
 });
 

@@ -30,10 +30,21 @@
 
       <section class="panel">
         <h2>Upload</h2>
+        <p class="muted">
+          Upload an image or resolve a page URL to select the correct image.
+        </p>
         <div class="grid">
           <label>
             Image File
             <input id="fileInput" type="file" accept="image/*" />
+          </label>
+          <label>
+            Image URL (optional)
+            <input
+              id="imageUrlInput"
+              type="text"
+              placeholder="https://example.com/image-or-page"
+            />
           </label>
           <label>
             Context (optional)
@@ -45,10 +56,51 @@
           </label>
         </div>
         <div class="actions">
+          <button id="btnResolveUrl">Resolve URL</button>
           <button id="btnRun">Run Orchestrator</button>
           <button id="btnRunLangGraph">Run LangGraph</button>
           <button id="btnTrace">Run Trace</button>
           <button id="btnGraph">Show Graph</button>
+        </div>
+        <div id="urlResolution" class="url-resolution hidden">
+          <div class="url-resolution-header">
+            <div>
+              <div class="url-resolution-title">URL Candidates</div>
+              <div id="urlResolutionMeta" class="muted">
+                Resolve a page URL to review candidate images.
+              </div>
+            </div>
+            <button id="btnUseContext" class="secondary">Use Suggested Context</button>
+          </div>
+          <div id="urlResolutionContext" class="url-context"></div>
+          <div id="selectedImageMeta" class="muted"></div>
+          <div id="urlCandidates" class="url-candidates"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Immediate Answer (Part 1)</h2>
+        <p class="muted">
+          Straight factual description plus context appropriateness if you
+          provide usage context.
+        </p>
+        <div class="answer-grid">
+          <div class="answer-card">
+            <div class="answer-label">What is this?</div>
+            <div id="factualAnswer" class="answer-value">--</div>
+          </div>
+          <div class="answer-card">
+            <div class="answer-label">Context Appropriateness</div>
+            <div class="answer-value">
+              <span id="contextAppropriatenessValue">--</span>
+              <span id="contextAppropriatenessBadge" class="badge badge-neutral"
+                >Not evaluated</span
+              >
+            </div>
+            <div id="contextAppropriatenessMeta" class="answer-meta">
+              Add optional context above to evaluate appropriateness.
+            </div>
+          </div>
         </div>
       </section>
 
@@ -239,7 +291,10 @@
 
       <section class="panel">
         <h2>Consensus Scoring</h2>
-        <p class="muted">Compute consensus distribution from claim usage.</p>
+        <p class="muted">
+          Part 2 (historical): compute consensus from stored claims for an image
+          over time, not the immediate answer.
+        </p>
         <div class="consensus-visuals">
           <div class="consensus-header">
             <div class="consensus-title">Consensus Distribution</div>
