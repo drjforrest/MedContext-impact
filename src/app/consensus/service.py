@@ -30,9 +30,11 @@ def calculate_consensus(payload: ConsensusRequest) -> ConsensusResponse:
     distribution = {
         category: ConsensusDistributionEntry(
             count=len(claims),
-            percentage=round(len(claims) / total_instances * 100, 1)
-            if total_instances
-            else 0.0,
+            percentage=(
+                round(len(claims) / total_instances * 100, 1)
+                if total_instances
+                else 0.0
+            ),
             examples=[text[:80] for text in claims[:3]],
         )
         for category, claims in categorized.items()

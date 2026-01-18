@@ -5,7 +5,11 @@ from fastapi import APIRouter, Query
 from app.consensus.service import calculate_consensus
 from app.decision_support.service import build_decision_support
 from app.metrics.integrity import IntegrityWeights, compute_integrity_score
-from app.schemas.common import IntegrityScoreResponse, IntegrityWeightsResponse, JobResponse
+from app.schemas.common import (
+    IntegrityScoreResponse,
+    IntegrityWeightsResponse,
+    JobResponse,
+)
 from app.schemas.consensus import ConsensusRequest, ConsensusResponse
 from app.schemas.decision_support import DecisionSupportRequest, DecisionSupportResponse
 

@@ -1,36 +1,139 @@
+import ipaddress
+import socket
 from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from app.orchestrator.image_scrape import extract_image_candidates, extract_page_context
-
 from app.clinical.medgemma_client import MedGemmaClientError
 from app.orchestrator.agent import MedContextAgent
+from app.orchestrator.image_scrape import extract_image_candidates, extract_page_context
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
 from app.schemas.orchestrator import (
     AgentRunResponse,
-    ResolveUrlRequest,
     ResolvedUrlResponse,
+    ResolveUrlRequest,
 )
 from app.schemas.trace import TraceResponse
 
 router = APIRouter()
 
 
+def _is_safe_url(image_url: str) -> bool:
+    try:
+        parsed = urlparse(image_url)
+    except ValueError:
+        return False
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    hostname = parsed.hostname
+    if not hostname:
+        return False
+
+    normalized = hostname.strip().lower().rstrip(".")
+    if normalized in {"localhost", "localhost.localdomain", "0.0.0.0"}:
+        return False
+    if normalized in {"metadata.google.internal", "metadata"}:
+        return False
+
+    def _is_disallowed_ip(ip: ipaddress._BaseAddress) -> bool:
+        if str(ip) == "169.254.169.254":
+            return True
+        return (
+            ip.is_loopback
+            or ip.is_private
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        )
+
+    try:
+        ip = ipaddress.ip_address(normalized)
+        return not _is_disallowed_ip(ip)
+    except ValueError:
+        pass
+
+    try:
+        addr_info = socket.getaddrinfo(
+            normalized, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
+        )
+    except OSError:
+        return False
+
+    if not addr_info:
+        return False
+
+    for _, _, _, _, sockaddr in addr_info:
+        resolved_ip = sockaddr[0]
+        try:
+            ip = ipaddress.ip_address(resolved_ip)
+        except ValueError:
+            return False
+        if _is_disallowed_ip(ip):
+            return False
+    return True
+
+
+def _require_public_http_url(image_url: str) -> None:
+    if not image_url:
+        raise HTTPException(status_code=400, detail="image_url is required.")
+    if not _is_safe_url(image_url):
+        raise HTTPException(
+            status_code=400, detail="image_url must be a public http(s) URL."
+        )
+    parsed = urlparse(image_url)
+    if parsed.scheme not in {"http", "https"}:
+        raise HTTPException(status_code=400, detail="image_url must be http or https.")
+
+
+def _resolve_context(
+    context: str | None, scraped_context: str | None
+) -> tuple[str | None, str | None]:
+    context_used = scraped_context if context is None else context
+    context_source = None
+    if context is not None:
+        context_source = "user"
+    elif scraped_context:
+        context_source = "scraped"
+    return context_used, context_source
+
+
+async def _get_with_ssrf_checks(
+    client: httpx.AsyncClient, url: str, *, max_redirects: int = 5
+) -> httpx.Response:
+    _require_public_http_url(url)
+    current_url = url
+    for _ in range(max_redirects):
+        response = await client.get(current_url)
+        if response.is_redirect:
+            location = response.headers.get("location")
+            if not location:
+                raise HTTPException(
+                    status_code=400,
+                    detail="image_url redirect missing location header.",
+                )
+            next_url = httpx.URL(current_url).join(location)
+            next_url_str = str(next_url)
+            _require_public_http_url(next_url_str)
+            current_url = next_url_str
+            continue
+        return response
+    raise HTTPException(status_code=400, detail="image_url redirected too many times.")
+
+
 @router.post("/resolve-url", response_model=ResolvedUrlResponse)
 async def resolve_url(payload: ResolveUrlRequest) -> ResolvedUrlResponse:
     image_url = payload.image_url.strip()
-    parsed = urlparse(image_url)
-    if parsed.scheme not in {"http", "https"}:
-        raise HTTPException(
-            status_code=400, detail="image_url must be http or https."
-        )
+    _require_public_http_url(image_url)
     try:
         async with httpx.AsyncClient(
-            timeout=20.0, follow_redirects=True
+            timeout=20.0,
+            follow_redirects=False,
+            trust_env=False,
+            headers={"User-Agent": "MedContext/1.0 (+https://medcontext.local)"},
         ) as client:
-            response = await client.get(image_url)
+            response = await _get_with_ssrf_checks(client, image_url)
             response.raise_for_status()
             content_type = response.headers.get("content-type", "").lower()
             if content_type.startswith("image/"):
@@ -50,18 +153,15 @@ async def resolve_url(payload: ResolveUrlRequest) -> ResolvedUrlResponse:
 
 
 async def _fetch_image_bytes(image_url: str) -> tuple[bytes, str | None]:
-    if not image_url:
-        raise HTTPException(status_code=400, detail="image_url is required.")
-    parsed = urlparse(image_url)
-    if parsed.scheme not in {"http", "https"}:
-        raise HTTPException(
-            status_code=400, detail="image_url must be http or https."
-        )
+    _require_public_http_url(image_url)
     try:
         async with httpx.AsyncClient(
-            timeout=20.0, follow_redirects=True
+            timeout=20.0,
+            follow_redirects=False,
+            trust_env=False,
+            headers={"User-Agent": "MedContext/1.0 (+https://medcontext.local)"},
         ) as client:
-            response = await client.get(image_url)
+            response = await _get_with_ssrf_checks(client, image_url)
             response.raise_for_status()
             content_type = response.headers.get("content-type", "").lower()
             if content_type.startswith("image/"):
@@ -84,7 +184,8 @@ async def _fetch_image_bytes(image_url: str) -> tuple[bytes, str | None]:
                         ),
                     )
                 image_link = candidates[0]
-                image_response = await client.get(image_link)
+                _require_public_http_url(image_link)
+                image_response = await _get_with_ssrf_checks(client, image_link)
                 image_response.raise_for_status()
                 image_type = image_response.headers.get("content-type", "").lower()
                 if not image_type.startswith("image/"):
@@ -106,13 +207,15 @@ async def _fetch_image_bytes(image_url: str) -> tuple[bytes, str | None]:
 async def _resolve_image_input(
     file: UploadFile | None, image_url: str | None
 ) -> tuple[bytes, str | None]:
+    if file is not None and image_url:
+        raise HTTPException(
+            status_code=400, detail="Provide exactly one of file or image_url."
+        )
     if file is not None:
         return await file.read(), None
     if image_url:
         return await _fetch_image_bytes(image_url)
-    raise HTTPException(
-        status_code=400, detail="Provide an image file or image_url."
-    )
+    raise HTTPException(status_code=400, detail="Provide an image file or image_url.")
 
 
 @router.post("/run", response_model=AgentRunResponse)
@@ -123,10 +226,7 @@ async def run_agent(
     image_id: str | None = Form(default=None),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
-    context_used = context or scraped_context
-    context_source = None
-    if context_used:
-        context_source = "user" if context else "scraped"
+    context_used, context_source = _resolve_context(context, scraped_context)
     agent = MedContextAgent()
     try:
         result = agent.run(
@@ -152,10 +252,7 @@ async def run_agent_langgraph(
     image_id: str | None = Form(default=None),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
-    context_used = context or scraped_context
-    context_source = None
-    if context_used:
-        context_source = "user" if context else "scraped"
+    context_used, context_source = _resolve_context(context, scraped_context)
     agent = MedContextLangGraphAgent()
     try:
         result = agent.run(
@@ -187,7 +284,7 @@ async def run_agent_trace(
     image_id: str | None = Form(default=None),
 ) -> TraceResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
-    context_used = context or scraped_context
+    context_used, _ = _resolve_context(context, scraped_context)
     agent = MedContextLangGraphAgent()
     try:
         state = agent.run_with_trace(

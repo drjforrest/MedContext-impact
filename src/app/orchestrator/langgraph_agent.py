@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from time import perf_counter
@@ -140,9 +142,7 @@ class MedContextLangGraphAgent:
         )
         return state
 
-    def _triage(
-        self, image_bytes: bytes, context: str | None
-    ) -> MedGemmaResult:
+    def _triage(self, image_bytes: bytes, context: str | None) -> MedGemmaResult:
         prompt = (
             "You are a clinical investigator. "
             "Return JSON with: required_investigation (list), "
@@ -151,8 +151,8 @@ class MedContextLangGraphAgent:
         if context:
             prompt += (
                 " Evaluate plausibility as how consistent the image appears "
-                "with the provided usage context. Usage context: "
-                f"{context}"
+                "with the provided usage context. "
+                f"<user_context>{context}</user_context>"
             )
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
@@ -163,12 +163,25 @@ class MedContextLangGraphAgent:
         tool_results: dict[str, Any],
         context: str | None,
     ) -> MedGemmaResult:
+        def _serialize_payload(value: Any) -> str:
+            if isinstance(value, MedGemmaResult):
+                value = value.output
+            try:
+                return json.dumps(value, default=str, ensure_ascii=True)
+            except TypeError:
+                return json.dumps(str(value), ensure_ascii=True)
+
         prompt = (
             "Synthesize a final assessment using triage and tool results. "
             "Return JSON with: verdict, confidence, summary."
         )
+        prompt += (
+            f" Triage: {_serialize_payload(triage)}; "
+            f"ToolResults: {_serialize_payload(tool_results)}."
+        )
         if context:
-            prompt += f" Usage context: {context}"
+            safe_context = html.escape(context, quote=True)
+            prompt += f" Usage context: {safe_context}"
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _extract_required_tools(self, triage: MedGemmaResult) -> list[str]:

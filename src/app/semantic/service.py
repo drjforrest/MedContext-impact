@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
 from typing import Iterable, List
 
 from app.schemas.claims import (
@@ -25,7 +24,12 @@ _CLAIM_TYPE_KEYWORDS = {
     "misdiagnosis_claim": ["misdiagnosis", "wrong diagnosis", "misdiagnosed"],
     "disease_severity_exaggeration": ["deadly", "kills", "fatal", "destroy"],
     "attribution_error": ["not from", "fake patient", "wrong person"],
-    "deepfake_or_manipulated_image": ["deepfake", "manipulated", "edited", "fake image"],
+    "deepfake_or_manipulated_image": [
+        "deepfake",
+        "manipulated",
+        "edited",
+        "fake image",
+    ],
     "medical_misinformation": ["hoax", "cover-up", "truth hidden"],
 }
 
@@ -99,9 +103,7 @@ def cluster_claims(payload: ClaimClusterRequest) -> ClaimClusterResponse:
     for idx, cluster in enumerate(clusters, start=1):
         representative = cluster[0]
         variants = [c.claim_text for c in cluster[1:]]
-        claim_types = sorted(
-            {ct.type for c in cluster for ct in c.claim_types}
-        )
+        claim_types = sorted({ct.type for c in cluster for ct in c.claim_types})
         families.append(
             ClaimFamily(
                 family_id=idx,

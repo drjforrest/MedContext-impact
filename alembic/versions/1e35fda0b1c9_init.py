@@ -1,16 +1,13 @@
 """init
 
 Revision ID: 1e35fda0b1c9
-Revises: 
+Revises:
 Create Date: 2026-01-15 05:10:47.755365
 """
 
-from alembic import op
-import sqlalchemy as sa
 
 
-
-revision = '1e35fda0b1c9'
+revision = "1e35fda0b1c9"
 down_revision = None
 branch_labels = None
 depends_on = None

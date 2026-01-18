@@ -4,18 +4,17 @@ import re
 from urllib.parse import urljoin
 
 _META_IMAGE_RE = re.compile(
-    r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']',
+    r'<meta[^>]+(?:property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']'
+    r'|content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\'])',
     re.IGNORECASE,
 )
 _META_DESC_RE = re.compile(
-    r'<meta[^>]+(?:name|property)=["\'](?:description|og:description)["\']'
-    r'[^>]+content=["\']([^"\']+)["\']',
+    r'<meta[^>]+(?:(?:name|property)=["\'](?:description|og:description)["\'][^>]+content=["\']([^"\']+)["\']'
+    r'|content=["\']([^"\']+)["\'][^>]+(?:name|property)=["\'](?:description|og:description)["\'])',
     re.IGNORECASE,
 )
 _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
-_IMG_SRC_RE = re.compile(
-    r"<img[^>]+src=[\"']([^\"']+)[\"']", re.IGNORECASE
-)
+_IMG_SRC_RE = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.IGNORECASE)
 
 
 def extract_image_candidates(html: str, base_url: str) -> list[str]:
@@ -29,7 +28,7 @@ def extract_image_candidates(html: str, base_url: str) -> list[str]:
     return candidates
 
 
-def extract_page_context(html: str, base_url: str) -> str | None:
+def extract_page_context(html: str) -> str | None:
     if not html:
         return None
     parts: list[str] = []

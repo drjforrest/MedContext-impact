@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import base64
 import io
 import imghdr
-import base64
 from typing import Any, Optional
 
 import httpx
@@ -84,7 +83,6 @@ class MedGemmaClient:
             return
         try:
             import torch
-            from PIL import Image
             from transformers import AutoModelForImageTextToText, AutoProcessor
         except Exception as exc:
             raise MedGemmaClientError(
@@ -115,7 +113,9 @@ class MedGemmaClient:
             import torch
             from PIL import Image
         except Exception as exc:
-            raise MedGemmaClientError("Pillow is required for local inference.") from exc
+            raise MedGemmaClientError(
+                "Pillow is required for local inference."
+            ) from exc
 
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         text_prompt = prompt or "Describe the medical image."
@@ -152,9 +152,7 @@ class MedGemmaClient:
         with torch.inference_mode():
             generation = self._local_model.generate(**inputs, **generation_kwargs)
             generation = generation[0][input_len:]
-        decoded = self._local_processor.decode(
-            generation, skip_special_tokens=True
-        )
+        decoded = self._local_processor.decode(generation, skip_special_tokens=True)
 
         return MedGemmaResult(
             provider="local",

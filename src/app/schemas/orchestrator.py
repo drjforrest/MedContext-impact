@@ -1,10 +1,10 @@
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import AnyHttpUrl, BaseModel
 
 
 class ResolveUrlRequest(BaseModel):
-    image_url: str
+    image_url: AnyHttpUrl
 
 
 class ResolvedUrlResponse(BaseModel):
