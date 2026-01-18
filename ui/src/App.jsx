@@ -111,18 +111,19 @@ function App() {
     }
     const verdict = typeof part2?.verdict === 'string' ? part2.verdict : ''
     const verdictLower = verdict.toLowerCase()
-    if (verdictLower.includes('misinformation') || verdictLower.includes('false')) {
-      return {
-        score: 1,
-        label: 'The claim has little to no relation to the image provided.',
-        tone: 'low',
-      }
-    }
+    // Check partial/mixed first to avoid "partially false" matching "false"
     if (verdictLower.includes('partial') || verdictLower.includes('mixed')) {
       return {
         score: 2,
         label: 'Some parts of the claim may relate to the image provided.',
         tone: 'medium',
+      }
+    }
+    if (verdictLower.includes('misinformation') || verdictLower.includes('false')) {
+      return {
+        score: 1,
+        label: 'The claim has little to no relation to the image provided.',
+        tone: 'low',
       }
     }
     if (
@@ -279,8 +280,8 @@ function App() {
                             <p className="summary-text">{part2.rationale}</p>
                           ) : null}
                           {!part2.summary &&
-                          !part2.alignment_analysis &&
-                          !part2.rationale ? (
+                            !part2.alignment_analysis &&
+                            !part2.rationale ? (
                             <p className="summary-text">
                               We could not generate a detailed explanation for the
                               score. Please try again.

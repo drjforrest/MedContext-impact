@@ -1,10 +1,13 @@
-from uuid import uuid4
-
 import hashlib
 import imghdr
+import io
 import json
+import logging
+from pathlib import Path
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -15,6 +18,34 @@ from app.schemas.common import SubmissionResponse
 from app.schemas.orchestrator import AgentRunResponse
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+def _persist_image_bytes(image_id: UUID, image_bytes: bytes, image_format: str) -> Path:
+    storage_dir = Path(settings.image_storage_dir)
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    image_path = storage_dir / f"{image_id}.{image_format}"
+    image_path.write_bytes(image_bytes)
+    return image_path.resolve()
+
+
+def _cleanup_image_file(image_path: Path) -> None:
+    try:
+        if image_path.exists():
+            image_path.unlink()
+    except Exception:
+        pass
+
+
+def _detect_image_format(image_bytes: bytes) -> str:
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as image:
+            image_format = (image.format or "JPEG").lower()
+    except Exception:
+        image_format = "jpeg"
+    if image_format == "jpg":
+        image_format = "jpeg"
+    return image_format
 
 
 @router.post("/web", response_model=SubmissionResponse)
@@ -46,18 +77,45 @@ async def ingest_and_run_agent(
 ) -> AgentRunResponse:
     image_id = uuid4()
     image_bytes = await file.read()
-    image_format = imghdr.what(None, h=image_bytes) or "jpeg"
+    image_hash = hashlib.sha256(image_bytes).hexdigest()
+    detected_format = imghdr.what(None, h=image_bytes)
+    if not detected_format:
+        logger.error(
+            "Unable to detect image format for upload. image_hash=%s",
+            image_hash,
+        )
+        raise HTTPException(
+            status_code=400, detail="Unsupported or invalid image file."
+        )
+
+    image_format = detected_format.lower()
     if image_format == "jpg":
         image_format = "jpeg"
-    image_hash = hashlib.sha256(image_bytes).hexdigest()
-    mime_type = file.content_type or f"image/{image_format}"
+
+    detected_mime_type = f"image/{image_format}"
+    mime_type = detected_mime_type
+    if file.content_type:
+        if file.content_type != detected_mime_type:
+            logger.warning(
+                "Content type mismatch for upload. image_hash=%s detected=%s provided=%s",
+                image_hash,
+                detected_mime_type,
+                file.content_type,
+            )
+        else:
+            mime_type = detected_mime_type
+    stored_image_path = _persist_image_bytes(
+        image_id=image_id,
+        image_bytes=image_bytes,
+        image_format=image_format,
+    )
 
     submission = ImageSubmission(
         id=image_id,
         source_channel="agentic",
         user_id=None,
         image_hash=image_hash,
-        image_path=None,
+        image_path=str(stored_image_path),
         file_size=len(image_bytes),
         mime_type=mime_type,
         image_format=image_format,
@@ -75,27 +133,31 @@ async def ingest_and_run_agent(
         source_whatsapp_group=None,
         language_code="en",
     )
-    db.add(submission)
-    db.add(submission_context)
-    db.commit()
-
     agent = MedContextAgent()
-    result = agent.run(image_bytes=image_bytes, image_id=str(image_id))
+    result = None
+    triage_payload = None
+    try:
+        with db.begin():
+            db.add(submission)
+            db.add(submission_context)
+            result = agent.run(image_bytes=image_bytes, image_id=str(image_id))
 
-    triage_payload = result.triage
-    triage_json = json.dumps(triage_payload, default=str, ensure_ascii=True)
-    clinical_impression = None
-    if isinstance(triage_payload, dict):
-        clinical_impression = triage_payload.get("primary_findings")
-    analysis = MedGemmaAnalysis(
-        image_id=image_id,
-        key_findings=triage_json,
-        clinical_impression=clinical_impression,
-        claimed_condition_analyzed=bool(context),
-        model_version=settings.medgemma_hf_model,
-    )
-    db.add(analysis)
-    db.commit()
+            triage_payload = result.triage
+            triage_json = json.dumps(triage_payload, default=str, ensure_ascii=True)
+            clinical_impression = None
+            if isinstance(triage_payload, dict):
+                clinical_impression = triage_payload.get("primary_findings")
+            analysis = MedGemmaAnalysis(
+                image_id=image_id,
+                key_findings=triage_json,
+                clinical_impression=clinical_impression,
+                claimed_condition_analyzed=bool(context),
+                model_version=settings.medgemma_hf_model,
+            )
+            db.add(analysis)
+    except Exception:
+        _cleanup_image_file(stored_image_path)
+        raise
 
     return AgentRunResponse(
         triage={"context": context, "triage": result.triage},

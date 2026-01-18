@@ -31,15 +31,19 @@ else
   INTERFACE_PID=""
 fi
 
-if command -v npm >/dev/null 2>&1; then
-  if [[ ! -d "ui/node_modules" ]]; then
-    (cd ui && npm install) || { echo "npm install failed" >&2; exit 1; }
+if [[ -d "ui" ]]; then
+  if command -v npm >/dev/null 2>&1; then
+    if [[ ! -d "ui/node_modules" ]]; then
+      (cd ui && npm install) || { echo "npm install failed" >&2; exit 1; }
+    fi
+    (cd ui && npm run dev -- --port 5173) &
+    USER_UI_PID=$!
+    echo "UI running: http://localhost:5173"
+  else
+    echo "npm not found; skipping user UI dev server." >&2
+    USER_UI_PID=""
   fi
-  (cd ui && npm run dev -- --port 5173) &
-  USER_UI_PID=$!
-  echo "UI running: http://localhost:5173"
 else
-  echo "npm not found; skipping user UI dev server." >&2
   USER_UI_PID=""
 fi
 

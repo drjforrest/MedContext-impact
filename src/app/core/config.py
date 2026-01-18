@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     jwt_secret: str = ""
     encryption_key: str = ""
     log_level: str = "INFO"
+    image_storage_dir: str = "data/images"
 
     class Config:
         env_file = ".env"

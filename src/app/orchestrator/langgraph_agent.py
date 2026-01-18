@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-import html
-import json
-from dataclasses import dataclass
 import base64
-import imghdr
+import html
+import io
+import json
+import logging
+from dataclasses import dataclass
 from datetime import datetime
 from time import perf_counter
 from typing import Any, TypedDict
 
 from langgraph.graph import END, StateGraph
+from PIL import Image
 
 from app.clinical.llm_client import LlmClient, LlmClientError, LlmResult
 from app.clinical.medgemma_client import MedGemmaClient, MedGemmaResult
@@ -17,6 +19,8 @@ from app.core.config import settings
 from app.forensics.service import run_forensics
 from app.provenance.service import build_provenance
 from app.reverse_search.service import run_reverse_search
+
+logger = logging.getLogger(__name__)
 
 
 class AgentState(TypedDict, total=False):
@@ -245,7 +249,10 @@ class MedContextLangGraphAgent:
         synthesis_output = synthesis.output
         if not isinstance(synthesis_output, dict):
             synthesis_output = {}
-        if isinstance(synthesis_output.get("text"), str) and "part_2" not in synthesis_output:
+        if (
+            isinstance(synthesis_output.get("text"), str)
+            and "part_2" not in synthesis_output
+        ):
             synthesis_output["part_2"] = {"summary": synthesis_output["text"]}
         raw_text = synthesis.raw_text if isinstance(synthesis, LlmResult) else None
         if "part_2" not in synthesis_output and raw_text:
@@ -279,29 +286,41 @@ class MedContextLangGraphAgent:
                 ),
                 model=settings.llm_worker,
             )
-        except LlmClientError:
+        except Exception:
+            logger.exception("Failed to generate factual description via LLM.")
             return "The image provided appears to be a medical image."
         if isinstance(result.output, dict):
             description = result.output.get("image_description")
             if isinstance(description, str) and description.strip():
                 return description.strip()
-        return result.raw_text.strip() or "The image provided appears to be a medical image."
-
-    def _build_factual_prompt(self, triage: Any) -> str:
-        import json
-
-        try:
-            triage_json = json.dumps(triage, default=str, ensure_ascii=True)
-        except TypeError:
-            triage_json = json.dumps(str(triage), ensure_ascii=True)
+        raw = result.raw_text
+        if raw and raw.strip():
+            return raw.strip()
         return (
-            "Based on the MedGemma triage output below, produce a single-sentence "
-            "factual description of the image content only.\n"
-            f"Triage: {triage_json}"
+            "The image provided appears to be a medical image."
+            or "The image provided appears to be a medical image."
         )
 
+    def _detect_image_format(self, image_bytes: bytes) -> str | None:
+        if not image_bytes:
+            return None
+        header = image_bytes[:12]
+        if header.startswith(b"\xff\xd8\xff"):
+            return "jpeg"
+        if header.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "png"
+        if header[:6] in (b"GIF87a", b"GIF89a"):
+            return "gif"
+        return None
+
     def _build_image_preview(self, image_bytes: bytes) -> str | None:
-        image_format = imghdr.what(None, h=image_bytes) or "jpeg"
+        image_format = self._detect_image_format(image_bytes)
+        if image_format is None:
+            try:
+                with Image.open(io.BytesIO(image_bytes)) as image:
+                    image_format = (image.format or "JPEG").lower()
+            except Exception:
+                image_format = "jpeg"
         if image_format == "jpg":
             image_format = "jpeg"
         encoded = base64.b64encode(image_bytes).decode("ascii")

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -86,11 +87,19 @@ class LlmClient:
         except httpx.HTTPError as exc:
             raise LlmClientError(f"OpenAI-compatible request failed: {exc}") from exc
 
-        data = response.json()
+        try:
+            data = response.json()
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise LlmClientError(
+                "Invalid JSON in OpenAI-compatible response: "
+                f"{exc}. Raw response: {response.text}"
+            ) from exc
         try:
             content = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
-            raise LlmClientError("Unexpected OpenAI-compatible response format.") from exc
+            raise LlmClientError(
+                "Unexpected OpenAI-compatible response format."
+            ) from exc
 
         cleaned = self._clean_text(content)
         return LlmResult(
@@ -130,7 +139,10 @@ class LlmClient:
         except httpx.HTTPError as exc:
             raise LlmClientError(f"Ollama request failed: {exc}") from exc
 
-        data = response.json()
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise LlmClientError("Invalid JSON in Ollama response.") from exc
         try:
             content = data["message"]["content"]
         except (KeyError, TypeError) as exc:
@@ -184,9 +196,7 @@ class LlmClient:
                 return loaded
             # Attempt to unescape if the JSON blob was double-escaped in text.
             unescaped = (
-                candidate.replace("\\n", "\n")
-                .replace('\\"', '"')
-                .replace("\\\\", "\\")
+                candidate.replace("\\n", "\n").replace('\\"', '"').replace("\\\\", "\\")
             )
             loaded = _try_load(unescaped)
             if loaded is not None:

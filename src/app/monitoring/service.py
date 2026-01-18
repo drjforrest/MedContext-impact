@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import logging
 import threading
 import time
 from datetime import datetime, timezone
 from typing import Any, Iterable
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -57,12 +59,16 @@ def ensure_reddit_sources(db: Session) -> list[MonitoringSource]:
     return sources
 
 
+logger = logging.getLogger(__name__)
+
+
 def poll_reddit(
     db: Session, *, source_ids: Iterable[str] | None = None, limit: int = 25
 ) -> tuple[int, int]:
     try:
         client = RedditClient()
-    except RedditClientError:
+    except RedditClientError as e:
+        logger.warning("Failed to initialize RedditClient: %s", e)
         return 0, 0
 
     sources = ensure_reddit_sources(db)
@@ -114,9 +120,23 @@ def _get_or_create_source(
         platform=platform, source_type=source_type, value=value, is_active=True
     )
     db.add(source)
-    db.commit()
-    db.refresh(source)
-    return source
+    try:
+        db.commit()
+        db.refresh(source)
+        return source
+    except IntegrityError:
+        db.rollback()
+        return (
+            db.execute(
+                select(MonitoringSource).where(
+                    MonitoringSource.platform == platform,
+                    MonitoringSource.source_type == source_type,
+                    MonitoringSource.value == value,
+                )
+            )
+            .scalars()
+            .first()
+        )
 
 
 def _persist_items(
@@ -172,9 +192,10 @@ def start_monitoring_polling_loop(get_db_session) -> None:
                     poll_reddit(db)
                 finally:
                     db.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Monitoring polling loop failed: %s", e)
             time.sleep(interval_seconds)
 
     thread = threading.Thread(target=_loop, name="monitoring-poll", daemon=True)
+    thread.start()
     thread.start()

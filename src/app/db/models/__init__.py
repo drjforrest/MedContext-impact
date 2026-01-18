@@ -1,6 +1,5 @@
 from app.db.base import Base
-from app.db.models.ingestion import (ImageSubmission, MedGemmaAnalysis,
-                                     SubmissionContext)
+from app.db.models.ingestion import ImageSubmission, MedGemmaAnalysis, SubmissionContext
 from app.db.models.monitoring import MonitoringItem, MonitoringSource
 
 __all__ = [
@@ -10,5 +9,4 @@ __all__ = [
     "MedGemmaAnalysis",
     "MonitoringSource",
     "MonitoringItem",
-]
 ]

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import base64
 import io
-import imghdr
+from dataclasses import dataclass
 from typing import Any, Optional
 
 import httpx
@@ -21,6 +20,21 @@ class MedGemmaResult:
     model: str
     output: Any
     raw_text: Optional[str] = None
+
+
+def _detect_image_format(image_bytes: bytes) -> str:
+    try:
+        from PIL import Image
+    except Exception:
+        return "jpeg"
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as image:
+            image_format = (image.format or "JPEG").lower()
+    except Exception:
+        image_format = "jpeg"
+    if image_format == "jpg":
+        image_format = "jpeg"
+    return image_format
 
 
 class MedGemmaClient:
@@ -210,9 +224,7 @@ class MedGemmaClient:
         if not settings.medgemma_vllm_url:
             raise MedGemmaClientError("Missing MEDGEMMA_VLLM_URL for vLLM.")
 
-        image_format = imghdr.what(None, h=image_bytes) or "jpeg"
-        if image_format == "jpg":
-            image_format = "jpeg"
+        image_format = _detect_image_format(image_bytes)
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
         image_url = f"data:image/{image_format};base64,{encoded_image}"
         content = [
@@ -272,6 +284,7 @@ class MedGemmaClient:
         return cleaned.strip()
 
     def _parse_json(self, content: str) -> Any:
+        import codecs
         import json
         import re
 
@@ -280,6 +293,12 @@ class MedGemmaClient:
                 return json.loads(raw)
             except json.JSONDecodeError:
                 return None
+
+        def _unescape_candidate(raw: str) -> str:
+            try:
+                return codecs.decode(raw, "unicode_escape")
+            except (UnicodeDecodeError, ValueError):
+                return raw
 
         direct = _try_load(content)
         if direct is not None:
@@ -291,11 +310,7 @@ class MedGemmaClient:
             loaded = _try_load(candidate)
             if loaded is not None:
                 return loaded
-            unescaped = (
-                candidate.replace("\\n", "\n")
-                .replace('\\"', '"')
-                .replace("\\\\", "\\")
-            )
+            unescaped = _unescape_candidate(candidate)
             loaded = _try_load(unescaped)
             if loaded is not None:
                 return loaded
@@ -306,11 +321,7 @@ class MedGemmaClient:
             loaded = _try_load(candidate)
             if loaded is not None:
                 return loaded
-            unescaped = (
-                candidate.replace("\\n", "\n")
-                .replace('\\"', '"')
-                .replace("\\\\", "\\")
-            )
+            unescaped = _unescape_candidate(candidate)
             loaded = _try_load(unescaped)
             if loaded is not None:
                 return loaded

@@ -4,13 +4,18 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.monitoring.service import (ingest_monitoring_payload,
-                                    list_recent_items, poll_reddit)
-from app.schemas.monitoring import (MonitoringIngestResponse,
-                                    MonitoringItemResponse,
-                                    MonitoringItemsResponse,
-                                    MonitoringPollRequest,
-                                    MonitoringPollResponse)
+from app.monitoring.service import (
+    ingest_monitoring_payload,
+    list_recent_items,
+    poll_reddit,
+)
+from app.schemas.monitoring import (
+    MonitoringIngestResponse,
+    MonitoringItemResponse,
+    MonitoringItemsResponse,
+    MonitoringPollRequest,
+    MonitoringPollResponse,
+)
 
 router = APIRouter()
 
@@ -52,9 +57,6 @@ def list_monitoring_items(
                 context_text=item.context_text,
                 ingested_at=item.ingested_at,
             )
-            for item in items
-        ]
-    )
             for item in items
         ]
     )

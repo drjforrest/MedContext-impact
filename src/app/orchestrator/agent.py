@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import base64
 import imghdr
+import logging
+from dataclasses import dataclass
 from typing import Any, Iterable
 
 from app.clinical.llm_client import LlmClient, LlmClientError, LlmResult
@@ -17,6 +18,7 @@ ALLOWED_TOOLS = {
     "forensics",
     "provenance",
 }
+MAX_PREVIEW_BYTES = 1024 * 1024
 
 
 @dataclass
@@ -41,6 +43,7 @@ class MedContextAgent:
     ) -> None:
         self.medgemma = medgemma or MedGemmaClient()
         self.llm = llm or LlmClient()
+        self._logger = logging.getLogger(__name__)
 
     def run(
         self, image_bytes: bytes, image_id=None, context: str | None = None
@@ -156,8 +159,15 @@ class MedContextAgent:
     ) -> Any:
         synthesis_output = synthesis.output
         if not isinstance(synthesis_output, dict):
-            synthesis_output = {}
-        if isinstance(synthesis_output.get("text"), str) and "part_2" not in synthesis_output:
+            self._logger.debug(
+                "Synthesis output was %s; coercing to dict.",
+                type(synthesis_output).__name__,
+            )
+            synthesis_output = {"synthesis_output_original": synthesis_output}
+        if (
+            isinstance(synthesis_output.get("text"), str)
+            and "part_2" not in synthesis_output
+        ):
             synthesis_output["part_2"] = {"summary": synthesis_output["text"]}
         raw_text = synthesis.raw_text if isinstance(synthesis, LlmResult) else None
         if "part_2" not in synthesis_output and raw_text:
@@ -174,7 +184,9 @@ class MedContextAgent:
         if isinstance(synthesis_output["part_2"], dict) and context:
             synthesis_output["part_2"].setdefault("context_quote", context)
         synthesis_output.setdefault("image_id", image_id)
-        preview = self._build_image_preview(image_bytes)
+        preview = None
+        if image_bytes and len(image_bytes) <= MAX_PREVIEW_BYTES:
+            preview = self._build_image_preview(image_bytes)
         if preview:
             synthesis_output.setdefault("image_preview", preview)
         return synthesis_output
@@ -197,7 +209,8 @@ class MedContextAgent:
             description = result.output.get("image_description")
             if isinstance(description, str) and description.strip():
                 return description.strip()
-        return result.raw_text.strip() or "The image provided appears to be a medical image."
+        raw_text = result.raw_text or ""
+        return raw_text.strip() or "The image provided appears to be a medical image."
 
     def _build_factual_prompt(self, triage: MedGemmaResult) -> str:
         import json
@@ -212,10 +225,12 @@ class MedContextAgent:
             f"Triage: {triage_json}"
         )
 
-    def _build_image_preview(self, image_bytes: bytes) -> str | None:
+    def _build_image_preview(self, image_bytes: bytes) -> str:
         image_format = imghdr.what(None, h=image_bytes) or "jpeg"
         if image_format == "jpg":
             image_format = "jpeg"
+        if len(image_bytes) > MAX_PREVIEW_BYTES:
+            return f"data:image/{image_format};base64,"
         encoded = base64.b64encode(image_bytes).decode("ascii")
         return f"data:image/{image_format};base64,{encoded}"
 

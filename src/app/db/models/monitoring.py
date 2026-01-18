@@ -27,7 +27,9 @@ class MonitoringItem(Base):
     __tablename__ = "monitoring_items"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    source_id = Column(UUID(as_uuid=True), ForeignKey("monitoring_sources.id"))
+    source_id = Column(
+        UUID(as_uuid=True), ForeignKey("monitoring_sources.id"), nullable=False
+    )
     platform = Column(String, nullable=False)
     post_id = Column(String, nullable=False)
     title = Column(Text, nullable=True)
