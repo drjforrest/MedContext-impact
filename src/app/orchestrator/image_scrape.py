@@ -4,13 +4,13 @@ import re
 from urllib.parse import urljoin
 
 _META_IMAGE_RE = re.compile(
-    r'<meta[^>]+(?:property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']'
-    r'|content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\'])',
+    r'<meta[^>]+(?=[^>]*property=["\']og:image["\'])'
+    r'(?=[^>]*content=["\']([^"\']+)["\'])',
     re.IGNORECASE,
 )
 _META_DESC_RE = re.compile(
-    r'<meta[^>]+(?:(?:name|property)=["\'](?:description|og:description)["\'][^>]+content=["\']([^"\']+)["\']'
-    r'|content=["\']([^"\']+)["\'][^>]+(?:name|property)=["\'](?:description|og:description)["\'])',
+    r'<meta[^>]+(?=[^>]*(?:name|property)=["\'](?:description|og:description)["\'])'
+    r'(?=[^>]*content=["\']([^"\']+)["\'])',
     re.IGNORECASE,
 )
 _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)

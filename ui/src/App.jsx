@@ -20,6 +20,7 @@ function App() {
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
+  const [fileInputKey, setFileInputKey] = useState(0)
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
@@ -80,16 +81,63 @@ function App() {
     }
   }
 
-  const synthesisText = result?.synthesis
-    ? JSON.stringify(result.synthesis, null, 2)
-    : ''
-  const triageText = result?.triage
-    ? JSON.stringify(result.triage, null, 2)
-    : ''
-  const toolResultsText = result?.tool_results
-    ? JSON.stringify(result.tool_results, null, 2)
-    : ''
-
+  const synthesis = result?.synthesis
+  const part1 = synthesis?.part_1
+  const part2 = synthesis?.part_2
+  const imagePreview = synthesis?.image_preview
+  const contextQuote = part2?.context_quote
+  const alignmentScore = useMemo(() => {
+    const alignment = part2?.alignment
+    if (alignment === 'aligned') {
+      return {
+        score: 3,
+        label: 'The claim matches the image provided.',
+        tone: 'high',
+      }
+    }
+    if (alignment === 'partially_aligned') {
+      return {
+        score: 2,
+        label: 'Some parts of the claim may relate to the image provided.',
+        tone: 'medium',
+      }
+    }
+    if (alignment === 'misaligned') {
+      return {
+        score: 1,
+        label: 'The claim has little to no relation to the image provided.',
+        tone: 'low',
+      }
+    }
+    const verdict = typeof part2?.verdict === 'string' ? part2.verdict : ''
+    const verdictLower = verdict.toLowerCase()
+    if (verdictLower.includes('misinformation') || verdictLower.includes('false')) {
+      return {
+        score: 1,
+        label: 'The claim has little to no relation to the image provided.',
+        tone: 'low',
+      }
+    }
+    if (verdictLower.includes('partial') || verdictLower.includes('mixed')) {
+      return {
+        score: 2,
+        label: 'Some parts of the claim may relate to the image provided.',
+        tone: 'medium',
+      }
+    }
+    if (
+      verdictLower.includes('true') ||
+      verdictLower.includes('verified') ||
+      verdictLower.includes('supported')
+    ) {
+      return {
+        score: 3,
+        label: 'The claim matches the image provided.',
+        tone: 'high',
+      }
+    }
+    return { score: 0, label: 'Alignment is unclear.', tone: 'neutral' }
+  }, [part2?.alignment, part2?.verdict])
   return (
     <div className="page">
       <header className="hero">
@@ -101,8 +149,11 @@ function App() {
             provenance, and clinical plausibility through the API.
           </p>
         </div>
-        <div className="status">
+        <div className="status" aria-live="polite">
           <span className={`status-dot status-${status}`} />
+          {status === 'loading' ? (
+            <span className="spinner" aria-hidden="true" />
+          ) : null}
           <span>{statusLabel}</span>
         </div>
       </header>
@@ -114,6 +165,7 @@ function App() {
             <label className="field">
               <span>Image file</span>
               <input
+                key={fileInputKey}
                 type="file"
                 accept="image/*"
                 onChange={(event) =>
@@ -164,6 +216,7 @@ function App() {
                 setResult(null)
                 setError('')
                 setStatus('idle')
+                setFileInputKey((currentKey) => currentKey + 1)
               }}
             >
               Clear
@@ -178,17 +231,79 @@ function App() {
             <div className="results">
               <div className="result-block">
                 <h3>Summary</h3>
-                <pre>{synthesisText || 'No synthesis yet.'}</pre>
-              </div>
-              <div className="result-grid">
-                <div className="result-block">
-                  <h3>Triage</h3>
-                  <pre>{triageText || 'No triage details yet.'}</pre>
-                </div>
-                <div className="result-block">
-                  <h3>Tool results</h3>
-                  <pre>{toolResultsText || 'No tool results yet.'}</pre>
-                </div>
+                {part1 || part2 ? (
+                  <div className="summary-parts">
+                    <div className="summary-part">
+                      <h4>Part 1: Image (factual)</h4>
+                      {imagePreview ? (
+                        <img
+                          className="image-preview"
+                          src={imagePreview}
+                          alt="Reviewed upload"
+                        />
+                      ) : null}
+                      {part1?.image_description ? (
+                        <p className="summary-text">
+                          {part1.image_description}
+                        </p>
+                      ) : (
+                        <p className="summary-text">No factual description yet.</p>
+                      )}
+                    </div>
+                    <div className="summary-part">
+                      <h4>Part 2: Context analysis</h4>
+                      {contextQuote ? (
+                        <blockquote className="context-quote">
+                          {contextQuote}
+                        </blockquote>
+                      ) : null}
+                      {part2 ? (
+                        <div className="analysis-body">
+                          {alignmentScore ? (
+                            <div className={`score-pill score-${alignmentScore.tone}`}>
+                              <span className="score-value">
+                                {alignmentScore.score}/3
+                              </span>
+                              <span>{alignmentScore.label}</span>
+                            </div>
+                          ) : null}
+                          {part2.summary ? (
+                            <p className="summary-text">{part2.summary}</p>
+                          ) : null}
+                          {part2.alignment_analysis ? (
+                            <p className="summary-text">
+                              {part2.alignment_analysis}
+                            </p>
+                          ) : null}
+                          {part2.rationale ? (
+                            <p className="summary-text">{part2.rationale}</p>
+                          ) : null}
+                          {!part2.summary &&
+                          !part2.alignment_analysis &&
+                          !part2.rationale ? (
+                            <p className="summary-text">
+                              We could not generate a detailed explanation for the
+                              score. Please try again.
+                            </p>
+                          ) : null}
+                          <div className="analysis-meta">
+                            {part2.alignment ? (
+                              <span>Alignment: {part2.alignment}</span>
+                            ) : null}
+                            {part2.verdict ? (
+                              <span>Verdict: {part2.verdict}</span>
+                            ) : null}
+                            {part2.confidence ? (
+                              <span>Confidence: {part2.confidence}</span>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="summary-text">No context analysis yet.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
               </div>
               <p className="helper">
                 Context source: {result.context_source || 'not provided'}.
@@ -201,21 +316,6 @@ function App() {
           )}
         </section>
 
-        <section className="card">
-          <h2>API connection</h2>
-          <label className="field">
-            <span>API base URL</span>
-            <input
-              type="text"
-              value={apiBase}
-              onChange={(event) => handleApiBaseChange(event.target.value)}
-            />
-          </label>
-          <p className="helper">
-            Defaults to <code>{defaultApiBase}</code>. Update this if you run the
-            API elsewhere.
-          </p>
-        </section>
       </main>
     </div>
   )

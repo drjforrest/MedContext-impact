@@ -1,3 +1,4 @@
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings
 
 
@@ -7,14 +8,39 @@ class Settings(BaseSettings):
     medgemma_url: str = "http://localhost:8001"
     medgemma_provider: str = "huggingface"  # huggingface | local | vllm | vertex
     medgemma_hf_model: str = "google/medgemma-1.5-4b-it"
-    medgemma_hf_token: str = ""
+    medgemma_hf_token: str = Field(
+        default="",
+        validation_alias=AliasChoices("MEDGEMMA_HF_TOKEN"),
+    )
     medgemma_vllm_url: str = "http://localhost:8001/v1/chat/completions"
     medgemma_vertex_project: str = ""
     medgemma_vertex_location: str = "us-central1"
     medgemma_vertex_endpoint: str = ""
+    llm_provider: str = "openai_compatible"  # openai_compatible | ollama
+    llm_orchestrator: str = "openai/gpt-4o-mini"
+    llm_worker: str = "openai/gpt-4o-mini"
+    llm_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "LLM_API_KEY",
+            "OPENROUTER_API_KEY",
+            "GOOGLE_API_KEY",
+            "VERTEX_API_KEY",
+            "vertex_ai_api_key",
+        ),
+    )
+    llm_base_url: str = "https://openrouter.ai/api/v1"
+    llm_timeout_seconds: float = 60.0
     tineye_api_key: str = ""
     google_vision_api_key: str = ""
     whatsapp_business_api_key: str = ""
+    reddit_client_id: str = ""
+    reddit_client_secret: str = ""
+    reddit_user_agent: str = ""
+    reddit_subreddits: str = ""
+    reddit_keywords: str = ""
+    reddit_poll_interval_minutes: int = 60
+    enable_monitoring_polling: bool = False
     jwt_secret: str = ""
     encryption_key: str = ""
     log_level: str = "INFO"

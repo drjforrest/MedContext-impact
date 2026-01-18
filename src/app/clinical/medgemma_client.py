@@ -20,6 +20,7 @@ class MedGemmaResult:
     provider: str
     model: str
     output: Any
+    raw_text: Optional[str] = None
 
 
 class MedGemmaClient:
@@ -76,6 +77,7 @@ class MedGemmaClient:
             provider="huggingface",
             model=settings.medgemma_hf_model,
             output=response.json(),
+            raw_text=response.text,
         )
 
     def _load_local_model(self) -> None:
@@ -158,6 +160,7 @@ class MedGemmaClient:
             provider="local",
             model=settings.medgemma_hf_model,
             output={"text": decoded},
+            raw_text=decoded,
         )
 
     def _analyze_vertex(
@@ -184,7 +187,8 @@ class MedGemmaClient:
         )
 
         endpoint = aiplatform.Endpoint(settings.medgemma_vertex_endpoint)
-        instance = {"image": image_bytes}
+        encoded_image = base64.b64encode(image_bytes).decode("ascii")
+        instance = {"image": encoded_image}
         if prompt:
             instance["prompt"] = prompt
 
@@ -197,6 +201,7 @@ class MedGemmaClient:
             provider="vertex",
             model=settings.medgemma_vertex_endpoint,
             output=prediction.predictions,
+            raw_text=None,
         )
 
     def _analyze_vllm(
@@ -226,8 +231,88 @@ class MedGemmaClient:
         except httpx.HTTPError as exc:
             raise MedGemmaClientError(f"vLLM request failed: {exc}") from exc
 
+        data = response.json()
+        content = self._extract_vllm_content(data)
+        cleaned = self._clean_text(content)
+        parsed = self._parse_json(cleaned)
+
         return MedGemmaResult(
             provider="vllm",
             model=settings.medgemma_hf_model,
-            output=response.json(),
+            output=parsed,
+            raw_text=cleaned,
         )
+
+    def _extract_vllm_content(self, data: Any) -> str:
+        if not isinstance(data, dict):
+            return ""
+        choices = data.get("choices")
+        if isinstance(choices, list) and choices:
+            first = choices[0] if isinstance(choices[0], dict) else None
+            if first:
+                message = first.get("message")
+                if isinstance(message, dict):
+                    content = message.get("content")
+                    if isinstance(content, str):
+                        return content
+                content = first.get("text")
+                if isinstance(content, str):
+                    return content
+        return ""
+
+    def _clean_text(self, content: str) -> str:
+        import re
+
+        cleaned = content.strip()
+        cleaned = cleaned.lstrip("|").strip()
+        cleaned = re.sub(r"<unused\d+>\s*thought", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"<unused\d+>", "", cleaned)
+        cleaned = re.sub(r"^thought\s*:\s*", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s{3,}", "  ", cleaned)
+        return cleaned.strip()
+
+    def _parse_json(self, content: str) -> Any:
+        import json
+        import re
+
+        def _try_load(raw: str) -> Any:
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                return None
+
+        direct = _try_load(content)
+        if direct is not None:
+            return direct
+
+        fenced = re.search(r"```json(.*?)```", content, flags=re.DOTALL | re.IGNORECASE)
+        if fenced:
+            candidate = fenced.group(1).strip()
+            loaded = _try_load(candidate)
+            if loaded is not None:
+                return loaded
+            unescaped = (
+                candidate.replace("\\n", "\n")
+                .replace('\\"', '"')
+                .replace("\\\\", "\\")
+            )
+            loaded = _try_load(unescaped)
+            if loaded is not None:
+                return loaded
+
+        match = re.search(r"\{.*\}", content, flags=re.DOTALL)
+        if match:
+            candidate = match.group(0).strip()
+            loaded = _try_load(candidate)
+            if loaded is not None:
+                return loaded
+            unescaped = (
+                candidate.replace("\\n", "\n")
+                .replace('\\"', '"')
+                .replace("\\\\", "\\")
+            )
+            loaded = _try_load(unescaped)
+            if loaded is not None:
+                return loaded
+
+        return {"text": content}

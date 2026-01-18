@@ -15,12 +15,15 @@ dependencies = [
   "python-multipart==0.0.21",
   "alembic==1.13.3",
   "httpx==0.28.1",
-  "google-cloud-aiplatform==1.71.0",
+  "google-cloud-aiplatform>=1.105.0",
+  "google-cloud-storage>=3.0.0",
   "langgraph==1.0.5",
   "pillow==11.1.0",
   "torch==2.9.1",
   "transformers==4.57.3",
   "accelerate>=1.12.0",
+  "psycopg2-binary>=2.9.11",
+  "praw>=7.8.1",
 ]
 
 [build-system]
