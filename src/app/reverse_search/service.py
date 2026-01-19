@@ -3,9 +3,10 @@ from __future__ import annotations
 import base64
 import hashlib
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
+import cachetools
 import requests
 
 from app.core.config import settings
@@ -37,7 +38,10 @@ _SAMPLE_MATCHES = [
         "snippet": "The earliest share appears in a public community post.",
     },
 ]
-_RESULTS_CACHE: dict[UUID, ReverseSearchResult] = {}
+_RESULTS_CACHE: cachetools.TTLCache[UUID, ReverseSearchResult] = cachetools.TTLCache(
+    maxsize=1024,
+    ttl=3600,
+)
 
 
 def _normalize_image_id(image_id: UUID | str) -> UUID:
@@ -98,15 +102,15 @@ def _fetch_serpapi_matches(
     if not settings.serp_api_key:
         return [], None
     encoded_image = base64.b64encode(image_bytes).decode("utf-8")
-    params = {
+    payload = {
         "engine": "google_reverse_image",
         "api_key": settings.serp_api_key,
         "image_base64": encoded_image,
     }
     try:
-        response = requests.get(
+        response = requests.post(
             "https://serpapi.com/search.json",
-            params=params,
+            json=payload,
             timeout=settings.serp_api_timeout_seconds,
         )
         response.raise_for_status()
@@ -147,10 +151,11 @@ def run_reverse_search(
     image_id: UUID | str, image_bytes: bytes
 ) -> ReverseSearchJobResponse:
     resolved_image_id = _normalize_image_id(image_id)
-    queued_at = datetime.utcnow()
+    queued_at = datetime.now(timezone.utc)
     job_id = uuid4()
     query_hash = _hash_bytes(image_bytes) if image_bytes else None
     status = "queued"
+    detail: str | None = None
     if image_bytes:
         matches, providers = _fetch_serpapi_matches(image_bytes, queued_at)
         if not matches:
@@ -166,11 +171,23 @@ def run_reverse_search(
             providers=providers,
             matches=matches,
         )
+    else:
+        status = "invalid_request"
+        detail = "reverse search skipped: image_bytes missing"
+        _RESULTS_CACHE[resolved_image_id] = ReverseSearchResult(
+            job_id=job_id,
+            image_id=resolved_image_id,
+            status=status,
+            queried_at=queued_at,
+            query_hash=None,
+            providers=None,
+            matches=[],
+        )
     return ReverseSearchJobResponse(
         job_id=job_id,
         image_id=resolved_image_id,
         status=status,
-        detail=f"reverse search {status} for {resolved_image_id}",
+        detail=detail or f"reverse search {status} for {resolved_image_id}",
         query_hash=query_hash,
         queued_at=queued_at,
     )

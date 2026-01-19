@@ -5,9 +5,9 @@ Revises: 1e35fda0b1c9
 Create Date: 2026-01-18 07:05:39.068931
 """
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "5b287932865b"
 down_revision = "1e35fda0b1c9"
@@ -40,6 +40,12 @@ def upgrade() -> None:
         op.f("ix_image_submissions_image_hash"),
         "image_submissions",
         ["image_hash"],
+        unique=True,
+    )
+    op.create_index(
+        op.f("ix_image_submissions_id"),
+        "image_submissions",
+        ["id"],
         unique=True,
     )
     op.create_index(
@@ -77,6 +83,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["image_id"],
             ["image_submissions.id"],
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -103,6 +110,12 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(
+        op.f("ix_submission_contexts_image_id"),
+        "submission_contexts",
+        ["image_id"],
+        unique=False,
+    )
     # ### end Alembic commands ###
 
 
@@ -120,5 +133,6 @@ def downgrade() -> None:
     op.drop_index(
         op.f("ix_image_submissions_image_hash"), table_name="image_submissions"
     )
+    op.drop_index(op.f("ix_image_submissions_id"), table_name="image_submissions")
     op.drop_table("image_submissions")
     # ### end Alembic commands ###
