@@ -3,7 +3,16 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -37,7 +46,9 @@ class SubmissionContext(Base):
     __tablename__ = "submission_contexts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    image_id = Column(UUID(as_uuid=True), ForeignKey("image_submissions.id"), nullable=False)
+    image_id = Column(
+        UUID(as_uuid=True), ForeignKey("image_submissions.id"), nullable=False
+    )
     surrounding_text = Column(Text, nullable=True)
     claimed_condition = Column(String, nullable=True)
     claimed_origin = Column(String, nullable=True)
@@ -53,7 +64,9 @@ class MedGemmaAnalysis(Base):
     __tablename__ = "medgemma_analyses"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    image_id = Column(UUID(as_uuid=True), ForeignKey("image_submissions.id"), nullable=False)
+    image_id = Column(
+        UUID(as_uuid=True), ForeignKey("image_submissions.id"), nullable=False
+    )
 
     modality = Column(String, nullable=True)
     anatomical_region = Column(String, nullable=True)

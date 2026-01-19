@@ -254,7 +254,7 @@ class MedContextLangGraphAgent:
             and "part_2" not in synthesis_output
         ):
             synthesis_output["part_2"] = {"summary": synthesis_output["text"]}
-        raw_text = synthesis.raw_text if isinstance(synthesis, LlmResult) else None
+        raw_text = getattr(synthesis, "raw_text", None)
         if "part_2" not in synthesis_output and raw_text:
             synthesis_output["part_2"] = {"summary": raw_text}
         elif raw_text and isinstance(synthesis_output.get("part_2"), dict):

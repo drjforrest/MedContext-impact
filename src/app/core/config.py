@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     )
     llm_base_url: str = "https://openrouter.ai/api/v1"
     llm_timeout_seconds: float = 60.0
+    serp_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("SERP_API_KEY"),
+    )
+    serp_api_timeout_seconds: float = 20.0
     tineye_api_key: str = ""
     google_vision_api_key: str = ""
     whatsapp_business_api_key: str = ""
