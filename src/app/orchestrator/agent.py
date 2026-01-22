@@ -206,7 +206,9 @@ class MedContextAgent:
         triage: MedGemmaResult,
         tool_results: dict[str, Any],
     ) -> dict[str, Any]:
-        alignment_score, alignment_label = self._extract_alignment_signal(synthesis_output)
+        alignment_score, alignment_label = self._extract_alignment_signal(
+            synthesis_output
+        )
         plausibility_score = self._extract_plausibility(triage)
         source_reputation = self._derive_source_reputation(tool_results)
         genealogy_consistency = self._derive_genealogy_consistency(tool_results)
@@ -274,13 +276,16 @@ class MedContextAgent:
         confidences = [
             match.get("confidence")
             for match in matches
-            if isinstance(match, dict) and isinstance(match.get("confidence"), (int, float))
+            if isinstance(match, dict)
+            and isinstance(match.get("confidence"), (int, float))
         ]
         if not confidences:
             return None
         return max(0.0, min(1.0, sum(confidences) / len(confidences)))
 
-    def _derive_genealogy_consistency(self, tool_results: dict[str, Any]) -> float | None:
+    def _derive_genealogy_consistency(
+        self, tool_results: dict[str, Any]
+    ) -> float | None:
         provenance = tool_results.get("provenance")
         if not isinstance(provenance, dict):
             return None
@@ -378,9 +383,9 @@ class MedContextAgent:
                 results[tool] = run_reverse_search(
                     image_id=resolved_image_id, image_bytes=image_bytes
                 )
-                results["reverse_search_results"] = get_reverse_search_results(
-                    resolved_image_id
-                ).model_dump()
+                search_results = get_reverse_search_results(resolved_image_id)
+                if search_results is not None:
+                    results["reverse_search_results"] = search_results.model_dump()
             elif tool == "forensics":
                 layers = self._select_forensics_layers(triage)
                 results[tool] = run_forensics(image_bytes=image_bytes, layers=layers)
@@ -406,4 +411,5 @@ class MedContextAgent:
             return ["layer_2"]
         if plausibility_normalized in {"low", "medium"}:
             return ["layer_1", "layer_2"]
+        return ["layer_1", "layer_2"]
         return ["layer_1", "layer_2"]

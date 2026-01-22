@@ -1,8 +1,21 @@
 import { useMemo, useState } from 'react'
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import './App.css'
 
 const defaultApiBase =
   import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+const defaultReversePollIntervalMs = 1500
+const defaultReversePollTimeoutMs = 20000
 
 const getStoredApiBase = () => {
   if (typeof window === 'undefined') {
@@ -12,7 +25,17 @@ const getStoredApiBase = () => {
   return stored && stored.trim() ? stored : defaultApiBase
 }
 
+const getStoredNumber = (key, fallback) => {
+  if (typeof window === 'undefined') {
+    return fallback
+  }
+  const stored = window.localStorage.getItem(key)
+  const parsed = stored ? Number(stored) : Number.NaN
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+}
+
 function App() {
+  const [activeView, setActiveView] = useState('main')
   const [apiBase, setApiBase] = useState(getStoredApiBase)
   const [imageFile, setImageFile] = useState(null)
   const [imageUrl, setImageUrl] = useState('')
@@ -28,6 +51,18 @@ function App() {
   const [reverseJob, setReverseJob] = useState(null)
   const [reverseResult, setReverseResult] = useState(null)
   const [reverseFileKey, setReverseFileKey] = useState(0)
+  const [reversePollIntervalMs, setReversePollIntervalMs] = useState(() =>
+    getStoredNumber(
+      'medcontext_reverse_poll_interval_ms',
+      defaultReversePollIntervalMs,
+    ),
+  )
+  const [reversePollTimeoutMs, setReversePollTimeoutMs] = useState(() =>
+    getStoredNumber(
+      'medcontext_reverse_poll_timeout_ms',
+      defaultReversePollTimeoutMs,
+    ),
+  )
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
@@ -42,6 +77,7 @@ function App() {
   const reverseStatusLabel = useMemo(() => {
     if (reverseStatus === 'loading') return 'Searching the web...'
     if (reverseStatus === 'success') return 'Reverse search complete'
+    if (reverseStatus === 'timeout') return 'Reverse search timed out'
     if (reverseStatus === 'error') return 'Reverse search failed'
     return 'Ready'
   }, [reverseStatus])
@@ -95,6 +131,32 @@ function App() {
     }
   }
 
+  const handleReversePollIntervalChange = (valueMs) => {
+    const nextValue = Number.isFinite(valueMs) && valueMs > 0
+      ? valueMs
+      : defaultReversePollIntervalMs
+    setReversePollIntervalMs(nextValue)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(
+        'medcontext_reverse_poll_interval_ms',
+        String(nextValue),
+      )
+    }
+  }
+
+  const handleReversePollTimeoutChange = (valueMs) => {
+    const nextValue = Number.isFinite(valueMs) && valueMs > 0
+      ? valueMs
+      : defaultReversePollTimeoutMs
+    setReversePollTimeoutMs(nextValue)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(
+        'medcontext_reverse_poll_timeout_ms',
+        String(nextValue),
+      )
+    }
+  }
+
   const handleReverseSearch = async () => {
     setReverseError('')
     setReverseJob(null)
@@ -136,24 +198,56 @@ function App() {
       }
       setReverseJob(payload)
 
-      const resultResponse = await fetch(
-        `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/results/${imageId}`,
-      )
-      const resultPayload = await resultResponse.json().catch(() => ({}))
-      if (!resultResponse.ok) {
-        throw new Error(resultPayload.detail || 'Failed to fetch results.')
+      const pollIntervalMs = reversePollIntervalMs
+      const pollTimeoutMs = reversePollTimeoutMs
+      const pollStart = Date.now()
+      let resultResponse
+      let resultPayload = {}
+
+      while (Date.now() - pollStart < pollTimeoutMs) {
+        resultResponse = await fetch(
+          `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/results/${imageId}`,
+        )
+        resultPayload = await resultResponse.json().catch(() => ({}))
+        if (!resultResponse.ok) {
+          throw new Error(resultPayload.detail || 'Failed to fetch results.')
+        }
+
+        const terminalStatus = resultPayload?.status
+        const hasResults =
+          Array.isArray(resultPayload?.matches) ||
+          Array.isArray(resultPayload?.results)
+
+        if (terminalStatus === 'ready' || hasResults) {
+          setReverseResult(resultPayload)
+          setReverseStatus('success')
+          return
+        }
+
+        if (terminalStatus === 'failed' || terminalStatus === 'error') {
+          throw new Error(
+            resultPayload.detail || 'Reverse search failed to complete.',
+          )
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs))
       }
-      setReverseResult(resultPayload)
-      setReverseStatus('success')
+
+      const timeoutError = new Error(
+        resultPayload.detail || 'Reverse search timed out.',
+      )
+      timeoutError.name = 'TimeoutError'
+      throw timeoutError
     } catch (err) {
       setReverseError(
         err instanceof Error ? err.message : 'Reverse search failed.',
       )
-      setReverseStatus('error')
+      setReverseStatus(err?.name === 'TimeoutError' ? 'timeout' : 'error')
     }
   }
 
   const synthesis = result?.synthesis
+  const contextualIntegrity = synthesis?.contextual_integrity
   const part1 = synthesis?.part_1
   const part2 = synthesis?.part_2
   const imagePreview = synthesis?.image_preview
@@ -164,6 +258,45 @@ function App() {
   const forensicsData = toolResults?.forensics
   const provenanceData = toolResults?.provenance
   const orchestratorReverseSearch = toolResults?.reverse_search
+  const integrityScore =
+    typeof contextualIntegrity?.score === 'number'
+      ? contextualIntegrity.score
+      : null
+  const integritySignals = contextualIntegrity?.signals || null
+  const integrityScorePercent =
+    integrityScore === null ? null : Math.round(integrityScore * 100)
+  const integrityScoreTone =
+    integrityScorePercent === null
+      ? 'neutral'
+      : integrityScorePercent >= 70
+        ? 'high'
+        : integrityScorePercent >= 40
+          ? 'medium'
+          : 'low'
+  const integrityScoreData = useMemo(() => {
+    if (integrityScorePercent === null) return []
+    return [
+      { name: 'score', value: integrityScorePercent },
+      { name: 'remaining', value: 100 - integrityScorePercent },
+    ]
+  }, [integrityScorePercent])
+  const integritySignalData = useMemo(() => {
+    if (!integritySignals) return []
+    const palette = {
+      alignment: '#4f7cff',
+      plausibility: '#2db88a',
+      genealogy_consistency: '#f5a524',
+      source_reputation: '#6d7d93',
+    }
+    return Object.entries(integritySignals)
+      .filter(([, value]) => typeof value === 'number')
+      .map(([key, value]) => ({
+        key,
+        label: key.replace(/_/g, ' '),
+        value: Math.round(value * 100),
+        fill: palette[key] || '#5b8def',
+      }))
+  }, [integritySignals])
   const alignmentScore = useMemo(() => {
     const alignment =
       typeof part2?.alignment === 'string' ? part2.alignment : ''
@@ -225,7 +358,7 @@ function App() {
         <div className="hero-brand">
           <img
             className="hero-logo"
-            src="/medContext-logio.png"
+            src="/medContext-logo.png"
             alt="MedContext logo"
           />
           <div>
@@ -237,17 +370,107 @@ function App() {
             </p>
           </div>
         </div>
-        <div className="status" aria-live="polite">
-          <span className={`status-dot status-${status}`} />
-          {status === 'loading' ? (
-            <span className="spinner" aria-hidden="true" />
-          ) : null}
-          <span>{statusLabel}</span>
+        <div className="hero-actions">
+          <div className="status" aria-live="polite">
+            <span className={`status-dot status-${status}`} />
+            {status === 'loading' ? (
+              <span className="spinner" aria-hidden="true" />
+            ) : null}
+            <span>{statusLabel}</span>
+          </div>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() =>
+              setActiveView((current) =>
+                current === 'settings' ? 'main' : 'settings',
+              )
+            }
+          >
+            {activeView === 'settings' ? 'Back to app' : 'Settings'}
+          </button>
         </div>
       </header>
 
       <main className="content">
-        <section className="card">
+        {activeView === 'settings' ? (
+          <section className="card settings-card">
+            <div className="settings-header">
+              <div>
+                <h2>Settings</h2>
+                <p className="helper">
+                  Configure API endpoints and reverse search polling.
+                </p>
+              </div>
+            </div>
+            <div className="settings-section">
+              <h3>API</h3>
+              <div className="grid">
+                <label className="field">
+                  <span>API base URL</span>
+                  <input
+                    type="url"
+                    placeholder={defaultApiBase}
+                    value={apiBase}
+                    onChange={(event) =>
+                      handleApiBaseChange(event.target.value)
+                    }
+                  />
+                  <span className="helper">
+                    Stored locally in your browser.
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="settings-section">
+              <h3>Reverse search polling</h3>
+              <div className="grid">
+                <label className="field">
+                  <span>Polling interval (ms)</span>
+                  <input
+                    type="number"
+                    min="500"
+                    step="100"
+                    value={reversePollIntervalMs}
+                    onChange={(event) => {
+                      const nextValue = Number(event.target.value)
+                      handleReversePollIntervalChange(
+                        Number.isFinite(nextValue) && nextValue > 0
+                          ? nextValue
+                          : reversePollIntervalMs,
+                      )
+                    }}
+                  />
+                  <span className="helper">
+                    How often the UI checks for results.
+                  </span>
+                </label>
+                <label className="field">
+                  <span>Timeout (ms)</span>
+                  <input
+                    type="number"
+                    min="1000"
+                    step="500"
+                    value={reversePollTimeoutMs}
+                    onChange={(event) => {
+                      const nextValue = Number(event.target.value)
+                      handleReversePollTimeoutChange(
+                        Number.isFinite(nextValue) && nextValue > 0
+                          ? nextValue
+                          : reversePollTimeoutMs,
+                      )
+                    }}
+                  />
+                  <span className="helper">
+                    Max time to wait before timing out.
+                  </span>
+                </label>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <>
+            <section className="card">
           <h2>Provide an image</h2>
           <div className="grid">
             <label className="field">
@@ -511,6 +734,92 @@ function App() {
                   </div>
                 ) : null}
               </div>
+              {contextualIntegrity ? (
+                <div className="result-block">
+                  <h3>Evidence signals</h3>
+                  <div className="viz-grid">
+                    <div className={`viz-card viz-score viz-${integrityScoreTone}`}>
+                      <div className="viz-metric">
+                        <span>Contextual integrity score</span>
+                        <strong>
+                          {integrityScorePercent === null
+                            ? '—'
+                            : `${integrityScorePercent}%`}
+                        </strong>
+                      </div>
+                      {integrityScoreData.length ? (
+                        <div className="viz-chart">
+                          <ResponsiveContainer width="100%" height={180}>
+                            <PieChart>
+                              <Pie
+                                data={integrityScoreData}
+                                dataKey="value"
+                                innerRadius={55}
+                                outerRadius={75}
+                                startAngle={90}
+                                endAngle={-270}
+                                paddingAngle={2}
+                                stroke="none"
+                              >
+                                {integrityScoreData.map((entry, index) => (
+                                  <Cell
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={`score-${index}`}
+                                    fill={
+                                      entry.name === 'score'
+                                        ? integrityScoreTone === 'high'
+                                          ? '#2db88a'
+                                          : integrityScoreTone === 'medium'
+                                            ? '#f5a524'
+                                            : '#e5484d'
+                                        : '#e9eef4'
+                                    }
+                                  />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => `${value}%`} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <p className="helper">No integrity score available.</p>
+                      )}
+                    </div>
+                    <div className="viz-card">
+                      <div className="viz-metric">
+                        <span>Signal contributions</span>
+                        <strong>0–100</strong>
+                      </div>
+                      {integritySignalData.length ? (
+                        <div className="viz-chart">
+                          <ResponsiveContainer width="100%" height={220}>
+                            <BarChart
+                              data={integritySignalData}
+                              layout="vertical"
+                              margin={{ left: 20, right: 12 }}
+                            >
+                              <XAxis type="number" domain={[0, 100]} hide />
+                              <YAxis
+                                type="category"
+                                dataKey="label"
+                                width={120}
+                              />
+                              <Tooltip formatter={(value) => `${value}%`} />
+                              <Bar dataKey="value" isAnimationActive={false}>
+                                {integritySignalData.map((entry) => (
+                                  <Cell key={entry.key} fill={entry.fill} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <p className="helper">No signal data available.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
               <p className="helper">
                 Context source: {result.context_source || 'not provided'}.
               </p>
@@ -535,8 +844,8 @@ function App() {
                   <div key={layerName} className="result-block">
                     <h3>
                       {layerName === 'layer_1' ? '📊 Layer 1: Pixel Forensics (ELA)' :
-                       layerName === 'layer_2' ? '🧠 Layer 2: Semantic Analysis' :
-                       '📝 Layer 3: Metadata & EXIF'}
+                        layerName === 'layer_2' ? '🧠 Layer 2: Semantic Analysis' :
+                          '📝 Layer 3: Metadata & EXIF'}
                     </h3>
                     <div className="forensics-verdict">
                       <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
@@ -688,7 +997,8 @@ function App() {
             </div>
           </section>
         ) : null}
-
+          </>
+        )}
       </main>
     </div>
   )

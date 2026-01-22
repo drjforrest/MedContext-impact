@@ -69,10 +69,9 @@ def main() -> None:
     if not injection_csv.exists() or not removal_csv.exists():
         raise SystemExit("Missing MRI_injection.csv or MRI_removal.csv in BTD/MRI.")
 
-    manipulated_rel_paths = (
-        _read_manipulated_paths(injection_csv)
-        + _read_manipulated_paths(removal_csv)
-    )
+    manipulated_rel_paths = _read_manipulated_paths(
+        injection_csv
+    ) + _read_manipulated_paths(removal_csv)
 
     copied_authentic = 0
     copied_manipulated = 0

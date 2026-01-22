@@ -233,7 +233,7 @@ medcontext/
 ├── README.md                    ← Project overview
 ├── src/app/
 │   ├── orchestrator/            ← Agentic workflow
-│   │   ├── agent.py            ← Main agent (deterministic)
+│   │   ├── agent.py            ← Main agentic orchestrator
 │   │   └── langgraph_agent.py  ← LangGraph integration
 │   ├── forensics/               ← Deepfake detection
 │   │   └── deepfake.py         ← ELA + EXIF evidence
@@ -475,8 +475,7 @@ If required, a video walkthrough can be provided showing:
 ## 👤 Contact & Support
 
 **Developer:** Jamie Forrest
-**Email:** [Your email if you want to share]
-**GitHub:** [Repository link if public]
+**Developer:** Jamie Forrest
 
 **Questions?**
 - See [DEPLOYMENT.md](DEPLOYMENT.md) for setup issues

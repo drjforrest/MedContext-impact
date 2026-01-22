@@ -34,7 +34,7 @@ cp .env.example .env
 **Minimum Required Configuration:**
 ```env
 # Database (required)
-DATABASE_URL=postgresql://jforrest:PLACEHOLDER_PASSWORD@PLACEHOLDER_HOST:5432/medcontext
+DATABASE_URL=postgresql://username:password@db-host:5432/medcontext
 
 # MedGemma Provider (choose one)
 MEDGEMMA_PROVIDER=vllm
@@ -289,7 +289,7 @@ ENCRYPTION_KEY=your-32-byte-encryption-key
 
 ```bash
 # Test PostgreSQL connection
-psql postgresql://jforrest:PLACEHOLDER_PASSWORD@PLACEHOLDER_HOST:5432/medcontext
+psql postgresql://username:password@localhost:5432/medcontext
 
 # Run migrations manually
 alembic upgrade head

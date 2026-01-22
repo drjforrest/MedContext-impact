@@ -116,7 +116,7 @@ This document catalogs public medical image tampering datasets suitable for **su
 **Download Instructions:**
 ```bash
 # Clone BTD repository
-git clone https://github.com/[btd-repo]/medical-tamper-detection.git
+git clone https://github.com/drjforrest/medcontext.git 
 # Follow dataset download instructions in repo
 ```
 

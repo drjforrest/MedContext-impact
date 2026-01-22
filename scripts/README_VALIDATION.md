@@ -130,7 +130,8 @@ python scripts/validate_forensics.py \
 **Best for:** Clinical tampering scenarios (tumor insertion/removal)
 
 **Download:**
-1. Visit UCI ML Repository: https://archive.ics.uci.edu/dataset/.../medical+image+tamper+detection
+1. Visit UCI ML Repository and search for "Medical Image Tamper Detection"
+   URL: https://archive.ics.uci.edu/datasets
 2. Download dataset (requires registration)
 3. Keep the provided zip in `data/` (e.g., `data/deepfakes+medical+image+tamper+detection/data.zip`)
 
