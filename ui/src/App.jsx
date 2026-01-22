@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -63,6 +63,8 @@ function App() {
       defaultReversePollTimeoutMs,
     ),
   )
+  const [agentStepIndex, setAgentStepIndex] = useState(0)
+  const agentStartRef = useRef(null)
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
@@ -81,6 +83,63 @@ function App() {
     if (reverseStatus === 'error') return 'Reverse search failed'
     return 'Ready'
   }, [reverseStatus])
+
+  const agentSteps = useMemo(
+    () => [
+      {
+        key: 'triage',
+        label: 'Preparing analysis',
+        detail: 'We review the image and your context.',
+      },
+      {
+        key: 'reverse_search',
+        label: 'Checking sources',
+        detail: 'Looking for where this image appears online.',
+      },
+      {
+        key: 'forensics',
+        label: 'Inspecting the image',
+        detail: 'Scanning for manipulation signals and anomalies.',
+      },
+      {
+        key: 'provenance',
+        label: 'Tracing history',
+        detail: 'Pulling provenance and usage clues.',
+      },
+      {
+        key: 'synthesis',
+        label: 'Finalizing',
+        detail: 'Summarizing findings and generating the report.',
+      },
+    ],
+    [],
+  )
+
+  useEffect(() => {
+    if (status !== 'loading') {
+      agentStartRef.current = null
+      setAgentStepIndex(0)
+      return
+    }
+
+    if (!agentStartRef.current) {
+      agentStartRef.current = Date.now()
+    }
+
+    const stepWindowMs = 1800
+    const updateStep = () => {
+      const elapsed = Date.now() - (agentStartRef.current || Date.now())
+      const nextIndex = Math.min(
+        agentSteps.length - 1,
+        Math.floor(elapsed / stepWindowMs),
+      )
+      setAgentStepIndex(nextIndex)
+    }
+
+    updateStep()
+    const timer = window.setInterval(updateStep, 600)
+    return () => window.clearInterval(timer)
+  }, [agentSteps.length, status])
 
   const handleRun = async () => {
     setError('')
@@ -258,6 +317,33 @@ function App() {
   const forensicsData = toolResults?.forensics
   const provenanceData = toolResults?.provenance
   const orchestratorReverseSearch = toolResults?.reverse_search
+  const toolActivity = useMemo(
+    () => ({
+      reverse_search: Boolean(orchestratorReverseSearch),
+      forensics: Boolean(forensicsData),
+      provenance: Boolean(provenanceData),
+    }),
+    [forensicsData, orchestratorReverseSearch, provenanceData],
+  )
+  const agentStepStates = useMemo(() => {
+    return agentSteps.map((step, index) => {
+      if (status === 'success' || status === 'error') {
+        if (step.key in toolActivity) {
+          return toolActivity[step.key] ? 'done' : 'skipped'
+        }
+        return 'done'
+      }
+      if (status === 'loading') {
+        if (step.key in toolActivity && toolActivity[step.key]) {
+          return 'done'
+        }
+        if (index < agentStepIndex) return 'done'
+        if (index === agentStepIndex) return 'active'
+        return 'pending'
+      }
+      return 'idle'
+    })
+  }, [agentStepIndex, agentSteps, status, toolActivity])
   const integrityScore =
     typeof contextualIntegrity?.score === 'number'
       ? contextualIntegrity.score
@@ -470,6 +556,35 @@ function App() {
           </section>
         ) : (
           <>
+            <section className="card activity-card">
+              <div className="reverse-header">
+                <div>
+                  <h2>Progress</h2>
+                  <p className="helper">
+                    Live status updates while we work on your request.
+                  </p>
+                </div>
+              </div>
+              <div className="activity-grid">
+                {agentSteps.map((step, index) => {
+                  const state = agentStepStates[index]
+                  return (
+                    <div
+                      className={`activity-step activity-${state}`}
+                      key={step.key}
+                    >
+                      <div className="activity-header">
+                        <span>{step.label}</span>
+                        <span className={`activity-pill activity-${state}`}>
+                          {state}
+                        </span>
+                      </div>
+                      <p className="helper">{step.detail}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
             <section className="card">
           <h2>Provide an image</h2>
           <div className="grid">
