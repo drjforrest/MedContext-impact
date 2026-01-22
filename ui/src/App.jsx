@@ -21,6 +21,13 @@ function App() {
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
+  const [reverseImageFile, setReverseImageFile] = useState(null)
+  const [reverseImageId, setReverseImageId] = useState('')
+  const [reverseStatus, setReverseStatus] = useState('idle')
+  const [reverseError, setReverseError] = useState('')
+  const [reverseJob, setReverseJob] = useState(null)
+  const [reverseResult, setReverseResult] = useState(null)
+  const [reverseFileKey, setReverseFileKey] = useState(0)
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
@@ -31,6 +38,13 @@ function App() {
     if (status === 'error') return 'Request failed'
     return 'Ready'
   }, [status])
+
+  const reverseStatusLabel = useMemo(() => {
+    if (reverseStatus === 'loading') return 'Searching the web...'
+    if (reverseStatus === 'success') return 'Reverse search complete'
+    if (reverseStatus === 'error') return 'Reverse search failed'
+    return 'Ready'
+  }, [reverseStatus])
 
   const handleRun = async () => {
     setError('')
@@ -81,28 +95,94 @@ function App() {
     }
   }
 
+  const handleReverseSearch = async () => {
+    setReverseError('')
+    setReverseJob(null)
+    setReverseResult(null)
+
+    if (!reverseImageFile) {
+      setReverseError('Select an image file to search.')
+      setReverseStatus('error')
+      return
+    }
+
+    const trimmedId = reverseImageId.trim()
+    const imageId =
+      trimmedId || (typeof crypto !== 'undefined' ? crypto.randomUUID() : '')
+
+    if (!imageId) {
+      setReverseError('Unable to generate an image id.')
+      setReverseStatus('error')
+      return
+    }
+
+    setReverseImageId(imageId)
+    setReverseStatus('loading')
+
+    const formData = new FormData()
+    formData.append('file', reverseImageFile)
+
+    try {
+      const response = await fetch(
+        `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/search/${imageId}`,
+        {
+          method: 'POST',
+          body: formData,
+        },
+      )
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload.detail || 'Reverse search failed.')
+      }
+      setReverseJob(payload)
+
+      const resultResponse = await fetch(
+        `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/results/${imageId}`,
+      )
+      const resultPayload = await resultResponse.json().catch(() => ({}))
+      if (!resultResponse.ok) {
+        throw new Error(resultPayload.detail || 'Failed to fetch results.')
+      }
+      setReverseResult(resultPayload)
+      setReverseStatus('success')
+    } catch (err) {
+      setReverseError(
+        err instanceof Error ? err.message : 'Reverse search failed.',
+      )
+      setReverseStatus('error')
+    }
+  }
+
   const synthesis = result?.synthesis
   const part1 = synthesis?.part_1
   const part2 = synthesis?.part_2
   const imagePreview = synthesis?.image_preview
   const contextQuote = part2?.context_quote
+  const reverseMatches = reverseResult?.matches || []
+  const reverseProviders = reverseResult?.providers || []
+  const toolResults = result?.tool_results || {}
+  const forensicsData = toolResults?.forensics
+  const provenanceData = toolResults?.provenance
+  const orchestratorReverseSearch = toolResults?.reverse_search
   const alignmentScore = useMemo(() => {
-    const alignment = part2?.alignment
-    if (alignment === 'aligned') {
+    const alignment =
+      typeof part2?.alignment === 'string' ? part2.alignment : ''
+    const alignmentKey = alignment.toLowerCase().replace(/[\s-]+/g, '_')
+    if (alignmentKey === 'aligned') {
       return {
         score: 3,
         label: 'The claim matches the image provided.',
         tone: 'high',
       }
     }
-    if (alignment === 'partially_aligned') {
+    if (alignmentKey === 'partially_aligned') {
       return {
         score: 2,
         label: 'Some parts of the claim may relate to the image provided.',
         tone: 'medium',
       }
     }
-    if (alignment === 'misaligned') {
+    if (alignmentKey === 'misaligned') {
       return {
         score: 1,
         label: 'The claim has little to no relation to the image provided.',
@@ -142,13 +222,20 @@ function App() {
   return (
     <div className="page">
       <header className="hero">
-        <div>
-          <p className="eyebrow">MedContext</p>
-          <h1>Verify medical images before you share.</h1>
-          <p className="subhead">
-            Upload an image or paste a public URL. MedContext checks context,
-            provenance, and clinical plausibility through the API.
-          </p>
+        <div className="hero-brand">
+          <img
+            className="hero-logo"
+            src="/medContext-logio.png"
+            alt="MedContext logo"
+          />
+          <div>
+            <p className="eyebrow">MedContext</p>
+            <h1>Verify medical images before you share.</h1>
+            <p className="subhead">
+              Upload an image or paste a public URL. MedContext checks context,
+              provenance, and clinical plausibility through the API.
+            </p>
+          </div>
         </div>
         <div className="status" aria-live="polite">
           <span className={`status-dot status-${status}`} />
@@ -161,7 +248,7 @@ function App() {
 
       <main className="content">
         <section className="card">
-          <h2>1. Provide an image</h2>
+          <h2>Provide an image</h2>
           <div className="grid">
             <label className="field">
               <span>Image file</span>
@@ -227,7 +314,127 @@ function App() {
         </section>
 
         <section className="card">
-          <h2>2. Results</h2>
+          <div className="reverse-header">
+            <div>
+              <h2>Reverse image search</h2>
+              <p className="helper">
+                Upload an image to find matching sources via SerpAPI.
+              </p>
+            </div>
+            <div className="status" aria-live="polite">
+              <span className={`status-dot status-${reverseStatus}`} />
+              {reverseStatus === 'loading' ? (
+                <span className="spinner" aria-hidden="true" />
+              ) : null}
+              <span>{reverseStatusLabel}</span>
+            </div>
+          </div>
+          <div className="grid">
+            <label className="field">
+              <span>Image file</span>
+              <input
+                key={reverseFileKey}
+                type="file"
+                accept="image/*"
+                onChange={(event) =>
+                  setReverseImageFile(event.target.files?.[0] || null)
+                }
+              />
+              <span className="helper">
+                {reverseImageFile
+                  ? reverseImageFile.name
+                  : 'Provide the image to search.'}
+              </span>
+            </label>
+            <label className="field">
+              <span>Image ID (optional)</span>
+              <input
+                type="text"
+                placeholder="Leave blank to auto-generate"
+                value={reverseImageId}
+                onChange={(event) => setReverseImageId(event.target.value)}
+              />
+              <span className="helper">
+                Used to retrieve results from the API cache.
+              </span>
+            </label>
+          </div>
+          <div className="actions">
+            <button
+              type="button"
+              onClick={handleReverseSearch}
+              disabled={reverseStatus === 'loading'}
+            >
+              Run reverse search
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => {
+                setReverseImageFile(null)
+                setReverseImageId('')
+                setReverseJob(null)
+                setReverseResult(null)
+                setReverseError('')
+                setReverseStatus('idle')
+                setReverseFileKey((currentKey) => currentKey + 1)
+              }}
+            >
+              Clear
+            </button>
+          </div>
+          {reverseError ? <p className="error">{reverseError}</p> : null}
+          {reverseResult ? (
+            <div className="results">
+              <div className="reverse-meta">
+                <span>Image ID: {reverseResult.image_id}</span>
+                {reverseResult.query_hash ? (
+                  <span>Query hash: {reverseResult.query_hash}</span>
+                ) : null}
+                {reverseProviders.length ? (
+                  <span>Providers: {reverseProviders.join(', ')}</span>
+                ) : null}
+              </div>
+              {reverseMatches.length ? (
+                <div className="match-grid">
+                  {reverseMatches.map((match) => (
+                    <article className="match-card" key={match.url}>
+                      <div className="match-header">
+                        <span className="pill">{match.source}</span>
+                        <span className="pill pill-muted">
+                          {Math.round(match.confidence * 100)}% confidence
+                        </span>
+                      </div>
+                      <h3>{match.title || 'Untitled match'}</h3>
+                      {match.snippet ? (
+                        <p className="summary-text">{match.snippet}</p>
+                      ) : null}
+                      <a href={match.url} target="_blank" rel="noreferrer">
+                        {match.url}
+                      </a>
+                      {match.metadata ? (
+                        <p className="helper">
+                          Metadata: {Object.keys(match.metadata).length} fields
+                        </p>
+                      ) : null}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="helper">
+                  No matches returned. Try another image or check SerpAPI status.
+                </p>
+              )}
+            </div>
+          ) : reverseJob ? (
+            <p className="helper">
+              Reverse search queued. Image ID: {reverseJob.image_id}
+            </p>
+          ) : null}
+        </section>
+
+        <section className="card">
+          <h2>Contextual integrity results</h2>
           {result ? (
             <div className="results">
               <div className="result-block">
@@ -235,7 +442,6 @@ function App() {
                 {part1 || part2 ? (
                   <div className="summary-parts">
                     <div className="summary-part">
-                      <h4>Part 1: Image (factual)</h4>
                       {imagePreview ? (
                         <img
                           className="image-preview"
@@ -252,7 +458,6 @@ function App() {
                       )}
                     </div>
                     <div className="summary-part">
-                      <h4>Part 2: Context analysis</h4>
                       {contextQuote ? (
                         <blockquote className="context-quote">
                           {contextQuote}
@@ -316,6 +521,173 @@ function App() {
             </p>
           )}
         </section>
+
+        {/* Forensics Tool Results */}
+        {forensicsData ? (
+          <section className="card">
+            <h2>🔍 Forensics Analysis</h2>
+            <p className="helper">
+              Multi-layer deepfake detection via Error Level Analysis (ELA) and EXIF metadata
+            </p>
+            {forensicsData.results ? (
+              <div className="results">
+                {Object.entries(forensicsData.results).map(([layerName, layerData]) => (
+                  <div key={layerName} className="result-block">
+                    <h3>
+                      {layerName === 'layer_1' ? '📊 Layer 1: Pixel Forensics (ELA)' :
+                       layerName === 'layer_2' ? '🧠 Layer 2: Semantic Analysis' :
+                       '📝 Layer 3: Metadata & EXIF'}
+                    </h3>
+                    <div className="forensics-verdict">
+                      <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
+                        {layerData.verdict}
+                      </span>
+                      <span className="pill pill-muted">
+                        {Math.round(layerData.confidence * 100)}% confidence
+                      </span>
+                    </div>
+                    {layerData.details ? (
+                      <div className="forensics-details">
+                        {layerData.details.method ? (
+                          <p><strong>Method:</strong> {layerData.details.method}</p>
+                        ) : null}
+                        {layerData.details.ela_mean !== undefined ? (
+                          <div className="forensics-stats">
+                            <p><strong>ELA Mean:</strong> {layerData.details.ela_mean}</p>
+                            <p><strong>ELA Std Dev:</strong> {layerData.details.ela_std}</p>
+                            <p><strong>ELA Max:</strong> {layerData.details.ela_max}</p>
+                            {layerData.details.image_size ? (
+                              <p><strong>Image Size:</strong> {layerData.details.image_size[0]} x {layerData.details.image_size[1]}</p>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        {layerData.details.has_exif !== undefined ? (
+                          <div>
+                            <p><strong>EXIF Data:</strong> {layerData.details.has_exif ? 'Present' : 'Missing'}</p>
+                            {layerData.details.exif_fields_count ? (
+                              <p><strong>EXIF Fields:</strong> {layerData.details.exif_fields_count}</p>
+                            ) : null}
+                            {layerData.details.suspicious_patterns?.length > 0 ? (
+                              <div className="suspicious-patterns">
+                                <p><strong>⚠️ Suspicious Patterns:</strong></p>
+                                <ul>
+                                  {layerData.details.suspicious_patterns.map((pattern, idx) => (
+                                    <li key={idx} className="error">{pattern}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {layerData.details.software_tags?.length > 0 ? (
+                              <p><strong>Software:</strong> {layerData.details.software_tags.join(', ')}</p>
+                            ) : null}
+                          </div>
+                        ) : null}
+                        {layerData.details.note ? (
+                          <p className="helper">{layerData.details.note}</p>
+                        ) : null}
+                        {layerData.details.error ? (
+                          <p className="error">Error: {layerData.details.error}</p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="helper">No forensics results available</p>
+            )}
+          </section>
+        ) : null}
+
+        {/* Provenance Tool Results */}
+        {provenanceData ? (
+          <section className="card">
+            <h2>🔗 Provenance Chain</h2>
+            <p className="helper">
+              Blockchain-style immutable audit trail for image history
+            </p>
+            <div className="results">
+              <div className="provenance-meta">
+                <p><strong>Chain ID:</strong> <code>{provenanceData.chain_id}</code></p>
+                <p><strong>Status:</strong> <span className="pill pill-success">{provenanceData.status}</span></p>
+                <p><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</p>
+              </div>
+              {provenanceData.blocks?.length > 0 ? (
+                <div className="provenance-blocks">
+                  {provenanceData.blocks.map((block, idx) => (
+                    <div key={idx} className="provenance-block">
+                      <div className="block-header">
+                        <strong>Block #{block.block_number}</strong>
+                        <span className="pill pill-muted">{block.observation_type}</span>
+                      </div>
+                      <div className="block-hash">
+                        <p><strong>Hash:</strong> <code>{block.block_hash?.substring(0, 16)}...</code></p>
+                        {block.previous_hash ? (
+                          <p><strong>Previous:</strong> <code>{block.previous_hash.substring(0, 16)}...</code></p>
+                        ) : (
+                          <p><strong>Previous:</strong> <em>Genesis block</em></p>
+                        )}
+                      </div>
+                      {block.observation_data ? (
+                        <details>
+                          <summary>View observation data</summary>
+                          <pre className="code-block">{JSON.stringify(block.observation_data, null, 2)}</pre>
+                        </details>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="helper">No provenance blocks available</p>
+              )}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Orchestrator Reverse Search Results */}
+        {orchestratorReverseSearch ? (
+          <section className="card">
+            <h2>🔎 Reverse Search (from Agent)</h2>
+            <p className="helper">
+              Agent-invoked reverse image search results
+            </p>
+            <div className="results">
+              <div className="reverse-meta">
+                <span>Image ID: {orchestratorReverseSearch.image_id}</span>
+                {orchestratorReverseSearch.query_hash ? (
+                  <span>Query Hash: {orchestratorReverseSearch.query_hash}</span>
+                ) : null}
+              </div>
+              {orchestratorReverseSearch.matches?.length > 0 ? (
+                <div className="match-grid">
+                  {orchestratorReverseSearch.matches.map((match, idx) => (
+                    <article className="match-card" key={idx}>
+                      <div className="match-header">
+                        <span className="pill">{match.source || 'Unknown'}</span>
+                        {match.confidence ? (
+                          <span className="pill pill-muted">
+                            {Math.round(match.confidence * 100)}% confidence
+                          </span>
+                        ) : null}
+                      </div>
+                      <h3>{match.title || 'Untitled match'}</h3>
+                      {match.snippet ? (
+                        <p className="summary-text">{match.snippet}</p>
+                      ) : null}
+                      {match.url ? (
+                        <a href={match.url} target="_blank" rel="noreferrer">
+                          {match.url}
+                        </a>
+                      ) : null}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="helper">No matches found via agent-invoked reverse search</p>
+              )}
+            </div>
+          </section>
+        ) : null}
 
       </main>
     </div>

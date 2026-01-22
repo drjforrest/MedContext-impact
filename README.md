@@ -1,6 +1,6 @@
-# MedContext
+# MedContext: Contextual Integrity Detector 2.0
 
-There are few places more terrifying for the emergence of deepfakes than in medical imaging. MedContext is a modular system to verify medical image context and detect misinformation. The docs in `docs/` define the MVP architecture; this repo now includes a minimal FastAPI skeleton that mirrors those modules so you can start wiring real logic in small, testable pieces.
+MedContext focuses on **contextual integrity** for medical images: whether an image (authentic or manipulated) is being used in a way that genuinely reflects what it depicts. Instead of claiming definitive deepfake detection, the system evaluates alignment between the image, its provenance, and the surrounding claim or caption, surfacing risks of misleading reuse or miscaptioning.
 
 ## Quick Start
 
@@ -53,7 +53,7 @@ Document Vertex AI as the production path:
 
 ## Contextual Integrity Metric
 
-`src/app/metrics/integrity.py` defines the MedContext Integrity Score, a weighted blend of plausibility, genealogy consistency, and source reputation.
+`src/app/metrics/integrity.py` defines the MedContext Integrity Score, a weighted blend of plausibility, genealogy consistency, and source reputation. This score is used to communicate alignment risk rather than binary authenticity.
 
 ## Project Layout
 
@@ -69,17 +69,16 @@ src/
 
 ## Immediate Next Steps
 
-- Implement database models from `docs/MedContext-Complete-TechSpec.md`.
-- Wire ingestion endpoints to persist `ImageSubmission` and `SubmissionContext`.
-- Add background task queue for MedGemma + reverse search (Celery/ARQ/RQ).
-- Build MedGemma adapter and structured output parsing.
-- Add reverse image search integrations (TinEye, Google Vision).
+- Strengthen claim extraction and alignment prompts for contextual integrity.
+- Add citation and source-credibility weighting for reverse search results.
+- Expand provenance logging to capture claim/context at time of upload.
+- Add UI emphasis on alignment verdicts and evidence traceability.
 
 ## Notes
 
 - The docs mention PostgreSQL + IPFS + Redis; the skeleton is ready for these integrations.
 - Edge AI hardening includes 4-bit quantized MedGemma (GGUF/CoreML) for privacy-preserving triage on WhatsApp/mobile ingestion.
-- See `docs/MedContext-Backend-Architecture.md` for deepfake, provenance, and monitoring architecture.
+- See `docs/MedContext-Backend-Architecture.md` for provenance, monitoring, and evidence aggregation architecture.
 - If you want a different stack (e.g., Neo4j first, or Rust services), say the word and I will realign the scaffold.
 
 ## Interface

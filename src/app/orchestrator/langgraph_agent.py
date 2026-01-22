@@ -17,8 +17,9 @@ from app.clinical.llm_client import LlmClient, LlmClientError, LlmResult
 from app.clinical.medgemma_client import MedGemmaClient, MedGemmaResult
 from app.core.config import settings
 from app.forensics.service import run_forensics
+from app.metrics.integrity import compute_contextual_integrity_score
 from app.provenance.service import build_provenance
-from app.reverse_search.service import run_reverse_search
+from app.reverse_search.service import get_reverse_search_results, run_reverse_search
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +152,7 @@ class MedContextLangGraphAgent:
             image_id=state.get("image_id"),
             context=state.get("context"),
             triage=triage_output,
+            tool_results=tool_results,
         )
         duration_ms = int((perf_counter() - start) * 1000)
         self._append_trace(
@@ -165,12 +167,13 @@ class MedContextLangGraphAgent:
         prompt = (
             "You are a clinical investigator. "
             "Return JSON with: required_investigation (list), "
-            "primary_findings (string), plausibility (low|medium|high)."
+            "primary_findings (string), plausibility (low|medium|high), "
+            "context_risk (low|medium|high), claim_type (caption|clinical|news|social|unknown)."
         )
         if context:
             safe_context = html.escape(context, quote=True)
             prompt += (
-                " Evaluate plausibility as how consistent the image appears "
+                " Evaluate plausibility and context risk as how consistent the image appears "
                 "with the provided usage context. "
                 f"<user_context>{safe_context}</user_context>"
             )
@@ -219,7 +222,8 @@ class MedContextLangGraphAgent:
             "Return JSON with:\n"
             "- part_1: { image_description }\n"
             "- part_2: { context_quote, alignment_analysis, verdict, confidence, "
-            "alignment (aligned|partially_aligned|misaligned|unclear), summary, rationale }\n"
+            "alignment (aligned|partially_aligned|misaligned|unclear), "
+            "claim_risk (low|medium|high), summary, rationale }\n"
             "Keep part_1 strictly factual about the image only. "
             "Part_2 should evaluate the claim against the provided context."
         )
@@ -245,6 +249,7 @@ class MedContextLangGraphAgent:
         image_id: str | None,
         context: str | None,
         triage: Any,
+        tool_results: dict[str, Any],
     ) -> Any:
         synthesis_output = synthesis.output
         if not isinstance(synthesis_output, dict):
@@ -269,10 +274,105 @@ class MedContextLangGraphAgent:
         if isinstance(synthesis_output["part_2"], dict) and context:
             synthesis_output["part_2"].setdefault("context_quote", context)
         synthesis_output.setdefault("image_id", image_id)
+        contextual_integrity = self._build_contextual_integrity(
+            synthesis_output, triage, tool_results
+        )
+        synthesis_output.setdefault("contextual_integrity", contextual_integrity)
         preview = self._build_image_preview(image_bytes)
         if preview:
             synthesis_output.setdefault("image_preview", preview)
         return synthesis_output
+
+    def _build_contextual_integrity(
+        self,
+        synthesis_output: dict[str, Any],
+        triage: Any,
+        tool_results: dict[str, Any],
+    ) -> dict[str, Any]:
+        alignment_score, alignment_label = self._extract_alignment_signal(synthesis_output)
+        plausibility_score = self._extract_plausibility(triage)
+        source_reputation = self._derive_source_reputation(tool_results)
+        genealogy_consistency = self._derive_genealogy_consistency(tool_results)
+
+        score = compute_contextual_integrity_score(
+            alignment=alignment_score,
+            plausibility=plausibility_score,
+            genealogy_consistency=genealogy_consistency,
+            source_reputation=source_reputation,
+        )
+        return {
+            "score": score,
+            "alignment": alignment_label,
+            "signals": {
+                "alignment": alignment_score,
+                "plausibility": plausibility_score,
+                "genealogy_consistency": genealogy_consistency,
+                "source_reputation": source_reputation,
+            },
+        }
+
+    def _extract_alignment_signal(
+        self, synthesis_output: dict[str, Any]
+    ) -> tuple[float | None, str | None]:
+        alignment_block = synthesis_output.get("part_2") or {}
+        if not isinstance(alignment_block, dict):
+            return None, None
+        alignment_label = alignment_block.get("alignment")
+        confidence = alignment_block.get("confidence")
+        label_normalized = (
+            alignment_label.strip().lower() if isinstance(alignment_label, str) else ""
+        )
+        base = {
+            "aligned": 1.0,
+            "partially_aligned": 0.6,
+            "misaligned": 0.0,
+            "unclear": 0.3,
+        }.get(label_normalized)
+        if base is None:
+            return None, None
+        try:
+            confidence_val = float(confidence) if confidence is not None else 0.5
+        except (TypeError, ValueError):
+            confidence_val = 0.5
+        confidence_val = max(0.0, min(1.0, confidence_val))
+        return base * confidence_val, label_normalized
+
+    def _extract_plausibility(self, triage: Any) -> float | None:
+        if isinstance(triage, MedGemmaResult):
+            triage = triage.output
+        if isinstance(triage, dict):
+            plausibility = triage.get("plausibility")
+            if isinstance(plausibility, str):
+                return {"high": 0.9, "medium": 0.6, "low": 0.3}.get(
+                    plausibility.strip().lower()
+                )
+        return None
+
+    def _derive_source_reputation(self, tool_results: dict[str, Any]) -> float | None:
+        results = tool_results.get("reverse_search_results")
+        if not isinstance(results, dict):
+            return None
+        matches = results.get("matches")
+        if not isinstance(matches, list) or not matches:
+            return None
+        confidences = [
+            match.get("confidence")
+            for match in matches
+            if isinstance(match, dict) and isinstance(match.get("confidence"), (int, float))
+        ]
+        if not confidences:
+            return None
+        return max(0.0, min(1.0, sum(confidences) / len(confidences)))
+
+    def _derive_genealogy_consistency(self, tool_results: dict[str, Any]) -> float | None:
+        provenance = tool_results.get("provenance")
+        if not isinstance(provenance, dict):
+            return None
+        status = provenance.get("status")
+        blocks = provenance.get("blocks")
+        if status == "completed" and isinstance(blocks, list) and blocks:
+            return 0.8
+        return 0.4
 
     def _generate_factual_description(self, triage: Any) -> str:
         prompt = self._build_factual_prompt(triage)
@@ -368,6 +468,9 @@ class MedContextLangGraphAgent:
                 results[tool] = run_reverse_search(
                     image_id=resolved_image_id, image_bytes=image_bytes
                 )
+                results["reverse_search_results"] = get_reverse_search_results(
+                    resolved_image_id
+                ).model_dump()
             elif tool == "forensics":
                 results[tool] = run_forensics(image_bytes=image_bytes)
             elif tool == "provenance":

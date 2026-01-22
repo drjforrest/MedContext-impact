@@ -1,0 +1,65 @@
+{
+  "validation_summary": {
+    "dataset": "data/validation/btd_mri",
+    "bootstrap_iterations": 1000,
+    "prediction_mode": "ensemble",
+    "medgemma_enabled": false,
+    "medgemma_stats": null,
+    "timestamp": "2026-01-22T03:10:45.073037"
+  },
+  "metrics": {
+    "accuracy": 0.5,
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1_score": 0.6666666666666666,
+    "roc_auc": 0.5
+  },
+  "confidence_intervals_95": {
+    "accuracy": {
+      "mean": 0.500479381443299,
+      "lower_ci": 0.4329896907216495,
+      "upper_ci": 0.5721649484536082,
+      "ci_width": 0.1391752577319587
+    },
+    "precision": {
+      "mean": 0.500479381443299,
+      "lower_ci": 0.4329896907216495,
+      "upper_ci": 0.5721649484536082,
+      "ci_width": 0.1391752577319587
+    },
+    "recall": {
+      "mean": 1.0,
+      "lower_ci": 1.0,
+      "upper_ci": 1.0,
+      "ci_width": 0.0
+    },
+    "f1_score": {
+      "mean": 0.6663266068355684,
+      "lower_ci": 0.60431654676259,
+      "upper_ci": 0.7278688524590164,
+      "ci_width": 0.1235523056964265
+    },
+    "roc_auc": {
+      "mean": 0.5,
+      "lower_ci": 0.5,
+      "upper_ci": 0.5,
+      "ci_width": 0.0
+    }
+  },
+  "threshold_analysis": {
+    "authentic_ela_std": {
+      "mean": 0.6729896907216494,
+      "median": 0.65,
+      "std": 0.05801110715641095
+    },
+    "manipulated_ela_std": {
+      "mean": 0.7680412371134021,
+      "median": 0.75,
+      "std": 0.1068252178349282
+    },
+    "recommended_thresholds": {
+      "ela_std_manipulated": 0.74,
+      "ela_std_authentic": 0.222
+    }
+  }
+}

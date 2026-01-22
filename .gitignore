@@ -179,7 +179,12 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+.cursor/
 
 # Node
 node_modules/
 ui/dist/
+
+# Data
+src/data/
+data/
