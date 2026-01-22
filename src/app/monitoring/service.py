@@ -15,6 +15,7 @@ from app.db.models import MonitoringItem, MonitoringSource
 from app.monitoring.facebook import ingest_post
 from app.monitoring.reddit import RedditClient, RedditClientError, parse_reddit_list
 from app.monitoring.twitter import ingest_tweet
+from app.monitoring.telegram import process_update
 from app.monitoring.whatsapp import process_webhook
 from app.schemas.monitoring import MonitoringIngestResponse
 
@@ -22,16 +23,20 @@ from app.schemas.monitoring import MonitoringIngestResponse
 def ingest_monitoring_payload(payload: dict[str, Any]) -> MonitoringIngestResponse:
     """Route payloads to platform-specific stubs."""
     source = str(payload.get("source", "unknown")).lower()
-    if source == "whatsapp":
+    if source == "telegram":
+        result = process_update(payload)
+    elif source == "whatsapp":
         result = process_webhook(payload)
     elif source == "facebook":
         result = ingest_post(payload)
     elif source in {"twitter", "x"}:
         result = ingest_tweet(payload)
+    elif "update_id" in payload and ("message" in payload or "channel_post" in payload):
+        result = process_update(payload)
     else:
         return MonitoringIngestResponse(
             status="rejected",
-            detail="unknown source; expected whatsapp/facebook/twitter/x",
+            detail="unknown source; expected telegram/whatsapp/facebook/twitter/x",
             metadata={"payload_keys": list(payload.keys())},
         )
 

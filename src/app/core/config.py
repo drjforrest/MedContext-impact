@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     tineye_api_key: str = ""
     google_vision_api_key: str = ""
     whatsapp_business_api_key: str = ""
+    telegram_bot_token: str = Field(
+        default="",
+        validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN"),
+    )
     reddit_client_id: str = ""
     reddit_client_secret: str = ""
     reddit_user_agent: str = ""

@@ -167,6 +167,22 @@ ENABLE_MONITORING_POLLING=true
 
 **Get Credentials:** https://www.reddit.com/prefs/apps
 
+### Telegram Monitoring (Optional)
+
+```env
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+```
+
+Create a bot with @BotFather, then configure Telegram to send updates to your
+deployment URL (webhook) or forward updates manually during testing.
+
+Set the webhook URL (replace with your public HTTPS endpoint):
+
+```bash
+curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+  -d "url=https://your-domain.com/api/v1/monitoring/telegram"
+```
+
 ---
 
 ## Testing the Deployment
@@ -190,6 +206,24 @@ curl -X POST http://localhost:8000/api/v1/orchestrator/run \
 curl -X POST http://localhost:8000/api/v1/orchestrator/run \
   -F "image_url=https://example.com/medical-image.jpg" \
   -F "context=Chest X-ray showing pneumonia"
+```
+
+### 2a. Test Telegram Monitoring Webhook
+
+```bash
+curl -X POST http://localhost:8000/api/v1/monitoring/telegram \
+  -H "Content-Type: application/json" \
+  -d '{
+    "update_id": 123456,
+    "message": {
+      "message_id": 42,
+      "chat": { "id": 987654, "title": "Radiology Updates" },
+      "from": { "id": 111, "username": "medcontext_bot" },
+      "text": "New case uploaded",
+      "caption": "Possible MRI anomaly",
+      "photo": [{ "file_id": "ABC123" }]
+    }
+  }'
 ```
 
 ### 3. Run Test Suite

@@ -94,14 +94,15 @@ Implemented with blockchain-like hashing for blocks:
 Monitor multiple platforms, extract medical images and context, and push them through the analysis pipeline. Focus on consent-based ingestion and de-identification where needed.
 
 ### 3.2 Planned Integrations
-- WhatsApp health groups (consent-based)
+- Telegram channels (public channels, low overhead)
 - Facebook pages and groups (public API where allowed)
 - Twitter/X keyword searches (public data)
-- Telegram channels (public channels)
+- WhatsApp health groups (consent-based, future)
 
 ### 3.3 Module in Repository
 Monitoring interface stubs:
-- `src/app/monitoring/whatsapp.py`
+- `src/app/monitoring/telegram.py`
+- `src/app/monitoring/whatsapp.py` (legacy stub)
 - `src/app/monitoring/facebook.py`
 - `src/app/monitoring/twitter.py`
 - `src/app/api/v1/endpoints/monitoring.py`

@@ -25,6 +25,13 @@ def ingest_monitoring(payload: dict[str, Any]) -> MonitoringIngestResponse:
     return ingest_monitoring_payload(payload)
 
 
+@router.post("/telegram", response_model=MonitoringIngestResponse)
+def ingest_telegram(payload: dict[str, Any]) -> MonitoringIngestResponse:
+    enriched = dict(payload)
+    enriched.setdefault("source", "telegram")
+    return ingest_monitoring_payload(enriched)
+
+
 @router.post("/poll", response_model=MonitoringPollResponse)
 def poll_monitoring(
     payload: MonitoringPollRequest, db: Session = Depends(get_db)

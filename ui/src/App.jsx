@@ -327,11 +327,18 @@ function App() {
   )
   const agentStepStates = useMemo(() => {
     return agentSteps.map((step, index) => {
-      if (status === 'success' || status === 'error') {
+      if (status === 'success') {
         if (step.key in toolActivity) {
           return toolActivity[step.key] ? 'done' : 'skipped'
         }
         return 'done'
+      }
+      if (status === 'error') {
+        if (step.key in toolActivity) {
+          return toolActivity[step.key] ? 'done' : 'skipped'
+        }
+        const hasAnyToolActivity = Object.values(toolActivity).some(Boolean)
+        return hasAnyToolActivity ? 'skipped' : 'idle'
       }
       if (status === 'loading') {
         if (step.key in toolActivity && toolActivity[step.key]) {
@@ -586,532 +593,532 @@ function App() {
               </div>
             </section>
             <section className="card">
-          <h2>Provide an image</h2>
-          <div className="grid">
-            <label className="field">
-              <span>Image file</span>
-              <input
-                key={fileInputKey}
-                type="file"
-                accept="image/*"
-                onChange={(event) =>
-                  setImageFile(event.target.files?.[0] || null)
-                }
-              />
-              <span className="helper">
-                {imageFile ? imageFile.name : 'PNG, JPG, or HEIC recommended.'}
-              </span>
-            </label>
-            <label className="field">
-              <span>Public image URL</span>
-              <input
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={imageUrl}
-                onChange={(event) => setImageUrl(event.target.value)}
-              />
-              <span className="helper">
-                Use a direct image link if possible.
-              </span>
-            </label>
-          </div>
-          <label className="field">
-            <span>Optional context</span>
-            <textarea
-              rows="3"
-              placeholder="Caption or claim about the image"
-              value={context}
-              onChange={(event) => setContext(event.target.value)}
-            />
-          </label>
-          <div className="actions">
-            <button
-              type="button"
-              onClick={handleRun}
-              disabled={status === 'loading'}
-            >
-              Run verification
-            </button>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => {
-                setImageFile(null)
-                setImageUrl('')
-                setContext('')
-                setResult(null)
-                setError('')
-                setStatus('idle')
-                setFileInputKey((currentKey) => currentKey + 1)
-              }}
-            >
-              Clear
-            </button>
-          </div>
-          {error ? <p className="error">{error}</p> : null}
-        </section>
-
-        <section className="card">
-          <div className="reverse-header">
-            <div>
-              <h2>Reverse image search</h2>
-              <p className="helper">
-                Upload an image to find matching sources via SerpAPI.
-              </p>
-            </div>
-            <div className="status" aria-live="polite">
-              <span className={`status-dot status-${reverseStatus}`} />
-              {reverseStatus === 'loading' ? (
-                <span className="spinner" aria-hidden="true" />
-              ) : null}
-              <span>{reverseStatusLabel}</span>
-            </div>
-          </div>
-          <div className="grid">
-            <label className="field">
-              <span>Image file</span>
-              <input
-                key={reverseFileKey}
-                type="file"
-                accept="image/*"
-                onChange={(event) =>
-                  setReverseImageFile(event.target.files?.[0] || null)
-                }
-              />
-              <span className="helper">
-                {reverseImageFile
-                  ? reverseImageFile.name
-                  : 'Provide the image to search.'}
-              </span>
-            </label>
-            <label className="field">
-              <span>Image ID (optional)</span>
-              <input
-                type="text"
-                placeholder="Leave blank to auto-generate"
-                value={reverseImageId}
-                onChange={(event) => setReverseImageId(event.target.value)}
-              />
-              <span className="helper">
-                Used to retrieve results from the API cache.
-              </span>
-            </label>
-          </div>
-          <div className="actions">
-            <button
-              type="button"
-              onClick={handleReverseSearch}
-              disabled={reverseStatus === 'loading'}
-            >
-              Run reverse search
-            </button>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => {
-                setReverseImageFile(null)
-                setReverseImageId('')
-                setReverseJob(null)
-                setReverseResult(null)
-                setReverseError('')
-                setReverseStatus('idle')
-                setReverseFileKey((currentKey) => currentKey + 1)
-              }}
-            >
-              Clear
-            </button>
-          </div>
-          {reverseError ? <p className="error">{reverseError}</p> : null}
-          {reverseResult ? (
-            <div className="results">
-              <div className="reverse-meta">
-                <span>Image ID: {reverseResult.image_id}</span>
-                {reverseResult.query_hash ? (
-                  <span>Query hash: {reverseResult.query_hash}</span>
-                ) : null}
-                {reverseProviders.length ? (
-                  <span>Providers: {reverseProviders.join(', ')}</span>
-                ) : null}
+              <h2>Provide an image</h2>
+              <div className="grid">
+                <label className="field">
+                  <span>Image file</span>
+                  <input
+                    key={fileInputKey}
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) =>
+                      setImageFile(event.target.files?.[0] || null)
+                    }
+                  />
+                  <span className="helper">
+                    {imageFile ? imageFile.name : 'PNG, JPG, or HEIC recommended.'}
+                  </span>
+                </label>
+                <label className="field">
+                  <span>Public image URL</span>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={imageUrl}
+                    onChange={(event) => setImageUrl(event.target.value)}
+                  />
+                  <span className="helper">
+                    Use a direct image link if possible.
+                  </span>
+                </label>
               </div>
-              {reverseMatches.length ? (
-                <div className="match-grid">
-                  {reverseMatches.map((match) => (
-                    <article className="match-card" key={match.url}>
-                      <div className="match-header">
-                        <span className="pill">{match.source}</span>
-                        <span className="pill pill-muted">
-                          {Math.round(match.confidence * 100)}% confidence
-                        </span>
-                      </div>
-                      <h3>{match.title || 'Untitled match'}</h3>
-                      {match.snippet ? (
-                        <p className="summary-text">{match.snippet}</p>
-                      ) : null}
-                      <a href={match.url} target="_blank" rel="noreferrer">
-                        {match.url}
-                      </a>
-                      {match.metadata ? (
-                        <p className="helper">
-                          Metadata: {Object.keys(match.metadata).length} fields
-                        </p>
-                      ) : null}
-                    </article>
-                  ))}
+              <label className="field">
+                <span>Optional context</span>
+                <textarea
+                  rows="3"
+                  placeholder="Caption or claim about the image"
+                  value={context}
+                  onChange={(event) => setContext(event.target.value)}
+                />
+              </label>
+              <div className="actions">
+                <button
+                  type="button"
+                  onClick={handleRun}
+                  disabled={status === 'loading'}
+                >
+                  Run verification
+                </button>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => {
+                    setImageFile(null)
+                    setImageUrl('')
+                    setContext('')
+                    setResult(null)
+                    setError('')
+                    setStatus('idle')
+                    setFileInputKey((currentKey) => currentKey + 1)
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
+              {error ? <p className="error">{error}</p> : null}
+            </section>
+
+            <section className="card">
+              <div className="reverse-header">
+                <div>
+                  <h2>Reverse image search</h2>
+                  <p className="helper">
+                    Upload an image to find matching sources via SerpAPI.
+                  </p>
                 </div>
-              ) : (
+                <div className="status" aria-live="polite">
+                  <span className={`status-dot status-${reverseStatus}`} />
+                  {reverseStatus === 'loading' ? (
+                    <span className="spinner" aria-hidden="true" />
+                  ) : null}
+                  <span>{reverseStatusLabel}</span>
+                </div>
+              </div>
+              <div className="grid">
+                <label className="field">
+                  <span>Image file</span>
+                  <input
+                    key={reverseFileKey}
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) =>
+                      setReverseImageFile(event.target.files?.[0] || null)
+                    }
+                  />
+                  <span className="helper">
+                    {reverseImageFile
+                      ? reverseImageFile.name
+                      : 'Provide the image to search.'}
+                  </span>
+                </label>
+                <label className="field">
+                  <span>Image ID (optional)</span>
+                  <input
+                    type="text"
+                    placeholder="Leave blank to auto-generate"
+                    value={reverseImageId}
+                    onChange={(event) => setReverseImageId(event.target.value)}
+                  />
+                  <span className="helper">
+                    Used to retrieve results from the API cache.
+                  </span>
+                </label>
+              </div>
+              <div className="actions">
+                <button
+                  type="button"
+                  onClick={handleReverseSearch}
+                  disabled={reverseStatus === 'loading'}
+                >
+                  Run reverse search
+                </button>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => {
+                    setReverseImageFile(null)
+                    setReverseImageId('')
+                    setReverseJob(null)
+                    setReverseResult(null)
+                    setReverseError('')
+                    setReverseStatus('idle')
+                    setReverseFileKey((currentKey) => currentKey + 1)
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
+              {reverseError ? <p className="error">{reverseError}</p> : null}
+              {reverseResult ? (
+                <div className="results">
+                  <div className="reverse-meta">
+                    <span>Image ID: {reverseResult.image_id}</span>
+                    {reverseResult.query_hash ? (
+                      <span>Query hash: {reverseResult.query_hash}</span>
+                    ) : null}
+                    {reverseProviders.length ? (
+                      <span>Providers: {reverseProviders.join(', ')}</span>
+                    ) : null}
+                  </div>
+                  {reverseMatches.length ? (
+                    <div className="match-grid">
+                      {reverseMatches.map((match) => (
+                        <article className="match-card" key={match.url}>
+                          <div className="match-header">
+                            <span className="pill">{match.source}</span>
+                            <span className="pill pill-muted">
+                              {Math.round(match.confidence * 100)}% confidence
+                            </span>
+                          </div>
+                          <h3>{match.title || 'Untitled match'}</h3>
+                          {match.snippet ? (
+                            <p className="summary-text">{match.snippet}</p>
+                          ) : null}
+                          <a href={match.url} target="_blank" rel="noreferrer">
+                            {match.url}
+                          </a>
+                          {match.metadata ? (
+                            <p className="helper">
+                              Metadata: {Object.keys(match.metadata).length} fields
+                            </p>
+                          ) : null}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="helper">
+                      No matches returned. Try another image or check SerpAPI status.
+                    </p>
+                  )}
+                </div>
+              ) : reverseJob ? (
                 <p className="helper">
-                  No matches returned. Try another image or check SerpAPI status.
+                  Reverse search queued. Image ID: {reverseJob.image_id}
                 </p>
-              )}
-            </div>
-          ) : reverseJob ? (
-            <p className="helper">
-              Reverse search queued. Image ID: {reverseJob.image_id}
-            </p>
-          ) : null}
-        </section>
-
-        <section className="card">
-          <h2>Contextual integrity results</h2>
-          {result ? (
-            <div className="results">
-              <div className="result-block">
-                <h3>Summary</h3>
-                {part1 || part2 ? (
-                  <div className="summary-parts">
-                    <div className="summary-part">
-                      {imagePreview ? (
-                        <img
-                          className="image-preview"
-                          src={imagePreview}
-                          alt="Reviewed upload"
-                        />
-                      ) : null}
-                      {part1?.image_description ? (
-                        <p className="summary-text">
-                          {part1.image_description}
-                        </p>
-                      ) : (
-                        <p className="summary-text">No factual description yet.</p>
-                      )}
-                    </div>
-                    <div className="summary-part">
-                      {contextQuote ? (
-                        <blockquote className="context-quote">
-                          {contextQuote}
-                        </blockquote>
-                      ) : null}
-                      {part2 ? (
-                        <div className="analysis-body">
-                          {alignmentScore ? (
-                            <div className={`score-pill score-${alignmentScore.tone}`}>
-                              <span className="score-value">
-                                {alignmentScore.score}/3
-                              </span>
-                              <span>{alignmentScore.label}</span>
-                            </div>
-                          ) : null}
-                          {part2.summary ? (
-                            <p className="summary-text">{part2.summary}</p>
-                          ) : null}
-                          {part2.alignment_analysis ? (
-                            <p className="summary-text">
-                              {part2.alignment_analysis}
-                            </p>
-                          ) : null}
-                          {part2.rationale ? (
-                            <p className="summary-text">{part2.rationale}</p>
-                          ) : null}
-                          {!part2.summary &&
-                            !part2.alignment_analysis &&
-                            !part2.rationale ? (
-                            <p className="summary-text">
-                              We could not generate a detailed explanation for the
-                              score. Please try again.
-                            </p>
-                          ) : null}
-                          <div className="analysis-meta">
-                            {part2.alignment ? (
-                              <span>Alignment: {part2.alignment}</span>
-                            ) : null}
-                            {part2.verdict ? (
-                              <span>Verdict: {part2.verdict}</span>
-                            ) : null}
-                            {part2.confidence ? (
-                              <span>Confidence: {part2.confidence}</span>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="summary-text">No context analysis yet.</p>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-              {contextualIntegrity ? (
-                <div className="result-block">
-                  <h3>Evidence signals</h3>
-                  <div className="viz-grid">
-                    <div className={`viz-card viz-score viz-${integrityScoreTone}`}>
-                      <div className="viz-metric">
-                        <span>Contextual integrity score</span>
-                        <strong>
-                          {integrityScorePercent === null
-                            ? '—'
-                            : `${integrityScorePercent}%`}
-                        </strong>
-                      </div>
-                      {integrityScoreData.length ? (
-                        <div className="viz-chart">
-                          <ResponsiveContainer width="100%" height={180}>
-                            <PieChart>
-                              <Pie
-                                data={integrityScoreData}
-                                dataKey="value"
-                                innerRadius={55}
-                                outerRadius={75}
-                                startAngle={90}
-                                endAngle={-270}
-                                paddingAngle={2}
-                                stroke="none"
-                              >
-                                {integrityScoreData.map((entry, index) => (
-                                  <Cell
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`score-${index}`}
-                                    fill={
-                                      entry.name === 'score'
-                                        ? integrityScoreTone === 'high'
-                                          ? '#2db88a'
-                                          : integrityScoreTone === 'medium'
-                                            ? '#f5a524'
-                                            : '#e5484d'
-                                        : '#e9eef4'
-                                    }
-                                  />
-                                ))}
-                              </Pie>
-                              <Tooltip formatter={(value) => `${value}%`} />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                      ) : (
-                        <p className="helper">No integrity score available.</p>
-                      )}
-                    </div>
-                    <div className="viz-card">
-                      <div className="viz-metric">
-                        <span>Signal contributions</span>
-                        <strong>0–100</strong>
-                      </div>
-                      {integritySignalData.length ? (
-                        <div className="viz-chart">
-                          <ResponsiveContainer width="100%" height={220}>
-                            <BarChart
-                              data={integritySignalData}
-                              layout="vertical"
-                              margin={{ left: 20, right: 12 }}
-                            >
-                              <XAxis type="number" domain={[0, 100]} hide />
-                              <YAxis
-                                type="category"
-                                dataKey="label"
-                                width={120}
-                              />
-                              <Tooltip formatter={(value) => `${value}%`} />
-                              <Bar dataKey="value" isAnimationActive={false}>
-                                {integritySignalData.map((entry) => (
-                                  <Cell key={entry.key} fill={entry.fill} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      ) : (
-                        <p className="helper">No signal data available.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
               ) : null}
-              <p className="helper">
-                Context source: {result.context_source || 'not provided'}.
-              </p>
-            </div>
-          ) : (
-            <p className="helper">
-              Run an analysis to see the contextual integrity output here.
-            </p>
-          )}
-        </section>
+            </section>
 
-        {/* Forensics Tool Results */}
-        {forensicsData ? (
-          <section className="card">
-            <h2>🔍 Forensics Analysis</h2>
-            <p className="helper">
-              Multi-layer deepfake detection via Error Level Analysis (ELA) and EXIF metadata
-            </p>
-            {forensicsData.results ? (
-              <div className="results">
-                {Object.entries(forensicsData.results).map(([layerName, layerData]) => (
-                  <div key={layerName} className="result-block">
-                    <h3>
-                      {layerName === 'layer_1' ? '📊 Layer 1: Pixel Forensics (ELA)' :
-                        layerName === 'layer_2' ? '🧠 Layer 2: Semantic Analysis' :
-                          '📝 Layer 3: Metadata & EXIF'}
-                    </h3>
-                    <div className="forensics-verdict">
-                      <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
-                        {layerData.verdict}
-                      </span>
-                      <span className="pill pill-muted">
-                        {Math.round(layerData.confidence * 100)}% confidence
-                      </span>
-                    </div>
-                    {layerData.details ? (
-                      <div className="forensics-details">
-                        {layerData.details.method ? (
-                          <p><strong>Method:</strong> {layerData.details.method}</p>
-                        ) : null}
-                        {layerData.details.ela_mean !== undefined ? (
-                          <div className="forensics-stats">
-                            <p><strong>ELA Mean:</strong> {layerData.details.ela_mean}</p>
-                            <p><strong>ELA Std Dev:</strong> {layerData.details.ela_std}</p>
-                            <p><strong>ELA Max:</strong> {layerData.details.ela_max}</p>
-                            {layerData.details.image_size ? (
-                              <p><strong>Image Size:</strong> {layerData.details.image_size[0]} x {layerData.details.image_size[1]}</p>
-                            ) : null}
-                          </div>
-                        ) : null}
-                        {layerData.details.has_exif !== undefined ? (
-                          <div>
-                            <p><strong>EXIF Data:</strong> {layerData.details.has_exif ? 'Present' : 'Missing'}</p>
-                            {layerData.details.exif_fields_count ? (
-                              <p><strong>EXIF Fields:</strong> {layerData.details.exif_fields_count}</p>
-                            ) : null}
-                            {layerData.details.suspicious_patterns?.length > 0 ? (
-                              <div className="suspicious-patterns">
-                                <p><strong>⚠️ Suspicious Patterns:</strong></p>
-                                <ul>
-                                  {layerData.details.suspicious_patterns.map((pattern, idx) => (
-                                    <li key={idx} className="error">{pattern}</li>
-                                  ))}
-                                </ul>
+            <section className="card">
+              <h2>Contextual integrity results</h2>
+              {result ? (
+                <div className="results">
+                  <div className="result-block">
+                    <h3>Summary</h3>
+                    {part1 || part2 ? (
+                      <div className="summary-parts">
+                        <div className="summary-part">
+                          {imagePreview ? (
+                            <img
+                              className="image-preview"
+                              src={imagePreview}
+                              alt="Reviewed upload"
+                            />
+                          ) : null}
+                          {part1?.image_description ? (
+                            <p className="summary-text">
+                              {part1.image_description}
+                            </p>
+                          ) : (
+                            <p className="summary-text">No factual description yet.</p>
+                          )}
+                        </div>
+                        <div className="summary-part">
+                          {contextQuote ? (
+                            <blockquote className="context-quote">
+                              {contextQuote}
+                            </blockquote>
+                          ) : null}
+                          {part2 ? (
+                            <div className="analysis-body">
+                              {alignmentScore ? (
+                                <div className={`score-pill score-${alignmentScore.tone}`}>
+                                  <span className="score-value">
+                                    {alignmentScore.score}/3
+                                  </span>
+                                  <span>{alignmentScore.label}</span>
+                                </div>
+                              ) : null}
+                              {part2.summary ? (
+                                <p className="summary-text">{part2.summary}</p>
+                              ) : null}
+                              {part2.alignment_analysis ? (
+                                <p className="summary-text">
+                                  {part2.alignment_analysis}
+                                </p>
+                              ) : null}
+                              {part2.rationale ? (
+                                <p className="summary-text">{part2.rationale}</p>
+                              ) : null}
+                              {!part2.summary &&
+                                !part2.alignment_analysis &&
+                                !part2.rationale ? (
+                                <p className="summary-text">
+                                  We could not generate a detailed explanation for the
+                                  score. Please try again.
+                                </p>
+                              ) : null}
+                              <div className="analysis-meta">
+                                {part2.alignment ? (
+                                  <span>Alignment: {part2.alignment}</span>
+                                ) : null}
+                                {part2.verdict ? (
+                                  <span>Verdict: {part2.verdict}</span>
+                                ) : null}
+                                {part2.confidence ? (
+                                  <span>Confidence: {part2.confidence}</span>
+                                ) : null}
                               </div>
-                            ) : null}
-                            {layerData.details.software_tags?.length > 0 ? (
-                              <p><strong>Software:</strong> {layerData.details.software_tags.join(', ')}</p>
-                            ) : null}
-                          </div>
-                        ) : null}
-                        {layerData.details.note ? (
-                          <p className="helper">{layerData.details.note}</p>
-                        ) : null}
-                        {layerData.details.error ? (
-                          <p className="error">Error: {layerData.details.error}</p>
-                        ) : null}
+                            </div>
+                          ) : (
+                            <p className="summary-text">No context analysis yet.</p>
+                          )}
+                        </div>
                       </div>
                     ) : null}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="helper">No forensics results available</p>
-            )}
-          </section>
-        ) : null}
-
-        {/* Provenance Tool Results */}
-        {provenanceData ? (
-          <section className="card">
-            <h2>🔗 Provenance Chain</h2>
-            <p className="helper">
-              Blockchain-style immutable audit trail for image history
-            </p>
-            <div className="results">
-              <div className="provenance-meta">
-                <p><strong>Chain ID:</strong> <code>{provenanceData.chain_id}</code></p>
-                <p><strong>Status:</strong> <span className="pill pill-success">{provenanceData.status}</span></p>
-                <p><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</p>
-              </div>
-              {provenanceData.blocks?.length > 0 ? (
-                <div className="provenance-blocks">
-                  {provenanceData.blocks.map((block, idx) => (
-                    <div key={idx} className="provenance-block">
-                      <div className="block-header">
-                        <strong>Block #{block.block_number}</strong>
-                        <span className="pill pill-muted">{block.observation_type}</span>
+                  {contextualIntegrity ? (
+                    <div className="result-block">
+                      <h3>Evidence signals</h3>
+                      <div className="viz-grid">
+                        <div className={`viz-card viz-score viz-${integrityScoreTone}`}>
+                          <div className="viz-metric">
+                            <span>Contextual integrity score</span>
+                            <strong>
+                              {integrityScorePercent === null
+                                ? '—'
+                                : `${integrityScorePercent}%`}
+                            </strong>
+                          </div>
+                          {integrityScoreData.length ? (
+                            <div className="viz-chart">
+                              <ResponsiveContainer width="100%" height={180}>
+                                <PieChart>
+                                  <Pie
+                                    data={integrityScoreData}
+                                    dataKey="value"
+                                    innerRadius={55}
+                                    outerRadius={75}
+                                    startAngle={90}
+                                    endAngle={-270}
+                                    paddingAngle={2}
+                                    stroke="none"
+                                  >
+                                    {integrityScoreData.map((entry, index) => (
+                                      <Cell
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`score-${index}`}
+                                        fill={
+                                          entry.name === 'score'
+                                            ? integrityScoreTone === 'high'
+                                              ? '#2db88a'
+                                              : integrityScoreTone === 'medium'
+                                                ? '#f5a524'
+                                                : '#e5484d'
+                                            : '#e9eef4'
+                                        }
+                                      />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip formatter={(value) => `${value}%`} />
+                                </PieChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : (
+                            <p className="helper">No integrity score available.</p>
+                          )}
+                        </div>
+                        <div className="viz-card">
+                          <div className="viz-metric">
+                            <span>Signal contributions</span>
+                            <strong>0–100</strong>
+                          </div>
+                          {integritySignalData.length ? (
+                            <div className="viz-chart">
+                              <ResponsiveContainer width="100%" height={220}>
+                                <BarChart
+                                  data={integritySignalData}
+                                  layout="vertical"
+                                  margin={{ left: 20, right: 12 }}
+                                >
+                                  <XAxis type="number" domain={[0, 100]} hide />
+                                  <YAxis
+                                    type="category"
+                                    dataKey="label"
+                                    width={120}
+                                  />
+                                  <Tooltip formatter={(value) => `${value}%`} />
+                                  <Bar dataKey="value" isAnimationActive={false}>
+                                    {integritySignalData.map((entry) => (
+                                      <Cell key={entry.key} fill={entry.fill} />
+                                    ))}
+                                  </Bar>
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          ) : (
+                            <p className="helper">No signal data available.</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="block-hash">
-                        <p><strong>Hash:</strong> <code>{block.block_hash?.substring(0, 16)}...</code></p>
-                        {block.previous_hash ? (
-                          <p><strong>Previous:</strong> <code>{block.previous_hash.substring(0, 16)}...</code></p>
-                        ) : (
-                          <p><strong>Previous:</strong> <em>Genesis block</em></p>
-                        )}
-                      </div>
-                      {block.observation_data ? (
-                        <details>
-                          <summary>View observation data</summary>
-                          <pre className="code-block">{JSON.stringify(block.observation_data, null, 2)}</pre>
-                        </details>
-                      ) : null}
                     </div>
-                  ))}
+                  ) : null}
+                  <p className="helper">
+                    Context source: {result.context_source || 'not provided'}.
+                  </p>
                 </div>
               ) : (
-                <p className="helper">No provenance blocks available</p>
+                <p className="helper">
+                  Run an analysis to see the contextual integrity output here.
+                </p>
               )}
-            </div>
-          </section>
-        ) : null}
+            </section>
 
-        {/* Orchestrator Reverse Search Results */}
-        {orchestratorReverseSearch ? (
-          <section className="card">
-            <h2>🔎 Reverse Search (from Agent)</h2>
-            <p className="helper">
-              Agent-invoked reverse image search results
-            </p>
-            <div className="results">
-              <div className="reverse-meta">
-                <span>Image ID: {orchestratorReverseSearch.image_id}</span>
-                {orchestratorReverseSearch.query_hash ? (
-                  <span>Query Hash: {orchestratorReverseSearch.query_hash}</span>
-                ) : null}
-              </div>
-              {orchestratorReverseSearch.matches?.length > 0 ? (
-                <div className="match-grid">
-                  {orchestratorReverseSearch.matches.map((match, idx) => (
-                    <article className="match-card" key={idx}>
-                      <div className="match-header">
-                        <span className="pill">{match.source || 'Unknown'}</span>
-                        {match.confidence ? (
-                          <span className="pill pill-muted">
-                            {Math.round(match.confidence * 100)}% confidence
+            {/* Forensics Tool Results */}
+            {forensicsData ? (
+              <section className="card">
+                <h2>🔍 Forensics Analysis</h2>
+                <p className="helper">
+                  Multi-layer deepfake detection via Error Level Analysis (ELA) and EXIF metadata
+                </p>
+                {forensicsData.results ? (
+                  <div className="results">
+                    {Object.entries(forensicsData.results).map(([layerName, layerData]) => (
+                      <div key={layerName} className="result-block">
+                        <h3>
+                          {layerName === 'layer_1' ? '📊 Layer 1: Pixel Forensics (ELA)' :
+                            layerName === 'layer_2' ? '🧠 Layer 2: Semantic Analysis' :
+                              '📝 Layer 3: Metadata & EXIF'}
+                        </h3>
+                        <div className="forensics-verdict">
+                          <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
+                            {layerData.verdict}
                           </span>
+                          <span className="pill pill-muted">
+                            {Math.round(layerData.confidence * 100)}% confidence
+                          </span>
+                        </div>
+                        {layerData.details ? (
+                          <div className="forensics-details">
+                            {layerData.details.method ? (
+                              <p><strong>Method:</strong> {layerData.details.method}</p>
+                            ) : null}
+                            {layerData.details.ela_mean !== undefined ? (
+                              <div className="forensics-stats">
+                                <p><strong>ELA Mean:</strong> {layerData.details.ela_mean}</p>
+                                <p><strong>ELA Std Dev:</strong> {layerData.details.ela_std}</p>
+                                <p><strong>ELA Max:</strong> {layerData.details.ela_max}</p>
+                                {layerData.details.image_size ? (
+                                  <p><strong>Image Size:</strong> {layerData.details.image_size[0]} x {layerData.details.image_size[1]}</p>
+                                ) : null}
+                              </div>
+                            ) : null}
+                            {layerData.details.has_exif !== undefined ? (
+                              <div>
+                                <p><strong>EXIF Data:</strong> {layerData.details.has_exif ? 'Present' : 'Missing'}</p>
+                                {layerData.details.exif_fields_count ? (
+                                  <p><strong>EXIF Fields:</strong> {layerData.details.exif_fields_count}</p>
+                                ) : null}
+                                {layerData.details.suspicious_patterns?.length > 0 ? (
+                                  <div className="suspicious-patterns">
+                                    <p><strong>⚠️ Suspicious Patterns:</strong></p>
+                                    <ul>
+                                      {layerData.details.suspicious_patterns.map((pattern, idx) => (
+                                        <li key={idx} className="error">{pattern}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ) : null}
+                                {layerData.details.software_tags?.length > 0 ? (
+                                  <p><strong>Software:</strong> {layerData.details.software_tags.join(', ')}</p>
+                                ) : null}
+                              </div>
+                            ) : null}
+                            {layerData.details.note ? (
+                              <p className="helper">{layerData.details.note}</p>
+                            ) : null}
+                            {layerData.details.error ? (
+                              <p className="error">Error: {layerData.details.error}</p>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
-                      <h3>{match.title || 'Untitled match'}</h3>
-                      {match.snippet ? (
-                        <p className="summary-text">{match.snippet}</p>
-                      ) : null}
-                      {match.url ? (
-                        <a href={match.url} target="_blank" rel="noreferrer">
-                          {match.url}
-                        </a>
-                      ) : null}
-                    </article>
-                  ))}
+                    ))}
+                  </div>
+                ) : (
+                  <p className="helper">No forensics results available</p>
+                )}
+              </section>
+            ) : null}
+
+            {/* Provenance Tool Results */}
+            {provenanceData ? (
+              <section className="card">
+                <h2>🔗 Provenance Chain</h2>
+                <p className="helper">
+                  Blockchain-style immutable audit trail for image history
+                </p>
+                <div className="results">
+                  <div className="provenance-meta">
+                    <p><strong>Chain ID:</strong> <code>{provenanceData.chain_id}</code></p>
+                    <p><strong>Status:</strong> <span className="pill pill-success">{provenanceData.status}</span></p>
+                    <p><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</p>
+                  </div>
+                  {provenanceData.blocks?.length > 0 ? (
+                    <div className="provenance-blocks">
+                      {provenanceData.blocks.map((block, idx) => (
+                        <div key={idx} className="provenance-block">
+                          <div className="block-header">
+                            <strong>Block #{block.block_number}</strong>
+                            <span className="pill pill-muted">{block.observation_type}</span>
+                          </div>
+                          <div className="block-hash">
+                            <p><strong>Hash:</strong> <code>{block.block_hash?.substring(0, 16)}...</code></p>
+                            {block.previous_hash ? (
+                              <p><strong>Previous:</strong> <code>{block.previous_hash.substring(0, 16)}...</code></p>
+                            ) : (
+                              <p><strong>Previous:</strong> <em>Genesis block</em></p>
+                            )}
+                          </div>
+                          {block.observation_data ? (
+                            <details>
+                              <summary>View observation data</summary>
+                              <pre className="code-block">{JSON.stringify(block.observation_data, null, 2)}</pre>
+                            </details>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="helper">No provenance blocks available</p>
+                  )}
                 </div>
-              ) : (
-                <p className="helper">No matches found via agent-invoked reverse search</p>
-              )}
-            </div>
-          </section>
-        ) : null}
+              </section>
+            ) : null}
+
+            {/* Orchestrator Reverse Search Results */}
+            {orchestratorReverseSearch ? (
+              <section className="card">
+                <h2>🔎 Reverse Search (from Agent)</h2>
+                <p className="helper">
+                  Agent-invoked reverse image search results
+                </p>
+                <div className="results">
+                  <div className="reverse-meta">
+                    <span>Image ID: {orchestratorReverseSearch.image_id}</span>
+                    {orchestratorReverseSearch.query_hash ? (
+                      <span>Query Hash: {orchestratorReverseSearch.query_hash}</span>
+                    ) : null}
+                  </div>
+                  {orchestratorReverseSearch.matches?.length > 0 ? (
+                    <div className="match-grid">
+                      {orchestratorReverseSearch.matches.map((match, idx) => (
+                        <article className="match-card" key={idx}>
+                          <div className="match-header">
+                            <span className="pill">{match.source || 'Unknown'}</span>
+                            {match.confidence ? (
+                              <span className="pill pill-muted">
+                                {Math.round(match.confidence * 100)}% confidence
+                              </span>
+                            ) : null}
+                          </div>
+                          <h3>{match.title || 'Untitled match'}</h3>
+                          {match.snippet ? (
+                            <p className="summary-text">{match.snippet}</p>
+                          ) : null}
+                          {match.url ? (
+                            <a href={match.url} target="_blank" rel="noreferrer">
+                              {match.url}
+                            </a>
+                          ) : null}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="helper">No matches found via agent-invoked reverse search</p>
+                  )}
+                </div>
+              </section>
+            ) : null}
           </>
         )}
       </main>
