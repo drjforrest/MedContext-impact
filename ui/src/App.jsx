@@ -456,10 +456,9 @@ function App() {
           />
           <div>
             <p className="eyebrow">MedContext</p>
-            <h1>Verify medical images before you share.</h1>
+            <h1>Medical images don&apos;t need to be fake to cause harm.</h1>
             <p className="subhead">
-              Upload an image or paste a public URL. MedContext checks context,
-              provenance, and clinical plausibility through the API.
+              Check your image context with MedContext.
             </p>
           </div>
         </div>
@@ -958,7 +957,7 @@ function App() {
               <section className="card">
                 <h2>🔍 Forensics Analysis</h2>
                 <p className="helper">
-                  Multi-layer deepfake detection via Error Level Analysis (ELA) and EXIF metadata
+                  Forensics signals and metadata checks (legacy deepfake layers removed).
                 </p>
                 {forensicsData.results ? (
                   <div className="results">
@@ -1025,7 +1024,9 @@ function App() {
                     ))}
                   </div>
                 ) : (
-                  <p className="helper">No forensics results available</p>
+                  <p className="helper">
+                    Forensics layers are currently unavailable.
+                  </p>
                 )}
               </section>
             ) : null}
