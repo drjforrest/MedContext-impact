@@ -5,9 +5,10 @@ Revises: 47e33d201752
 Create Date: 2026-01-27 13:05:00.000000
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "8b1b3f0a7c3a"
 down_revision = "47e33d201752"
@@ -22,7 +23,9 @@ def upgrade() -> None:
         sa.Column("image_id", sa.UUID(), nullable=True),
         sa.Column("image_hash", sa.String(), nullable=False),
         sa.Column("manifest_label", sa.String(), nullable=True),
-        sa.Column("manifest_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column(
+            "manifest_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+        ),
         sa.Column("signature_status", sa.String(), nullable=True),
         sa.Column("validation_state", sa.String(), nullable=True),
         sa.Column(
@@ -55,10 +58,20 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(["manifest_id"], ["provenance_manifests.id"]),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "manifest_id", "block_number", name="uq_provenance_blocks_manifest_block"
+        ),
+    )
+    op.create_index(
+        "ix_provenance_blocks_manifest_id", "provenance_blocks", ["manifest_id"]
     )
 
 
 def downgrade() -> None:
     op.drop_table("provenance_blocks")
-    op.drop_index("ix_provenance_manifests_image_hash", table_name="provenance_manifests")
+    op.drop_index(
+        "ix_provenance_manifests_image_hash", table_name="provenance_manifests"
+    )
+    op.drop_table("provenance_manifests")
+    op.drop_table("provenance_manifests")
     op.drop_table("provenance_manifests")

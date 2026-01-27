@@ -478,25 +478,77 @@ class ContextIntegrityEnsemble:
         self.layer2 = MedicalPlausibilityChecker()
         self.layer3 = BlockchainProvenanceChecker()
     
-    def detect_context_mismatch(self, image_path, medgemma_analysis=None):
+    def detect_context_mismatch(self, image_input, medgemma_analysis=None):
         """
         Complete context integrity evaluation using all 3 layers
+        
+        Args:
+            image_input: Raw image bytes or a filesystem path.
         
         Returns:
             dict: Final authenticity verdict with high confidence
         """
+        import io
+        import logging
+        import os
+        import tempfile
+        from PIL import Image
         
-        # Layer 1: Pixel-level forensics
-        layer1_result = self.layer1.check_image_authenticity(image_path)
+        logger = logging.getLogger(__name__)
+        temp_path = None
+        image_path = None
         
-        # Layer 2: Medical plausibility
-        layer2_result = self.layer2.check_plausibility(
-            image_path, 
-            medgemma_analysis
-        )
+        try:
+            if isinstance(image_input, (bytes, bytearray)):
+                image_bytes = bytes(image_input)
+            else:
+                image_path = str(image_input)
+                with open(image_path, "rb") as handle:
+                    image_bytes = handle.read()
+        except Exception as exc:
+            logger.exception("Context detector failed to read image: %s", exc)
+            return {"final_verdict": "ERROR", "error": str(exc)}
         
-        # Layer 3: Provenance/metadata
-        layer3_result = self.layer3.check_provenance(image_path)
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as image:
+                detected_format = (image.format or "png").lower()
+        except Exception as exc:
+            logger.exception("Context detector failed to parse image bytes: %s", exc)
+            return {"final_verdict": "ERROR", "error": str(exc)}
+        
+        if image_path is None:
+            suffix = ".jpg" if detected_format == "jpeg" else f".{detected_format}"
+            try:
+                with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_image:
+                    temp_image.write(image_bytes)
+                    temp_image.flush()
+                    temp_path = temp_image.name
+                image_path = temp_path
+            except Exception as exc:
+                logger.exception("Context detector failed to write temp image: %s", exc)
+                return {"final_verdict": "ERROR", "error": str(exc)}
+        
+        try:
+            # Layer 1: Pixel-level forensics
+            layer1_result = self.layer1.check_image_authenticity(image_path)
+            
+            # Layer 2: Medical plausibility
+            layer2_result = self.layer2.check_plausibility(
+                image_path, 
+                medgemma_analysis
+            )
+            
+            # Layer 3: Provenance/metadata
+            layer3_result = self.layer3.check_provenance(image_path)
+        except Exception as exc:
+            logger.exception("Context detector processing failed: %s", exc)
+            return {"final_verdict": "ERROR", "error": str(exc)}
+        finally:
+            if temp_path:
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    logger.warning("Failed to clean up temp file %s", temp_path)
         
         # Ensemble decision
         verdicts = [
@@ -1428,12 +1480,8 @@ class RealTimeAnalysisPipeline:
             print(f"New image detected: {image_hash[:8]}...")
             
             # Step 3: Deep fake detection
-            # Context detector expects a filesystem path
-            import tempfile
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_image:
-                temp_image.write(image_data)
-                temp_image.flush()
-                context_result = self.context_detector.detect_context_mismatch(temp_image.name)
+            # Context detector accepts raw bytes or a filesystem path
+            context_result = self.context_detector.detect_context_mismatch(image_data)
             
             # Step 4: Medical image analysis (MedGemma)
             medgemma_result = self.medgemma.analyze_image(image_data)

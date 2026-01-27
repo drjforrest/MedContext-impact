@@ -7,12 +7,14 @@ import pytest
 from app.provenance.service import build_provenance
 
 
-def _mock_query(db: MagicMock, return_value=None) -> None:
+def _mock_query(
+    db: MagicMock, one_or_none_return_value=None, all_return_value=None
+) -> None:
     query = MagicMock()
     query.filter.return_value = query
-    query.one_or_none.return_value = return_value
+    query.one_or_none.return_value = one_or_none_return_value
     query.order_by.return_value = query
-    query.all.return_value = []
+    query.all.return_value = [] if all_return_value is None else all_return_value
     db.query.return_value = query
 
 
@@ -68,7 +70,11 @@ class TestProvenanceService:
         """Test that blocks are properly linked via hashes."""
         image_id = uuid4()
         db = MagicMock()
-        _mock_query(db)
+        manifest_record = MagicMock()
+        manifest_record.id = 1
+        manifest_record.manifest_label = "test-manifest"
+        manifest_record.signature_status = "valid"
+        _mock_query(db, one_or_none_return_value=manifest_record)
 
         result = build_provenance(
             image_id=image_id,
@@ -77,7 +83,9 @@ class TestProvenanceService:
         )
 
         blocks = result.blocks
-        assert len(blocks) == 1
+        assert len(blocks) == 2
+        for index in range(1, len(blocks)):
+            assert blocks[index].previous_hash == blocks[index - 1].block_hash
 
     @pytest.mark.unit
     def test_provenance_block_hash_format(self):

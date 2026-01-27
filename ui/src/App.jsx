@@ -332,6 +332,15 @@ function App() {
     }),
     [forensicsData, orchestratorReverseSearch, provenanceData],
   )
+  const moduleActivity = useMemo(
+    () => ({
+      triage: Boolean(result?.triage) || status === 'loading',
+      reverse_search: toolActivity.reverse_search,
+      forensics: toolActivity.forensics,
+      provenance: toolActivity.provenance,
+    }),
+    [result?.triage, status, toolActivity],
+  )
   const agentStepStates = useMemo(() => {
     const hasAnyToolActivity = Object.values(toolActivity).some(Boolean)
     return agentSteps.map((step, index) => {
@@ -667,6 +676,49 @@ function App() {
                   })}
                 </div>
               </section>
+              <section className="card module-card">
+                <h2>Module activity</h2>
+                <p className="helper">
+                  Modules light up when triage activates them. Metrics in each
+                  quadrant are valid only when lit.
+                </p>
+                <div className="module-grid">
+                  <div
+                    className={`module-tile ${
+                      moduleActivity.triage ? 'module-active' : 'module-inactive'
+                    }`}
+                  >
+                    <span className="module-label">MedGemma triage</span>
+                    <span className="module-detail">Plausibility & alignment</span>
+                  </div>
+                  <div
+                    className={`module-tile ${
+                      moduleActivity.reverse_search
+                        ? 'module-active'
+                        : 'module-inactive'
+                    }`}
+                  >
+                    <span className="module-label">Reverse search</span>
+                    <span className="module-detail">Source reputation</span>
+                  </div>
+                  <div
+                    className={`module-tile ${
+                      moduleActivity.forensics ? 'module-active' : 'module-inactive'
+                    }`}
+                  >
+                    <span className="module-label">Forensics</span>
+                    <span className="module-detail">Integrity signals</span>
+                  </div>
+                  <div
+                    className={`module-tile ${
+                      moduleActivity.provenance ? 'module-active' : 'module-inactive'
+                    }`}
+                  >
+                    <span className="module-label">Provenance</span>
+                    <span className="module-detail">Genealogy</span>
+                  </div>
+                </div>
+              </section>
               <section className="card">
                 <h2>Provide an image</h2>
                 <div className="inline-status" aria-live="polite">
@@ -917,14 +969,6 @@ function App() {
                               ) : null}
                               {part2.rationale ? (
                                 <p className="summary-text">{part2.rationale}</p>
-                              ) : null}
-                              {!part2.summary &&
-                                !part2.alignment_analysis &&
-                                !part2.rationale ? (
-                                <p className="summary-text">
-                                  We could not generate a detailed explanation for the
-                                  score. Please try again.
-                                </p>
                               ) : null}
                               <div className="analysis-meta">
                                 {part2.alignment ? (
@@ -1243,5 +1287,4 @@ function App() {
     </div>
   )
 }
-
 export default App

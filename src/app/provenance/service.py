@@ -135,7 +135,7 @@ def _normalize_signature_status(validation_state: str | None) -> str:
         return "valid"
     if state in {"invalid", "untrusted", "failed", "error"}:
         return "invalid"
-    return validation_state
+    return "unknown"
 
 
 def _get_or_create_manifest(
@@ -152,6 +152,7 @@ def _get_or_create_manifest(
     if record is None:
         record = ProvenanceManifest(image_hash=image_hash, image_id=image_id)
         db.add(record)
+        db.flush()
     elif image_id and record.image_id is None:
         record.image_id = image_id
     return record
@@ -248,9 +249,12 @@ def build_provenance(
     image_hash: str | None = None,
     db: Session | None = None,
 ) -> ProvenanceChainResponse:
-    resolved_image_id = (
-        image_id if isinstance(image_id, UUID) else UUID(str(image_id))
-    )
+    try:
+        resolved_image_id = (
+            image_id if isinstance(image_id, UUID) else UUID(str(image_id))
+        )
+    except ValueError as e:
+        raise ValueError(f"Invalid image_id format: {image_id}") from e
     if not image_hash and image_bytes:
         image_hash = hashlib.sha256(image_bytes).hexdigest()
     if not image_hash:
@@ -354,7 +358,7 @@ def build_provenance(
             chain_id=uuid4(),
             image_id=resolved_image_id,
             status=status,
-        created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(timezone.utc),
             blocks=blocks,
         )
     finally:

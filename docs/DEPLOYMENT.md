@@ -389,8 +389,13 @@ Configure rate limits for production:
 ```python
 # src/app/main.py
 from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from slowapi.middleware import _rate_limit_exceeded_handler
 
 limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.post("/api/v1/orchestrator/run")
 @limiter.limit("10/minute")
