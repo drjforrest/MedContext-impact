@@ -72,7 +72,24 @@ class IntegrityEnsembleResult:
     layer_3: IntegrityLayerResult
 
 
-def run_layer_1(image_bytes: bytes) -> IntegrityLayerResult:
+@dataclass(frozen=True)
+class Layer1Thresholds:
+    ela_std_authentic: float
+    ela_std_manipulated: float
+    ela_max_authentic: float | None = None
+    ela_max_manipulated: float | None = None
+
+
+def _normalize_score(value: float, low: float, high: float) -> float:
+    if high <= low:
+        return 0.5
+    return max(0.0, min(1.0, (value - low) / (high - low)))
+
+
+def run_layer_1(
+    image_bytes: bytes,
+    thresholds: Layer1Thresholds | None = None,
+) -> IntegrityLayerResult:
     """Fallback Layer 1: basic error level analysis."""
     if Image is None or ImageChops is None:
         return IntegrityLayerResult(
@@ -94,10 +111,14 @@ def run_layer_1(image_bytes: bytes) -> IntegrityLayerResult:
         ela_image = ImageChops.difference(original, compressed)
         # Normalize ELA to amplify the error-level signal and keep scale consistent.
         ela_gray = ela_image.convert("L")
-        ela_array = np.array(ela_gray, dtype=np.float32)
-        ela_max_raw = float(np.max(ela_array)) if ela_array.size else 0.0
+        ela_array_raw = np.array(ela_gray, dtype=np.float32)
+        ela_max_raw = float(np.max(ela_array_raw)) if ela_array_raw.size else 0.0
+        ela_std_raw = float(np.std(ela_array_raw)) if ela_array_raw.size else 0.0
+        ela_array = ela_array_raw.copy()
+        scale = 1.0
         if ela_max_raw > 0:
-            ela_array = ela_array * (255.0 / ela_max_raw)
+            scale = 255.0 / ela_max_raw
+            ela_array = ela_array * scale
 
         ela_mean = float(np.mean(ela_array))
         ela_std = float(np.std(ela_array))
@@ -105,12 +126,29 @@ def run_layer_1(image_bytes: bytes) -> IntegrityLayerResult:
 
         verdict = "UNCERTAIN"
         confidence = 0.5
-        if ela_std > 0.74 and ela_max_raw > 100:
-            verdict = "MANIPULATED"
-            confidence = min(0.85, 0.5 + (ela_std / 50.0))
-        elif ela_std < 0.22 and ela_max_raw < 50:
-            verdict = "AUTHENTIC"
-            confidence = min(0.80, 0.5 + (1.0 - ela_std / 10.0))
+        if ela_array.size:
+            if thresholds is None:
+                thresholds = Layer1Thresholds(
+                    ela_std_authentic=0.22,
+                    ela_std_manipulated=0.74,
+                )
+            std_score = _normalize_score(
+                ela_std, thresholds.ela_std_authentic, thresholds.ela_std_manipulated
+            )
+            if thresholds.ela_max_authentic is not None and (
+                thresholds.ela_max_manipulated is not None
+            ):
+                max_score = _normalize_score(
+                    ela_max,
+                    thresholds.ela_max_authentic,
+                    thresholds.ela_max_manipulated,
+                )
+                score = 0.8 * std_score + 0.2 * max_score
+            else:
+                score = std_score
+
+            verdict = "MANIPULATED" if score >= 0.5 else "AUTHENTIC"
+            confidence = max(score, 1.0 - score)
 
         return IntegrityLayerResult(
             verdict=verdict,
@@ -121,8 +159,25 @@ def run_layer_1(image_bytes: bytes) -> IntegrityLayerResult:
                 "ela_std": round(ela_std, 2),
                 "ela_max": round(ela_max, 2),
                 "ela_max_raw": round(ela_max_raw, 2),
+                "ela_std_raw": round(ela_std_raw, 4),
+                "ela_scale": round(scale, 4),
+                "ela_score": round(confidence if verdict == "MANIPULATED" else 1 - confidence, 4),
                 "image_size": original.size,
                 "image_mode": original.mode,
+                "thresholds": {
+                    "ela_std_authentic": round(thresholds.ela_std_authentic, 4)
+                    if thresholds
+                    else None,
+                    "ela_std_manipulated": round(thresholds.ela_std_manipulated, 4)
+                    if thresholds
+                    else None,
+                    "ela_max_authentic": round(thresholds.ela_max_authentic, 4)
+                    if thresholds and thresholds.ela_max_authentic is not None
+                    else None,
+                    "ela_max_manipulated": round(thresholds.ela_max_manipulated, 4)
+                    if thresholds and thresholds.ela_max_manipulated is not None
+                    else None,
+                },
             },
         )
     except Exception as exc:
@@ -252,8 +307,10 @@ def run_layer_3(image_bytes: bytes) -> IntegrityLayerResult:
         )
 
 
-def run_integrity_checks(image_bytes: bytes) -> IntegrityEnsembleResult:
-    layer_1 = run_layer_1(image_bytes)
+def run_integrity_checks(
+    image_bytes: bytes, layer1_thresholds: Layer1Thresholds | None = None
+) -> IntegrityEnsembleResult:
+    layer_1 = run_layer_1(image_bytes, thresholds=layer1_thresholds)
     layer_2 = run_layer_2(image_bytes)
     layer_3 = run_layer_3(image_bytes)
 
@@ -327,6 +384,7 @@ class ForensicsValidator:
         seed: int = 42,
         prediction_mode: str = "ensemble",
         prediction_threshold: float = 0.5,
+        calibrate_layer1: bool = True,
         use_medgemma: bool = False,
         medgemma_prompt: str | None = None,
     ):
@@ -336,6 +394,7 @@ class ForensicsValidator:
         self.seed = seed
         self.prediction_mode = prediction_mode
         self.prediction_threshold = prediction_threshold
+        self.calibrate_layer1 = calibrate_layer1
         self.use_medgemma = use_medgemma
         self.medgemma_prompt = medgemma_prompt or DEFAULT_MEDGEMMA_PROMPT
         self._medgemma_client = MedGemmaClient() if use_medgemma else None
@@ -600,7 +659,32 @@ class ForensicsValidator:
         )
         return balanced_images, balanced_labels
 
-    def run_predictions(self, images: List[bytes]) -> List[IntegrityEnsembleResult]:
+    def _derive_layer1_thresholds(
+        self, threshold_analysis: Dict
+    ) -> Layer1Thresholds | None:
+        recommended = threshold_analysis.get("recommended_thresholds") or {}
+        ela_std_authentic = recommended.get("ela_std_authentic")
+        ela_std_manipulated = recommended.get("ela_std_manipulated")
+        if ela_std_authentic is None or ela_std_manipulated is None:
+            return None
+        return Layer1Thresholds(
+            ela_std_authentic=float(ela_std_authentic),
+            ela_std_manipulated=float(ela_std_manipulated),
+            ela_max_authentic=(
+                float(recommended["ela_max_authentic"])
+                if "ela_max_authentic" in recommended
+                else None
+            ),
+            ela_max_manipulated=(
+                float(recommended["ela_max_manipulated"])
+                if "ela_max_manipulated" in recommended
+                else None
+            ),
+        )
+
+    def run_predictions(
+        self, images: List[bytes], layer1_thresholds: Layer1Thresholds | None = None
+    ) -> List[IntegrityEnsembleResult]:
         """Run forensics detection on all images."""
         print(f"\n🔍 Running forensics detection on {len(images)} images...")
 
@@ -611,7 +695,7 @@ class ForensicsValidator:
 
             try:
                 if self.use_medgemma:
-                    layer_1 = run_layer_1(img_bytes)
+                    layer_1 = run_layer_1(img_bytes, thresholds=layer1_thresholds)
                     layer_2 = self._run_medgemma_layer(img_bytes)
                     layer_3 = run_layer_3(img_bytes)
                     self.medgemma_stats["calls"] += 1
@@ -625,7 +709,7 @@ class ForensicsValidator:
                             )
                     result = self._ensemble_from_layers(layer_1, layer_2, layer_3)
                 else:
-                    result = run_integrity_checks(img_bytes)
+                    result = run_integrity_checks(img_bytes, layer1_thresholds)
                 predictions.append(result)
             except Exception as e:
                 print(f"  ⚠️  Error on image {idx}: {e}")
@@ -865,7 +949,7 @@ class ForensicsValidator:
         )
         confusion = self._calculate_confusion_matrix(y_true, y_pred_labels)
         score_array = np.array(y_pred_scores, dtype=float)
-        return {
+        diagnostics: Dict[str, Any] = {
             "ground_truth_counts": {
                 "authentic": int(
                     sum(1 for label in ground_truth if label == "AUTHENTIC")
@@ -897,6 +981,36 @@ class ForensicsValidator:
             },
             "confusion_matrix": confusion,
         }
+
+        if score_array.size:
+            diagnostics["score_quantiles"] = {
+                "p10": float(np.percentile(score_array, 10)),
+                "p50": float(np.percentile(score_array, 50)),
+                "p90": float(np.percentile(score_array, 90)),
+            }
+
+        if self.prediction_mode == "layer_1":
+            scored = []
+            for truth, pred, score in zip(ground_truth, predictions, y_pred_scores):
+                layer = pred.layer_1
+                scored.append(
+                    {
+                        "truth": truth,
+                        "score": float(score),
+                        "verdict": layer.verdict,
+                        "confidence": float(layer.confidence),
+                        "ela_std": layer.details.get("ela_std"),
+                        "ela_max_raw": layer.details.get("ela_max_raw"),
+                        "ela_std_raw": layer.details.get("ela_std_raw"),
+                    }
+                )
+            scored_sorted = sorted(scored, key=lambda item: item["score"])
+            diagnostics["layer1_score_samples"] = {
+                "lowest": scored_sorted[:5],
+                "highest": scored_sorted[-5:],
+            }
+
+        return diagnostics
 
     def bootstrap_confidence_intervals(
         self,
@@ -1063,7 +1177,7 @@ class ForensicsValidator:
             "recommended_thresholds": {},
         }
 
-        # Derive thresholds from per-class distributions (percentiles / midpoint)
+        # Derive thresholds from per-class distributions (mean ± k*std, midpoint fallback)
         if ela_stats["authentic"] and ela_stats["manipulated"]:
             authentic_vals = np.array(
                 [m["ela_std"] for m in ela_stats["authentic"]], dtype=float
@@ -1078,42 +1192,60 @@ class ForensicsValidator:
                 [m["ela_max"] for m in ela_stats["manipulated"]], dtype=float
             )
 
-            authentic_p90 = float(np.percentile(authentic_vals, 90))
-            manipulated_p10 = float(np.percentile(manipulated_vals, 10))
-            mean_gap = float(np.mean(manipulated_vals) - np.mean(authentic_vals))
-            overlap = manipulated_p10 <= authentic_p90
+            mean_authentic = float(np.mean(authentic_vals))
+            mean_manipulated = float(np.mean(manipulated_vals))
+            std_authentic = float(np.std(authentic_vals))
+            std_manipulated = float(np.std(manipulated_vals))
+            mean_gap = float(mean_manipulated - mean_authentic)
+            overlap = mean_manipulated <= mean_authentic
 
             threshold_analysis["separability"] = {
-                "authentic_p90": authentic_p90,
-                "manipulated_p10": manipulated_p10,
+                "authentic_mean": mean_authentic,
+                "manipulated_mean": mean_manipulated,
                 "mean_gap": mean_gap,
                 "overlap": overlap,
             }
 
-            if overlap:
-                midpoint = float(
-                    (np.mean(authentic_vals) + np.mean(manipulated_vals)) / 2.0
+            # Guard against inverted label stats and avoid extra scaling.
+            use_mean_authentic = mean_authentic
+            use_std_authentic = std_authentic
+            use_mean_manipulated = mean_manipulated
+            use_std_manipulated = std_manipulated
+            if mean_authentic > mean_manipulated:
+                use_mean_authentic = mean_manipulated
+                use_std_authentic = std_manipulated
+                use_mean_manipulated = mean_authentic
+                use_std_manipulated = std_authentic
+                print(
+                    "  ⚠️  ELA std means appear inverted; swapping label thresholds."
                 )
-                threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = (
-                    midpoint
-                )
-                threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = (
-                    midpoint
-                )
+
+            k_std = 0.5
+            authentic_threshold = float(use_mean_authentic + k_std * use_std_authentic)
+            manipulated_threshold = float(
+                use_mean_manipulated - k_std * use_std_manipulated
+            )
+
+            if authentic_threshold >= manipulated_threshold:
+                midpoint = float((use_mean_authentic + use_mean_manipulated) / 2.0)
+                authentic_threshold = midpoint
+                manipulated_threshold = midpoint
                 print(
                     f"  ⚠️  Overlapping ELA std distributions; using midpoint {midpoint:.2f}"
                 )
             else:
-                threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = (
-                    authentic_p90
-                )
-                threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = (
-                    manipulated_p10
-                )
                 print(
                     "  ✓ Recommended ELA std thresholds "
-                    f"(authentic_p90={authentic_p90:.2f}, manipulated_p10={manipulated_p10:.2f})"
+                    f"(authentic_mean+{k_std:.1f}σ={authentic_threshold:.2f}, "
+                    f"manipulated_mean-{k_std:.1f}σ={manipulated_threshold:.2f})"
                 )
+
+            threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = (
+                authentic_threshold
+            )
+            threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = (
+                manipulated_threshold
+            )
 
             # Always compute auxiliary thresholds using ELA max as a secondary signal.
             authentic_max_p90 = float(np.percentile(authentic_max_vals, 90))
@@ -1200,9 +1332,31 @@ class ForensicsValidator:
 
         # Load dataset
         images, ground_truth = self.load_dataset()
+        authentic_count = sum(1 for label in ground_truth if label == "AUTHENTIC")
+        manipulated_count = sum(1 for label in ground_truth if label == "MANIPULATED")
+        print(
+            f"\n📊 Class balance: authentic={authentic_count}, manipulated={manipulated_count}"
+        )
+        if authentic_count == 0 or manipulated_count == 0:
+            print("  ⚠️  Single-class dataset detected; metrics will be unreliable.")
+
+        layer1_thresholds = None
+        if self.prediction_mode == "layer_1" and self.calibrate_layer1:
+            threshold_analysis = self.analyze_layer_thresholds(images, ground_truth)
+            layer1_thresholds = self._derive_layer1_thresholds(threshold_analysis)
+            if layer1_thresholds:
+                print(
+                    "  ✅ Using dataset-calibrated Layer 1 thresholds "
+                    f"(std_auth={layer1_thresholds.ela_std_authentic:.2f}, "
+                    f"std_man={layer1_thresholds.ela_std_manipulated:.2f})"
+                )
+            else:
+                print("  ⚠️  Missing threshold recommendations; using defaults.")
+        else:
+            threshold_analysis = self.analyze_layer_thresholds(images, ground_truth)
 
         # Run predictions
-        predictions = self.run_predictions(images)
+        predictions = self.run_predictions(images, layer1_thresholds=layer1_thresholds)
 
         # Print prediction distribution for selected mode
         from collections import Counter
@@ -1239,9 +1393,6 @@ class ForensicsValidator:
         confidence_intervals = self.bootstrap_confidence_intervals(
             ground_truth, predictions
         )
-
-        # Analyze thresholds
-        threshold_analysis = self.analyze_layer_thresholds(images, ground_truth)
 
         prediction_diagnostics = self.compute_prediction_diagnostics(
             ground_truth, predictions
@@ -1311,6 +1462,11 @@ def main():
         help="Threshold for manipulated probability (default: 0.5)",
     )
     parser.add_argument(
+        "--no-calibrate-layer1",
+        action="store_true",
+        help="Disable dataset-calibrated thresholds for layer_1 predictions",
+    )
+    parser.add_argument(
         "--use-medgemma",
         action="store_true",
         help="Use MedGemma for layer_2 predictions",
@@ -1344,6 +1500,7 @@ def main():
         seed=args.seed,
         prediction_mode=args.prediction_mode,
         prediction_threshold=args.prediction_threshold,
+        calibrate_layer1=not args.no_calibrate_layer1,
         use_medgemma=args.use_medgemma,
         medgemma_prompt=args.medgemma_prompt,
     )

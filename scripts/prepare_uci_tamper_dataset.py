@@ -62,7 +62,15 @@ def parse_label_rows(csv_bytes: bytes) -> Set[Tuple[str, int]]:
 
 def dicom_to_png_bytes(dicom_bytes: bytes) -> bytes:
     dataset = pydicom.dcmread(io.BytesIO(dicom_bytes))
-    pixel_array = dataset.pixel_array.astype(np.float32)
+    if dataset.get("PixelData") is None and not hasattr(dataset, "pixel_array"):
+        raise ValueError("DICOM file has no pixel data.")
+    try:
+        pixel_array = dataset.pixel_array
+    except Exception as exc:
+        raise ValueError("Failed to read DICOM pixel data.") from exc
+    if pixel_array.ndim > 2:
+        pixel_array = pixel_array[0]
+    pixel_array = pixel_array.astype(np.float32)
 
     # Normalize to 0-255 for PNG
     min_val = float(pixel_array.min())

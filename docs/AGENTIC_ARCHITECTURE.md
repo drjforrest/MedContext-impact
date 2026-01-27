@@ -311,7 +311,7 @@ These thresholds are derived from ROC curve analysis (Youden's J statistic) to p
 
 ### Scientific Rigor Compliance
 
-Addressing methodological best practices (Ashkan et al., 2022):
+Addressing methodological best practices (Khakzar et al., 2022):
 
 | Requirement | MedContext Implementation | Status |
 |-------------|---------------------------|--------|
@@ -391,6 +391,10 @@ curl -X POST http://localhost:8000/api/v1/orchestrator/trace \
    - 4-bit quantized MedGemma for WhatsApp integration
 
 ---
+
+## References
+
+- Khakzar, Ashkan, Pedram Khorsandi, Rozhin Nobahari, and Nassir Navab. 2022. "Do Explanations Explain? Model Knows Best." In *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)*, 10244-10253. https://openaccess.thecvf.com/content/CVPR2022/html/Khakzar_Do_Explanations_Explain_Model_Knows_Best_CVPR_2022_paper.html
 
 ## Conclusion
 

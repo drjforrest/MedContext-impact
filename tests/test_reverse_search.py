@@ -16,16 +16,32 @@ class TestReverseSearchService:
     @pytest.mark.unit
     def test_run_reverse_search_returns_result(self, sample_image_bytes):
         """Test that run_reverse_search returns a valid result structure."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {
+            "inline_images": [
+                {
+                    "title": "Controlled Image Result",
+                    "link": "https://example.com/controlled.jpg",
+                    "source": "https://example.com",
+                    "thumbnail": "https://example.com/controlled-thumb.jpg",
+                }
+            ]
+        }
         image_id = uuid4()
-        with patch("app.reverse_search.service.settings.serp_api_key", ""):
-            result = run_reverse_search(
-                image_id=image_id, image_bytes=sample_image_bytes
-            )
+        with patch(
+            "app.reverse_search.service.requests.post", return_value=mock_response
+        ):
+            with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
+                result = run_reverse_search(
+                    image_id=image_id, image_bytes=sample_image_bytes
+                )
 
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
         assert hasattr(result, "queued_at")
-        assert result.status in ["pending", "completed", "failed"]
+        assert result.status in ["queued", "completed", "invalid_request"]
 
     @pytest.mark.unit
     def test_run_reverse_search_with_mock_api(self, sample_image_bytes):
