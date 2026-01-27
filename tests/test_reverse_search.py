@@ -1,6 +1,7 @@
 """Tests for the reverse search service."""
+
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -44,7 +45,9 @@ class TestReverseSearchService:
 
         image_id = uuid4()
 
-        with patch("app.reverse_search.service.requests.get", return_value=mock_response):
+        with patch(
+            "app.reverse_search.service.requests.get", return_value=mock_response
+        ):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
                 with patch("app.reverse_search.service._LOGGER", MagicMock()):
                     result = run_reverse_search(
@@ -95,12 +98,16 @@ class TestReverseSearchService:
 
         mock_response = MagicMock()
         mock_response.status_code = 500
-        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("API Error")
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "API Error"
+        )
 
         image_id = uuid4()
 
         caplog.set_level(logging.CRITICAL, logger="app.reverse_search.service")
-        with patch("app.reverse_search.service.requests.get", return_value=mock_response):
+        with patch(
+            "app.reverse_search.service.requests.get", return_value=mock_response
+        ):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
                 result = run_reverse_search(
                     image_id=image_id, image_bytes=sample_image_bytes

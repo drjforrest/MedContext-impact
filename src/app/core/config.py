@@ -62,6 +62,20 @@ class Settings(BaseSettings):
     encryption_key: str = ""
     log_level: str = "INFO"
     image_storage_dir: str = "data/images"
+    appwrite_project_id: str = Field(
+        default="",
+        validation_alias=AliasChoices("VITE_APPWRITE_PROJECT_ID", "vite_appwrite_project_id"),
+    )
+    appwrite_project_name: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "VITE_APPWRITE_PROJECT_NAME", "vite_appwrite_project_name"
+        ),
+    )
+    appwrite_endpoint: str = Field(
+        default="",
+        validation_alias=AliasChoices("VITE_APPWRITE_ENDPOINT", "vite_appwrite_endpoint"),
+    )
 
     model_config = ConfigDict(env_file=".env")
 

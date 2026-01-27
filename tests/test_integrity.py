@@ -1,4 +1,5 @@
 """Tests for the MedContext Integrity Score calculation."""
+
 import pytest
 
 from app.metrics.integrity import (

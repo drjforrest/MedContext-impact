@@ -27,15 +27,11 @@ async def build_provenance_chain_endpoint(
     image_id: UUID, db: Session = Depends(get_db)
 ) -> ProvenanceChainResponse:
     submission = (
-        db.query(ImageSubmission)
-        .filter(ImageSubmission.id == image_id)
-        .one_or_none()
+        db.query(ImageSubmission).filter(ImageSubmission.id == image_id).one_or_none()
     )
     if submission is None:
         raise HTTPException(status_code=404, detail="Image not found.")
-    return build_provenance(
-        image_id=image_id, image_hash=submission.image_hash, db=db
-    )
+    return build_provenance(image_id=image_id, image_hash=submission.image_hash, db=db)
 
 
 @router.get("/chain/{image_id}", response_model=ProvenanceChainResponse)
@@ -43,15 +39,11 @@ async def get_provenance_chain(
     image_id: UUID, db: Session = Depends(get_db)
 ) -> ProvenanceChainResponse:
     submission = (
-        db.query(ImageSubmission)
-        .filter(ImageSubmission.id == image_id)
-        .one_or_none()
+        db.query(ImageSubmission).filter(ImageSubmission.id == image_id).one_or_none()
     )
     if submission is None:
         raise HTTPException(status_code=404, detail="Image not found.")
-    return build_provenance(
-        image_id=image_id, image_hash=submission.image_hash, db=db
-    )
+    return build_provenance(image_id=image_id, image_hash=submission.image_hash, db=db)
 
 
 @router.get("/genealogy/{image_id}", response_model=JobResponse)

@@ -27,8 +27,7 @@ try:
     import pydicom
 except ImportError as exc:
     raise SystemExit(
-        "Missing dependency: pydicom. Install with:\n"
-        "  uv run pip install pydicom"
+        "Missing dependency: pydicom. Install with:\n" "  uv run pip install pydicom"
     ) from exc
 
 
@@ -89,7 +88,7 @@ def iter_dicom_entries(
         if not name.startswith(prefix) or not name.endswith(".dcm"):
             continue
         # Path looks like: Tampered Scans/Experiment X/UUID/SLICE.dcm
-        parts = name[len(prefix):].split("/")
+        parts = name[len(prefix) :].split("/")
         if len(parts) < 2:
             continue
         uuid = parts[0]
@@ -104,9 +103,7 @@ def iter_dicom_entries(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description=(
-            "Convert medical-image-tamper-detection zip to PNGs + labels.csv"
-        )
+        description=("Convert medical-image-tamper-detection zip to PNGs + labels.csv")
     )
     parser.add_argument(
         "--zip",
@@ -160,7 +157,9 @@ def main() -> None:
                     out_path.write_bytes(png_bytes)
 
                 is_tampered = 1 if (uuid, slice_idx) in tampered_maps[exp] else 0
-                labels_rows.append({"scan_id": scan_id, "is_tampered": str(is_tampered)})
+                labels_rows.append(
+                    {"scan_id": scan_id, "is_tampered": str(is_tampered)}
+                )
                 processed += 1
 
                 if args.max_images and processed >= args.max_images:

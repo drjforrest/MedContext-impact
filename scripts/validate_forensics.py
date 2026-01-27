@@ -19,19 +19,20 @@ Requirements:
 
 import argparse
 import json
-import os
 import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 import io
 
 import numpy as np
-from scipy import stats
 from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    roc_auc_score, confusion_matrix, roc_curve
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
 )
 import pandas as pd
 
@@ -71,218 +72,229 @@ class IntegrityEnsembleResult:
 
 
 def run_layer_1(image_bytes: bytes) -> IntegrityLayerResult:
-        """Fallback Layer 1: basic error level analysis."""
-        if Image is None or ImageChops is None:
-            return IntegrityLayerResult(
-                verdict="UNCERTAIN",
-                confidence=0.5,
-                details={"error": "PIL not available", "method": "error_level_analysis"},
-            )
-
-        try:
-            original = Image.open(io.BytesIO(image_bytes))
-            if original.mode not in ("RGB", "L"):
-                original = original.convert("RGB")
-
-            temp_buffer = io.BytesIO()
-            original.save(temp_buffer, format="JPEG", quality=95)
-            temp_buffer.seek(0)
-            compressed = Image.open(temp_buffer)
-
-            ela_image = ImageChops.difference(original, compressed)
-            # Normalize ELA to amplify the error-level signal and keep scale consistent.
-            ela_gray = ela_image.convert("L")
-            ela_array = np.array(ela_gray, dtype=np.float32)
-            ela_max_raw = float(np.max(ela_array)) if ela_array.size else 0.0
-            if ela_max_raw > 0:
-                ela_array = ela_array * (255.0 / ela_max_raw)
-
-            ela_mean = float(np.mean(ela_array))
-            ela_std = float(np.std(ela_array))
-            ela_max = float(np.max(ela_array)) if ela_array.size else 0.0
-
-            verdict = "UNCERTAIN"
-            confidence = 0.5
-            if ela_std > 0.74 and ela_max > 100:
-                verdict = "MANIPULATED"
-                confidence = min(0.85, 0.5 + (ela_std / 50.0))
-            elif ela_std < 0.22 and ela_max < 50:
-                verdict = "AUTHENTIC"
-                confidence = min(0.80, 0.5 + (1.0 - ela_std / 10.0))
-
-            return IntegrityLayerResult(
-                verdict=verdict,
-                confidence=confidence,
-                details={
-                    "method": "error_level_analysis",
-                    "ela_mean": round(ela_mean, 2),
-                    "ela_std": round(ela_std, 2),
-                    "ela_max": round(ela_max, 2),
-                    "ela_max_raw": round(ela_max_raw, 2),
-                    "image_size": original.size,
-                    "image_mode": original.mode,
-                },
-            )
-        except Exception as exc:
-            return IntegrityLayerResult(
-                verdict="UNCERTAIN",
-                confidence=0.5,
-                details={"error": str(exc), "method": "error_level_analysis"},
-            )
-
-    def run_layer_2(image_bytes: bytes) -> IntegrityLayerResult:
-        del image_bytes
+    """Fallback Layer 1: basic error level analysis."""
+    if Image is None or ImageChops is None:
         return IntegrityLayerResult(
             verdict="UNCERTAIN",
             confidence=0.5,
+            details={"error": "PIL not available", "method": "error_level_analysis"},
+        )
+
+    try:
+        original = Image.open(io.BytesIO(image_bytes))
+        if original.mode not in ("RGB", "L"):
+            original = original.convert("RGB")
+
+        temp_buffer = io.BytesIO()
+        original.save(temp_buffer, format="JPEG", quality=95)
+        temp_buffer.seek(0)
+        compressed = Image.open(temp_buffer)
+
+        ela_image = ImageChops.difference(original, compressed)
+        # Normalize ELA to amplify the error-level signal and keep scale consistent.
+        ela_gray = ela_image.convert("L")
+        ela_array = np.array(ela_gray, dtype=np.float32)
+        ela_max_raw = float(np.max(ela_array)) if ela_array.size else 0.0
+        if ela_max_raw > 0:
+            ela_array = ela_array * (255.0 / ela_max_raw)
+
+        ela_mean = float(np.mean(ela_array))
+        ela_std = float(np.std(ela_array))
+        ela_max = float(np.max(ela_array)) if ela_array.size else 0.0
+
+        verdict = "UNCERTAIN"
+        confidence = 0.5
+        if ela_std > 0.74 and ela_max > 100:
+            verdict = "MANIPULATED"
+            confidence = min(0.85, 0.5 + (ela_std / 50.0))
+        elif ela_std < 0.22 and ela_max < 50:
+            verdict = "AUTHENTIC"
+            confidence = min(0.80, 0.5 + (1.0 - ela_std / 10.0))
+
+        return IntegrityLayerResult(
+            verdict=verdict,
+            confidence=confidence,
             details={
-                "method": "semantic_analysis",
-                "note": "MedGemma disabled in fallback mode",
+                "method": "error_level_analysis",
+                "ela_mean": round(ela_mean, 2),
+                "ela_std": round(ela_std, 2),
+                "ela_max": round(ela_max, 2),
+                "ela_max_raw": round(ela_max_raw, 2),
+                "image_size": original.size,
+                "image_mode": original.mode,
             },
         )
+    except Exception as exc:
+        return IntegrityLayerResult(
+            verdict="UNCERTAIN",
+            confidence=0.5,
+            details={"error": str(exc), "method": "error_level_analysis"},
+        )
 
-    def run_layer_3(image_bytes: bytes) -> IntegrityLayerResult:
-        """Fallback Layer 3: minimal EXIF checks."""
-        if Image is None:
+
+def run_layer_2(image_bytes: bytes) -> IntegrityLayerResult:
+    del image_bytes
+    return IntegrityLayerResult(
+        verdict="UNCERTAIN",
+        confidence=0.5,
+        details={
+            "method": "semantic_analysis",
+            "note": "MedGemma disabled in fallback mode",
+        },
+    )
+
+
+def run_layer_3(image_bytes: bytes) -> IntegrityLayerResult:
+    """Fallback Layer 3: minimal EXIF checks."""
+    if Image is None:
+        return IntegrityLayerResult(
+            verdict="UNCERTAIN",
+            confidence=0.5,
+            details={"error": "PIL not available", "method": "exif_analysis"},
+        )
+
+    try:
+        image = Image.open(io.BytesIO(image_bytes))
+        exif_data = image.getexif()
+
+        if not exif_data:
             return IntegrityLayerResult(
                 verdict="UNCERTAIN",
-                confidence=0.5,
-                details={"error": "PIL not available", "method": "exif_analysis"},
-            )
-
-        try:
-            image = Image.open(io.BytesIO(image_bytes))
-            exif_data = image.getexif()
-
-            if not exif_data:
-                return IntegrityLayerResult(
-                    verdict="UNCERTAIN",
-                    confidence=0.25,
-                    details={
-                        "method": "exif_analysis",
-                        "warning": "Missing EXIF metadata",
-                        "has_exif": False,
-                    },
-                )
-
-            exif_dict: dict[str, Any] = {}
-            software_tags: list[str] = []
-            suspicious_patterns: list[str] = []
-
-            for tag_id, value in exif_data.items():
-                tag_name = None
-                if ExifTags is not None:
-                    tag_name = ExifTags.TAGS.get(tag_id)
-                tag_name = tag_name or str(tag_id)
-                exif_dict[tag_name] = str(value)
-
-                if tag_name in ("Software", "ProcessingSoftware", "HostComputer"):
-                    software_tags.append(str(value).lower())
-                    editing_tools = [
-                        "photoshop",
-                        "gimp",
-                        "paint.net",
-                        "affinity",
-                        "pixelmator",
-                        "canva",
-                    ]
-                    for tool in editing_tools:
-                        if tool in str(value).lower():
-                            suspicious_patterns.append(
-                                f"Editing software detected: {value}"
-                            )
-
-            ai_signatures = ["midjourney", "stable diffusion", "dall-e", "dalle", "ai"]
-            ai_signature_patterns = {
-                sig: re.compile(rf"\b{re.escape(sig)}\b") for sig in ai_signatures
-            }
-            for key, value in exif_dict.items():
-                value_lower = str(value).lower()
-                for sig, pattern in ai_signature_patterns.items():
-                    if pattern.search(value_lower):
-                        suspicious_patterns.append(f"AI signature in {key}: {value}")
-
-            verdict = "UNCERTAIN"
-            confidence = 0.5
-            if suspicious_patterns:
-                verdict = "MANIPULATED"
-                confidence = min(0.90, 0.6 + len(suspicious_patterns) * 0.15)
-            elif software_tags:
-                verdict = "AUTHENTIC"
-                confidence = 0.70
-            elif len(exif_dict) > 10:
-                verdict = "AUTHENTIC"
-                confidence = 0.75
-
-            return IntegrityLayerResult(
-                verdict=verdict,
-                confidence=confidence,
+                confidence=0.25,
                 details={
                     "method": "exif_analysis",
-                    "has_exif": True,
-                    "exif_fields_count": len(exif_dict),
-                    "suspicious_patterns": suspicious_patterns,
-                    "software_tags": software_tags,
-                    "key_fields": {
-                        k: v
-                        for k, v in exif_dict.items()
-                        if k in ("Make", "Model", "Software", "DateTime", "DateTimeOriginal")
-                    },
+                    "warning": "Missing EXIF metadata",
+                    "has_exif": False,
                 },
             )
-        except Exception as exc:
-            return IntegrityLayerResult(
-                verdict="UNCERTAIN",
-                confidence=0.5,
-                details={"error": str(exc), "method": "exif_analysis"},
+
+        exif_dict: dict[str, Any] = {}
+        software_tags: list[str] = []
+        suspicious_patterns: list[str] = []
+
+        for tag_id, value in exif_data.items():
+            tag_name = None
+            if ExifTags is not None:
+                tag_name = ExifTags.TAGS.get(tag_id)
+            tag_name = tag_name or str(tag_id)
+            exif_dict[tag_name] = str(value)
+
+            if tag_name in ("Software", "ProcessingSoftware", "HostComputer"):
+                software_tags.append(str(value).lower())
+                editing_tools = [
+                    "photoshop",
+                    "gimp",
+                    "paint.net",
+                    "affinity",
+                    "pixelmator",
+                    "canva",
+                ]
+                for tool in editing_tools:
+                    if tool in str(value).lower():
+                        suspicious_patterns.append(
+                            f"Editing software detected: {value}"
+                        )
+
+        ai_signatures = ["midjourney", "stable diffusion", "dall-e", "dalle", "ai"]
+        ai_signature_patterns = {
+            sig: re.compile(rf"\b{re.escape(sig)}\b") for sig in ai_signatures
+        }
+        for key, value in exif_dict.items():
+            value_lower = str(value).lower()
+            for sig, pattern in ai_signature_patterns.items():
+                if pattern.search(value_lower):
+                    suspicious_patterns.append(f"AI signature in {key}: {value}")
+
+        verdict = "UNCERTAIN"
+        confidence = 0.5
+        if suspicious_patterns:
+            verdict = "MANIPULATED"
+            confidence = min(0.90, 0.6 + len(suspicious_patterns) * 0.15)
+        elif software_tags:
+            verdict = "AUTHENTIC"
+            confidence = 0.70
+        elif len(exif_dict) > 10:
+            verdict = "AUTHENTIC"
+            confidence = 0.75
+
+        return IntegrityLayerResult(
+            verdict=verdict,
+            confidence=confidence,
+            details={
+                "method": "exif_analysis",
+                "has_exif": True,
+                "exif_fields_count": len(exif_dict),
+                "suspicious_patterns": suspicious_patterns,
+                "software_tags": software_tags,
+                "key_fields": {
+                    k: v
+                    for k, v in exif_dict.items()
+                    if k
+                    in ("Make", "Model", "Software", "DateTime", "DateTimeOriginal")
+                },
+            },
+        )
+    except Exception as exc:
+        return IntegrityLayerResult(
+            verdict="UNCERTAIN",
+            confidence=0.5,
+            details={"error": str(exc), "method": "exif_analysis"},
+        )
+
+
+def run_integrity_checks(image_bytes: bytes) -> IntegrityEnsembleResult:
+    layer_1 = run_layer_1(image_bytes)
+    layer_2 = run_layer_2(image_bytes)
+    layer_3 = run_layer_3(image_bytes)
+
+    verdicts = [layer_1.verdict, layer_2.verdict, layer_3.verdict]
+    non_uncertain = [v for v in verdicts if v != "UNCERTAIN"]
+
+    if not non_uncertain:
+        final_verdict = "UNCERTAIN"
+        confidence = 0.5
+    else:
+        authentic_votes = non_uncertain.count("AUTHENTIC")
+        manipulated_votes = non_uncertain.count("MANIPULATED")
+
+        if authentic_votes > manipulated_votes:
+            final_verdict = "AUTHENTIC"
+            confidence = (
+                0.90 if authentic_votes == 3 else 0.75 if authentic_votes == 2 else 0.60
             )
-
-    def run_integrity_checks(image_bytes: bytes) -> IntegrityEnsembleResult:
-        layer_1 = run_layer_1(image_bytes)
-        layer_2 = run_layer_2(image_bytes)
-        layer_3 = run_layer_3(image_bytes)
-
-        verdicts = [layer_1.verdict, layer_2.verdict, layer_3.verdict]
-        non_uncertain = [v for v in verdicts if v != "UNCERTAIN"]
-
-        if not non_uncertain:
-            final_verdict = "UNCERTAIN"
-            confidence = 0.5
+        elif manipulated_votes > authentic_votes:
+            final_verdict = "MANIPULATED"
+            confidence = (
+                0.90
+                if manipulated_votes == 3
+                else 0.75 if manipulated_votes == 2 else 0.60
+            )
         else:
-            authentic_votes = non_uncertain.count("AUTHENTIC")
-            manipulated_votes = non_uncertain.count("MANIPULATED")
+            final_verdict = "UNCERTAIN"
+            confidence = 0.50
 
-            if authentic_votes > manipulated_votes:
-                final_verdict = "AUTHENTIC"
-                confidence = 0.90 if authentic_votes == 3 else 0.75 if authentic_votes == 2 else 0.60
-            elif manipulated_votes > authentic_votes:
-                final_verdict = "MANIPULATED"
-                confidence = 0.90 if manipulated_votes == 3 else 0.75 if manipulated_votes == 2 else 0.60
-            else:
-                final_verdict = "UNCERTAIN"
-                confidence = 0.50
-
-            avg_confidence = sum(
-                layer.confidence
+        avg_confidence = sum(
+            layer.confidence
+            for layer in [layer_1, layer_2, layer_3]
+            if layer.verdict == final_verdict
+        ) / max(
+            1,
+            sum(
+                1
                 for layer in [layer_1, layer_2, layer_3]
                 if layer.verdict == final_verdict
-            ) / max(
-                1,
-                sum(
-                    1
-                    for layer in [layer_1, layer_2, layer_3]
-                    if layer.verdict == final_verdict
-                ),
-            )
-            confidence = min(confidence, avg_confidence * 1.1)
-
-        return IntegrityEnsembleResult(
-            final_verdict=final_verdict,
-            confidence=round(confidence, 2),
-            layer_1=layer_1,
-            layer_2=layer_2,
-            layer_3=layer_3,
+            ),
         )
+        confidence = min(confidence, avg_confidence * 1.1)
+
+    return IntegrityEnsembleResult(
+        final_verdict=final_verdict,
+        confidence=round(confidence, 2),
+        layer_1=layer_1,
+        layer_2=layer_2,
+        layer_3=layer_3,
+    )
+
 
 DEFAULT_MEDGEMMA_PROMPT = (
     "You are a medical image forensics assistant. "
@@ -337,9 +349,13 @@ class ForensicsValidator:
         print(f"📂 Loading dataset from {self.dataset_path}")
 
         # Auto-detect dataset format
-        if (self.dataset_path / "real").exists() and (self.dataset_path / "fake").exists():
+        if (self.dataset_path / "real").exists() and (
+            self.dataset_path / "fake"
+        ).exists():
             images, labels = self._load_medforensics_format()
-        elif (self.dataset_path / "original").exists() and (self.dataset_path / "tampered").exists():
+        elif (self.dataset_path / "original").exists() and (
+            self.dataset_path / "tampered"
+        ).exists():
             images, labels = self._load_btd_format()
         elif (self.dataset_path / "labels.csv").exists():
             images, labels = self._load_uci_format()
@@ -359,20 +375,30 @@ class ForensicsValidator:
         # Load authentic images
         authentic_dir = self.dataset_path / "authentic"
         if authentic_dir.exists():
-            for img_path in list(authentic_dir.glob("*.jpg")) + list(authentic_dir.glob("*.png")):
+            for img_path in list(authentic_dir.glob("*.jpg")) + list(
+                authentic_dir.glob("*.png")
+            ):
                 with open(img_path, "rb") as f:
                     images.append(f.read())
                     labels.append("AUTHENTIC")
-            print(f"  ✓ Loaded {len([l for l in labels if l == 'AUTHENTIC'])} authentic images")
+            print(
+                "  ✓ Loaded "
+                f"{sum(1 for label in labels if label == 'AUTHENTIC')} authentic images"
+            )
 
         # Load manipulated images
         manipulated_dir = self.dataset_path / "manipulated"
         if manipulated_dir.exists():
-            for img_path in list(manipulated_dir.glob("*.jpg")) + list(manipulated_dir.glob("*.png")):
+            for img_path in list(manipulated_dir.glob("*.jpg")) + list(
+                manipulated_dir.glob("*.png")
+            ):
                 with open(img_path, "rb") as f:
                     images.append(f.read())
                     labels.append("MANIPULATED")
-            print(f"  ✓ Loaded {len([l for l in labels if l == 'MANIPULATED'])} manipulated images")
+            print(
+                "  ✓ Loaded "
+                f"{sum(1 for label in labels if label == 'MANIPULATED')} manipulated images"
+            )
 
         if not images:
             raise ValueError(f"No images found in {self.dataset_path}")
@@ -402,22 +428,32 @@ class ForensicsValidator:
         if real_dir.exists():
             for modality_dir in real_dir.iterdir():
                 if modality_dir.is_dir():
-                    for img_path in list(modality_dir.glob("*.jpg")) + list(modality_dir.glob("*.png")):
+                    for img_path in list(modality_dir.glob("*.jpg")) + list(
+                        modality_dir.glob("*.png")
+                    ):
                         with open(img_path, "rb") as f:
                             images.append(f.read())
                             labels.append("AUTHENTIC")
-            print(f"  ✓ Loaded {len([l for l in labels if l == 'AUTHENTIC'])} real images")
+            print(
+                "  ✓ Loaded "
+                f"{sum(1 for label in labels if label == 'AUTHENTIC')} real images"
+            )
 
         # Load fake images from all modality subdirs
         fake_dir = self.dataset_path / "fake"
         if fake_dir.exists():
             for modality_dir in fake_dir.iterdir():
                 if modality_dir.is_dir():
-                    for img_path in list(modality_dir.glob("*.jpg")) + list(modality_dir.glob("*.png")):
+                    for img_path in list(modality_dir.glob("*.jpg")) + list(
+                        modality_dir.glob("*.png")
+                    ):
                         with open(img_path, "rb") as f:
                             images.append(f.read())
                             labels.append("MANIPULATED")
-            print(f"  ✓ Loaded {len([l for l in labels if l == 'MANIPULATED'])} fake images")
+            print(
+                "  ✓ Loaded "
+                f"{sum(1 for label in labels if label == 'MANIPULATED')} fake images"
+            )
 
         return images, labels
 
@@ -440,20 +476,30 @@ class ForensicsValidator:
         # Load original images
         original_dir = self.dataset_path / "original"
         if original_dir.exists():
-            for img_path in list(original_dir.glob("*.jpg")) + list(original_dir.glob("*.png")):
+            for img_path in list(original_dir.glob("*.jpg")) + list(
+                original_dir.glob("*.png")
+            ):
                 with open(img_path, "rb") as f:
                     images.append(f.read())
                     labels.append("AUTHENTIC")
-            print(f"  ✓ Loaded {len([l for l in labels if l == 'AUTHENTIC'])} original images")
+            print(
+                "  ✓ Loaded "
+                f"{sum(1 for label in labels if label == 'AUTHENTIC')} original images"
+            )
 
         # Load tampered images
         tampered_dir = self.dataset_path / "tampered"
         if tampered_dir.exists():
-            for img_path in list(tampered_dir.glob("*.jpg")) + list(tampered_dir.glob("*.png")):
+            for img_path in list(tampered_dir.glob("*.jpg")) + list(
+                tampered_dir.glob("*.png")
+            ):
                 with open(img_path, "rb") as f:
                     images.append(f.read())
                     labels.append("MANIPULATED")
-            print(f"  ✓ Loaded {len([l for l in labels if l == 'MANIPULATED'])} tampered images")
+            print(
+                "  ✓ Loaded "
+                f"{sum(1 for label in labels if label == 'MANIPULATED')} tampered images"
+            )
 
         return images, labels
 
@@ -482,14 +528,20 @@ class ForensicsValidator:
                 scan_id = (row.get("scan_id") or row.get("image_id") or "").strip()
                 if scan_id:
                     scan_id = Path(scan_id).stem
-                is_tampered = (row.get("is_tampered") or row.get("label") or "").strip().lower()
+                is_tampered = (
+                    (row.get("is_tampered") or row.get("label") or "").strip().lower()
+                )
                 tampered_values = {"1", "true", "tampered", "yes", "y"}
-                label_map[scan_id] = "MANIPULATED" if is_tampered in tampered_values else "AUTHENTIC"
+                label_map[scan_id] = (
+                    "MANIPULATED" if is_tampered in tampered_values else "AUTHENTIC"
+                )
 
         # Load images
         images_dir = self.dataset_path / "images"
         if images_dir.exists():
-            for img_path in list(images_dir.glob("*.jpg")) + list(images_dir.glob("*.png")):
+            for img_path in list(images_dir.glob("*.jpg")) + list(
+                images_dir.glob("*.png")
+            ):
                 scan_id = img_path.stem
                 if scan_id in label_map:
                     with open(img_path, "rb") as f:
@@ -497,8 +549,11 @@ class ForensicsValidator:
                         labels.append(label_map[scan_id])
 
         print(f"  ✓ Loaded {len(images)} images with labels")
-        print(f"    - Authentic: {len([l for l in labels if l == 'AUTHENTIC'])}")
-        print(f"    - Manipulated: {len([l for l in labels if l == 'MANIPULATED'])}")
+        print(f"    - Authentic: {sum(1 for label in labels if label == 'AUTHENTIC')}")
+        print(
+            "    - Manipulated: "
+            f"{sum(1 for label in labels if label == 'MANIPULATED')}"
+        )
 
         return images, labels
 
@@ -567,13 +622,15 @@ class ForensicsValidator:
                     confidence=0.5,
                     details={"error": str(e), "source": "validation_fallback"},
                 )
-                predictions.append(IntegrityEnsembleResult(
-                    final_verdict="UNCERTAIN",
-                    confidence=0.5,
-                    layer_1=fallback_layer,
-                    layer_2=fallback_layer,
-                    layer_3=fallback_layer,
-                ))
+                predictions.append(
+                    IntegrityEnsembleResult(
+                        final_verdict="UNCERTAIN",
+                        confidence=0.5,
+                        layer_1=fallback_layer,
+                        layer_2=fallback_layer,
+                        layer_3=fallback_layer,
+                    )
+                )
 
         print(f"  ✓ Completed {len(predictions)} predictions")
         return predictions
@@ -669,9 +726,7 @@ class ForensicsValidator:
             },
         )
 
-    def _parse_medgemma_result(
-        self, result: MedGemmaResult
-    ) -> tuple[str, float, dict]:
+    def _parse_medgemma_result(self, result: MedGemmaResult) -> tuple[str, float, dict]:
         output = result.output
         raw_text = result.raw_text or ""
         parsed: dict[str, object] = {}
@@ -685,14 +740,18 @@ class ForensicsValidator:
 
         text_candidate = ""
         if isinstance(parsed, dict):
-            text_candidate = str(parsed.get("text") or parsed.get("generated_text") or "")
+            text_candidate = str(
+                parsed.get("text") or parsed.get("generated_text") or ""
+            )
         if not text_candidate:
             text_candidate = raw_text
         if not text_candidate and output:
             text_candidate = str(output)
 
         json_candidate = None
-        if isinstance(parsed, dict) and any(key in parsed for key in ("verdict", "confidence")):
+        if isinstance(parsed, dict) and any(
+            key in parsed for key in ("verdict", "confidence")
+        ):
             json_candidate = parsed
         else:
             match = re.search(r"\{.*\}", text_candidate, flags=re.DOTALL)
@@ -712,7 +771,9 @@ class ForensicsValidator:
         verdict_str = str(verdict or "").strip().upper()
         if verdict_str not in {"AUTHENTIC", "MANIPULATED", "UNCERTAIN"}:
             text_lower = (text_candidate or "").lower()
-            if any(token in text_lower for token in ("manipulated", "tampered", "fake")):
+            if any(
+                token in text_lower for token in ("manipulated", "tampered", "fake")
+            ):
                 verdict_str = "MANIPULATED"
             elif any(token in text_lower for token in ("authentic", "real", "genuine")):
                 verdict_str = "AUTHENTIC"
@@ -728,11 +789,10 @@ class ForensicsValidator:
         return verdict_str, confidence_val, parsed
 
     def compute_metrics(
-        self,
-        ground_truth: List[str],
-        predictions: List[IntegrityEnsembleResult]
+        self, ground_truth: List[str], predictions: List[IntegrityEnsembleResult]
     ) -> Dict[str, float]:
         """Compute classification metrics."""
+
         def select_prediction(pred: IntegrityEnsembleResult) -> tuple[str, float]:
             if self.prediction_mode == "layer_1":
                 return pred.layer_1.verdict, pred.layer_1.confidence
@@ -748,9 +808,11 @@ class ForensicsValidator:
             (
                 1
                 if select_prediction(pred)[0] == "MANIPULATED"
-                else 0
-                if select_prediction(pred)[0] == "AUTHENTIC"
-                else (1 if select_prediction(pred)[1] > 0.5 else 0)
+                else (
+                    0
+                    if select_prediction(pred)[0] == "AUTHENTIC"
+                    else (1 if select_prediction(pred)[1] > 0.5 else 0)
+                )
             )
             for pred in predictions
         ]
@@ -761,14 +823,16 @@ class ForensicsValidator:
             "precision": precision_score(y_true, y_pred_labels, zero_division=0),
             "recall": recall_score(y_true, y_pred_labels, zero_division=0),
             "f1_score": f1_score(y_true, y_pred_labels, zero_division=0),
-            "roc_auc": roc_auc_score(y_true, y_pred_scores) if len(set(y_true)) > 1 else 0.5,
+            "roc_auc": (
+                roc_auc_score(y_true, y_pred_scores) if len(set(y_true)) > 1 else 0.5
+            ),
         }
 
     def bootstrap_confidence_intervals(
         self,
         ground_truth: List[str],
         predictions: List[IntegrityEnsembleResult],
-        alpha: float = 0.05
+        alpha: float = 0.05,
     ) -> Dict[str, Tuple[float, float, float]]:
         """
         Compute bootstrap confidence intervals for metrics.
@@ -776,7 +840,9 @@ class ForensicsValidator:
         Returns:
             Dict with metric_name: (mean, lower_ci, upper_ci)
         """
-        print(f"\n📊 Computing bootstrap confidence intervals ({self.bootstrap_iterations} iterations)...")
+        print(
+            f"\n📊 Computing bootstrap confidence intervals ({self.bootstrap_iterations} iterations)..."
+        )
 
         n = len(ground_truth)
         bootstrap_metrics = {
@@ -784,7 +850,7 @@ class ForensicsValidator:
             "precision": [],
             "recall": [],
             "f1_score": [],
-            "roc_auc": []
+            "roc_auc": [],
         }
 
         for i in range(self.bootstrap_iterations):
@@ -814,9 +880,7 @@ class ForensicsValidator:
         return confidence_intervals
 
     def analyze_layer_thresholds(
-        self,
-        images: List[bytes],
-        ground_truth: List[str]
+        self, images: List[bytes], ground_truth: List[str]
     ) -> Dict:
         """
         Analyze ELA thresholds to determine optimal values.
@@ -844,7 +908,7 @@ class ForensicsValidator:
                         continue
                     category = "authentic" if label == "AUTHENTIC" else "manipulated"
                     ela_stats[category].append(ela_metrics)
-            except Exception as e:
+            except Exception:
                 ela_failures += 1
                 continue
 
@@ -858,34 +922,90 @@ class ForensicsValidator:
         # Compute statistics
         threshold_analysis = {
             "authentic_ela_std": {
-                "mean": np.mean([m["ela_std"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
-                "median": np.median([m["ela_std"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
-                "std": np.std([m["ela_std"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
+                "mean": (
+                    np.mean([m["ela_std"] for m in ela_stats["authentic"]])
+                    if ela_stats["authentic"]
+                    else 0
+                ),
+                "median": (
+                    np.median([m["ela_std"] for m in ela_stats["authentic"]])
+                    if ela_stats["authentic"]
+                    else 0
+                ),
+                "std": (
+                    np.std([m["ela_std"] for m in ela_stats["authentic"]])
+                    if ela_stats["authentic"]
+                    else 0
+                ),
             },
             "manipulated_ela_std": {
-                "mean": np.mean([m["ela_std"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
-                "median": np.median([m["ela_std"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
-                "std": np.std([m["ela_std"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
+                "mean": (
+                    np.mean([m["ela_std"] for m in ela_stats["manipulated"]])
+                    if ela_stats["manipulated"]
+                    else 0
+                ),
+                "median": (
+                    np.median([m["ela_std"] for m in ela_stats["manipulated"]])
+                    if ela_stats["manipulated"]
+                    else 0
+                ),
+                "std": (
+                    np.std([m["ela_std"] for m in ela_stats["manipulated"]])
+                    if ela_stats["manipulated"]
+                    else 0
+                ),
             },
             "authentic_ela_max": {
-                "mean": np.mean([m["ela_max"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
-                "median": np.median([m["ela_max"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
-                "std": np.std([m["ela_max"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
+                "mean": (
+                    np.mean([m["ela_max"] for m in ela_stats["authentic"]])
+                    if ela_stats["authentic"]
+                    else 0
+                ),
+                "median": (
+                    np.median([m["ela_max"] for m in ela_stats["authentic"]])
+                    if ela_stats["authentic"]
+                    else 0
+                ),
+                "std": (
+                    np.std([m["ela_max"] for m in ela_stats["authentic"]])
+                    if ela_stats["authentic"]
+                    else 0
+                ),
             },
             "manipulated_ela_max": {
-                "mean": np.mean([m["ela_max"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
-                "median": np.median([m["ela_max"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
-                "std": np.std([m["ela_max"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
+                "mean": (
+                    np.mean([m["ela_max"] for m in ela_stats["manipulated"]])
+                    if ela_stats["manipulated"]
+                    else 0
+                ),
+                "median": (
+                    np.median([m["ela_max"] for m in ela_stats["manipulated"]])
+                    if ela_stats["manipulated"]
+                    else 0
+                ),
+                "std": (
+                    np.std([m["ela_max"] for m in ela_stats["manipulated"]])
+                    if ela_stats["manipulated"]
+                    else 0
+                ),
             },
-            "recommended_thresholds": {}
+            "recommended_thresholds": {},
         }
 
         # Derive thresholds from per-class distributions (percentiles / midpoint)
         if ela_stats["authentic"] and ela_stats["manipulated"]:
-            authentic_vals = np.array([m["ela_std"] for m in ela_stats["authentic"]], dtype=float)
-            manipulated_vals = np.array([m["ela_std"] for m in ela_stats["manipulated"]], dtype=float)
-            authentic_max_vals = np.array([m["ela_max"] for m in ela_stats["authentic"]], dtype=float)
-            manipulated_max_vals = np.array([m["ela_max"] for m in ela_stats["manipulated"]], dtype=float)
+            authentic_vals = np.array(
+                [m["ela_std"] for m in ela_stats["authentic"]], dtype=float
+            )
+            manipulated_vals = np.array(
+                [m["ela_std"] for m in ela_stats["manipulated"]], dtype=float
+            )
+            authentic_max_vals = np.array(
+                [m["ela_max"] for m in ela_stats["authentic"]], dtype=float
+            )
+            manipulated_max_vals = np.array(
+                [m["ela_max"] for m in ela_stats["manipulated"]], dtype=float
+            )
 
             authentic_p90 = float(np.percentile(authentic_vals, 90))
             manipulated_p10 = float(np.percentile(manipulated_vals, 10))
@@ -900,13 +1020,25 @@ class ForensicsValidator:
             }
 
             if overlap:
-                midpoint = float((np.mean(authentic_vals) + np.mean(manipulated_vals)) / 2.0)
-                threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = midpoint
-                threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = midpoint
-                print(f"  ⚠️  Overlapping ELA std distributions; using midpoint {midpoint:.2f}")
+                midpoint = float(
+                    (np.mean(authentic_vals) + np.mean(manipulated_vals)) / 2.0
+                )
+                threshold_analysis["recommended_thresholds"][
+                    "ela_std_authentic"
+                ] = midpoint
+                threshold_analysis["recommended_thresholds"][
+                    "ela_std_manipulated"
+                ] = midpoint
+                print(
+                    f"  ⚠️  Overlapping ELA std distributions; using midpoint {midpoint:.2f}"
+                )
             else:
-                threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = authentic_p90
-                threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = manipulated_p10
+                threshold_analysis["recommended_thresholds"][
+                    "ela_std_authentic"
+                ] = authentic_p90
+                threshold_analysis["recommended_thresholds"][
+                    "ela_std_manipulated"
+                ] = manipulated_p10
                 print(
                     "  ✓ Recommended ELA std thresholds "
                     f"(authentic_p90={authentic_p90:.2f}, manipulated_p10={manipulated_p10:.2f})"
@@ -915,8 +1047,12 @@ class ForensicsValidator:
             # Always compute auxiliary thresholds using ELA max as a secondary signal.
             authentic_max_p90 = float(np.percentile(authentic_max_vals, 90))
             manipulated_max_p10 = float(np.percentile(manipulated_max_vals, 10))
-            threshold_analysis["recommended_thresholds"]["ela_max_authentic"] = authentic_max_p90
-            threshold_analysis["recommended_thresholds"]["ela_max_manipulated"] = manipulated_max_p10
+            threshold_analysis["recommended_thresholds"][
+                "ela_max_authentic"
+            ] = authentic_max_p90
+            threshold_analysis["recommended_thresholds"][
+                "ela_max_manipulated"
+            ] = manipulated_max_p10
 
         return threshold_analysis
 
@@ -925,10 +1061,10 @@ class ForensicsValidator:
         metrics: Dict[str, float],
         confidence_intervals: Dict[str, Tuple[float, float, float]],
         threshold_analysis: Dict,
-        output_path: Path
+        output_path: Path,
     ):
         """Generate validation report."""
-        print(f"\n📝 Generating validation report...")
+        print("\n📝 Generating validation report...")
 
         report = {
             "validation_summary": {
@@ -938,7 +1074,7 @@ class ForensicsValidator:
                 "medgemma_enabled": self.use_medgemma,
                 "forensics_source": FORENSICS_SOURCE,
                 "medgemma_stats": self.medgemma_stats if self.use_medgemma else None,
-                "timestamp": pd.Timestamp.now().isoformat()
+                "timestamp": pd.Timestamp.now().isoformat(),
             },
             "metrics": metrics,
             "confidence_intervals_95": {
@@ -946,11 +1082,11 @@ class ForensicsValidator:
                     "mean": mean,
                     "lower_ci": lower,
                     "upper_ci": upper,
-                    "ci_width": upper - lower
+                    "ci_width": upper - lower,
                 }
                 for metric, (mean, lower, upper) in confidence_intervals.items()
             },
-            "threshold_analysis": threshold_analysis
+            "threshold_analysis": threshold_analysis,
         }
 
         # Save JSON report
@@ -969,8 +1105,12 @@ class ForensicsValidator:
             print(f"  {metric.upper():12s}: {mean:.3f} [{lower:.3f}, {upper:.3f}]")
 
         print("\n🎯 ELA Threshold Analysis:")
-        print(f"  Authentic images - ELA std mean: {threshold_analysis['authentic_ela_std']['mean']:.2f}")
-        print(f"  Manipulated images - ELA std mean: {threshold_analysis['manipulated_ela_std']['mean']:.2f}")
+        print(
+            f"  Authentic images - ELA std mean: {threshold_analysis['authentic_ela_std']['mean']:.2f}"
+        )
+        print(
+            f"  Manipulated images - ELA std mean: {threshold_analysis['manipulated_ela_std']['mean']:.2f}"
+        )
 
         if threshold_analysis["recommended_thresholds"]:
             print("\n💡 Recommended Threshold Updates:")
@@ -993,6 +1133,7 @@ class ForensicsValidator:
 
         # Print prediction distribution for selected mode
         from collections import Counter
+
         verdicts = []
         for pred in predictions:
             if self.prediction_mode == "layer_1":
@@ -1032,59 +1173,60 @@ class ForensicsValidator:
         # Generate report
         output_dir.mkdir(parents=True, exist_ok=True)
         report_path = output_dir / "forensics_validation_report.json"
-        self.generate_report(metrics, confidence_intervals, threshold_analysis, report_path)
+        self.generate_report(
+            metrics, confidence_intervals, threshold_analysis, report_path
+        )
 
         return report_path
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Validate forensics detection with confidence intervals")
+    parser = argparse.ArgumentParser(
+        description="Validate forensics detection with confidence intervals"
+    )
     parser.add_argument(
         "--dataset",
         type=str,
         required=True,
-        help="Path to validation dataset directory"
+        help="Path to validation dataset directory",
     )
     parser.add_argument(
         "--bootstrap",
         type=int,
         default=1000,
-        help="Number of bootstrap iterations (default: 1000)"
+        help="Number of bootstrap iterations (default: 1000)",
     )
     parser.add_argument(
         "--output",
         type=str,
         default="validation_results",
-        help="Output directory for reports (default: validation_results)"
+        help="Output directory for reports (default: validation_results)",
     )
     parser.add_argument(
         "--balance",
         action="store_true",
-        help="Balance classes by undersampling to minority count"
+        help="Balance classes by undersampling to minority count",
     )
     parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed for balancing (default: 42)"
+        "--seed", type=int, default=42, help="Random seed for balancing (default: 42)"
     )
     parser.add_argument(
         "--prediction-mode",
         type=str,
         default="ensemble",
         choices=["ensemble", "layer_1", "layer_2", "layer_3"],
-        help="Which prediction to score (default: ensemble)"
+        help="Which prediction to score (default: ensemble)",
     )
     parser.add_argument(
         "--use-medgemma",
         action="store_true",
-        help="Use MedGemma for layer_2 predictions"
+        help="Use MedGemma for layer_2 predictions",
     )
     parser.add_argument(
         "--medgemma-prompt",
         type=str,
         default=None,
-        help="Custom prompt for MedGemma (JSON with verdict/confidence)"
+        help="Custom prompt for MedGemma (JSON with verdict/confidence)",
     )
 
     args = parser.parse_args()

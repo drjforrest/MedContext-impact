@@ -19,8 +19,7 @@ from app.core.config import settings
 from app.forensics.service import run_forensics
 from app.metrics.integrity import compute_contextual_integrity_score
 from app.provenance.service import build_provenance
-from app.reverse_search.service import (get_reverse_search_results,
-                                        run_reverse_search)
+from app.reverse_search.service import get_reverse_search_results, run_reverse_search
 
 logger = logging.getLogger(__name__)
 

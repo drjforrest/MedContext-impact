@@ -1,4 +1,5 @@
 """Tests for the provenance service."""
+
 from unittest.mock import MagicMock
 from uuid import UUID, uuid4
 

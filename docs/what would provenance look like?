@@ -1,7 +1,5 @@
 ## Image Provenance Systems for Medical Context Verification: Technical Assessment and Integration Pathways for MedContext
 
-## Image Provenance Systems for Medical Context Verification: Technical Assessment and Integration Pathways for MedContext
-
 ### Executive Summary
 
 The PBS article references the **News Provenance Project**, a 2019-2020 proof-of-concept collaboration between The New York Times and IBM that explored blockchain-based image provenance tracking for journalism. While this project itself does not constitute a publicly accessible medical image provenance database, it catalyzed the development of **C2PA (Coalition for Content Provenance and Authenticity)**—an open, industry-standard specification that offers a viable technical foundation for medical image verification. [pbs](https://www.pbs.org/newshour/science/out-of-context-photos-are-a-powerful-low-tech-form-of-misinformation)

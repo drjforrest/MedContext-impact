@@ -104,7 +104,9 @@ def _read_c2pa(
             else json.dumps(manifest_data)
         )
     try:
-        with Reader(mime_type, io.BytesIO(image_bytes), manifest_data=payload) as reader:
+        with Reader(
+            mime_type, io.BytesIO(image_bytes), manifest_data=payload
+        ) as reader:
             manifest_store = None
             raw_json = reader.json()
             if raw_json:

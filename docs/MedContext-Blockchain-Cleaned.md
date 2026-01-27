@@ -530,7 +530,7 @@ class ContextIntegrityEnsemble:
         
         try:
             # Layer 1: Pixel-level forensics
-            layer1_result = self.layer1.check_image_authenticity(image_path)
+            layer1_result = check_image_authenticity(image_path)
             
             # Layer 2: Medical plausibility
             layer2_result = self.layer2.check_plausibility(

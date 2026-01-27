@@ -40,9 +40,7 @@ class ImageSubmission(Base):
 
     submissions_context = relationship("SubmissionContext", back_populates="image")
     analyses = relationship("MedGemmaAnalysis", back_populates="image")
-    provenance_manifests = relationship(
-        "ProvenanceManifest", back_populates="image"
-    )
+    provenance_manifests = relationship("ProvenanceManifest", back_populates="image")
 
 
 class SubmissionContext(Base):

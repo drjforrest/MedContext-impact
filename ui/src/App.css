@@ -101,11 +101,41 @@
   gap: 1.5rem;
 }
 
+.footer {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.footer a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footer a:hover {
+  color: var(--ink);
+}
+
+.footer-sep {
+  color: var(--border);
+}
+
 .top-grid {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: minmax(320px, 1.1fr) minmax(360px, 1fr);
-  align-items: start;
+  align-items: stretch;
 }
 
 .card {
@@ -247,17 +277,22 @@ button.ghost {
   margin: 0.35rem 0 0;
 }
 
+.reverse-header-status {
+  justify-content: flex-end;
+  margin-top: -0.5rem;
+}
+
 .activity-card {
   border-style: dashed;
-  position: sticky;
-  top: 1rem;
-  z-index: 2;
+  position: static;
+  height: 100%;
+  overflow: auto;
 }
 
 .activity-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .module-grid {
@@ -298,6 +333,16 @@ button.ghost {
   color: var(--muted);
 }
 
+.module-metric {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.card-span {
+  grid-column: 1 / -1;
+}
+
 .activity-step {
   border-radius: 16px;
   border: 1px solid var(--border);
@@ -307,6 +352,7 @@ button.ghost {
   flex-direction: column;
   gap: 0.5rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 110px;
 }
 
 .activity-header {
@@ -479,7 +525,9 @@ button.ghost {
 
 .image-preview {
   display: block;
+  width: 100%;
   max-width: 100%;
+  height: auto;
   border-radius: 12px;
   border: 1px solid var(--border);
   margin-bottom: 0.75rem;
@@ -655,11 +703,22 @@ button.ghost {
   align-items: center;
   gap: 1.5rem;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.hero-logo-frame {
+  width: 100%;
+  max-width: 100%;
+  height: 240px;
+  overflow: hidden;
 }
 
 .hero-logo {
-  width: 320px;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
   filter: drop-shadow(0 8px 18px rgba(11, 31, 58, 0.2));
 }
 
@@ -683,8 +742,8 @@ button.ghost {
     grid-template-columns: 1fr;
   }
 
-  .hero-logo {
-    width: 220px;
+  .activity-grid {
+    grid-template-columns: 1fr;
   }
 }
 

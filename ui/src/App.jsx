@@ -51,6 +51,7 @@ function App() {
   const [reverseJob, setReverseJob] = useState(null)
   const [reverseResult, setReverseResult] = useState(null)
   const [reverseFileKey, setReverseFileKey] = useState(0)
+  const [showReverseSearch, setShowReverseSearch] = useState(false)
   const [reversePollIntervalMs, setReversePollIntervalMs] = useState(() =>
     getStoredNumber(
       'medcontext_reverse_poll_interval_ms',
@@ -529,15 +530,26 @@ function App() {
     part2?.alignment,
     provenanceData,
   ])
+  const showResultsOverview = Boolean(result)
+  const showProgressCard = status !== 'success'
+  const showModuleCard = showResultsOverview
+  const triageSummary =
+    part2?.alignment || alignmentScore.label || 'Alignment pending'
+  const reverseMatchCount = orchestratorReverseSearch?.matches?.length || 0
+  const provenanceBlockCount = provenanceData?.blocks?.length || 0
+  const forensicsStatus =
+    typeof forensicsData?.status === 'string' ? forensicsData.status : null
   return (
     <div className="page">
       <header className="hero">
         <div className="hero-brand">
-          <img
-            className="hero-logo"
-            src="/medContext-logo.png"
-            alt="MedContext logo"
-          />
+          <div className="hero-logo-frame">
+            <img
+              className="hero-logo"
+              src="/medContext-logo.png"
+              alt="MedContext logo"
+            />
+          </div>
           <div>
             <p className="eyebrow">MedContext</p>
             <h1>Medical images don&apos;t need to be fake to cause harm.</h1>
@@ -547,13 +559,6 @@ function App() {
           </div>
         </div>
         <div className="hero-actions">
-          <div className="status" aria-live="polite">
-            <span className={`status-dot status-${status}`} />
-            {status === 'loading' ? (
-              <span className="spinner" aria-hidden="true" />
-            ) : null}
-            <span>{statusLabel}</span>
-          </div>
           <button
             type="button"
             className="ghost"
@@ -647,79 +652,7 @@ function App() {
         ) : (
           <>
             <div className="top-grid">
-              <section className="card activity-card">
-                <div className="reverse-header">
-                  <div>
-                    <h2>Progress</h2>
-                    <p className="helper">
-                      Live status updates while we work on your request.
-                    </p>
-                  </div>
-                </div>
-                <div className="activity-grid">
-                  {agentSteps.map((step, index) => {
-                    const state = agentStepStates[index]
-                    return (
-                      <div
-                        className={`activity-step activity-${state}`}
-                        key={step.key}
-                      >
-                        <div className="activity-header">
-                          <span>{step.label}</span>
-                          <span className={`activity-pill activity-${state}`}>
-                            {state}
-                          </span>
-                        </div>
-                        <p className="helper">{step.detail}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </section>
-              <section className="card module-card">
-                <h2>Module activity</h2>
-                <p className="helper">
-                  Modules light up when triage activates them. Metrics in each
-                  quadrant are valid only when lit.
-                </p>
-                <div className="module-grid">
-                  <div
-                    className={`module-tile ${
-                      moduleActivity.triage ? 'module-active' : 'module-inactive'
-                    }`}
-                  >
-                    <span className="module-label">MedGemma triage</span>
-                    <span className="module-detail">Plausibility & alignment</span>
-                  </div>
-                  <div
-                    className={`module-tile ${
-                      moduleActivity.reverse_search
-                        ? 'module-active'
-                        : 'module-inactive'
-                    }`}
-                  >
-                    <span className="module-label">Reverse search</span>
-                    <span className="module-detail">Source reputation</span>
-                  </div>
-                  <div
-                    className={`module-tile ${
-                      moduleActivity.forensics ? 'module-active' : 'module-inactive'
-                    }`}
-                  >
-                    <span className="module-label">Forensics</span>
-                    <span className="module-detail">Integrity signals</span>
-                  </div>
-                  <div
-                    className={`module-tile ${
-                      moduleActivity.provenance ? 'module-active' : 'module-inactive'
-                    }`}
-                  >
-                    <span className="module-label">Provenance</span>
-                    <span className="module-detail">Genealogy</span>
-                  </div>
-                </div>
-              </section>
-              <section className="card">
+              <section className={`card ${showProgressCard || showModuleCard ? '' : 'card-span'}`}>
                 <h2>Provide an image</h2>
                 <div className="inline-status" aria-live="polite">
                   <span className={`status-dot status-${status}`} />
@@ -793,130 +726,250 @@ function App() {
                 </div>
                 {error ? <p className="error">{error}</p> : null}
               </section>
+              {showProgressCard ? (
+                <section className="card activity-card">
+                  <div className="reverse-header">
+                    <div>
+                      <h2>Progress</h2>
+                      <p className="helper">
+                        Live status updates while we work on your request.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="activity-grid">
+                    {agentSteps.map((step, index) => {
+                      const state = agentStepStates[index]
+                      return (
+                        <div
+                          className={`activity-step activity-${state}`}
+                          key={step.key}
+                        >
+                          <div className="activity-header">
+                            <span>{step.label}</span>
+                            <span className={`activity-pill activity-${state}`}>
+                              {state}
+                            </span>
+                          </div>
+                          <p className="helper">{step.detail}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+              ) : null}
+              {showModuleCard ? (
+                <section className="card module-card">
+                  <h2>Module activity</h2>
+                  <p className="helper">
+                    Modules light up when triage activates them. Metrics in each
+                    quadrant are valid only when lit.
+                  </p>
+                  <div className="module-grid">
+                    <div
+                      className={`module-tile ${
+                        moduleActivity.triage ? 'module-active' : 'module-inactive'
+                      }`}
+                    >
+                      <span className="module-label">MedGemma triage</span>
+                      <span className="module-detail">Plausibility & alignment</span>
+                      {moduleActivity.triage ? (
+                        <span className="module-metric">
+                          Alignment: {triageSummary}
+                        </span>
+                      ) : null}
+                      {moduleActivity.triage && integrityScorePercent !== null ? (
+                        <span className="module-metric">
+                          Integrity: {integrityScorePercent}%
+                        </span>
+                      ) : null}
+                    </div>
+                    <div
+                      className={`module-tile ${
+                        moduleActivity.reverse_search
+                          ? 'module-active'
+                          : 'module-inactive'
+                      }`}
+                    >
+                      <span className="module-label">Reverse search</span>
+                      <span className="module-detail">Source reputation</span>
+                      {moduleActivity.reverse_search ? (
+                        <span className="module-metric">
+                          Matches: {reverseMatchCount}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div
+                      className={`module-tile ${
+                        moduleActivity.forensics ? 'module-active' : 'module-inactive'
+                      }`}
+                    >
+                      <span className="module-label">Forensics</span>
+                      <span className="module-detail">Integrity signals</span>
+                      {moduleActivity.forensics && forensicsStatus ? (
+                        <span className="module-metric">
+                          Status: {forensicsStatus}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div
+                      className={`module-tile ${
+                        moduleActivity.provenance ? 'module-active' : 'module-inactive'
+                      }`}
+                    >
+                      <span className="module-label">Provenance</span>
+                      <span className="module-detail">Genealogy</span>
+                      {moduleActivity.provenance ? (
+                        <span className="module-metric">
+                          Blocks: {provenanceBlockCount}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </section>
+              ) : null}
             </div>
 
             <section className="card">
               <div className="reverse-header">
                 <div>
-                  <h2>Reverse search</h2>
+                  <h2>Reverse image search only</h2>
                   <p className="helper">
-                    Run a reverse image search to find matching sources.
+                    Optional: use this for a standalone lookup. The full
+                    Contextual Integrity analysis already runs reverse search
+                    when needed.
                   </p>
                 </div>
-                <div className="status" aria-live="polite">
-                  <span className={`status-dot status-${reverseStatus}`} />
-                  {reverseStatus === 'loading' ? (
-                    <span className="spinner" aria-hidden="true" />
-                  ) : null}
-                  <span>{reverseStatusLabel}</span>
-                </div>
-              </div>
-              <div className="grid">
-                <label className="field">
-                  <span>Image file</span>
-                  <input
-                    key={reverseFileKey}
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) =>
-                      setReverseImageFile(event.target.files?.[0] || null)
-                    }
-                  />
-                  <span className="helper">
-                    {reverseImageFile
-                      ? reverseImageFile.name
-                      : 'Provide the image to search.'}
-                  </span>
-                </label>
-                <label className="field">
-                  <span>Image ID (optional)</span>
-                  <input
-                    type="text"
-                    placeholder="Leave blank to auto-generate"
-                    value={reverseImageId}
-                    onChange={(event) => setReverseImageId(event.target.value)}
-                  />
-                  <span className="helper">
-                    Used to retrieve results from the API cache.
-                  </span>
-                </label>
-              </div>
-              <div className="actions">
-                <button
-                  type="button"
-                  onClick={handleReverseSearch}
-                  disabled={reverseStatus === 'loading'}
-                >
-                  Run reverse search
-                </button>
                 <button
                   type="button"
                   className="ghost"
-                  onClick={() => {
-                    setReverseImageFile(null)
-                    setReverseImageId('')
-                    setReverseJob(null)
-                    setReverseResult(null)
-                    setReverseError('')
-                    setReverseStatus('idle')
-                    setReverseFileKey((currentKey) => currentKey + 1)
-                  }}
+                  onClick={() => setShowReverseSearch((current) => !current)}
                 >
-                  Clear
+                  {showReverseSearch ? 'Hide' : 'Show'}
                 </button>
               </div>
-              {reverseError ? <p className="error">{reverseError}</p> : null}
-              {reverseResult ? (
-                <div className="results">
-                  <div className="reverse-meta">
-                    <span>Image ID: {reverseResult.image_id}</span>
-                    {reverseResult.query_hash ? (
-                      <span>Query hash: {reverseResult.query_hash}</span>
-                    ) : null}
-                    {reverseProviders.length ? (
-                      <span>Providers: {reverseProviders.join(', ')}</span>
-                    ) : null}
-                  </div>
-                  {reverseMatches.length ? (
-                    <div className="match-grid">
-                      {reverseMatches.map((match) => (
-                        <article className="match-card" key={match.url}>
-                          <div className="match-header">
-                            <span className="pill">{match.source}</span>
-                            <span className="pill pill-muted">
-                              {Math.round(match.confidence * 100)}% confidence
-                            </span>
-                          </div>
-                          <h3>{match.title || 'Untitled match'}</h3>
-                          {match.snippet ? (
-                            <p className="summary-text">{match.snippet}</p>
-                          ) : null}
-                          <a href={match.url} target="_blank" rel="noreferrer">
-                            {match.url}
-                          </a>
-                          {match.metadata ? (
-                            <p className="helper">
-                              Metadata: {Object.keys(match.metadata).length} fields
-                            </p>
-                          ) : null}
-                        </article>
-                      ))}
+              {showReverseSearch ? (
+                <>
+                  <div className="reverse-header reverse-header-status">
+                    <div className="status" aria-live="polite">
+                      <span className={`status-dot status-${reverseStatus}`} />
+                      {reverseStatus === 'loading' ? (
+                        <span className="spinner" aria-hidden="true" />
+                      ) : null}
+                      <span>{reverseStatusLabel}</span>
                     </div>
-                  ) : (
+                  </div>
+                  <div className="grid">
+                    <label className="field">
+                      <span>Image file</span>
+                      <input
+                        key={reverseFileKey}
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) =>
+                          setReverseImageFile(event.target.files?.[0] || null)
+                        }
+                      />
+                      <span className="helper">
+                        {reverseImageFile
+                          ? reverseImageFile.name
+                          : 'Provide the image to search.'}
+                      </span>
+                    </label>
+                    <label className="field">
+                      <span>Image ID (optional)</span>
+                      <input
+                        type="text"
+                        placeholder="Leave blank to auto-generate"
+                        value={reverseImageId}
+                        onChange={(event) => setReverseImageId(event.target.value)}
+                      />
+                      <span className="helper">
+                        Used to retrieve results from the API cache.
+                      </span>
+                    </label>
+                  </div>
+                  <div className="actions">
+                    <button
+                      type="button"
+                      onClick={handleReverseSearch}
+                      disabled={reverseStatus === 'loading'}
+                    >
+                      Run reverse search
+                    </button>
+                    <button
+                      type="button"
+                      className="ghost"
+                      onClick={() => {
+                        setReverseImageFile(null)
+                        setReverseImageId('')
+                        setReverseJob(null)
+                        setReverseResult(null)
+                        setReverseError('')
+                        setReverseStatus('idle')
+                        setReverseFileKey((currentKey) => currentKey + 1)
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {reverseError ? <p className="error">{reverseError}</p> : null}
+                  {reverseResult ? (
+                    <div className="results">
+                      <div className="reverse-meta">
+                        <span>Image ID: {reverseResult.image_id}</span>
+                        {reverseResult.query_hash ? (
+                          <span>Query hash: {reverseResult.query_hash}</span>
+                        ) : null}
+                        {reverseProviders.length ? (
+                          <span>Providers: {reverseProviders.join(', ')}</span>
+                        ) : null}
+                      </div>
+                      {reverseMatches.length ? (
+                        <div className="match-grid">
+                          {reverseMatches.map((match) => (
+                            <article className="match-card" key={match.url}>
+                              <div className="match-header">
+                                <span className="pill">{match.source}</span>
+                                <span className="pill pill-muted">
+                                  {Math.round(match.confidence * 100)}% confidence
+                                </span>
+                              </div>
+                              <h3>{match.title || 'Untitled match'}</h3>
+                              {match.snippet ? (
+                                <p className="summary-text">{match.snippet}</p>
+                              ) : null}
+                              <a href={match.url} target="_blank" rel="noreferrer">
+                                {match.url}
+                              </a>
+                              {match.metadata ? (
+                                <p className="helper">
+                                  Metadata: {Object.keys(match.metadata).length} fields
+                                </p>
+                              ) : null}
+                            </article>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="helper">
+                          No matches returned. Try another image or check SerpAPI status.
+                        </p>
+                      )}
+                    </div>
+                  ) : reverseJob ? (
                     <p className="helper">
-                      No matches returned. Try another image or check SerpAPI status.
+                      Reverse search queued. Image ID: {reverseJob.image_id}
                     </p>
-                  )}
-                </div>
-              ) : reverseJob ? (
-                <p className="helper">
-                  Reverse search queued. Image ID: {reverseJob.image_id}
-                </p>
+                  ) : null}
+                </>
               ) : null}
             </section>
 
             <section className="card">
               <h2>Contextual integrity results</h2>
+              <p className="helper">
+                Full analysis that combines MedGemma triage with embedded tools
+                (reverse search, provenance, and forensics) when needed.
+              </p>
               {result ? (
                 <div className="results">
                   <div className="result-block">
@@ -1284,6 +1337,23 @@ function App() {
           </>
         )}
       </main>
+      <footer className="footer">
+        <div className="footer-inner">
+          <span>Jamie Forrest</span>
+          <span className="footer-sep">•</span>
+          <a href="https://github.com/drjforrest" target="_blank" rel="noreferrer">
+            GitHub: drjforrest
+          </a>
+          <span className="footer-sep">•</span>
+          <a
+            href="https://www.linkedin.com/in/jamie_forrest"
+            target="_blank"
+            rel="noreferrer"
+          >
+            LinkedIn: jamie_forrest
+          </a>
+        </div>
+      </footer>
     </div>
   )
 }
