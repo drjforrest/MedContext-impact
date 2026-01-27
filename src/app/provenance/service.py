@@ -194,8 +194,10 @@ def _materialize_blocks(
     manifest_record: ProvenanceManifest | None,
     image_id: UUID,
     observations: list[Observation],
-) -> list[ProvenanceBlock]:
-    chain_id = uuid4()
+    chain_id: UUID | None = None,
+) -> tuple[UUID, list[ProvenanceBlock]]:
+    if chain_id is None:
+        chain_id = uuid4()
     if manifest_record and db is not None:
         existing = (
             db.query(ProvenanceBlockModel)
@@ -204,7 +206,7 @@ def _materialize_blocks(
             .all()
         )
         if existing:
-            return [
+            return chain_id, [
                 ProvenanceBlock(
                     block_number=block.block_number,
                     previous_hash=block.previous_hash,
@@ -241,7 +243,7 @@ def _materialize_blocks(
                     recorded_at=block.recorded_at,
                 )
             )
-    return blocks
+    return chain_id, blocks
 
 
 def build_provenance(
@@ -339,11 +341,13 @@ def build_provenance(
                 )
             )
 
-        blocks = _materialize_blocks(
+        chain_id = uuid4()
+        chain_id, blocks = _materialize_blocks(
             session,
             manifest_record=manifest_record,
             image_id=resolved_image_id,
             observations=observations,
+            chain_id=chain_id,
         )
 
         status = "not_found"
@@ -357,7 +361,7 @@ def build_provenance(
             session.commit()
 
         return ProvenanceChainResponse(
-            chain_id=uuid4(),
+            chain_id=chain_id,
             image_id=resolved_image_id,
             status=status,
             created_at=datetime.now(timezone.utc),

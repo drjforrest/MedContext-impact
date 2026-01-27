@@ -377,7 +377,7 @@ class MedContextAgent:
     def _infer_tools_from_text(self, text: str) -> list[str]:
         text_lower = text.lower()
         inferred = []
-        if "reverse" in text_lower or "tineye" in text_lower:
+        if "reverse" in text_lower:
             inferred.append("reverse_search")
         if any(
             token in text_lower
@@ -430,4 +430,5 @@ class MedContextAgent:
             return ["layer_2"]
         if plausibility_normalized in {"low", "medium"}:
             return ["layer_1", "layer_2"]
+        return ["layer_1", "layer_2"]
         return ["layer_1", "layer_2"]

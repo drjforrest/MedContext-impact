@@ -72,7 +72,7 @@ C2PA has achieved significant industry adoption across multiple sectors: [aws.am
 - LinkedIn (image verification deployment) [linkedin](https://www.linkedin.com/posts/nicholas-scherer_c2pa-authenticcontent-techsolutions-activity-7417225356488728576-diA-)
 - Cloudflare Images (CDN preservation of credentials) [blog.cloudflare](https://blog.cloudflare.com/preserve-content-credentials-with-cloudflare-images/)
 
-**Critical Gap**: Despite widespread adoption in journalism, photography, and digital asset management, **no evidence exists of C2PA implementation in medical imaging systems, PACS platforms, or healthcare workflows** based on extensive review of available literature and implementations.
+**Critical Gap**: Despite widespread adoption in journalism, photography, and digital asset management, **no evidence exists of C2PA implementation in medical imaging systems, PACS platforms, or healthcare workflows** based on extensive review of available literature and implementations as of January 2026.
 
 ### C2PA Implementation Options and Public Accessibility
 
@@ -130,9 +130,9 @@ C2PA signing requires X.509 certificates, with multiple options appropriate for 
 # Generate private key
 openssl genrsa -out key.pem 2048
 
-# Create self-signed certificate (10 year validity)
+# Create self-signed certificate (1 year validity)
 openssl req -x509 -new -nodes -key key.pem \
-  -sha256 -days 3650 -out cert.pem \
+  -sha256 -days 365 -out cert.pem \
   -subj "/CN=MedContext Development/O=Purpose Africa"
 ```
 

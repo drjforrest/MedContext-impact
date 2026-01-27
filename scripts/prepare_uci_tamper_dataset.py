@@ -16,9 +16,9 @@ Output structure:
 import argparse
 import csv
 import io
+import zipfile
 from pathlib import Path
 from typing import Dict, Iterable, Set, Tuple
-import zipfile
 
 import numpy as np
 from PIL import Image
@@ -27,7 +27,7 @@ try:
     import pydicom
 except ImportError as exc:
     raise SystemExit(
-        "Missing dependency: pydicom. Install with:\n" "  uv run pip install pydicom"
+        "Missing dependency: pydicom. Install with:\n  uv run pip install pydicom"
     ) from exc
 
 
@@ -103,7 +103,7 @@ def iter_dicom_entries(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description=("Convert medical-image-tamper-detection zip to PNGs + labels.csv")
+        description="Convert medical-image-tamper-detection zip to PNGs + labels.csv"
     )
     parser.add_argument(
         "--zip",

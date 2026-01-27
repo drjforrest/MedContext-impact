@@ -85,6 +85,7 @@ class TestProvenanceService:
 
         blocks = result.blocks
         assert len(blocks) == 2
+        assert blocks[0].previous_hash is None
         for index in range(1, len(blocks)):
             assert blocks[index].previous_hash == blocks[index - 1].block_hash
 

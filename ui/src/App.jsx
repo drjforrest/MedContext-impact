@@ -316,9 +316,10 @@ function App() {
   const part1 = synthesis?.part_1
   const part2 = synthesis?.part_2
   const imagePreview = synthesis?.image_preview
-  const contextQuote =
-    (typeof context === 'string' && context.trim() ? context.trim() : null) ??
-    part2?.context_quote
+  const userContextQuote =
+    typeof context === 'string' && context.trim() ? context.trim() : null
+  const contextQuote = userContextQuote ?? part2?.context_quote
+  const isUserProvidedContext = Boolean(userContextQuote)
   const reverseMatches = reverseResult?.matches || []
   const reverseProviders = reverseResult?.providers || []
   const toolResults = result?.tool_results || {}
@@ -532,7 +533,6 @@ function App() {
   ])
   const showResultsOverview = Boolean(result)
   const showProgressCard = status !== 'success'
-  const showModuleCard = showResultsOverview
   const triageSummary =
     part2?.alignment || alignmentScore.label || 'Alignment pending'
   const reverseMatchCount = orchestratorReverseSearch?.matches?.length || 0
@@ -652,7 +652,14 @@ function App() {
         ) : (
           <>
             <div className="top-grid">
-              <section className={`card ${showProgressCard || showModuleCard ? '' : 'card-span'}`}>
+              <section
+                className={[
+                  'card',
+                  showProgressCard || showResultsOverview ? null : 'card-span',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
                 <h2>Provide an image</h2>
                 <div className="inline-status" aria-live="polite">
                   <span className={`status-dot status-${status}`} />
@@ -757,7 +764,7 @@ function App() {
                   </div>
                 </section>
               ) : null}
-              {showModuleCard ? (
+              {showResultsOverview ? (
                 <section className="card module-card">
                   <h2>Module activity</h2>
                   <p className="helper">
@@ -768,6 +775,9 @@ function App() {
                     <div
                       className={`module-tile ${
                         moduleActivity.triage ? 'module-active' : 'module-inactive'
+                      }`}
+                      aria-label={`MedGemma triage ${
+                        moduleActivity.triage ? 'active' : 'inactive'
                       }`}
                     >
                       <span className="module-label">MedGemma triage</span>
@@ -789,6 +799,9 @@ function App() {
                           ? 'module-active'
                           : 'module-inactive'
                       }`}
+                      aria-label={`Reverse search ${
+                        moduleActivity.reverse_search ? 'active' : 'inactive'
+                      }`}
                     >
                       <span className="module-label">Reverse search</span>
                       <span className="module-detail">Source reputation</span>
@@ -802,6 +815,9 @@ function App() {
                       className={`module-tile ${
                         moduleActivity.forensics ? 'module-active' : 'module-inactive'
                       }`}
+                      aria-label={`Forensics ${
+                        moduleActivity.forensics ? 'active' : 'inactive'
+                      }`}
                     >
                       <span className="module-label">Forensics</span>
                       <span className="module-detail">Integrity signals</span>
@@ -814,6 +830,9 @@ function App() {
                     <div
                       className={`module-tile ${
                         moduleActivity.provenance ? 'module-active' : 'module-inactive'
+                      }`}
+                      aria-label={`Provenance ${
+                        moduleActivity.provenance ? 'active' : 'inactive'
                       }`}
                     >
                       <span className="module-label">Provenance</span>
@@ -926,28 +945,33 @@ function App() {
                       </div>
                       {reverseMatches.length ? (
                         <div className="match-grid">
-                          {reverseMatches.map((match) => (
-                            <article className="match-card" key={match.url}>
-                              <div className="match-header">
-                                <span className="pill">{match.source}</span>
-                                <span className="pill pill-muted">
-                                  {Math.round(match.confidence * 100)}% confidence
-                                </span>
-                              </div>
-                              <h3>{match.title || 'Untitled match'}</h3>
-                              {match.snippet ? (
-                                <p className="summary-text">{match.snippet}</p>
-                              ) : null}
-                              <a href={match.url} target="_blank" rel="noreferrer">
-                                {match.url}
-                              </a>
-                              {match.metadata ? (
-                                <p className="helper">
-                                  Metadata: {Object.keys(match.metadata).length} fields
-                                </p>
-                              ) : null}
-                            </article>
-                          ))}
+                      {reverseMatches.map((match, index) => {
+                        const matchKey = match.id || match.url || index
+                        const confidence = match.confidence ?? 0
+
+                        return (
+                          <article className="match-card" key={matchKey}>
+                            <div className="match-header">
+                              <span className="pill">{match.source}</span>
+                              <span className="pill pill-muted">
+                                {Math.round(confidence * 100)}% confidence
+                              </span>
+                            </div>
+                            <h3>{match.title || 'Untitled match'}</h3>
+                            {match.snippet ? (
+                              <p className="summary-text">{match.snippet}</p>
+                            ) : null}
+                            <a href={match.url} target="_blank" rel="noreferrer">
+                              {match.url}
+                            </a>
+                            {match.metadata ? (
+                              <p className="helper">
+                                Metadata: {Object.keys(match.metadata).length} fields
+                              </p>
+                            ) : null}
+                          </article>
+                        )
+                      })}
                         </div>
                       ) : (
                         <p className="helper">
@@ -995,7 +1019,11 @@ function App() {
                         <div className="summary-part">
                           {contextQuote ? (
                             <>
-                              <p className="eyebrow">User-provided context</p>
+                              <p className="eyebrow">
+                                {isUserProvidedContext
+                                  ? 'User-provided context'
+                                  : 'Model-generated context'}
+                              </p>
                               <blockquote className="context-quote">
                                 {contextQuote}
                               </blockquote>

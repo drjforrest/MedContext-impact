@@ -102,15 +102,15 @@ def _fetch_serpapi_matches(
     if not settings.serp_api_key:
         return [], None
     encoded_image = base64.b64encode(image_bytes).decode("utf-8")
-    payload = {
+    request_payload = {
         "engine": "google_reverse_image",
         "api_key": settings.serp_api_key,
         "image_base64": encoded_image,
     }
     try:
-        response = requests.get(
+        response = requests.post(
             "https://serpapi.com/search.json",
-            params=payload,
+            json=request_payload,
             timeout=settings.serp_api_timeout_seconds,
         )
         response.raise_for_status()

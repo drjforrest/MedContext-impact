@@ -44,7 +44,6 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SERP_API_KEY"),
     )
     serp_api_timeout_seconds: float = 20.0
-    tineye_api_key: str = ""
     google_vision_api_key: str = ""
     whatsapp_business_api_key: str = ""
     telegram_bot_token: str = Field(
@@ -64,17 +63,30 @@ class Settings(BaseSettings):
     image_storage_dir: str = "data/images"
     appwrite_project_id: str = Field(
         default="",
-        validation_alias=AliasChoices("VITE_APPWRITE_PROJECT_ID", "vite_appwrite_project_id"),
+        validation_alias=AliasChoices(
+            "APPWRITE_PROJECT_ID",
+            "appwrite_project_id",
+            "VITE_APPWRITE_PROJECT_ID",
+            "vite_appwrite_project_id",
+        ),
     )
     appwrite_project_name: str = Field(
         default="",
         validation_alias=AliasChoices(
-            "VITE_APPWRITE_PROJECT_NAME", "vite_appwrite_project_name"
+            "APPWRITE_PROJECT_NAME",
+            "appwrite_project_name",
+            "VITE_APPWRITE_PROJECT_NAME",
+            "vite_appwrite_project_name",
         ),
     )
     appwrite_endpoint: str = Field(
         default="",
-        validation_alias=AliasChoices("VITE_APPWRITE_ENDPOINT", "vite_appwrite_endpoint"),
+        validation_alias=AliasChoices(
+            "APPWRITE_ENDPOINT",
+            "appwrite_endpoint",
+            "VITE_APPWRITE_ENDPOINT",
+            "vite_appwrite_endpoint",
+        ),
     )
 
     model_config = ConfigDict(env_file=".env")

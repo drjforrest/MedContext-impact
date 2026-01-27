@@ -3,6 +3,7 @@
 ## The Prediction
 
 From our literature review (Forrest 2026, ~100 sources; not exhaustive):
+
 - 87% of social media posts mention benefits vs 15% harms
 - 0% sophisticated synthetic manipulations in COVID-19 misinformation
 - 80%+ of visual health misinformation = authentic images, misleading captions
@@ -26,8 +27,9 @@ Balanced subset (163 authentic + 163 manipulated), pixel forensics only (Layer 1
 - ROC-AUC: 0.500 [0.500, 0.500]
 
 Interpretation:
-- F1 is zero because precision and recall collapse when the model cannot separate classes.
-- ROC-AUC of 0.5 indicates chance-level separability, matching the thesis.
+
+- Precision/recall at zero indicates predicted labels collapsed to the negative class under the current thresholding logic.
+- ROC-AUC near 0.5 suggests the score signal has limited separability; results should be rechecked after verdict-aware scoring and threshold validation.
 
 ## The Validation
 
@@ -42,6 +44,7 @@ This result **supports our thesis in three ways:**
 ## The Implication
 
 While competitors chase 95% accuracy on synthetic manipulation benchmarks, we're solving the actual problem:
+
 - **Their threat model:** Sophisticated pixel manipulation (20% of real problem)
 - **Our threat model:** Authentic images with false context (80% of real problem)
 
@@ -49,21 +52,21 @@ While competitors chase 95% accuracy on synthetic manipulation benchmarks, we're
 
 ## The Numbers
 
-| Approach | Benchmark Accuracy | Real-World Accuracy | Target Threat |
-|----------|-------------------|-------------------|---------------|
-| Synthetic manipulation detectors | 90%+ | ? (untested) | Synthetic manipulation |
-| Pixel forensics | 85%+ | ~50% (our study, UCI Tamper) | Any manipulation |
-| **MedContext** | N/A | Under evaluation | Context misuse (80%) |
+| Approach                         | Benchmark Accuracy | Real-World Accuracy          | Target Threat          |
+| -------------------------------- | ------------------ | ---------------------------- | ---------------------- |
+| Synthetic manipulation detectors | 90%+               | ? (untested)                 | Synthetic manipulation |
+| Pixel forensics                  | 85%+               | ~50% (our study, UCI Tamper) | Any manipulation       |
+| **MedContext**                   | N/A                | Under evaluation             | Context misuse (80%)   |
 
 **Key insight:** High benchmark accuracy ≠ real-world effectiveness
 
 ## The Contribution
 
-**Scientific:** Our evaluation demonstrates chance-level performance of pixel forensics on the UCI Tamper Dataset, supporting the need for context-aware verification.
+**Scientific:** Our evaluation indicates that, on the UCI Tamper Dataset, pixel forensics methods did not reliably detect medical image manipulations, supporting the need for context-aware verification.
 
-**Scope and limitations:** This evidence comes from a single dataset (UCI Tamper). Results should not be generalized beyond similar data distributions without further validation.
+**Scope and limitations:** This evidence is limited to the UCI Tamper Dataset; broader evaluation across additional real-world medical misinformation corpora is required before generalizing.
 
-**Literature review:** We have not confirmed whether prior studies report similar failures; a systematic review is in progress.
+**Literature review:** To our knowledge, prior work has not reported similar results, but a comprehensive literature review is needed to confirm this.
 
 **Technical:** Multi-modal system prioritizing context over pixels.
 

@@ -17,20 +17,40 @@ from app.schemas.provenance import (
 router = APIRouter()
 
 
+def _build_manifest_response(record) -> ProvenanceManifestResponse:
+    return ProvenanceManifestResponse(
+        id=record.id,
+        image_id=record.image_id,
+        image_hash=record.image_hash,
+        manifest_label=record.manifest_label,
+        manifest_json=record.manifest_json,
+        signature_status=record.signature_status,
+        validation_state=record.validation_state,
+        validation_results=record.validation_results,
+        source_url=record.source_url,
+        created_at=record.created_at,
+    )
+
+
 def _validate_image_hash(image_hash: str) -> None:
     if len(image_hash) != 64 or any(ch not in "0123456789abcdef" for ch in image_hash):
         raise HTTPException(status_code=400, detail="Invalid image hash.")
+
+
+def _get_image_submission(image_id: UUID, db: Session) -> ImageSubmission:
+    submission = (
+        db.query(ImageSubmission).filter(ImageSubmission.id == image_id).one_or_none()
+    )
+    if submission is None:
+        raise HTTPException(status_code=404, detail="Image not found.")
+    return submission
 
 
 @router.post("/build-chain/{image_id}", response_model=ProvenanceChainResponse)
 async def build_provenance_chain_endpoint(
     image_id: UUID, db: Session = Depends(get_db)
 ) -> ProvenanceChainResponse:
-    submission = (
-        db.query(ImageSubmission).filter(ImageSubmission.id == image_id).one_or_none()
-    )
-    if submission is None:
-        raise HTTPException(status_code=404, detail="Image not found.")
+    submission = _get_image_submission(image_id, db)
     return build_provenance(image_id=image_id, image_hash=submission.image_hash, db=db)
 
 
@@ -38,11 +58,7 @@ async def build_provenance_chain_endpoint(
 async def get_provenance_chain(
     image_id: UUID, db: Session = Depends(get_db)
 ) -> ProvenanceChainResponse:
-    submission = (
-        db.query(ImageSubmission).filter(ImageSubmission.id == image_id).one_or_none()
-    )
-    if submission is None:
-        raise HTTPException(status_code=404, detail="Image not found.")
+    submission = _get_image_submission(image_id, db)
     return build_provenance(image_id=image_id, image_hash=submission.image_hash, db=db)
 
 
@@ -67,18 +83,7 @@ async def create_manifest(
     db.add(record)
     db.commit()
     db.refresh(record)
-    return ProvenanceManifestResponse(
-        id=record.id,
-        image_id=record.image_id,
-        image_hash=record.image_hash,
-        manifest_label=record.manifest_label,
-        manifest_json=record.manifest_json,
-        signature_status=record.signature_status,
-        validation_state=record.validation_state,
-        validation_results=record.validation_results,
-        source_url=record.source_url,
-        created_at=record.created_at,
-    )
+    return _build_manifest_response(record)
 
 
 @router.get("/manifest/{image_hash}", response_model=ProvenanceManifestResponse)
@@ -89,15 +94,4 @@ async def get_manifest(
     record = get_provenance_manifest(db, image_hash=image_hash)
     if record is None:
         raise HTTPException(status_code=404, detail="Manifest not found.")
-    return ProvenanceManifestResponse(
-        id=record.id,
-        image_id=record.image_id,
-        image_hash=record.image_hash,
-        manifest_label=record.manifest_label,
-        manifest_json=record.manifest_json,
-        signature_status=record.signature_status,
-        validation_state=record.validation_state,
-        validation_results=record.validation_results,
-        source_url=record.source_url,
-        created_at=record.created_at,
-    )
+    return _build_manifest_response(record)
