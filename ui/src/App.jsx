@@ -359,11 +359,15 @@ function App() {
       return 'idle'
     })
   }, [agentStepIndex, agentSteps, status, toolActivity])
+  const integrityVisualization = contextualIntegrity?.visualization || null
   const integrityScore =
-    typeof contextualIntegrity?.score === 'number'
-      ? contextualIntegrity.score
-      : null
-  const integritySignals = contextualIntegrity?.signals || null
+    typeof integrityVisualization?.overall_confidence === 'number'
+      ? integrityVisualization.overall_confidence
+      : typeof contextualIntegrity?.score === 'number'
+        ? contextualIntegrity.score
+        : null
+  const integritySignals =
+    integrityVisualization || contextualIntegrity?.signals || null
   const integrityScorePercent =
     integrityScore === null ? null : Math.round(integrityScore * 100)
   const integrityScoreTone =
@@ -388,12 +392,16 @@ function App() {
       plausibility: '#2db88a',
       genealogy_consistency: '#f5a524',
       source_reputation: '#6d7d93',
+      alignment_confidence: '#4f7cff',
+      plausibility_confidence: '#2db88a',
+      genealogy_confidence: '#f5a524',
+      source_confidence: '#6d7d93',
     }
     return Object.entries(integritySignals)
-      .filter(([, value]) => typeof value === 'number')
+      .filter(([key, value]) => key !== 'overall_confidence' && typeof value === 'number')
       .map(([key, value]) => ({
         key,
-        label: key.replace(/_/g, ' '),
+        label: key.replace(/_/g, ' ').replace('confidence', '').trim(),
         value: Math.round(value * 100),
         fill: palette[key] || '#5b8def',
       }))
@@ -934,6 +942,11 @@ function App() {
                   {contextualIntegrity ? (
                     <div className="result-block">
                       <h3>Evidence signals</h3>
+                      {contextualIntegrity.usage_assessment ? (
+                        <p className="helper">
+                          Usage assessment: {contextualIntegrity.usage_assessment}
+                        </p>
+                      ) : null}
                       <div className="viz-grid">
                         <div className={`viz-card viz-score viz-${integrityScoreTone}`}>
                           <div className="viz-metric">
@@ -1050,7 +1063,7 @@ function App() {
               <section className="card">
                 <h2>🔍 Forensics Analysis</h2>
                 <p className="helper">
-                  Forensics signals and metadata checks (legacy deepfake layers removed).
+                  Forensics signals and metadata checks (legacy integrity checks removed).
                 </p>
                 {forensicsData.results ? (
                   <div className="results">

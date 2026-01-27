@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Forensics Validation Script - Compute Confidence Intervals
+Context Signal Validation Script - Compute Confidence Intervals
 
-This script validates the deepfake detection forensics implementation against
-public medical deepfake datasets and computes statistical confidence intervals.
+This script validates legacy image integrity signals against
+public medical imaging datasets and computes statistical confidence intervals.
 
 Datasets Supported:
-1. MedFake: Medical Image Deepfake Dataset (Kaggle)
-2. FakeMed: Synthetic Medical Image Detection Challenge
+1. MedFake: Medical Image Tamper Dataset (Kaggle)
+2. FakeMed: Synthetic Medical Image Validation Challenge
 3. Custom dataset (place in data/validation/)
 
 Usage:
@@ -43,43 +43,37 @@ from app.clinical.medgemma_client import (
     MedGemmaClientError,
     MedGemmaResult,
 )
+
+FORENSICS_SOURCE = "scripts.validate_forensics"
+
 try:
-    from app.forensics.deepfake import (
-        run_deepfake_detection,
-        run_layer_1,
-        run_layer_3,
-        DeepfakeEnsembleResult,
-        DeepfakeLayerResult,
-    )
-    FORENSICS_SOURCE = "app.forensics.deepfake"
-except (ModuleNotFoundError, ImportError):
-    FORENSICS_SOURCE = "scripts.validate_forensics"
+    from PIL import Image, ImageChops, ExifTags
+except ImportError:
+    Image = None
+    ImageChops = None
+    ExifTags = None
 
-    try:
-        from PIL import Image, ImageChops, ExifTags
-    except ImportError:
-        Image = None
-        ImageChops = None
-        ExifTags = None
 
-    @dataclass(frozen=True)
-    class DeepfakeLayerResult:
-        verdict: str
-        confidence: float
-        details: dict[str, Any]
+@dataclass(frozen=True)
+class IntegrityLayerResult:
+    verdict: str
+    confidence: float
+    details: dict[str, Any]
 
-    @dataclass(frozen=True)
-    class DeepfakeEnsembleResult:
-        final_verdict: str
-        confidence: float
-        layer_1: DeepfakeLayerResult
-        layer_2: DeepfakeLayerResult
-        layer_3: DeepfakeLayerResult
 
-    def run_layer_1(image_bytes: bytes) -> DeepfakeLayerResult:
+@dataclass(frozen=True)
+class IntegrityEnsembleResult:
+    final_verdict: str
+    confidence: float
+    layer_1: IntegrityLayerResult
+    layer_2: IntegrityLayerResult
+    layer_3: IntegrityLayerResult
+
+
+def run_layer_1(image_bytes: bytes) -> IntegrityLayerResult:
         """Fallback Layer 1: basic error level analysis."""
         if Image is None or ImageChops is None:
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict="UNCERTAIN",
                 confidence=0.5,
                 details={"error": "PIL not available", "method": "error_level_analysis"},
@@ -96,11 +90,16 @@ except (ModuleNotFoundError, ImportError):
             compressed = Image.open(temp_buffer)
 
             ela_image = ImageChops.difference(original, compressed)
-            ela_array = np.array(ela_image)
+            # Normalize ELA to amplify the error-level signal and keep scale consistent.
+            ela_gray = ela_image.convert("L")
+            ela_array = np.array(ela_gray, dtype=np.float32)
+            ela_max_raw = float(np.max(ela_array)) if ela_array.size else 0.0
+            if ela_max_raw > 0:
+                ela_array = ela_array * (255.0 / ela_max_raw)
 
             ela_mean = float(np.mean(ela_array))
             ela_std = float(np.std(ela_array))
-            ela_max = float(np.max(ela_array))
+            ela_max = float(np.max(ela_array)) if ela_array.size else 0.0
 
             verdict = "UNCERTAIN"
             confidence = 0.5
@@ -111,7 +110,7 @@ except (ModuleNotFoundError, ImportError):
                 verdict = "AUTHENTIC"
                 confidence = min(0.80, 0.5 + (1.0 - ela_std / 10.0))
 
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict=verdict,
                 confidence=confidence,
                 details={
@@ -119,20 +118,21 @@ except (ModuleNotFoundError, ImportError):
                     "ela_mean": round(ela_mean, 2),
                     "ela_std": round(ela_std, 2),
                     "ela_max": round(ela_max, 2),
+                    "ela_max_raw": round(ela_max_raw, 2),
                     "image_size": original.size,
                     "image_mode": original.mode,
                 },
             )
         except Exception as exc:
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict="UNCERTAIN",
                 confidence=0.5,
                 details={"error": str(exc), "method": "error_level_analysis"},
             )
 
-    def run_layer_2(image_bytes: bytes) -> DeepfakeLayerResult:
+    def run_layer_2(image_bytes: bytes) -> IntegrityLayerResult:
         del image_bytes
-        return DeepfakeLayerResult(
+        return IntegrityLayerResult(
             verdict="UNCERTAIN",
             confidence=0.5,
             details={
@@ -141,10 +141,10 @@ except (ModuleNotFoundError, ImportError):
             },
         )
 
-    def run_layer_3(image_bytes: bytes) -> DeepfakeLayerResult:
+    def run_layer_3(image_bytes: bytes) -> IntegrityLayerResult:
         """Fallback Layer 3: minimal EXIF checks."""
         if Image is None:
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict="UNCERTAIN",
                 confidence=0.5,
                 details={"error": "PIL not available", "method": "exif_analysis"},
@@ -155,9 +155,9 @@ except (ModuleNotFoundError, ImportError):
             exif_data = image.getexif()
 
             if not exif_data:
-                return DeepfakeLayerResult(
-                    verdict="MANIPULATED",
-                    confidence=0.65,
+                return IntegrityLayerResult(
+                    verdict="UNCERTAIN",
+                    confidence=0.25,
                     details={
                         "method": "exif_analysis",
                         "warning": "Missing EXIF metadata",
@@ -193,10 +193,13 @@ except (ModuleNotFoundError, ImportError):
                             )
 
             ai_signatures = ["midjourney", "stable diffusion", "dall-e", "dalle", "ai"]
+            ai_signature_patterns = {
+                sig: re.compile(rf"\b{re.escape(sig)}\b") for sig in ai_signatures
+            }
             for key, value in exif_dict.items():
                 value_lower = str(value).lower()
-                for sig in ai_signatures:
-                    if sig in value_lower:
+                for sig, pattern in ai_signature_patterns.items():
+                    if pattern.search(value_lower):
                         suspicious_patterns.append(f"AI signature in {key}: {value}")
 
             verdict = "UNCERTAIN"
@@ -211,7 +214,7 @@ except (ModuleNotFoundError, ImportError):
                 verdict = "AUTHENTIC"
                 confidence = 0.75
 
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict=verdict,
                 confidence=confidence,
                 details={
@@ -228,13 +231,13 @@ except (ModuleNotFoundError, ImportError):
                 },
             )
         except Exception as exc:
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict="UNCERTAIN",
                 confidence=0.5,
                 details={"error": str(exc), "method": "exif_analysis"},
             )
 
-    def run_deepfake_detection(image_bytes: bytes) -> DeepfakeEnsembleResult:
+    def run_integrity_checks(image_bytes: bytes) -> IntegrityEnsembleResult:
         layer_1 = run_layer_1(image_bytes)
         layer_2 = run_layer_2(image_bytes)
         layer_3 = run_layer_3(image_bytes)
@@ -273,7 +276,7 @@ except (ModuleNotFoundError, ImportError):
             )
             confidence = min(confidence, avg_confidence * 1.1)
 
-        return DeepfakeEnsembleResult(
+        return IntegrityEnsembleResult(
             final_verdict=final_verdict,
             confidence=round(confidence, 2),
             layer_1=layer_1,
@@ -476,9 +479,12 @@ class ForensicsValidator:
         with open(labels_file, "r") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                scan_id = row.get("scan_id") or row.get("image_id")
-                is_tampered = row.get("is_tampered") or row.get("label")
-                label_map[scan_id] = "MANIPULATED" if is_tampered in ["1", "true", "True", "tampered"] else "AUTHENTIC"
+                scan_id = (row.get("scan_id") or row.get("image_id") or "").strip()
+                if scan_id:
+                    scan_id = Path(scan_id).stem
+                is_tampered = (row.get("is_tampered") or row.get("label") or "").strip().lower()
+                tampered_values = {"1", "true", "tampered", "yes", "y"}
+                label_map[scan_id] = "MANIPULATED" if is_tampered in tampered_values else "AUTHENTIC"
 
         # Load images
         images_dir = self.dataset_path / "images"
@@ -526,7 +532,7 @@ class ForensicsValidator:
         )
         return balanced_images, balanced_labels
 
-    def run_predictions(self, images: List[bytes]) -> List[DeepfakeEnsembleResult]:
+    def run_predictions(self, images: List[bytes]) -> List[IntegrityEnsembleResult]:
         """Run forensics detection on all images."""
         print(f"\n🔍 Running forensics detection on {len(images)} images...")
 
@@ -551,17 +557,17 @@ class ForensicsValidator:
                             )
                     result = self._ensemble_from_layers(layer_1, layer_2, layer_3)
                 else:
-                    result = run_deepfake_detection(img_bytes)
+                    result = run_integrity_checks(img_bytes)
                 predictions.append(result)
             except Exception as e:
                 print(f"  ⚠️  Error on image {idx}: {e}")
                 # Create a fallback result
-                fallback_layer = DeepfakeLayerResult(
+                fallback_layer = IntegrityLayerResult(
                     verdict="UNCERTAIN",
                     confidence=0.5,
                     details={"error": str(e), "source": "validation_fallback"},
                 )
-                predictions.append(DeepfakeEnsembleResult(
+                predictions.append(IntegrityEnsembleResult(
                     final_verdict="UNCERTAIN",
                     confidence=0.5,
                     layer_1=fallback_layer,
@@ -574,10 +580,10 @@ class ForensicsValidator:
 
     def _ensemble_from_layers(
         self,
-        layer_1: DeepfakeLayerResult,
-        layer_2: DeepfakeLayerResult,
-        layer_3: DeepfakeLayerResult,
-    ) -> DeepfakeEnsembleResult:
+        layer_1: IntegrityLayerResult,
+        layer_2: IntegrityLayerResult,
+        layer_3: IntegrityLayerResult,
+    ) -> IntegrityEnsembleResult:
         verdicts = [layer_1.verdict, layer_2.verdict, layer_3.verdict]
         non_uncertain = [v for v in verdicts if v != "UNCERTAIN"]
 
@@ -622,7 +628,7 @@ class ForensicsValidator:
             )
             confidence = min(confidence, avg_confidence * 1.1)
 
-        return DeepfakeEnsembleResult(
+        return IntegrityEnsembleResult(
             final_verdict=final_verdict,
             confidence=round(confidence, 2),
             layer_1=layer_1,
@@ -630,9 +636,9 @@ class ForensicsValidator:
             layer_3=layer_3,
         )
 
-    def _run_medgemma_layer(self, image_bytes: bytes) -> DeepfakeLayerResult:
+    def _run_medgemma_layer(self, image_bytes: bytes) -> IntegrityLayerResult:
         if self._medgemma_client is None:
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict="UNCERTAIN",
                 confidence=0.5,
                 details={"error": "MedGemma not enabled", "method": "medgemma"},
@@ -643,14 +649,14 @@ class ForensicsValidator:
                 prompt=self.medgemma_prompt,
             )
         except MedGemmaClientError as exc:
-            return DeepfakeLayerResult(
+            return IntegrityLayerResult(
                 verdict="UNCERTAIN",
                 confidence=0.5,
                 details={"error": str(exc), "method": "medgemma"},
             )
 
         verdict, confidence, details = self._parse_medgemma_result(result)
-        return DeepfakeLayerResult(
+        return IntegrityLayerResult(
             verdict=verdict,
             confidence=confidence,
             details={
@@ -724,10 +730,10 @@ class ForensicsValidator:
     def compute_metrics(
         self,
         ground_truth: List[str],
-        predictions: List[DeepfakeEnsembleResult]
+        predictions: List[IntegrityEnsembleResult]
     ) -> Dict[str, float]:
         """Compute classification metrics."""
-        def select_prediction(pred: DeepfakeEnsembleResult) -> tuple[str, float]:
+        def select_prediction(pred: IntegrityEnsembleResult) -> tuple[str, float]:
             if self.prediction_mode == "layer_1":
                 return pred.layer_1.verdict, pred.layer_1.confidence
             if self.prediction_mode == "layer_2":
@@ -761,7 +767,7 @@ class ForensicsValidator:
     def bootstrap_confidence_intervals(
         self,
         ground_truth: List[str],
-        predictions: List[DeepfakeEnsembleResult],
+        predictions: List[IntegrityEnsembleResult],
         alpha: float = 0.05
     ) -> Dict[str, Tuple[float, float, float]]:
         """
@@ -822,6 +828,7 @@ class ForensicsValidator:
         ela_stats = {"authentic": [], "manipulated": []}
         ela_failures = 0
 
+        invalid_labels = 0
         for img_bytes, label in zip(images, ground_truth):
             try:
                 layer_1_result = run_layer_1(img_bytes)
@@ -832,6 +839,9 @@ class ForensicsValidator:
                 }
 
                 if all(value is not None for value in ela_metrics.values()):
+                    if label not in {"AUTHENTIC", "MANIPULATED"}:
+                        invalid_labels += 1
+                        continue
                     category = "authentic" if label == "AUTHENTIC" else "manipulated"
                     ela_stats[category].append(ela_metrics)
             except Exception as e:
@@ -842,6 +852,8 @@ class ForensicsValidator:
             print("  ⚠️  ELA metrics missing for one or both classes.")
         if ela_failures:
             print(f"  ⚠️  ELA failed on {ela_failures} images.")
+        if invalid_labels:
+            print(f"  ⚠️  Skipped {invalid_labels} samples with invalid labels.")
 
         # Compute statistics
         threshold_analysis = {
@@ -855,23 +867,56 @@ class ForensicsValidator:
                 "median": np.median([m["ela_std"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
                 "std": np.std([m["ela_std"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
             },
+            "authentic_ela_max": {
+                "mean": np.mean([m["ela_max"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
+                "median": np.median([m["ela_max"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
+                "std": np.std([m["ela_max"] for m in ela_stats["authentic"]]) if ela_stats["authentic"] else 0,
+            },
+            "manipulated_ela_max": {
+                "mean": np.mean([m["ela_max"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
+                "median": np.median([m["ela_max"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
+                "std": np.std([m["ela_max"] for m in ela_stats["manipulated"]]) if ela_stats["manipulated"] else 0,
+            },
             "recommended_thresholds": {}
         }
 
-        # Compute optimal threshold using Youden's J statistic
+        # Derive thresholds from per-class distributions (percentiles / midpoint)
         if ela_stats["authentic"] and ela_stats["manipulated"]:
-            all_ela_stds = [m["ela_std"] for m in ela_stats["authentic"] + ela_stats["manipulated"]]
-            all_labels = [0] * len(ela_stats["authentic"]) + [1] * len(ela_stats["manipulated"])
+            authentic_vals = np.array([m["ela_std"] for m in ela_stats["authentic"]], dtype=float)
+            manipulated_vals = np.array([m["ela_std"] for m in ela_stats["manipulated"]], dtype=float)
+            authentic_max_vals = np.array([m["ela_max"] for m in ela_stats["authentic"]], dtype=float)
+            manipulated_max_vals = np.array([m["ela_max"] for m in ela_stats["manipulated"]], dtype=float)
 
-            if len(set(all_labels)) > 1:
-                fpr, tpr, thresholds = roc_curve(all_labels, all_ela_stds)
-                optimal_idx = np.argmax(tpr - fpr)  # Youden's J
-                optimal_threshold = thresholds[optimal_idx]
+            authentic_p90 = float(np.percentile(authentic_vals, 90))
+            manipulated_p10 = float(np.percentile(manipulated_vals, 10))
+            mean_gap = float(np.mean(manipulated_vals) - np.mean(authentic_vals))
+            overlap = manipulated_p10 <= authentic_p90
 
-                threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = float(optimal_threshold)
-                threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = float(optimal_threshold * 0.3)
+            threshold_analysis["separability"] = {
+                "authentic_p90": authentic_p90,
+                "manipulated_p10": manipulated_p10,
+                "mean_gap": mean_gap,
+                "overlap": overlap,
+            }
 
-                print(f"  ✓ Optimal ELA std threshold: {optimal_threshold:.2f}")
+            if overlap:
+                midpoint = float((np.mean(authentic_vals) + np.mean(manipulated_vals)) / 2.0)
+                threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = midpoint
+                threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = midpoint
+                print(f"  ⚠️  Overlapping ELA std distributions; using midpoint {midpoint:.2f}")
+            else:
+                threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = authentic_p90
+                threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = manipulated_p10
+                print(
+                    "  ✓ Recommended ELA std thresholds "
+                    f"(authentic_p90={authentic_p90:.2f}, manipulated_p10={manipulated_p10:.2f})"
+                )
+
+            # Always compute auxiliary thresholds using ELA max as a secondary signal.
+            authentic_max_p90 = float(np.percentile(authentic_max_vals, 90))
+            manipulated_max_p10 = float(np.percentile(manipulated_max_vals, 10))
+            threshold_analysis["recommended_thresholds"]["ela_max_authentic"] = authentic_max_p90
+            threshold_analysis["recommended_thresholds"]["ela_max_manipulated"] = manipulated_max_p10
 
         return threshold_analysis
 

@@ -142,7 +142,7 @@ POST /api/v1/orchestrator/trace
 Each tool operates autonomously with its own decision logic:
 
 ### 1. **Forensics Agent**
-**File:** `src/app/forensics/deepfake.py`
+**File:** `src/app/forensics/service.py`
 
 **Autonomous Capabilities:**
 - **Layer 1 (ELA):** Detects post-processing artifacts

@@ -14,7 +14,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Iterable, List
 
 import numpy as np
 
@@ -44,7 +44,9 @@ class StubMedGemma:
     provider = "stub"
     model = "stub-medgemma"
 
-    def analyze_image(self, image_bytes: bytes, prompt: str | None = None) -> MedGemmaResult:
+    def analyze_image(
+        self, image_bytes: bytes, prompt: str | None = None
+    ) -> MedGemmaResult:
         del image_bytes, prompt
         output = {
             "required_investigation": ["reverse_search", "forensics", "provenance"],
@@ -115,10 +117,13 @@ def load_images(dataset_path: Path, limit: int) -> list[bytes]:
 def percentile(values: List[float], pct: float) -> float:
     if not values:
         return 0.0
-    return float(np.percentile(np.array(values, dtype=float), pct))
+    array = np.array(values, dtype=float)
+    return float(np.percentile(array, pct))
 
 
-def benchmark_image(agent: MedContextAgent, image_bytes: bytes, context: str) -> BenchmarkTimings:
+def benchmark_image(
+    agent: MedContextAgent, image_bytes: bytes, context: str
+) -> BenchmarkTimings:
     start_total = time.perf_counter()
 
     start = time.perf_counter()
@@ -132,11 +137,13 @@ def benchmark_image(agent: MedContextAgent, image_bytes: bytes, context: str) ->
     provenance_ms = 0.0
     tool_results: dict[str, Any] = {}
 
+    image_id = agent._generate_image_id()
+
     for tool in tools:
         if tool == "reverse_search":
             start = time.perf_counter()
             tool_results[tool] = run_reverse_search(
-                image_id=agent._generate_image_id(), image_bytes=image_bytes
+                image_id=image_id, image_bytes=image_bytes
             )
             _ = get_reverse_search_results(tool_results[tool].image_id)
             reverse_ms = (time.perf_counter() - start) * 1000
@@ -148,7 +155,7 @@ def benchmark_image(agent: MedContextAgent, image_bytes: bytes, context: str) ->
         elif tool == "provenance":
             start = time.perf_counter()
             tool_results[tool] = build_provenance(
-                image_id=agent._generate_image_id(), image_bytes=image_bytes
+                image_id=image_id, image_bytes=image_bytes
             )
             provenance_ms = (time.perf_counter() - start) * 1000
 
@@ -182,16 +189,32 @@ def benchmark_image(agent: MedContextAgent, image_bytes: bytes, context: str) ->
 
 def summarize(values: List[float]) -> dict[str, float]:
     if not values:
+        print("⚠️  No timing samples available for summary.")
         return {"mean_ms": 0.0, "p50_ms": 0.0, "p95_ms": 0.0}
+    if len(values) < 20:
+        print(f"⚠️  Small sample size ({len(values)}); percentiles may be noisy.")
+
+    array = np.array(values, dtype=float)
+    mean_ms = float(np.mean(array))
+    p50_ms = float(np.percentile(array, 50))
+    p95_ms = float(np.percentile(array, 95))
+
+    if p95_ms < p50_ms:
+        print(f"⚠️  Unexpected ordering: p95 < p50 ({p95_ms:.6f} < {p50_ms:.6f})")
+    if p95_ms < mean_ms:
+        print(f"⚠️  Unexpected ordering: p95 < mean ({p95_ms:.6f} < {mean_ms:.6f})")
+
     return {
-        "mean_ms": float(np.mean(values)),
-        "p50_ms": percentile(values, 50),
-        "p95_ms": percentile(values, 95),
+        "mean_ms": mean_ms,
+        "p50_ms": p50_ms,
+        "p95_ms": p95_ms,
     }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run MedContext performance benchmarks.")
+    parser = argparse.ArgumentParser(
+        description="Run MedContext performance benchmarks."
+    )
     parser.add_argument(
         "--dataset",
         type=str,
@@ -236,118 +259,129 @@ def main() -> None:
     benchmark_images = images[: args.samples]
     warmup_images = images[args.samples : args.samples + args.warmup]
 
-    if args.mode == "live":
-        agent = MedContextAgent()
-        mode_detail = "live"
-    else:
-        agent = MedContextAgent(medgemma=StubMedGemma(), llm=StubLlm())
-        mode_detail = "stub"
+    original_serp_api_key: str | None = None
+    if args.mode != "live":
+        original_serp_api_key = settings.serp_api_key
         settings.serp_api_key = ""
 
-    context = "Benchmark run for performance metrics."
-
-    timings: list[BenchmarkTimings] = []
-    errors: list[str] = []
-    fallback_attempts: list[dict[str, str]] = []
-
-    # Warmup
-    for image_bytes in warmup_images:
-        try:
-            _ = benchmark_image(agent, image_bytes, context=context)
-        except Exception as exc:
-            errors.append(str(exc))
-            break
-
-    if errors and args.mode == "live" and settings.medgemma_provider == "vllm":
-        candidates = [
-            entry.strip().lower()
-            for entry in args.fallback_provider.split(",")
-            if entry.strip()
-        ]
-        for fallback in candidates:
-            if fallback == "huggingface" and not settings.medgemma_hf_token:
-                continue
-            if fallback == "vertex" and not settings.medgemma_vertex_endpoint:
-                continue
-            settings.medgemma_provider = fallback
+    try:
+        if args.mode == "live":
             agent = MedContextAgent()
-            mode_detail = f"live_fallback_{fallback}"
-            errors.clear()
-            for image_bytes in warmup_images:
-                try:
-                    _ = benchmark_image(agent, image_bytes, context=context)
-                except Exception as exc:
-                    errors.append(str(exc))
-                    break
-            if not errors:
+            mode_detail = "live"
+        else:
+            agent = MedContextAgent(medgemma=StubMedGemma(), llm=StubLlm())
+            mode_detail = "stub"
+
+        context = "Benchmark run for performance metrics."
+
+        timings: list[BenchmarkTimings] = []
+        errors: list[str] = []
+        fallback_attempts: list[dict[str, str]] = []
+
+        # Warmup
+        for image_bytes in warmup_images:
+            try:
+                _ = benchmark_image(agent, image_bytes, context=context)
+            except Exception as exc:
+                errors.append(str(exc))
                 break
-            fallback_attempts.append(
-                {"provider": fallback, "error": errors[0] if errors else "unknown"}
-            )
-    start_total = time.perf_counter()
-    for image_bytes in benchmark_images:
-        try:
-            timings.append(benchmark_image(agent, image_bytes, context=context))
-        except Exception as exc:
-            errors.append(str(exc))
-    elapsed_total = time.perf_counter() - start_total
 
-    totals = [t.total_ms for t in timings]
-    triage = [t.triage_ms for t in timings]
-    reverse = [t.reverse_search_ms for t in timings]
-    forensics = [t.forensics_ms for t in timings]
-    provenance = [t.provenance_ms for t in timings]
-    synthesis = [t.synthesis_ms for t in timings]
-    postprocess = [t.postprocess_ms for t in timings]
+        if errors and args.mode == "live" and settings.medgemma_provider == "vllm":
+            candidates = [
+                entry.strip().lower()
+                for entry in args.fallback_provider.split(",")
+                if entry.strip()
+            ]
+            for fallback in candidates:
+                if fallback == "huggingface" and not settings.medgemma_hf_token:
+                    continue
+                if fallback == "vertex" and not settings.medgemma_vertex_endpoint:
+                    continue
+                settings.medgemma_provider = fallback
+                agent = MedContextAgent()
+                mode_detail = f"live_fallback_{fallback}"
+                errors.clear()
+                for image_bytes in warmup_images:
+                    try:
+                        _ = benchmark_image(agent, image_bytes, context=context)
+                    except Exception as exc:
+                        errors.append(str(exc))
+                        break
+                if not errors:
+                    break
+                fallback_attempts.append(
+                    {"provider": fallback, "error": errors[0] if errors else "unknown"}
+                )
+        start_total = time.perf_counter()
+        for image_bytes in benchmark_images:
+            try:
+                timings.append(benchmark_image(agent, image_bytes, context=context))
+            except Exception as exc:
+                errors.append(str(exc))
+        elapsed_total = time.perf_counter() - start_total
 
-    throughput = (len(timings) / elapsed_total) if elapsed_total else 0.0
+        totals = [t.total_ms for t in timings]
+        triage = [t.triage_ms for t in timings]
+        reverse = [t.reverse_search_ms for t in timings]
+        forensics = [t.forensics_ms for t in timings]
+        provenance = [t.provenance_ms for t in timings]
+        synthesis = [t.synthesis_ms for t in timings]
+        postprocess = [t.postprocess_ms for t in timings]
 
-    report = {
-        "benchmark_summary": {
-            "dataset": str(dataset_path),
-            "samples": len(timings),
-            "warmup": len(warmup_images),
-            "mode": mode_detail,
-            "serpapi_enabled": bool(settings.serp_api_key),
-            "medgemma_provider": settings.medgemma_provider,
-            "llm_provider": settings.llm_provider,
-        },
-        "errors": {
-            "count": len(errors),
-            "samples": errors[:5],
-        },
-        "fallback_attempts": fallback_attempts,
-        "latency_ms": {
-            "total": summarize(totals),
-            "triage": summarize(triage),
-            "reverse_search": summarize(reverse),
-            "forensics": summarize(forensics),
-            "provenance": summarize(provenance),
-            "synthesis": summarize(synthesis),
-            "postprocess": summarize(postprocess),
-        },
-        "throughput": {
-            "images_per_second": throughput,
-            "total_seconds": elapsed_total,
-        },
-        "cost_drivers": {
-            "medgemma_calls_per_image": 1,
-            "llm_calls_per_image": 1,
-            "reverse_search_calls_per_image": 1,
-            "provenance_calls_per_image": 1,
-            "forensics_calls_per_image": 1,
-        },
-    }
+        throughput = (len(timings) / elapsed_total) if elapsed_total else 0.0
 
-    output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "performance_benchmark.json"
-    output_path.write_text(json.dumps(report, indent=2))
+        serpapi_enabled = bool(settings.serp_api_key)
 
-    print("Performance benchmark complete.")
-    print(json.dumps(report, indent=2))
-    print(f"\nReport saved to: {output_path}")
+        report = {
+            "benchmark_summary": {
+                "dataset": str(dataset_path),
+                "samples": len(timings),
+                "warmup": len(warmup_images),
+                "mode": mode_detail,
+                "serpapi_enabled": serpapi_enabled,
+                "medgemma_provider": settings.medgemma_provider,
+                "llm_provider": settings.llm_provider,
+            },
+            "errors": {
+                "count": len(errors),
+                "samples": errors[:5],
+            },
+            "fallback_attempts": fallback_attempts,
+            "latency_ms": {
+                "total": summarize(totals),
+                "triage": summarize(triage),
+                "reverse_search": summarize(reverse),
+                "forensics": summarize(forensics),
+                "provenance": summarize(provenance),
+                "synthesis": summarize(synthesis),
+                "postprocess": summarize(postprocess),
+            },
+            "throughput": {
+                "images_per_second": throughput,
+                "total_seconds": elapsed_total,
+            },
+            "cost_drivers": {
+                "medgemma_calls_per_image": 1,
+                "llm_calls_per_image": 1,
+                "reverse_search_calls_per_image": 1,
+                "provenance_calls_per_image": 1,
+                "forensics_calls_per_image": 1,
+            },
+        }
+
+        output_dir = Path(args.output)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / "performance_benchmark.json"
+        output_path.write_text(json.dumps(report, indent=2))
+
+        print("Performance benchmark complete.")
+        print(json.dumps(report, indent=2))
+        print(f"\nReport saved to: {output_path}")
+    finally:
+        if original_serp_api_key is not None:
+            settings.serp_api_key = original_serp_api_key
 
 
 if __name__ == "__main__":
+    main()
     main()

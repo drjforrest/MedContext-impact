@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MedContext is a modular system to verify medical image context and detect misinformation. It leverages MedGemma (Google's medical AI model) to detect deepfakes in medical imaging and uses provenance tracking to combat medical misinformation.
+MedContext is a modular system to verify medical image context and detect misinformation. It leverages MedGemma (Google's medical AI model) to assess context integrity in medical imaging and uses provenance tracking to combat medical misinformation.
 
 **Core Capabilities:**
-- Medical image authenticity verification using MedGemma
-- Multi-layer deepfake detection (pixel forensics, semantic analysis, metadata)
+- Medical image context alignment using MedGemma
+- Integrity signals (reverse search, provenance, semantic checks)
 - Blockchain-like provenance tracking with immutable genealogy
 - Real-time social media monitoring (Reddit, WhatsApp, Facebook, Twitter)
 - Agentic orchestration with deterministic tool dispatch
@@ -100,7 +100,7 @@ src/app/
 ├── api/v1/endpoints/          # REST API endpoints
 │   ├── ingestion.py          # Image submission
 │   ├── orchestrator.py       # Agentic workflow execution
-│   ├── forensics.py          # Deepfake detection
+│   ├── forensics.py          # Legacy integrity signals (stubbed)
 │   ├── reverse_search.py     # Reverse image search
 │   ├── monitoring.py         # Social media monitoring
 │   └── ...
@@ -111,8 +111,8 @@ src/app/
 ├── clinical/                  # MedGemma integration
 │   ├── medgemma_client.py    # Multi-provider MedGemma client
 │   └── llm_client.py         # LLM client for orchestration
-├── forensics/                 # Deepfake detection
-│   └── service.py            # 3-layer forensics (pixel, semantic, metadata)
+├── forensics/                 # Legacy integrity signals
+│   └── service.py            # Stubbed (signals removed)
 ├── provenance/                # Blockchain-like provenance
 │   └── service.py            # Hash-chained immutable records
 ├── reverse_search/            # Image reverse search
@@ -157,15 +157,9 @@ The `MedContextAgent` (`src/app/orchestrator/agent.py`) implements a determinist
 
 All providers return `MedGemmaResult` with structured output parsing.
 
-### Forensics (Deepfake Detection)
+### Integrity Signals (Legacy)
 
-Three-layer architecture in `src/app/forensics/service.py`:
-
-- **Layer 1:** Pixel-level forensics (compression artifacts, frequency analysis, noise consistency)
-- **Layer 2:** Semantic/content analysis (medical plausibility, anatomical consistency)
-- **Layer 3:** Metadata and provenance (EXIF, timestamps, blockchain verification)
-
-Ensemble decision logic: confidence based on layer agreement (3/3 = high, 2/3 = medium, ≤1 = low).
+Legacy integrity signals were previously layered (pixel/semantic/metadata). Those checks are now stubbed in `src/app/forensics/service.py` and should not be used to claim manipulation detection.
 
 ### Provenance System
 
@@ -195,7 +189,7 @@ All endpoints are prefixed with `/api/v1`. Key routes:
 
 - `POST /api/v1/ingestion/upload` - Submit image for analysis
 - `POST /api/v1/orchestrator/run` - Run agentic workflow
-- `POST /api/v1/forensics/analyze` - Direct forensics check
+- `POST /api/v1/forensics/analyze` - Legacy integrity signal stub
 - `POST /api/v1/reverse-search/search` - Reverse image search
 - `GET /api/v1/monitoring/items` - List monitored items
 
@@ -274,7 +268,7 @@ User context is wrapped in `--- BEGIN USER CONTEXT ---` / `--- END USER CONTEXT 
 ## Documentation
 
 See `docs/` for architecture specs:
-- `MedContext-Backend-Architecture.md` - Deepfake detection, provenance, monitoring
+- `MedContext-Backend-Architecture.md` - Context integrity, provenance, monitoring
 - `MedContext-Complete-TechSpec.md` - Full technical specification
 - `MedContext-MedGemma-Claim-Extraction.md` - Claim extraction patterns
 - `MedContext-Blockchain-Cleaned.md` - Provenance system details

@@ -3,7 +3,7 @@
 Medical images don't need to be fake to cause harm.
 Check your image context with MedContext.
 
-MedContext focuses on **contextual integrity** for medical images: whether an image (authentic or manipulated) is being used in a way that genuinely reflects what it depicts. Instead of claiming definitive deepfake detection, the system evaluates alignment between the image, its provenance, and the surrounding claim or caption, surfacing risks of misleading reuse or miscaptioning.
+MedContext focuses on **contextual integrity** for medical images: whether an image (authentic or manipulated) is being used in a way that genuinely reflects what it depicts. Instead of claiming definitive authenticity judgments, the system evaluates alignment between the image, its provenance, and the surrounding claim or caption, surfacing risks of misleading reuse or miscaptioning.
 
 ## Key Validation: Theory Meets Reality
 

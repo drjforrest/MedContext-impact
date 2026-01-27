@@ -1,7 +1,7 @@
 [project]
 name = "MedContext-impact"
 version = "0.1.0"
-description = "MedContext-impact leverages MedGemma to tackle the emerging issue of medical deepfakes."
+description = "MedContext-impact leverages MedGemma to assess medical image context integrity."
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "Jamie Forrest" }]

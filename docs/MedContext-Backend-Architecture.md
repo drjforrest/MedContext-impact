@@ -1,9 +1,9 @@
-# MedContext: Deepfake Detection, Blockchain Provenance, Real-Time Monitoring
-## Backend Architecture for Image Authenticity Verification and Learning
+# MedContext: Context Integrity, Blockchain Provenance, Real-Time Monitoring
+## Backend Architecture for Context Alignment Verification and Learning
 
 **Prepared for:** Purpose Africa, HERO Organization, MedContext Project  
 **Date:** January 14, 2026  
-**Purpose:** Implement deepfake detection, immutable provenance tracking, and real-time learning architecture
+**Purpose:** Implement context alignment checks, immutable provenance tracking, and real-time learning architecture
 
 ---
 
@@ -13,18 +13,18 @@ This document specifies the backend infrastructure that powers MedContext's user
 
 **User-Facing Frontend**
 - Medical professional / journalist / public uploads an image
-- System analyzes and returns a verdict within minutes
-- Simple visual interface: "Authentic" / "Manipulated" / "Uncertain"
+- System analyzes and returns a context alignment verdict within minutes
+- Simple visual interface: "Aligned" / "Misleading" / "Uncertain"
 
 **Hidden Backend Learning System**
 - Every upload becomes training data
-- Deepfake detection improves continuously
+- Context alignment models improve continuously
 - Provenance genealogy accumulates as a learning corpus
 - Misinformation narratives tracked across platforms
 - Pattern recognition identifies emerging threats
 
 **Key Components**
-1. Deepfake Detection Module (pixel + semantic + metadata)
+1. Context Integrity Module (reverse search + provenance + semantic checks)
 2. Blockchain-Like Provenance System (immutable genealogy)
 3. Real-Time Social Monitoring (WhatsApp, Facebook, Twitter, Telegram)
 4. Learning Algorithm (federated learning approach)
@@ -32,31 +32,27 @@ This document specifies the backend infrastructure that powers MedContext's user
 
 ---
 
-## Part 1: Deepfake Detection Module
+## Part 1: Context Integrity Module
 
 ### 1.1 Problem Statement
-AI-generated medical images are increasingly realistic. No single artifact guarantees authenticity, so MedContext uses a multi-layer detection strategy.
+Medical images are frequently reused out of context. No single artifact guarantees proper usage, so MedContext uses a multi-signal alignment strategy.
 
 ### 1.2 Three-Layer Architecture
 
-Layer 1: Pixel-Level Forensics  
-- Compression artifact analysis  
-- Frequency domain analysis  
-- Noise consistency checks  
-- Local binary patterns  
+Layer 1: Context Signals  
+- Reverse image search results  
+- Source credibility checks  
+- Prior usage context  
 
 Layer 2: Semantic/Content Analysis  
 - Medical plausibility scoring  
-- Anatomical consistency checking  
-- Radiological feature verification  
-- Domain-specific anomaly detection  
+- Claim-to-image alignment  
+- Domain-specific consistency checks  
 
-Layer 3: Metadata and Provenance  
-- EXIF analysis  
-- File creation timestamps  
-- Camera signature analysis  
-- Blockchain provenance checks  
-- Reverse image search history  
+Layer 3: Provenance and Metadata  
+- Provenance chain validation  
+- Capture/source metadata checks  
+- Timeline consistency  
 
 **Ensemble Decision Logic**
 - All 3 layers agree: high confidence  
@@ -65,8 +61,8 @@ Layer 3: Metadata and Provenance
 
 ### 1.3 Module in Repository
 Planned implementations (stubs are now in place):
-- `src/app/forensics/deepfake.py`: deepfake detection API surface
-- `src/app/api/v1/endpoints/forensics.py`: API endpoint for deepfake checks
+- `src/app/forensics/service.py`: legacy integrity signal stub
+- `src/app/api/v1/endpoints/forensics.py`: legacy integrity signal endpoint
 
 ---
 
@@ -112,7 +108,7 @@ Monitoring interface stubs:
 ## Part 4: Learning System (Federated Approach)
 
 ### 4.1 Goal
-Use each processed image as a training example to improve deepfake detection while preserving privacy.
+Use each processed image as a training example to improve context alignment while preserving privacy.
 
 ### 4.2 Planned Capabilities
 - Model updates triggered by new training batches

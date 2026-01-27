@@ -302,14 +302,24 @@ class MedContextLangGraphAgent:
             genealogy_consistency=genealogy_consistency,
             source_reputation=source_reputation,
         )
+        def _viz(value: float | None) -> float:
+            return 0.0 if value is None else float(value)
         return {
             "score": score,
             "alignment": alignment_label,
+            "usage_assessment": alignment_label or "unknown",
             "signals": {
                 "alignment": alignment_score,
                 "plausibility": plausibility_score,
                 "genealogy_consistency": genealogy_consistency,
                 "source_reputation": source_reputation,
+            },
+            "visualization": {
+                "overall_confidence": _viz(score),
+                "alignment_confidence": _viz(alignment_score),
+                "plausibility_confidence": _viz(plausibility_score),
+                "genealogy_confidence": _viz(genealogy_consistency),
+                "source_confidence": _viz(source_reputation),
             },
         }
 
@@ -457,7 +467,7 @@ class MedContextLangGraphAgent:
         inferred = []
         if "reverse" in text_lower or "tineye" in text_lower:
             inferred.append("reverse_search")
-        if "forensic" in text_lower or "deepfake" in text_lower:
+        if any(token in text_lower for token in ("forensic", "integrity", "metadata", "tamper", "edited")):
             inferred.append("forensics")
         if "provenance" in text_lower or "blockchain" in text_lower:
             inferred.append("provenance")

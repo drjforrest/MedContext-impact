@@ -936,7 +936,7 @@ class DecisionSupportEngine:
     def assess_image(self, image_id: UUID) -> ContextualIntegrityAssessment:
         """
         Comprehensive assessment combining all modules:
-        1. Image authenticity (medgemma + deepfake detection)
+        1. Context alignment (MedGemma + provenance + reverse search)
         2. Claim accuracy (semantic analysis + fact-checking)
         3. Source credibility (domain reputation + instance tracking)
         4. Consensus (provenance analysis)
@@ -1002,7 +1002,7 @@ class DecisionSupportEngine:
         Score image authenticity based on:
         - MedGemma quality assessment
         - Consistency across instances
-        - Deepfake detection (future module)
+        - Context integrity signals (future module)
         """
         if not medgemma:
             return 0.5  # Unknown
@@ -1076,7 +1076,7 @@ class DecisionSupportEngine:
         - low: high authenticity, high accuracy, high credibility, educational consensus
         - medium: mixed indicators
         - high: low authenticity OR low accuracy OR low credibility + inaccurate consensus
-        - critical: deepfakes OR dangerous claims + low credibility
+        - critical: severe context mismatch OR dangerous claims + low credibility
         """
         risk_score = 0.0
 
@@ -1232,7 +1232,7 @@ async def get_executive_summary(
   "detailed_findings": {
     "authenticity": {
       "score": 0.87,
-      "assessment": "Image appears authentic with no signs of deepfakes",
+      "assessment": "Image appears aligned with no signs of context mismatch",
       "basis": "Consistent across 45 instances, high quality score from MedGemma"
     },
     "accuracy": {
@@ -1515,7 +1515,7 @@ class ImageEncryption:
 
 ### 7-Week Post-Launch Plan
 
-**Week 7-8: Deepfake Detection Module**
+**Week 7-8: Context Integrity Module**
 
 - Integrate forensic analysis tools
 - Train classifier on authentic vs. manipulated medical images
@@ -1709,7 +1709,7 @@ SENTRY_DSN=xxx
 - [ ] Security audit
 - [ ] Load testing
 - [ ] User feedback integration
-- [ ] Deepfake detection module
+- [ ] Context integrity module
 - [ ] Neo4j migration planning
 
 ---

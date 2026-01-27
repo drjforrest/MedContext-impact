@@ -24,11 +24,13 @@ _CLAIM_TYPE_KEYWORDS = {
     "misdiagnosis_claim": ["misdiagnosis", "wrong diagnosis", "misdiagnosed"],
     "disease_severity_exaggeration": ["deadly", "kills", "fatal", "destroy"],
     "attribution_error": ["not from", "fake patient", "wrong person"],
-    "deepfake_or_manipulated_image": [
-        "deepfake",
-        "manipulated",
-        "edited",
-        "fake image",
+    "context_mismatch_image": [
+        "out of context",
+        "misattributed",
+        "wrong event",
+        "wrong location",
+        "old photo",
+        "different patient",
     ],
     "medical_misinformation": ["hoax", "cover-up", "truth hidden"],
 }
@@ -190,7 +192,7 @@ def _assess_severity(claim_types: Iterable[str]) -> str:
     severity_map = {
         "vaccine_injury_claim": "HIGH",
         "treatment_efficacy_claim": "HIGH",
-        "deepfake_or_manipulated_image": "HIGH",
+        "context_mismatch_image": "HIGH",
         "misdiagnosis_claim": "MEDIUM",
         "disease_severity_exaggeration": "MEDIUM",
         "medical_misinformation": "MEDIUM",

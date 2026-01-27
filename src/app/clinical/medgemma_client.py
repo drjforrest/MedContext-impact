@@ -58,15 +58,17 @@ class MedGemmaClient:
                 return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
             raise MedGemmaClientError(f"Unsupported provider: {self.provider}")
         except MedGemmaClientError as exc:
-            fallback = settings.medgemma_fallback_provider.strip().lower()
+            fallback = (settings.medgemma_fallback_provider or "").strip().lower()
             if fallback and fallback != self.provider:
                 if fallback == "local":
                     return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
                 if fallback == "huggingface":
                     return self._analyze_huggingface(image_bytes=image_bytes, prompt=prompt)
+                if fallback == "vllm":
+                    return self._analyze_vllm(image_bytes=image_bytes, prompt=prompt)
                 if fallback == "vertex":
                     return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
-            raise
+            raise exc
 
     def _analyze_huggingface(
         self, image_bytes: bytes, prompt: Optional[str]

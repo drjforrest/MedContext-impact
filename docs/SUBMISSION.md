@@ -91,7 +91,7 @@ Tackles the critical problem of medical misinformation through **contextual inte
   - LangGraph integration
 
 #### 2. **Forensics as Supporting Evidence** ✅
-- **Location:** `src/app/forensics/deepfake.py`
+- **Location:** `src/app/forensics/service.py`
 - **Layer 1 - Pixel Forensics:** ELA + compression artifacts
 - **Layer 3 - Metadata Analysis:** EXIF extraction + software flags
 - **Ensemble Voting:** Confidence-weighted signals used to support alignment
@@ -273,8 +273,8 @@ medcontext/
 │   ├── orchestrator/            ← Agentic workflow
 │   │   ├── agent.py            ← Main agentic orchestrator
 │   │   └── langgraph_agent.py  ← LangGraph integration
-│   ├── forensics/               ← Deepfake detection
-│   │   └── deepfake.py         ← ELA + EXIF evidence
+│   ├── forensics/               ← legacy integrity signals
+│   │   └── service.py          ← legacy integrity signal stub
 │   ├── provenance/              ← Blockchain-style chain
 │   ├── reverse_search/          ← SerpAPI integration
 │   ├── metrics/                 ← Integrity scoring

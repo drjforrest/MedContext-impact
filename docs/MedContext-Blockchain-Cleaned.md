@@ -1,9 +1,9 @@
-# MedContext: Deepfake Detection, Blockchain Provenance & Real-Time Monitoring
+# MedContext: Context Integrity, Blockchain Provenance & Real-Time Monitoring
 ## Complete Backend Architecture for Image Authenticity Verification & Learning System
 
 **Prepared for:** Purpose Africa, HERO Organization, MedContext Project  
 **Date:** January 14, 2026  
-**Purpose:** Implement deepfake detection, immutable provenance tracking, and real-time learning architecture
+**Purpose:** Implement context integrity verification, immutable provenance tracking, and real-time learning architecture
 
 ---
 
@@ -18,13 +18,13 @@ This document specifies the **backend infrastructure** that powers MedContext's 
 
 **Hidden Backend Learning System:**
 - Every image upload becomes training data
-- Deepfake detection continuously improves
+- Context alignment continuously improves
 - Provenance genealogy accumulates as learning corpus
 - Misinformation narratives tracked across all platforms
 - Pattern recognition identifies emerging threats
 
 **Key Components:**
-1. **Deepfake Detection Module** - MedForensics dataset + DSKI neural network
+1. **Context Integrity Module** - MedForensics dataset + DSKI neural network
 2. **Blockchain Provenance System** - Immutable image genealogy tracking
 3. **Real-Time Social Media Monitoring** - WhatsApp, Facebook, Twitter, Telegram integration
 4. **Learning Algorithm** - Federated learning approach for continuous model improvement
@@ -41,12 +41,12 @@ This document specifies the **backend infrastructure** that powers MedContext's 
 By late 2025, generative AI tools (DALL-E 3, Midjourney, Stable Diffusion) can create photorealistic medical images:
 - Fake chest X-rays showing "vaccine injury"
 - Synthetic ultrasounds showing "fetal abnormality"
-- Deepfake pathology slides
+- Synthetic pathology slides
 - Fabricated endoscopy images
 
 **Detection Challenge:**
 - Real images can be heavily compressed/modified (but still authentic)
-- Some deepfakes are high quality; some real images are poor quality
+- Some miscontextualized images are high quality; some real images are poor quality
 - No single pixel-level artifact guarantees authenticity
 
 **Solution:** Multi-modal detection (pixel analysis + semantic analysis + metadata forensics)
@@ -96,16 +96,16 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-class DeepfakeDetectionNetwork(nn.Module):
+class ContextIntegrityNetwork(nn.Module):
     """
-    Multi-task deepfake detection combining:
+    Multi-task context integrity verification combining:
     - Compression artifact detection
     - Frequency domain analysis
     - Medical domain anomaly detection
     """
     
     def __init__(self, pretrained=True):
-        super(DeepfakeDetectionNetwork, self).__init__()
+        super(ContextIntegrityNetwork, self).__init__()
         
         # Backbone: EfficientNet-B7 (pretrained on ImageNet)
         self.backbone = models.efficientnet_b7(pretrained=pretrained)
@@ -231,7 +231,7 @@ class CompressionArtifactDetector(nn.Module):
         Detect compression-based artifacts
         
         Real medical images: Consistent compression patterns from original equipment
-        Deepfakes: Recompression artifacts, inconsistent patterns
+        Synthetic manipulations: Recompression artifacts, inconsistent patterns
         """
         # Analyze blocking patterns (8x8 JPEG blocks)
         # Analyze DCT quantization inconsistencies
@@ -278,7 +278,7 @@ class CompressionArtifactDetector(nn.Module):
 
 def check_image_authenticity(image_path):
     """
-    Complete deepfake detection pipeline
+    Complete context integrity pipeline
     
     Args:
         image_path: Path to medical image file
@@ -289,7 +289,7 @@ def check_image_authenticity(image_path):
     
     # Load model (once, cached)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DeepfakeDetectionNetwork(pretrained=True).to(device)
+    model = ContextIntegrityNetwork(pretrained=True).to(device)
     model.eval()
     
     # Load image
@@ -470,17 +470,17 @@ class MedicalPlausibilityChecker:
 ### 1.6 Ensemble Decision Making
 
 ```python
-class DeepfakeDetectionEnsemble:
-    """Combine 3 layers into final verdict"""
+class ContextIntegrityEnsemble:
+    """Combine 3 signals into final verdict"""
     
     def __init__(self):
-        self.layer1 = DeepfakeDetectionNetwork()
+        self.layer1 = ContextIntegrityNetwork()
         self.layer2 = MedicalPlausibilityChecker()
         self.layer3 = BlockchainProvenanceChecker()
     
-    def detect_deepfake(self, image_path, medgemma_analysis=None):
+    def detect_context_mismatch(self, image_path, medgemma_analysis=None):
         """
-        Complete deepfake detection using all 3 layers
+        Complete context integrity evaluation using all 3 layers
         
         Returns:
             dict: Final authenticity verdict with high confidence
@@ -921,7 +921,7 @@ class IPFSProvenanceStorage:
             'medgemma_analysis': metadata.get('medgemma_analysis'),
             'claims_extracted': metadata.get('claims_extracted'),
             'consensus': metadata.get('consensus'),
-            'deepfake_verdict': metadata.get('deepfake_verdict'),
+            'context_verdict': metadata.get('context_verdict'),
             'blockchain_tx': metadata.get('blockchain_tx')
         }, default=str)
         
@@ -1397,7 +1397,7 @@ class RealTimeAnalysisPipeline:
     def __init__(self):
         self.blockchain_recorder = BlockchainProvenanceRecorder(...)
         self.ipfs_storage = IPFSProvenanceStorage()
-        self.deepfake_detector = DeepfakeDetectionEnsemble()
+        self.context_detector = ContextIntegrityEnsemble()
         self.medgemma = MedGemmaAnalyzer()
         self.claim_extractor = MedicalClaimExtractor()
         self.semantic_clusterer = ClaimFamilyIdentifier()
@@ -1428,7 +1428,7 @@ class RealTimeAnalysisPipeline:
             print(f"New image detected: {image_hash[:8]}...")
             
             # Step 3: Deep fake detection
-            deepfake_result = self.deepfake_detector.detect_deepfake(image_data)
+            context_result = self.context_detector.detect_context_mismatch(image_data)
             
             # Step 4: Medical image analysis (MedGemma)
             medgemma_result = self.medgemma.analyze_image(image_data)
@@ -1446,7 +1446,7 @@ class RealTimeAnalysisPipeline:
             metadata_with_analysis = {
                 **metadata,
                 'medgemma_analysis': medgemma_result,
-                'deepfake_verdict': deepfake_result['final_verdict'],
+                'context_verdict': context_result['final_verdict'],
                 'blockchain_tx': blockchain_tx
             }
             
@@ -1458,9 +1458,9 @@ class RealTimeAnalysisPipeline:
             # Step 7: Record authenticity verdict on blockchain
             self.blockchain_recorder.record_verdict(
                 image_hash=image_hash,
-                verdict=deepfake_result['final_verdict'],
-                confidence=deepfake_result['confidence'],
-                analysis_details=deepfake_result
+                verdict=context_result['final_verdict'],
+                confidence=context_result['confidence'],
+                analysis_details=context_result
             )
         
         # Step 8: Extract claims from caption/context
@@ -1484,7 +1484,7 @@ class RealTimeAnalysisPipeline:
             'image_hash': image_hash,
             'image_data': image_data,
             'medgemma_analysis': medgemma_result,
-            'deepfake_result': deepfake_result,
+            'context_result': context_result,
             'claims': claims,
             'platform': metadata['source_platform'],
             'timestamp': metadata['timestamp']
@@ -1510,7 +1510,7 @@ class RealTimeAnalysisPipeline:
         return {
             'image_hash': image_hash,
             'is_known_image': is_known_image,
-            'deepfake_verdict': deepfake_result['final_verdict'],
+            'context_verdict': context_result['final_verdict'],
             'claims_extracted': len(claims['claims']),
             'misinformation_detected': any(
                 c.get('flags') for c in claims['claims']
@@ -1595,13 +1595,13 @@ class RealTimeAnalysisPipeline:
 ```python
 class FederatedLearningSystem:
     """
-    Continuously improve deepfake detection model
+    Continuously improve context alignment model
     
     Uses data from every image analyzed in production
     """
     
     def __init__(self):
-        self.global_model = DeepfakeDetectionNetwork()
+        self.global_model = ContextIntegrityNetwork()
         self.training_corpus = []
         self.model_version = "1.0"
         self.last_update = datetime.now()
@@ -1614,7 +1614,7 @@ class FederatedLearningSystem:
             example: {
                 'image_hash': str,
                 'image_data': bytes,
-                'deepfake_result': dict,  # System's verdict
+                'context_result': dict,  # System's verdict
                 'verified_verdict': bool  # Ground truth (optional)
             }
         """
@@ -1626,7 +1626,7 @@ class FederatedLearningSystem:
             self.retrain_model()
     
     def retrain_model(self):
-        """Retrain deepfake detection model on new data"""
+        """Retrain context alignment model on new data"""
         
         print(f"Retraining model on {len(self.training_corpus)} images...")
         
@@ -1672,8 +1672,8 @@ class FederatedLearningSystem:
                 example = self.examples[idx]
                 image_data = example['image_data']
                 
-                # Label: 1 if deepfake detected, 0 if authentic
-                label = 1 if example['deepfake_result']['final_verdict'] == 'MANIPULATED' else 0
+                # Label: 1 if context mismatch detected, 0 if aligned
+                label = 1 if example['context_result']['final_verdict'] == 'MANIPULATED' else 0
                 
                 # Transform
                 transform = transforms.Compose([
@@ -1756,7 +1756,7 @@ class FederatedLearningSystem:
     def _get_validation_set(self):
         """Get held-out validation set"""
         
-        # Use standard deepfake benchmark
+        # Use standard context mismatch benchmark
         # (e.g., MedForensics test set)
         pass
     
@@ -1849,7 +1849,7 @@ class FederatedLearningSystem:
 - View image history and fact-checks
 
 **Hidden Backend System (Complex & Learning):**
-- Deepfake detection via 3-layer ensemble
+- Context integrity verification via 3-layer ensemble
 - Blockchain provenance tracking every use
 - Real-time monitoring of all social media
 - Federated learning continuously improving detection

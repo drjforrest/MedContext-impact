@@ -83,7 +83,7 @@ This document catalogs public medical image tampering datasets suitable for **su
 **Download Instructions:**
 ```bash
 # UCI ML Repository
-# https://archive.ics.uci.edu/dataset/.../deepfakes+medical+image+tamper+detection
+# https://archive.ics.uci.edu/dataset/.../medical+image+tamper+detection
 ```
 
 ---
@@ -291,7 +291,7 @@ When using datasets with pathology manipulation:
 ## 📚 References
 
 1. **MedForensics Dataset:**
-   - Paper: "MedForensics: A Large-Scale Multi-Modal Medical Deepfake Detection Benchmark" (2024)
+   - Paper: "MedForensics: A Large-Scale Multi-Modal Medical Synthetic Manipulation Benchmark" (2024)
    - GitHub: [Link to repository]
 
 2. **UCI Tamper Detection:**

@@ -19,7 +19,7 @@ def calculate_consensus(payload: ConsensusRequest) -> ConsensusResponse:
         "unclear_context": [],
         "misleading": [],
         "false": [],
-        "deepfake": [],
+        "context_mismatch": [],
         "unverifiable": [],
     }
 
@@ -55,8 +55,8 @@ def calculate_consensus(payload: ConsensusRequest) -> ConsensusResponse:
 
 def _categorize_claim(claim) -> str:
     verdict = (claim.verdict or "").lower()
-    if claim.is_deepfake:
-        return "deepfake"
+    if claim.is_context_mismatch:
+        return "context_mismatch"
     if verdict in {"false", "misinformation"}:
         return "false"
     if verdict in {"unverifiable", "unknown"}:
@@ -85,11 +85,11 @@ def _determine_consensus(distribution: Dict[str, ConsensusDistributionEntry]) ->
             if dominant_percentage >= 50
             else "mixed_usage_with_legitimate_primary"
         )
-    if dominant_category == "deepfake":
+    if dominant_category == "context_mismatch":
         return (
-            "primarily_used_for_deepfakes"
+            "primarily_used_out_of_context"
             if dominant_percentage >= 50
-            else "mixed_usage_with_deepfake_primary"
+            else "mixed_usage_with_context_mismatch_primary"
         )
     if dominant_category == "false":
         return "primarily_used_for_misinformation"

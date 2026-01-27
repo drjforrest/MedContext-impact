@@ -11,7 +11,7 @@ class ConsensusClaim(BaseModel):
     confidence_this_is_claim: Optional[float] = None
     matches_medgemma: Optional[bool] = None
     source_type: Optional[str] = None
-    is_deepfake: Optional[bool] = None
+    is_context_mismatch: Optional[bool] = None
 
 
 class ConsensusRequest(BaseModel):

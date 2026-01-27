@@ -2,7 +2,7 @@
 """
 Prepare the UCI Medical Image Tamper Detection dataset for validation.
 
-This script converts DICOM slices in the "deepfakes+medical+image+tamper+detection"
+This script converts DICOM slices in the "medical+image+tamper+dataset"
 zip file into PNGs and generates a labels.csv compatible with the validation script.
 
 Output structure:
@@ -109,7 +109,7 @@ def main() -> None:
     parser.add_argument(
         "--zip",
         required=True,
-        help="Path to deepfakes+medical+image+tamper+detection data.zip",
+        help="Path to medical-image-tamper-detection data.zip",
     )
     parser.add_argument(
         "--output",

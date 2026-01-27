@@ -316,7 +316,7 @@ Component 4: Relation Extraction
 Component 5: Claim Classification
   Model: DistilBERT fine-tuned on claim taxonomy
   Classes: vaccine_injury, treatment_efficacy, misdiagnosis, 
-           severity_exaggeration, attribution_error, deepfake, other
+           severity_exaggeration, attribution_error, context_mismatch, other
   
 Component 6: Confidence Scoring
   Method: Ensemble confidence from NER + relation extraction + classification
@@ -362,7 +362,7 @@ class MedicalClaimExtractor:
             "misdiagnosis claim",
             "disease severity exaggeration",
             "attribution error (wrong patient)",
-            "deepfake or manipulated image",
+            "image used out of context",
             "medical misinformation"
         ]
     
@@ -760,7 +760,7 @@ class ClaimFamilyIdentifier:
             'vaccine injury claim': 'HIGH',
             'treatment_efficacy_claim': 'HIGH',
             'misdiagnosis_claim': 'MEDIUM',
-            'deepfake_or_manipulated_image': 'HIGH',
+            'context_mismatch_image': 'HIGH',
             'disease_severity_exaggeration': 'MEDIUM',
             'attribution_error': 'LOW'
         }
@@ -860,7 +860,7 @@ class ConsensusCalculator:
             "unclear_context": "Context unclear or ambiguous",
             "misleading": "Image used to support partially misleading claim",
             "false": "Image used to support false claim",
-            "deepfake": "Image appears manipulated or synthetic",
+            "context_mismatch": "Image appears used out of context",
             "unverifiable": "Claim cannot be verified or falsified"
         }
     
@@ -1305,7 +1305,7 @@ This framework enables:
 - ✅ **Consensus scoring** (quantifying legitimate vs. misinformation use)
 - ✅ **Decision support** (audience-specific outputs for clinicians/journalists/public)
 
-**Next document should address:** Deepfake detection module, blockchain provenance tracking, and real-time monitoring architecture for social media.
+**Next document should address:** Context integrity module, blockchain provenance tracking, and real-time monitoring architecture for social media.
 
 ---
 

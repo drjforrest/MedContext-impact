@@ -73,7 +73,7 @@ cat validation_results/sample/forensics_validation_report.json
 **Option 2 - Alternative Datasets:**
 If MedForensics is not accessible, use these alternatives:
 
-**A. Kaggle Medical Deepfake Datasets:**
+**A. Kaggle Medical Tamper Datasets:**
 ```bash
 # Search Kaggle for:
 # - "medical image tampering"
@@ -137,7 +137,7 @@ cat validation_results/medforensics/forensics_validation_report.json | jq '.conf
 
 #### Step 4: Update Thresholds
 
-Based on validation results, update `src/app/forensics/deepfake.py`:
+Based on validation results, record updates alongside `scripts/validate_forensics.py` output:
 
 **Example:**
 ```python
@@ -264,7 +264,7 @@ See `AGENTIC_ARCHITECTURE.md` for full validation methodology.
 **Before submission, ensure:**
 - [ ] Validation script runs successfully
 - [ ] Results with confidence intervals documented
-- [ ] Thresholds updated in `deepfake.py`
+- [ ] Thresholds recorded in validation notes
 - [ ] All tests still pass
 - [ ] `AGENTIC_ARCHITECTURE.md` updated with results
 - [ ] `SUBMISSION.md` includes validation section

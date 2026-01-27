@@ -4,7 +4,7 @@
 
 From our literature review (Forrest 2026, ~100 sources):
 - 87% of social media posts mention benefits vs 15% harms
-- 0% sophisticated deepfakes in COVID-19 misinformation
+- 0% sophisticated synthetic manipulations in COVID-19 misinformation
 - 80%+ of visual health misinformation = authentic images, misleading captions
 
 **Prediction:** Pixel-level forensics should perform poorly on real-world medical misinformation.
@@ -39,7 +39,7 @@ This result **validates our thesis in three ways:**
 
 ## The Implication
 
-While competitors chase 95% accuracy on deepfake benchmarks, we're solving the actual problem:
+While competitors chase 95% accuracy on synthetic manipulation benchmarks, we're solving the actual problem:
 - **Their threat model:** Sophisticated pixel manipulation (20% of real problem)
 - **Our threat model:** Authentic images with false context (80% of real problem)
 
@@ -49,7 +49,7 @@ While competitors chase 95% accuracy on deepfake benchmarks, we're solving the a
 
 | Approach | Benchmark Accuracy | Real-World Accuracy | Target Threat |
 |----------|-------------------|-------------------|---------------|
-| Deepfake detectors | 90%+ | ? (untested) | Synthetic manipulation |
+| Synthetic manipulation detectors | 90%+ | ? (untested) | Synthetic manipulation |
 | Pixel forensics | 85%+ | ~50% (our study) | Any manipulation |
 | **MedContext** | N/A | Under evaluation | Context misuse (80%) |
 

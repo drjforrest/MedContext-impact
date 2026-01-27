@@ -133,13 +133,13 @@ python scripts/validate_forensics.py \
 1. Visit UCI ML Repository and search for "Medical Image Tamper Detection"
    URL: https://archive.ics.uci.edu/datasets
 2. Download dataset (requires registration)
-3. Keep the provided zip in `data/` (e.g., `data/deepfakes+medical+image+tamper+detection/data.zip`)
+3. Keep the provided zip in `data/` (e.g., `data/medical-image-tamper-detection/data.zip`)
 
 **Prepare Dataset (convert DICOM → PNG):**
 ```bash
 uv run pip install pydicom
 python scripts/prepare_uci_tamper_dataset.py \
-  --zip data/deepfakes+medical+image+tamper+detection/data.zip \
+  --zip data/medical-image-tamper-detection/data.zip \
   --output data/validation/uci_tamper
 ```
 
@@ -232,24 +232,24 @@ python scripts/validate_forensics.py --help
 }
 ```
 
-**Action:** Update `src/app/forensics/deepfake.py` thresholds based on these values.
+**Action:** Record these values for legacy signal analysis (not used for production context scoring).
 
 ---
 
-## Updating Forensics Thresholds
+## Updating Legacy Signal Thresholds
 
-After validation, update thresholds in `src/app/forensics/deepfake.py`:
+After validation, record thresholds alongside your validation notes (legacy signals are not used for context scoring):
 
 **Before (hardcoded):**
 ```python
-# Detection thresholds
+# Legacy signal thresholds
 if ela_std > 15.0 and ela_max > 100:
     verdict = "MANIPULATED"
 ```
 
 **After (validated):**
 ```python
-# Detection thresholds (validated on MedForensics dataset, n=58,000)
+# Legacy signal thresholds (validated on MedForensics dataset, n=58,000)
 # Optimal threshold from ROC analysis: ela_std=17.3
 if ela_std > 17.3 and ela_max > 100:
     verdict = "MANIPULATED"
@@ -401,7 +401,7 @@ Based on validation, ELA thresholds updated:
 - Authentic threshold: 5.2 (conservative)
 
 **Dataset Citation:**
-[Author et al., "MedForensics: A Large-Scale Multi-Modal Medical Deepfake Detection Benchmark", 2024]
+[Author et al., "MedForensics: A Large-Scale Multi-Modal Medical Synthetic Manipulation Benchmark", 2024]
 ```
 
 ### Adding to README.md
@@ -424,7 +424,7 @@ Confidence intervals computed via bootstrap resampling (1,000 iterations).
 1. **Run validation on sample dataset** (5 min)
 2. **Download MedForensics subset** (30 min)
 3. **Run full validation** (10-20 min)
-4. **Update thresholds in forensics/deepfake.py** (2 min)
+4. **Record legacy thresholds in validation notes** (2 min)
 5. **Add results to AGENTIC_ARCHITECTURE.md** (5 min)
 6. **Rerun tests to verify updated thresholds** (1 min)
 
@@ -432,7 +432,7 @@ Confidence intervals computed via bootstrap resampling (1,000 iterations).
 # Complete workflow
 uv run pip install -e ".[dev]"
 python scripts/validate_forensics.py --dataset data/validation/medforensics --bootstrap 1000
-# Update thresholds in src/app/forensics/deepfake.py
+# Record thresholds in validation notes or report
 uv run pytest tests/test_forensics.py -v
 ```
 
