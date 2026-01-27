@@ -315,7 +315,9 @@ function App() {
   const part1 = synthesis?.part_1
   const part2 = synthesis?.part_2
   const imagePreview = synthesis?.image_preview
-  const contextQuote = part2?.context_quote
+  const contextQuote =
+    (typeof context === 'string' && context.trim() ? context.trim() : null) ??
+    part2?.context_quote
   const reverseMatches = reverseResult?.matches || []
   const reverseProviders = reverseResult?.providers || []
   const toolResults = result?.tool_results || {}
@@ -744,9 +746,9 @@ function App() {
             <section className="card">
               <div className="reverse-header">
                 <div>
-                  <h2>Reverse image search</h2>
+                  <h2>Reverse search</h2>
                   <p className="helper">
-                    Upload an image to find matching sources via SerpAPI.
+                    Run a reverse image search to find matching sources.
                   </p>
                 </div>
                 <div className="status" aria-live="polite">
@@ -887,12 +889,16 @@ function App() {
                         </div>
                         <div className="summary-part">
                           {contextQuote ? (
-                            <blockquote className="context-quote">
-                              {contextQuote}
-                            </blockquote>
+                            <>
+                              <p className="eyebrow">User-provided context</p>
+                              <blockquote className="context-quote">
+                                {contextQuote}
+                              </blockquote>
+                            </>
                           ) : null}
                           {part2 ? (
                             <div className="analysis-body">
+                              <p className="eyebrow">Model analysis</p>
                               {alignmentScore ? (
                                 <div className={`score-pill score-${alignmentScore.tone}`}>
                                   <span className="score-value">
@@ -1026,6 +1032,11 @@ function App() {
                           ) : (
                             <p className="helper">No signal data available.</p>
                           )}
+                          {!provenanceData ? (
+                            <p className="helper">
+                              Genealogy not checked (provenance not run).
+                            </p>
+                          ) : null}
                         </div>
                       </div>
                     </div>

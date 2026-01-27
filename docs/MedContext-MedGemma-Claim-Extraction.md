@@ -1,4 +1,5 @@
 # MedContext: MedGemma Integration & Claim Extraction Pipeline
+
 ## Technical Framework for Medical Image Analysis and Automated Misinformation Detection
 
 **Prepared for:** Purpose Africa, HERO Organization, MedContext Project  
@@ -18,6 +19,7 @@ This document specifies the **technical architecture for MedContext's core analy
 5. **Decision Support** - Generate audience-specific outputs (clinician, journalist, public, researcher)
 
 **Key deliverables:**
+
 - MedGemma integration code (Python/REST API)
 - Claim extraction NLP pipeline (spaCy + transformer models)
 - Semantic clustering algorithm for claim families
@@ -38,6 +40,7 @@ This document specifies the **technical architecture for MedContext's core analy
 **Training Data:** Medical knowledge from PubMed Central, clinical notes, medical textbooks
 
 **Why MedGemma for MedContext:**
+
 - Fine-tuned on medical domain (vs. general-purpose Gemini)
 - Small enough for local deployment in low-bandwidth settings
 - Strong performance on medical image understanding (MMVP benchmark: medical visual question answering)
@@ -45,6 +48,7 @@ This document specifies the **technical architecture for MedContext's core analy
 - Can perform in-context learning (teach it patterns without retraining)
 
 **Alternative models considered:**
+
 - RadiologyGPT: Specialized for radiology only (too narrow)
 - MedPaLM: Larger, better reasoning but expensive (540B)
 - Claude 3.5 Sonnet: Commercial API, good multimodal, privacy concerns
@@ -56,9 +60,9 @@ This document specifies the **technical architecture for MedContext's core analy
 
 **Option A: Local GPU (Recommended for MVP)**
 
-```
+````
 Hardware Requirements:
-- GPU: NVIDIA A10 (24GB VRAM) or RTX 4090 (24GB VRAM) 
+- GPU: NVIDIA A10 (24GB VRAM) or RTX 4090 (24GB VRAM)
   - Can run quantized MedGemma at near-full quality
   - Cost: $400-700 one-time hardware, or $0.40-0.50/hour cloud GPU
 - RAM: 32GB system RAM
@@ -76,7 +80,7 @@ pip install transformers torch pillow numpy
 from transformers import AutoModelForVision2Seq, AutoProcessor
 model = AutoModelForVision2Seq.from_pretrained("google/medgemma-2b-finetuned")
 processor = AutoProcessor.from_pretrained("google/medgemma-2b-finetuned")
-```
+````
 
 **Option B: Cloud API (Recommended for Scalability)**
 
@@ -99,7 +103,7 @@ Throughput: 100+ images/second at scale
 
 ```
 System Prompt:
-You are a medical imaging assistant trained on radiology and clinical imaging. 
+You are a medical imaging assistant trained on radiology and clinical imaging.
 Your task is to analyze medical images and extract diagnostic information.
 
 For each image, provide:
@@ -164,38 +168,38 @@ OUTPUT (JSON):
 
 **Known Limitations (from MedGemma paper):**
 
-| Failure Mode | Frequency | Mitigation |
-|-------------|-----------|-----------|
-| **Poor quality images** | 15-20% error rate | Reject images <100x100 px; flag low SSIM |
-| **Rare pathologies** | 30-40% miss rate | Require expert review for unusual findings |
-| **Language/Culture bias** | 10-15% for non-US images | Fine-tune on diverse datasets (Phase 2) |
+| Failure Mode                  | Frequency                      | Mitigation                                    |
+| ----------------------------- | ------------------------------ | --------------------------------------------- |
+| **Poor quality images**       | 15-20% error rate              | Reject images <100x100 px; flag low SSIM      |
+| **Rare pathologies**          | 30-40% miss rate               | Require expert review for unusual findings    |
+| **Language/Culture bias**     | 10-15% for non-US images       | Fine-tune on diverse datasets (Phase 2)       |
 | **Multi-pathology confusion** | 20% when 2+ conditions present | Require sequential analysis for complex cases |
-| **DICOM vs JPEG** | Better on JPEG | Always convert DICOM to JPEG first |
+| **DICOM vs JPEG**             | Better on JPEG                 | Always convert DICOM to JPEG first            |
 
 **Error Mitigation Protocol:**
 
 ```python
 def validate_medgemma_output(response, image_quality_metrics):
     """Check if MedGemma output is reliable"""
-    
+
     issues = []
-    
+
     # Check image quality
     if image_quality_metrics['resolution'] < 100:
         issues.append("Image resolution too low")
-    
+
     if image_quality_metrics['ssim'] < 0.3:  # Structural Similarity
         issues.append("Image quality degraded (possible compression/modification)")
-    
+
     # Check confidence score
     if response['confidence_score'] < 0.5:
         issues.append("Model confidence low; expert review required")
-    
+
     # Check for hedging language
     hedges = ['possibly', 'may indicate', 'could represent', 'uncertain']
     if any(h in response['findings'] for h in hedges):
         issues.append("High uncertainty in findings")
-    
+
     return {
         'reliable': len(issues) == 0,
         'issues': issues,
@@ -210,6 +214,7 @@ def validate_medgemma_output(response, image_quality_metrics):
 **Scenario: Analyzing 100,000 images (monthly dataset from social media)**
 
 **Approach 1: Sequential (Slow)**
+
 - Time: 100,000 images × 2 seconds/image = 55 hours
 - Not practical
 
@@ -221,13 +226,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 async def batch_analyze_images(image_paths, batch_size=32):
     """Process images in parallel batches"""
-    
+
     results = []
     executor = ThreadPoolExecutor(max_workers=8)  # 8 parallel GPU streams
-    
+
     for batch_idx in range(0, len(image_paths), batch_size):
         batch = image_paths[batch_idx:batch_idx + batch_size]
-        
+
         # Process batch in parallel
         tasks = [
             asyncio.create_task(
@@ -235,13 +240,13 @@ async def batch_analyze_images(image_paths, batch_size=32):
             )
             for img_path in batch
         ]
-        
+
         batch_results = await asyncio.gather(*tasks)
         results.extend(batch_results)
-        
+
         # Log progress
         print(f"Processed {batch_idx + batch_size}/{len(image_paths)} images")
-    
+
     return results
 
 # With cloud API (100+ concurrent):
@@ -251,12 +256,12 @@ async def batch_analyze_images(image_paths, batch_size=32):
 
 **Cost Analysis:**
 
-| Method | Time | Cost | Setup |
-|--------|------|------|-------|
-| Local GPU (A10) | 13 hours | $500 (one-time) | Complex |
-| Local GPU (RTX 4090) | 6 hours | $700 (one-time) | Complex |
-| Google Vertex AI | 33 min | $20 | Simple |
-| AWS SageMaker | 45 min | $30 | Medium |
+| Method               | Time     | Cost            | Setup   |
+| -------------------- | -------- | --------------- | ------- |
+| Local GPU (A10)      | 13 hours | $500 (one-time) | Complex |
+| Local GPU (RTX 4090) | 6 hours  | $700 (one-time) | Complex |
+| Google Vertex AI     | 33 min   | $20             | Simple  |
+| AWS SageMaker        | 45 min   | $30             | Medium  |
 
 **Recommendation for MVP:** Use Google Vertex AI (simplest, fastest, pay-per-use)
 
@@ -298,26 +303,26 @@ Structured Claims Output (JSON)
 Component 1: Preprocessing
   Tool: spaCy 3.7 + custom rules
   Function: Clean text, detect language, remove HTML/emoji noise
-  
+
 Component 2: Sentence Segmentation
   Tool: spaCy sentence_splitter (rule-based)
   Function: Split into sentences; keep ≤15 tokens per claim unit
-  
+
 Component 3: NER (Named Entity Recognition)
   Model: BioBERT (fine-tuned for medical domain)
     - Dataset: BC5CDR (6,248 annotated PubMed abstracts)
     - Entities: DISEASE, DRUG, TREATMENT, SYMPTOM, ANATOMY
   Alternative: sciBERT if fine-tuning on your data
-  
+
 Component 4: Relation Extraction
   Model: REBEL (relation extraction pre-trained on Wikipedia)
   Custom fine-tuning: On medical image-claim pairs
-  
+
 Component 5: Claim Classification
   Model: DistilBERT fine-tuned on claim taxonomy
-  Classes: vaccine_injury, treatment_efficacy, misdiagnosis, 
+  Classes: vaccine_injury, treatment_efficacy, misdiagnosis,
            severity_exaggeration, attribution_error, context_mismatch, other
-  
+
 Component 6: Confidence Scoring
   Method: Ensemble confidence from NER + relation extraction + classification
   Range: 0-1 (0 = not a claim, 1 = definite claim)
@@ -349,13 +354,13 @@ class MedicalClaimExtractor:
     def __init__(self):
         # Load NLP models
         self.nlp = spacy.load("en_core_sci_lg")
-        
+
         # Zero-shot classifier for claim types
         self.claim_classifier = pipeline(
             "zero-shot-classification",
             model="facebook/bart-large-mnli"
         )
-        
+
         self.claim_types = [
             "vaccine injury claim",
             "treatment efficacy claim",
@@ -365,28 +370,28 @@ class MedicalClaimExtractor:
             "image used out of context",
             "medical misinformation"
         ]
-    
+
     def extract_claims(self, text, image_id=None):
         """
         Extract medical claims from text accompanying an image
-        
+
         Args:
             text (str): Text surrounding or describing image (caption, post text, etc.)
             image_id (str): Associated image identifier
-            
+
         Returns:
             list: List of structured claims with metadata
         """
-        
+
         # Preprocess
         text_clean = self._preprocess(text)
-        
+
         # Segment into sentences
         doc = self.nlp(text_clean)
         sentences = [sent.text for sent in doc.sents]
-        
+
         claims = []
-        
+
         for sent_idx, sentence in enumerate(sentences):
             # Extract entities
             sent_doc = self.nlp(sentence)
@@ -399,17 +404,17 @@ class MedicalClaimExtractor:
                 }
                 for ent in sent_doc.ents
             ]
-            
+
             # Classify sentence as claim or not
             if len(entities) > 0:  # Must contain medical entities to be a claim
-                
+
                 # Classify claim type
                 classification = self.claim_classifier(
                     sentence,
                     self.claim_types,
                     multi_class=True
                 )
-                
+
                 claim = {
                     "claim_id": f"CLM_{image_id}_{sent_idx:03d}",
                     "claim_text": sentence,
@@ -431,10 +436,10 @@ class MedicalClaimExtractor:
                     "extraction_timestamp": datetime.now().isoformat(),
                     "flags": self._generate_flags(sentence, entities)
                 }
-                
+
                 if claim["confidence_this_is_claim"] > 0.4:
                     claims.append(claim)
-        
+
         return {
             "image_id": image_id,
             "original_text": text,
@@ -443,47 +448,47 @@ class MedicalClaimExtractor:
             "claims_extracted": len(claims),
             "claims": claims
         }
-    
+
     def _preprocess(self, text):
         """Clean and normalize text"""
         import re
-        
+
         # Remove URLs
         text = re.sub(r'http\S+|www\S+', '[URL]', text)
-        
+
         # Remove extra whitespace
         text = ' '.join(text.split())
-        
+
         # Remove very long sentences (likely copy-paste error)
         text = '. '.join(
             s for s in text.split('. ')
             if len(s.split()) < 100
         )
-        
+
         return text
-    
+
     def _generate_flags(self, sentence, entities):
         """Flag potentially problematic claims"""
         flags = []
-        
+
         # Check for medical terminology misuse
         if any(term in sentence.lower() for term in ['vaccine injury', 'side effect', 'damage']):
             if 'disease' not in [e['label'] for e in entities]:
                 flags.append("medical_terminology_without_disease_reference")
-        
+
         # Check for causal claims without evidence markers
         if any(marker in sentence.lower() for marker in ['caused by', 'leads to', 'resulted in']):
             if 'evidence' not in sentence.lower() and 'study' not in sentence.lower():
                 flags.append("causal_claim_without_evidence")
-        
+
         # Check for anecdotal claims presented as facts
         if any(marker in sentence.lower() for marker in ['my friend', 'i heard', 'someone told me']):
             flags.append("anecdotal_evidence_presented_as_fact")
-        
+
         # Check for extreme language
         if any(word in sentence.lower() for word in ['deadly', 'kills', 'destroy', 'poison']):
             flags.append("emotionally_charged_language")
-        
+
         return flags
 
 # Example usage
@@ -526,9 +531,7 @@ print(json.dumps(result, indent=2))
         }
       ],
       "confidence_this_is_claim": 0.87,
-      "flags": [
-        "emotionally_charged_language"
-      ]
+      "flags": ["emotionally_charged_language"]
     },
     {
       "claim_id": "CLM_IMG_042_001",
@@ -550,10 +553,7 @@ print(json.dumps(result, indent=2))
         }
       ],
       "confidence_this_is_claim": 0.92,
-      "flags": [
-        "causal_claim_without_evidence",
-        "emotionally_charged_language"
-      ]
+      "flags": ["causal_claim_without_evidence", "emotionally_charged_language"]
     }
   ]
 }
@@ -577,21 +577,21 @@ class MultilingualClaimExtractor:
             "zero-shot-classification",
             model="joeddav/xlm-roberta-large-xnli"  # Multilingual
         )
-        
+
         self.supported_languages = [
             'en', 'fr', 'pt', 'es', 'sw', 'ar', 'de', 'it', 'nl'
         ]
-    
+
     def extract_claims_multilingual(self, text, image_id=None):
         """Handle claims in any language"""
-        
+
         # Detect language
         from langdetect import detect
         lang = detect(text)
-        
+
         if lang not in self.supported_languages:
             return {"error": f"Language {lang} not yet supported"}
-        
+
         # For non-English: translate to English first (or analyze in original)
         if lang != 'en':
             from transformers import pipeline
@@ -602,10 +602,10 @@ class MultilingualClaimExtractor:
             text_en = translator(text)[0]['translation_text']
         else:
             text_en = text
-        
+
         # Extract claims (using same pipeline as English)
         claims = self._extract_claims_english(text_en)
-        
+
         # Augment with original language metadata
         return {
             "original_language": lang,
@@ -624,6 +624,7 @@ class MultilingualClaimExtractor:
 **Example:**
 
 The same chest X-ray can be presented with these claims:
+
 1. "COVID-19 pneumonia (medical journal)" ← Accurate
 2. "Vaccine side effect" ← Inaccurate
 3. "Unproven cancer treatment result" ← Inaccurate
@@ -632,6 +633,7 @@ The same chest X-ray can be presented with these claims:
 These are semantically related (all about same image, same general anatomical findings) but make different health claims.
 
 **Goal:** Group claims into "claim families" to:
+
 - Identify which narratives dominate for each image
 - Detect when misinformation narratives emerge
 - Track narrative evolution over time
@@ -654,42 +656,42 @@ class ClaimFamilyIdentifier:
         # Sentence transformer: converts text → 384-dim embedding
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.clustering_threshold = 0.7  # Similarity cutoff for same family
-    
+
     def identify_claim_families(self, claims_list):
         """
         Group claims into families (semantically similar narratives)
-        
+
         Args:
             claims_list (list): List of claim dictionaries with 'claim_text' field
-            
+
         Returns:
             dict: Claim families with metadata
         """
-        
+
         if len(claims_list) < 2:
             return {"families": [claims_list]}
-        
+
         # Step 1: Encode all claims
         claim_texts = [c['claim_text'] for c in claims_list]
         embeddings = self.model.encode(claim_texts, convert_to_tensor=True)
-        
+
         # Step 2: Compute similarity matrix
         similarity_matrix = cosine_similarity(embeddings.cpu().numpy())
-        
+
         # Step 3: Hierarchical clustering
         # Convert similarity to distance (1 - similarity)
         distance_matrix = 1 - similarity_matrix
-        
+
         # Remove diagonal (distance to self = 0)
         np.fill_diagonal(distance_matrix, 0)
-        
+
         # Convert to condensed distance matrix for scipy
         from scipy.spatial.distance import squareform
         condensed_distances = squareform(distance_matrix)
-        
+
         # Linkage: which clusters to join at each step
         linkage_matrix = linkage(condensed_distances, method='ward')
-        
+
         # Step 4: Cut tree at threshold
         from scipy.cluster.hierarchy import fcluster
         cluster_labels = fcluster(
@@ -697,7 +699,7 @@ class ClaimFamilyIdentifier:
             t=1 - self.clustering_threshold,
             criterion='distance'
         )
-        
+
         # Step 5: Organize claims by family
         families = {}
         for claim_idx, cluster_id in enumerate(cluster_labels):
@@ -708,11 +710,11 @@ class ClaimFamilyIdentifier:
                 "cluster_id": cluster_id,
                 "embedding": embeddings[claim_idx].cpu().numpy().tolist()
             })
-        
+
         # Step 6: Identify family characteristics
         family_summary = []
         for family_id, family_claims in families.items():
-            
+
             # Find most representative claim (closest to centroid)
             family_embeddings = np.array([
                 c['embedding'] for c in family_claims
@@ -723,7 +725,7 @@ class ClaimFamilyIdentifier:
                 for emb in family_embeddings
             ]
             representative_idx = np.argmin(distances_to_centroid)
-            
+
             family_summary.append({
                 "family_id": family_id,
                 "size": len(family_claims),
@@ -742,29 +744,29 @@ class ClaimFamilyIdentifier:
                 "geographic_distribution": self._analyze_geography(family_claims),
                 "temporal_pattern": self._analyze_temporal(family_claims)
             })
-        
+
         return {
             "total_claims": len(claims_list),
             "families_identified": len(family_summary),
             "families": family_summary
         }
-    
+
     def _assess_severity(self, claims):
         """Rate health impact severity of claim family"""
         claim_types = [
             ct['type'] for c in claims
             for ct in c.get('claim_types', [])
         ]
-        
+
         severity_map = {
             'vaccine injury claim': 'HIGH',
             'treatment_efficacy_claim': 'HIGH',
             'misdiagnosis_claim': 'MEDIUM',
-            'context_mismatch_image': 'HIGH',
+            'image used out of context': 'HIGH',
             'disease_severity_exaggeration': 'MEDIUM',
             'attribution_error': 'LOW'
         }
-        
+
         # Return highest severity in family
         severities = [severity_map.get(ct, 'LOW') for ct in claim_types]
         if 'HIGH' in severities:
@@ -772,7 +774,7 @@ class ClaimFamilyIdentifier:
         elif 'MEDIUM' in severities:
             return 'MEDIUM'
         return 'LOW'
-    
+
     def _analyze_geography(self, claims):
         """Extract geographic information from claims"""
         # Placeholder: would extract country/region from claim metadata
@@ -780,7 +782,7 @@ class ClaimFamilyIdentifier:
             "regions_mentioned": [],
             "primary_region": "Unknown"
         }
-    
+
     def _analyze_temporal(self, claims):
         """Analyze temporal spread of claim family"""
         # Placeholder: would analyze dates if available
@@ -863,29 +865,29 @@ class ConsensusCalculator:
             "context_mismatch": "Image appears used out of context",
             "unverifiable": "Claim cannot be verified or falsified"
         }
-    
-    def calculate_consensus(self, image_id, all_claims_for_image, 
+
+    def calculate_consensus(self, image_id, all_claims_for_image,
                            medgemma_analysis, fact_checks):
         """
         Calculate what the consensus is for how an image is actually used
-        
+
         Args:
             image_id (str): Image identifier
             all_claims_for_image (list): All claims made with this image
             medgemma_analysis (dict): MedGemma's analysis of image content
             fact_checks (list): Available fact-checks for these claims
-            
+
         Returns:
             dict: Consensus distribution with confidence
         """
-        
+
         total_instances = len(all_claims_for_image)
-        
+
         # Categorize each claim
         categorized = {}
         for category in self.usage_categories.keys():
             categorized[category] = []
-        
+
         for claim in all_claims_for_image:
             # Check if this claim appears in fact-checks
             is_debunked = any(
@@ -893,7 +895,7 @@ class ConsensusCalculator:
                 for fc in fact_checks
                 if self._claims_match(claim, fc)
             )
-            
+
             if is_debunked:
                 category = "false"
             elif claim.get('confidence_this_is_claim', 0) < 0.3:
@@ -906,9 +908,9 @@ class ConsensusCalculator:
                     category = "medical_educational"
             else:
                 category = "misleading"
-            
+
             categorized[category].append(claim)
-        
+
         # Calculate distribution
         distribution = {
             category: {
@@ -919,10 +921,10 @@ class ConsensusCalculator:
             for category, claims in categorized.items()
             if len(claims) > 0
         }
-        
+
         # Determine overall consensus
         consensus = self._determine_consensus(distribution, medgemma_analysis)
-        
+
         return {
             "image_id": image_id,
             "total_instances_found": total_instances,
@@ -932,23 +934,23 @@ class ConsensusCalculator:
                 distribution, total_instances
             )
         }
-    
+
     def _determine_consensus(self, distribution, medgemma_analysis):
         """What is the most common/accurate usage of this image?"""
-        
+
         # Get the largest categories
         sorted_categories = sorted(
             distribution.items(),
             key=lambda x: x[1]['count'],
             reverse=True
         )
-        
+
         if not sorted_categories:
             return "unknown"
-        
+
         dominant_category = sorted_categories[0][0]
         dominant_percentage = sorted_categories[0][1]['percentage']
-        
+
         # Check alignment with MedGemma
         if dominant_category in ['clinical_legitimate', 'medical_educational']:
             if dominant_percentage > 50:
@@ -961,10 +963,10 @@ class ConsensusCalculator:
             return "usage_context_unclear"
         else:
             return "mixed_usage_with_concerns"
-    
+
     def _calculate_confidence(self, distribution, total_instances):
         """Confidence that consensus is reliable"""
-        
+
         # Need sufficient sample size
         if total_instances < 10:
             return 0.3  # Low confidence with few examples
@@ -972,20 +974,20 @@ class ConsensusCalculator:
             return 0.6
         else:
             return 0.9  # High confidence with 100+ examples
-    
+
     def _matches_medgemma_findings(self, claim, medgemma_analysis):
         """Does claim match what MedGemma says image shows?"""
-        
+
         claim_lower = claim['claim_text'].lower()
         findings = ' '.join(medgemma_analysis['findings']).lower()
-        
+
         # Check if claim mentions pathologies that MedGemma found
         for pathology in medgemma_analysis['pathologies_detected']:
             if pathology.lower() in claim_lower:
                 return True
-        
+
         return False
-    
+
     def _claims_match(self, claim, fact_check):
         """Do this claim and fact-check refer to the same assertion?"""
         # Simple token overlap for MVP
@@ -1036,10 +1038,7 @@ print(json.dumps(consensus, indent=2))
     "unclear_context": {
       "count": 62,
       "percentage": 12.7,
-      "examples": [
-        "Just some lungs",
-        "Check this out"
-      ]
+      "examples": ["Just some lungs", "Check this out"]
     }
   },
   "consensus": "legitimate_use_dominant",
@@ -1060,21 +1059,21 @@ print(json.dumps(consensus, indent=2))
 {
   "target_audience": "healthcare_provider",
   "clinical_context": "Patient refusing COVID-19 treatment citing vaccine injury claim",
-  
+
   "quick_facts": {
     "image_identification": "Chest X-ray consistent with COVID-19 pneumonia",
     "image_accuracy": "Image appears authentic; findings consistent with published COVID cases",
     "claim_assessment": "Image frequently misused to support vaccine injury claims (29.8% of internet instances)",
     "medical_evidence": "No credible evidence this image is related to vaccine injury"
   },
-  
+
   "talking_points_for_patient": [
     "This image is consistent with COVID-19 pneumonia, not vaccine injury",
     "The pattern you see (bilateral lower lobe consolidation) is characteristic of viral pneumonia",
     "This same image appears in medical journals describing COVID-19",
     "The social media context where you found this is not a reliable medical source"
   ],
-  
+
   "evidence_to_cite": [
     {
       "source": "COVID-19 imaging study",
@@ -1083,14 +1082,14 @@ print(json.dumps(consensus, indent=2))
       "credibility": "peer-reviewed"
     }
   ],
-  
+
   "recommended_next_steps": [
     "Validate patient's symptoms and clinical presentation",
     "Offer COVID-19 diagnostic testing to clarify diagnosis",
     "Discuss vaccine safety data from CDC/WHO",
     "Consider referral to trusted health information resources"
   ],
-  
+
   "escalation": "If patient continues to refuse evidence-based care, consider documented conversation and care planning for patient autonomy vs. clinical recommendation"
 }
 ```
@@ -1105,7 +1104,7 @@ print(json.dumps(consensus, indent=2))
 {
   "target_audience": "journalist",
   "investigation_angle": "How medical images are misused to spread vaccine misinformation",
-  
+
   "source_tracking": {
     "image_origin": {
       "original_source": "Medical journal / Clinical database",
@@ -1128,7 +1127,7 @@ print(json.dumps(consensus, indent=2))
       }
     }
   },
-  
+
   "fact_checks_available": [
     {
       "organization": "AFP",
@@ -1138,7 +1137,7 @@ print(json.dumps(consensus, indent=2))
       "fact_checkers_to_contact": ["name@afp.com"]
     }
   ],
-  
+
   "expert_sources": [
     {
       "expertise": "Radiology",
@@ -1148,13 +1147,13 @@ print(json.dumps(consensus, indent=2))
       "previous_media": "Yes"
     }
   ],
-  
+
   "story_angle_suggestions": [
     "How misinformation travels: same image, different narratives across platforms",
     "The role of WhatsApp health groups in spreading image-based health misinformation",
     "Why healthcare providers struggle to counter image-based vaccine misinformation"
   ],
-  
+
   "data_for_visualization": [
     {
       "chart_type": "timeline",
@@ -1183,29 +1182,29 @@ print(json.dumps(consensus, indent=2))
   "target_audience": "general_public",
   "language": "simple",
   "reading_level": "8th_grade",
-  
+
   "headline": "Is This Image Evidence of Vaccine Injury? Here's What Experts Say",
-  
+
   "simple_explanation": {
     "what_image_shows": "This is an X-ray of someone's lungs showing pneumonia (lung infection). The white areas show infection.",
     "what_claim_says": "Some social media posts claim this shows damage from the COVID vaccine.",
     "the_truth": "This image actually comes from medical studies of COVID-19 pneumonia, not vaccine side effects. The same image gets shared with different false claims."
   },
-  
+
   "red_flags": [
     "Claims are made without sources or links to studies",
     "Emotional language is used (\"destroyed,\" \"poisoned\")",
     "The post is shared by people without medical training",
     "No professional medical context is provided"
   ],
-  
+
   "how_to_check": [
     "Use Google Image Search to find where the image really came from",
     "Check fact-checking websites (Snopes, AFP Fact-Check, PolitiFact)",
     "Ask: 'Where is the link to the study or medical journal?'",
     "Talk to your doctor if you have concerns"
   ],
-  
+
   "trusted_resources": [
     {
       "name": "CDC Vaccine Safety Monitoring",
@@ -1218,7 +1217,7 @@ print(json.dumps(consensus, indent=2))
       "why_trusted": "International health organization with expert review"
     }
   ],
-  
+
   "share_if_helpful": {
     "message": "Before believing image-based health claims, check if they're from trusted medical sources. This image is real, but the claims about it are not.",
     "hashtags": ["HealthMisinformation", "VaccineInfo", "FactCheck"]
@@ -1285,20 +1284,21 @@ COST: ~$0.50-1.00 per image (with Google API)
 
 ### 7.1 Baseline Performance Targets
 
-| Component | Metric | Target | Notes |
-|-----------|--------|--------|-------|
-| **MedGemma** | Diagnosis extraction accuracy | >80% | Validated on Cohen dataset |
-| **Claim Extraction** | Precision (true claims/total extracted) | >85% | Reduce false positives |
-| **Claim Extraction** | Recall (caught claims/total present) | >75% | Catch misinformation |
-| **Semantic Clustering** | Silhouette score | >0.60 | Meaningful groupings |
-| **Consensus Accuracy** | Agreement with manual labels | >90% | For 100-image sample |
-| **Total Latency** | End-to-end analysis time | <5 minutes | Usable in real-time |
+| Component               | Metric                                  | Target     | Notes                      |
+| ----------------------- | --------------------------------------- | ---------- | -------------------------- |
+| **MedGemma**            | Diagnosis extraction accuracy           | >80%       | Validated on Cohen dataset |
+| **Claim Extraction**    | Precision (true claims/total extracted) | >85%       | Reduce false positives     |
+| **Claim Extraction**    | Recall (caught claims/total present)    | >75%       | Catch misinformation       |
+| **Semantic Clustering** | Silhouette score                        | >0.60      | Meaningful groupings       |
+| **Consensus Accuracy**  | Agreement with manual labels            | >90%       | For 100-image sample       |
+| **Total Latency**       | End-to-end analysis time                | <5 minutes | Usable in real-time        |
 
 ---
 
 ## CONCLUSION & NEXT STEPS
 
 This framework enables:
+
 - ✅ **Automated medical image analysis** (MedGemma 1.5 4B)
 - ✅ **Claim extraction** (NLP pipeline identifying assertions)
 - ✅ **Semantic clustering** (grouping narratives across platforms)

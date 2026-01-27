@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.db.models import ImageSubmission, MedGemmaAnalysis, SubmissionContext
 from app.db.session import get_db
 from app.orchestrator.agent import MedContextAgent
+from app.provenance.service import store_provenance_manifest
 from app.schemas.common import SubmissionResponse
 from app.schemas.orchestrator import AgentRunResponse
 
@@ -140,6 +141,11 @@ async def ingest_and_run_agent(
         with db.begin():
             db.add(submission)
             db.add(submission_context)
+            store_provenance_manifest(
+                db,
+                image_hash=image_hash,
+                image_id=image_id,
+            )
             result = agent.run(image_bytes=image_bytes, image_id=str(image_id))
 
             triage_payload = result.triage

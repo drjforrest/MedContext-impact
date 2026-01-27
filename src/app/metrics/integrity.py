@@ -12,10 +12,10 @@ class IntegrityWeights:
 
 @dataclass(frozen=True)
 class ContextualIntegrityWeights:
-    alignment: float = 0.5
-    plausibility: float = 0.2
+    alignment: float = 0.6
+    plausibility: float = 0.15
     genealogy_consistency: float = 0.15
-    source_reputation: float = 0.15
+    source_reputation: float = 0.1
 
 
 def _clamp(value: float) -> float:

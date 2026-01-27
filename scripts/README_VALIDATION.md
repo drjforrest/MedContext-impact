@@ -1,6 +1,19 @@
 # Evidence Validation Guide
 
-## Quick Start (5 Minutes)
+## Production Context Scoring (Primary)
+
+Production context scoring uses the MedContext Integrity Score in `src/app/metrics/integrity.py`
+(MedGemma plausibility + provenance consistency + reverse-search reputation). This is the
+only score used for production context scoring.
+
+**Validation approach:**
+- Run unit tests in `tests/test_integrity.py` to verify score weighting and edge cases.
+- Evaluate score distributions on labeled datasets (authentic vs. manipulated) and
+  document results alongside provenance/reverse-search evidence.
+- Use orchestrator runs (`/api/v1/orchestrator/run`) for end-to-end spot checks
+  instead of ELA threshold tuning.
+
+## Legacy Signal Validation (Archived) — Quick Start (5 Minutes)
 
 ### 1. Install Validation Dependencies
 
@@ -30,12 +43,28 @@ python scripts/validate_forensics.py \
   --output validation_results
 ```
 
-**Expected Output:**
-- Forensics signal metrics with 95% confidence intervals
-- ELA threshold analysis (supporting evidence)
+**Expected Output (legacy only):**
+- Legacy forensics signal metrics with 95% confidence intervals
+- ELA threshold analysis (archived supporting evidence)
 - JSON report in `validation_results/`
 
+### Legacy Validation Summary (Archived)
+
+Legacy signals (ELA, etc.) are deprecated for production scoring. We still validate them
+for transparency, research baselines, and optional secondary indicators in offline analysis.
+Full bootstrap/resampling details are archived in Appendix A.
+
+**Summary workflow:**
+1. Prepare a labeled dataset (MedForensics, BTD, or UCI).
+2. Run `scripts/validate_forensics.py` with bootstrap enabled.
+3. Record legacy ELA thresholds for archival comparison only.
+
 ---
+
+## Appendix A: Legacy Validation Details (Archived)
+
+This appendix documents the legacy `validate_forensics.py` workflow for archival and
+research purposes only. It is not used for production context scoring.
 
 ## Dataset Preparation
 
@@ -220,9 +249,10 @@ python scripts/validate_forensics.py --help
 - **Manipulated mean:** Average ELA standard deviation for fake images
 - **Recommended thresholds:** Optimal cutoffs based on ROC analysis
 
-**Example:**
+**Example (legacy ELA thresholds only):**
 ```json
 {
+  "note": "Legacy example only",
   "authentic_ela_std": {"mean": 4.8},
   "manipulated_ela_std": {"mean": 18.3},
   "recommended_thresholds": {
@@ -232,25 +262,31 @@ python scripts/validate_forensics.py --help
 }
 ```
 
-**Action:** Record these values for legacy signal analysis (not used for production context scoring).
+**Action:** Record these values for legacy signal analysis only (archived for transparency,
+research baselines, and optional secondary indicators). Production context scoring uses the
+MedContext Integrity Score described above.
 
 ---
 
-## Updating Legacy Signal Thresholds
+## Updating Legacy Signal Thresholds (Archived)
 
-After validation, record thresholds alongside your validation notes (legacy signals are not used for context scoring):
+Legacy ELA thresholds are deprecated for production scoring. We still validate them for
+transparency, research comparisons, and offline secondary indicators. Do not ship these
+thresholds as production context scoring logic.
+
+After validation, record thresholds alongside your validation notes (legacy-only):
 
 **Before (hardcoded):**
 ```python
-# Legacy signal thresholds
+# Legacy signal thresholds (legacy example only)
 if ela_std > 15.0 and ela_max > 100:
     verdict = "MANIPULATED"
 ```
 
 **After (validated):**
 ```python
-# Legacy signal thresholds (validated on MedForensics dataset, n=58,000)
-# Optimal threshold from ROC analysis: ela_std=17.3
+# Legacy signal thresholds (legacy example only; validated on MedForensics dataset, n=58,000)
+# Optimal threshold from ROC analysis: ela_std=17.3 (archived)
 if ela_std > 17.3 and ela_max > 100:
     verdict = "MANIPULATED"
 elif ela_std < 5.2 and ela_max < 50:
@@ -259,7 +295,7 @@ elif ela_std < 5.2 and ela_max < 50:
 
 ---
 
-## Example Report Output
+## Example Report Output (Legacy Only)
 
 ```json
 {
@@ -268,6 +304,7 @@ elif ela_std < 5.2 and ela_max < 50:
     "bootstrap_iterations": 1000,
     "timestamp": "2026-01-22T10:30:00"
   },
+  "note": "Legacy report output only",
   "metrics": {
     "accuracy": 0.847,
     "precision": 0.823,
@@ -379,14 +416,14 @@ find data/validation/your_dataset/ -name "*.jpg" -o -name "*.png" | wc -l
 
 ## Integration with Competition Submission
 
-### Adding to AGENTIC_ARCHITECTURE.md
+### Adding to AGENTIC_ARCHITECTURE.md (Legacy Only)
 
 ```markdown
-## Scientific Validation
+## Scientific Validation (Legacy Forensics Signals)
 
 **Dataset:** MedForensics (116,000 images, 6 modalities)
 **Subset Tested:** 1,000 images (500 authentic, 500 manipulated)
-**Validation Method:** Bootstrap resampling (1,000 iterations)
+**Validation Method:** Bootstrap resampling (1,000 iterations, legacy forensics)
 
 **Performance Metrics (95% CI):**
 - Accuracy: 0.847 [0.821, 0.871]
@@ -395,8 +432,8 @@ find data/validation/your_dataset/ -name "*.jpg" -o -name "*.png" | wc -l
 - F1 Score: 0.856 [0.832, 0.878]
 - ROC-AUC: 0.912 [0.893, 0.929]
 
-**Threshold Calibration:**
-Based on validation, ELA thresholds updated:
+**Threshold Calibration (legacy only):**
+Based on legacy validation, ELA thresholds updated for archival tracking:
 - Manipulated threshold: 17.3 (ROC-optimal)
 - Authentic threshold: 5.2 (conservative)
 
@@ -404,17 +441,17 @@ Based on validation, ELA thresholds updated:
 [Author et al., "MedForensics: A Large-Scale Multi-Modal Medical Synthetic Manipulation Benchmark", 2024]
 ```
 
-### Adding to README.md
+### Adding to README.md (Legacy Only)
 
 ```markdown
-## Validation
+## Validation (Legacy Forensics Signals)
 
-MedContext has been validated on the MedForensics dataset (116K images, 6 modalities) with the following performance:
+Legacy forensic signals have been validated on the MedForensics dataset (116K images, 6 modalities) with the following performance:
 
 - **Accuracy:** 84.7% [82.1%, 87.1%] (95% CI)
 - **Recall:** 89.1% [86.9%, 91.1%] (95% CI)
 
-Confidence intervals computed via bootstrap resampling (1,000 iterations).
+Confidence intervals computed via bootstrap resampling (1,000 iterations, legacy forensics).
 ```
 
 ---

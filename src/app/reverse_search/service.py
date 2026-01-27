@@ -108,9 +108,9 @@ def _fetch_serpapi_matches(
         "image_base64": encoded_image,
     }
     try:
-        response = requests.post(
+        response = requests.get(
             "https://serpapi.com/search.json",
-            json=payload,
+            params=payload,
             timeout=settings.serp_api_timeout_seconds,
         )
         response.raise_for_status()

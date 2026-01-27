@@ -63,7 +63,9 @@ class MedGemmaClient:
                 if fallback == "local":
                     return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
                 if fallback == "huggingface":
-                    return self._analyze_huggingface(image_bytes=image_bytes, prompt=prompt)
+                    return self._analyze_huggingface(
+                        image_bytes=image_bytes, prompt=prompt
+                    )
                 if fallback == "vllm":
                     return self._analyze_vllm(image_bytes=image_bytes, prompt=prompt)
                 if fallback == "vertex":

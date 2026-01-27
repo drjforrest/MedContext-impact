@@ -260,6 +260,7 @@ def main() -> None:
     warmup_images = images[args.samples : args.samples + args.warmup]
 
     original_serp_api_key: str | None = None
+    original_medgemma_provider = settings.medgemma_provider
     if args.mode != "live":
         original_serp_api_key = settings.serp_api_key
         settings.serp_api_key = ""
@@ -380,6 +381,7 @@ def main() -> None:
     finally:
         if original_serp_api_key is not None:
             settings.serp_api_key = original_serp_api_key
+        settings.medgemma_provider = original_medgemma_provider
 
 
 if __name__ == "__main__":

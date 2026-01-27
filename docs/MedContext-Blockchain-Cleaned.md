@@ -1428,7 +1428,12 @@ class RealTimeAnalysisPipeline:
             print(f"New image detected: {image_hash[:8]}...")
             
             # Step 3: Deep fake detection
-            context_result = self.context_detector.detect_context_mismatch(image_data)
+            # Context detector expects a filesystem path
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp_image:
+                temp_image.write(image_data)
+                temp_image.flush()
+                context_result = self.context_detector.detect_context_mismatch(temp_image.name)
             
             # Step 4: Medical image analysis (MedGemma)
             medgemma_result = self.medgemma.analyze_image(image_data)

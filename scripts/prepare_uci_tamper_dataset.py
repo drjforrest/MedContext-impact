@@ -2,7 +2,7 @@
 """
 Prepare the UCI Medical Image Tamper Detection dataset for validation.
 
-This script converts DICOM slices in the "medical+image+tamper+dataset"
+This script converts DICOM slices in the "medical-image-tamper-detection"
 zip file into PNGs and generates a labels.csv compatible with the validation script.
 
 Output structure:
@@ -104,7 +104,9 @@ def iter_dicom_entries(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Convert UCI tamper dataset zip to PNGs + labels.csv"
+        description=(
+            "Convert medical-image-tamper-detection zip to PNGs + labels.csv"
+        )
     )
     parser.add_argument(
         "--zip",

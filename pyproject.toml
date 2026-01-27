@@ -19,6 +19,7 @@ dependencies = [
   "google-cloud-storage>=3.0.0",
   "langgraph==1.0.5",
   "pillow==11.1.0",
+  "c2pa-python",
   "torch==2.9.1",
   "transformers==4.57.3",
   "accelerate>=1.12.0",

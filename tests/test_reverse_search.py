@@ -1,4 +1,5 @@
 """Tests for the reverse search service."""
+import logging
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
@@ -15,7 +16,10 @@ class TestReverseSearchService:
     def test_run_reverse_search_returns_result(self, sample_image_bytes):
         """Test that run_reverse_search returns a valid result structure."""
         image_id = uuid4()
-        result = run_reverse_search(image_id=image_id, image_bytes=sample_image_bytes)
+        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+            result = run_reverse_search(
+                image_id=image_id, image_bytes=sample_image_bytes
+            )
 
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
@@ -40,11 +44,12 @@ class TestReverseSearchService:
 
         image_id = uuid4()
 
-        with patch("app.reverse_search.service.requests.post", return_value=mock_response):
+        with patch("app.reverse_search.service.requests.get", return_value=mock_response):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
-                result = run_reverse_search(
-                    image_id=image_id, image_bytes=sample_image_bytes
-                )
+                with patch("app.reverse_search.service._LOGGER", MagicMock()):
+                    result = run_reverse_search(
+                        image_id=image_id, image_bytes=sample_image_bytes
+                    )
 
         assert result.status == "completed"
         assert result.image_id == image_id
@@ -56,8 +61,13 @@ class TestReverseSearchService:
         image_id2 = uuid4()
 
         # Different image IDs but same image bytes
-        result1 = run_reverse_search(image_id=image_id1, image_bytes=sample_image_bytes)
-        result2 = run_reverse_search(image_id=image_id2, image_bytes=sample_image_bytes)
+        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+            result1 = run_reverse_search(
+                image_id=image_id1, image_bytes=sample_image_bytes
+            )
+            result2 = run_reverse_search(
+                image_id=image_id2, image_bytes=sample_image_bytes
+            )
 
         # Should have same query_hash (based on image content)
         if hasattr(result1, "query_hash") and hasattr(result2, "query_hash"):
@@ -79,7 +89,7 @@ class TestReverseSearchService:
         assert result.status in ["pending", "completed", "failed"]
 
     @pytest.mark.unit
-    def test_run_reverse_search_api_failure(self, sample_image_bytes):
+    def test_run_reverse_search_api_failure(self, sample_image_bytes, caplog):
         """Test reverse search handles API failures gracefully."""
         import requests
 
@@ -89,7 +99,8 @@ class TestReverseSearchService:
 
         image_id = uuid4()
 
-        with patch("app.reverse_search.service.requests.post", return_value=mock_response):
+        caplog.set_level(logging.CRITICAL, logger="app.reverse_search.service")
+        with patch("app.reverse_search.service.requests.get", return_value=mock_response):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
                 result = run_reverse_search(
                     image_id=image_id, image_bytes=sample_image_bytes
@@ -103,7 +114,10 @@ class TestReverseSearchService:
     def test_reverse_search_returns_job_response(self, sample_image_bytes):
         """Test that reverse search returns job response structure."""
         image_id = uuid4()
-        result = run_reverse_search(image_id=image_id, image_bytes=sample_image_bytes)
+        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+            result = run_reverse_search(
+                image_id=image_id, image_bytes=sample_image_bytes
+            )
 
         # Check for job response attributes
         assert hasattr(result, "job_id")
@@ -114,7 +128,10 @@ class TestReverseSearchService:
     def test_reverse_search_timestamp_format(self, sample_image_bytes):
         """Test that queued_at timestamp is properly formatted."""
         image_id = uuid4()
-        result = run_reverse_search(image_id=image_id, image_bytes=sample_image_bytes)
+        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+            result = run_reverse_search(
+                image_id=image_id, image_bytes=sample_image_bytes
+            )
 
         queued_at = result.queued_at
         assert isinstance(queued_at, datetime)
@@ -127,7 +144,12 @@ class TestReverseSearchService:
         image_id1 = uuid4()
         image_id2 = uuid4()
 
-        result1 = run_reverse_search(image_id=image_id1, image_bytes=sample_image_bytes)
-        result2 = run_reverse_search(image_id=image_id2, image_bytes=sample_image_bytes)
+        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+            result1 = run_reverse_search(
+                image_id=image_id1, image_bytes=sample_image_bytes
+            )
+            result2 = run_reverse_search(
+                image_id=image_id2, image_bytes=sample_image_bytes
+            )
 
         assert result1.image_id != result2.image_id
