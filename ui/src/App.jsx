@@ -961,9 +961,11 @@ function App() {
                             {match.snippet ? (
                               <p className="summary-text">{match.snippet}</p>
                             ) : null}
-                            <a href={match.url} target="_blank" rel="noreferrer">
-                              {match.url}
-                            </a>
+                            {match.url ? (
+                              <a href={match.url} target="_blank" rel="noreferrer">
+                                {match.url}
+                              </a>
+                            ) : null}
                             {match.metadata ? (
                               <p className="helper">
                                 Metadata: {Object.keys(match.metadata).length} fields

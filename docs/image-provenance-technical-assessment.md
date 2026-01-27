@@ -220,6 +220,23 @@ Modern PACS (Picture Archiving and Communication System) implementations include
 ```python
 from c2pa import Builder, Signer, C2paSigningAlg
 import json
+import logging
+import os
+from pathlib import Path
+from jsonschema import validate
+from jsonschema.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
+
+# Example manifest schema (trimmed for brevity)
+MANIFEST_SCHEMA = {
+    "type": "object",
+    "required": ["claim_generator", "assertions"],
+    "properties": {
+        "claim_generator": {"type": "string"},
+        "assertions": {"type": "array"}
+    }
+}
 
 # Define manifest with medical-specific assertions
 manifest = {
@@ -239,7 +256,7 @@ manifest = {
             "data": {
                 "study_type": "Chest CT with contrast",
                 "indication": "Rule out pulmonary embolism",
-                "radiologist": "Dr. Smith (anonymized ID: RST789)"
+                "radiologist_id": "rad-7f1c2e3a"  # anonymized reference
             }
         },
         {
@@ -253,19 +270,44 @@ manifest = {
     ]
 }
 
-# Sign with institutional certificate
-signer_info = {
-    "alg": C2paSigningAlg.PS256,
-    "sign_cert": "path/to/hospital_cert.pem",
-    "private_key": "path/to/private_key.pem"
-}
-signer = Signer.from_info(signer_info)
+# Configuration via env or function parameters (avoid hardcoded paths)
+sign_cert = os.environ.get("MEDCONTEXT_SIGN_CERT")
+private_key = os.environ.get("MEDCONTEXT_PRIVATE_KEY")
+source_path = os.environ.get("MEDCONTEXT_SOURCE_IMAGE")
+output_path = os.environ.get("MEDCONTEXT_SIGNED_IMAGE")
 
-# Embed manifest in medical image
-with Builder(json.dumps(manifest)) as builder:
-    with open("original_scan.jpg", "rb") as source:
-        with open("signed_scan.jpg", "wb") as output:
-            builder.sign(source, output, signer)
+if not all([sign_cert, private_key, source_path, output_path]):
+    raise ValueError("Missing signing configuration (env or parameters).")
+
+for path in (sign_cert, private_key, source_path):
+    candidate = Path(path)
+    if not (candidate.exists() and os.access(candidate, os.R_OK)):
+        raise FileNotFoundError(f"File not readable: {candidate}")
+
+# Validate manifest fields before signing
+try:
+    validate(instance=manifest, schema=MANIFEST_SCHEMA)
+except ValidationError as exc:
+    logger.exception("Manifest validation failed.")
+    raise
+
+# Sign with institutional certificate (guard against load/sign errors)
+try:
+    signer_info = {
+        "alg": C2paSigningAlg.PS256,
+        "sign_cert": sign_cert,
+        "private_key": private_key,
+    }
+    signer = Signer.from_info(signer_info)
+
+    # Embed manifest in medical image
+    with Builder(json.dumps(manifest)) as builder:
+        with open(source_path, "rb") as source:
+            with open(output_path, "wb") as output:
+                builder.sign(source, output, signer)
+except (OSError, ValueError) as exc:
+    logger.exception("Signing failed due to certificate, IO, or config error.")
+    raise
 ```
 
 **Advantages**:
@@ -327,17 +369,55 @@ with Builder(json.dumps(manifest)) as builder:
 
 **API Specification** (following C2PA Soft Binding standard): [spec.c2pa](https://spec.c2pa.org/specifications/specifications/2.2/softbinding/Decoupled.html)
 
+**Authentication + Authorization**
+- OAuth2 bearer tokens in `Authorization: Bearer <token>` (JWT or opaque)
+- Required scopes/roles:
+  - `manifest:read` (role: `clinician`, `auditor`, `compliance`) for `GET /v1/manifests/{manifestId}`
+  - `binding:match` (role: `ingestion`, `device`, `service`) for `POST /v1/matches/byBinding`
+- 403 on missing scope/role; 401 on invalid/expired token
+
+**Rate Limiting + DoS Mitigation**
+- Default: token-scoped + IP-based rate limits (e.g., 60 req/min burst 10)
+- Responses include:
+  - `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+  - `Retry-After` on `429 Too Many Requests`
+- Enforce payload size limits, streaming parsing, and early reject on oversized uploads
+- Optional WAF/bot mitigation and per-tenant quotas to prevent abuse
+
+**Upload Validation Rules (asset)**
+- Max content size: 10MB for base64 payloads (reject if decoded size > 10MB)
+- Supported formats: `image/jpeg`, `image/png`, `image/tiff`, `application/dicom`
+- Reject unknown MIME types, invalid headers, or corrupted payloads
+- Prefer binary/multipart or chunked streaming for large images/DICOM
+  - Use multipart uploads for files >100MB
+  - Support resumable/chunked uploads for very large studies
+
+**Perceptual Hash Pre-Filter**
+- Optional pre-flight: submit a perceptual hash or pHash sketch first
+- If a confident match is found, return `manifestId` without full upload
+- Falls back to full asset upload only when necessary
+
+**Optional Async Processing**
+- For heavy matching workflows, allow async mode:
+  - `POST /v1/matches/byBinding?async=true` returns `202 Accepted`
+  - Provide `callback_url` for webhook notification
+  - Webhook payload includes `job_id`, `status`, and match results
+
 ```json
 POST /v1/matches/byBinding
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
 {
   "asset": {
     "format": "image/jpeg",
     "data": "<base64_encoded_image>"
   },
-  "binding_methods": ["perceptual_hash", "steganographic_watermark"]
+  "binding_methods": ["perceptual_hash", "steganographic_watermark"],
+  "callback_url": "https://client.example.com/webhooks/matches" 
 }
 
-Response:
+Response (200):
 {
   "matches": [
     {
@@ -347,9 +427,40 @@ Response:
     }
   ]
 }
+```
 
+```json
+POST /v1/matches/byBinding?async=true
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "asset": {
+    "format": "image/jpeg",
+    "data": "<base64_encoded_image>"
+  },
+  "binding_methods": ["perceptual_hash", "steganographic_watermark"],
+  "callback_url": "https://client.example.com/webhooks/matches"
+}
+
+Response (202):
+{
+  "job_id": "match_01HZZ3X3A9X0K1G1K5QFQZ4K2B",
+  "status": "queued"
+}
+```
+
+```json
 GET /v1/manifests/{manifestId}
+Authorization: Bearer <access_token>
+
 Response: <C2PA manifest JSON>
+```
+
+**Caching Guidance (GET /v1/manifests/{manifestId})**
+- Use `ETag` and `If-None-Match` with `304 Not Modified`
+- Recommend `Cache-Control: private, max-age=300` for client caching
+- Set `Vary: Authorization` for scoped access
 ```
 
 **Advantages**:
@@ -374,9 +485,10 @@ Response: <C2PA manifest JSON>
 
 **Technical Design**:
 
-DICOM allows private tags (group elements 0x0009, 0x0011, etc.) for vendor-specific metadata. MedContext could define: [pmc.ncbi.nlm.nih](https://pmc.ncbi.nlm.nih.gov/articles/PMC11361589/)
+DICOM allows private tags (group elements 0x0009, 0x0011, etc.) for vendor-specific metadata. MedContext should reserve a Private Creator element per DICOM PS3.5 and allocate a block for its private elements. For example: [pmc.ncbi.nlm.nih](https://pmc.ncbi.nlm.nih.gov/articles/PMC11361589/)
 
 ```
+(0019,0010) Private Creator: "MedContext"
 (0019,1001) MedContext Provenance Version: "1.0"
 (0019,1002) MedContext Manifest ID: "urn:uuid:..."
 (0019,1003) MedContext Repository URL: "https://provenance.medcontext.org/api/v1"
@@ -384,7 +496,7 @@ DICOM allows private tags (group elements 0x0009, 0x0011, etc.) for vendor-speci
 (0019,1005) MedContext Signature (truncated): "<first 256 bytes of signature>"
 ```
 
-These private tags survive most PACS workflows that preserve DICOM structure even during anonymization. [pmc.ncbi.nlm.nih](https://pmc.ncbi.nlm.nih.gov/articles/PMC11361589/)
+The Private Creator reserves a 0x10xx slot for MedContext so subsequent elements (e.g., (0019,1001)–(0019,1005)) must occupy that block, preventing namespace collisions with other vendors. These private tags survive most PACS workflows that preserve DICOM structure even during anonymization, but test with multiple PACS vendors because some anonymization profiles strip private tags. [pmc.ncbi.nlm.nih](https://pmc.ncbi.nlm.nih.gov/articles/PMC11361589/)
 
 **Verification Workflow**:
 
@@ -447,34 +559,19 @@ These private tags survive most PACS workflows that preserve DICOM structure eve
 - Audit logging and analytics dashboard
 
 **Integration Points**:
+{
+"label": "org.medcontext.patient_context",
+"data": {
+"patient_id_hash": "sha256:ab3d8f9e...", // Hash of MRN
+"study_id": "uuid:123e4567-...",
+"age_decade": "50s", // Further generalized; >89 → "90+"
+// Remove sex unless required for clinical context AND properly justified
+}
+} 2. **Build Stakeholder Coalition**
 
-- Pilot with one imaging modality (e.g., CT scanner) at partner institution
-- Automatic provenance capture at image acquisition
-- Manual verification tool accessible to radiologists
-
-**Validation**:
-
-- Clinical usability testing (n=10 radiologists)
-- Technical validation: manifest integrity after PACS round-trip
-- Performance metrics: signing latency, storage overhead, verification time
-
-**Deliverable**: Working pilot system with evaluation report
-
-#### Phase 3: Standards Development (12-18 months)
-
-**Objective**: Contribute to development of healthcare-specific C2PA profiles and seek regulatory clarity.
-
-**Activities**:
-
-1. **Engage C2PA Standards Body**
-   - Present healthcare use cases to C2PA technical working group
-   - Propose healthcare-specific assertion types
-   - Collaborate on DICOM-C2PA interoperability specification
-
-2. **Build Stakeholder Coalition**
-   - Partner with PACS vendors (Sectra, GE Healthcare, Philips)
-   - Engage medical device manufacturers (Siemens, Canon Medical)
-   - Collaborate with HL7 FHIR working groups on provenance standards
+- Partner with PACS vendors (Sectra, GE Healthcare, Philips)
+- Engage medical device manufacturers (Siemens, Canon Medical)
+- Collaborate with HL7 FHIR working groups on provenance standards
 
 3. **Regulatory Pathway**
    - Consult with FDA on software classification (likely Class II medical device software)
@@ -550,12 +647,22 @@ These private tags survive most PACS workflows that preserve DICOM structure eve
 
 - Signing latency: <500ms per image (acceptable for asynchronous processing)
 - Verification latency: <200ms (fast enough for interactive clinical use)
-- Storage overhead: <2% increase in archive size
+- Storage overhead: <7% with per-image manifests (~50KB); <2% only with study-level signing (effective ~5KB/image)
 - API throughput: >100 verifications/second
+- Soft-binding repository storage: budget separately (manifest + hash index storage outside the archive)
+- Manifest retrieval bandwidth: include verification-time fetch in throughput targets and CDN sizing
+
+**Sample calculations (rounded)**:
+
+- 200–400 images × 512KB each = ~102–205MB per study
+- 50KB per-image manifest ⇒ ~10–20MB overhead ⇒ ~6.7% (per-image signing)
+- 5KB effective manifest ⇒ ~1–2MB overhead ⇒ ~0.67% (study-level signing)
+
+**Implication**: The <2% target is only reachable with study-level signing. Use the existing **Batch signing for studies** optimization for any production targets at or below 2%.
 
 **Optimization Techniques**:
 
-- Batch signing for studies (sign study manifest instead of per-image)
+- Batch signing for studies (sign study manifest instead of per-image; required for <2% overhead)
 - Caching of certificate validation results
 - Async signing pipelines with queue management
 - CDN distribution of trust anchors and verification services

@@ -265,7 +265,7 @@ class DCTAnalyzer(nn.Module):
         for img in gray:
             # DCT 2D
             img_np = img.cpu().detach().numpy()
-            dct_2d = dct(dct_2d(img_np, axis=0), axis=1)
+            dct_2d = dct(dct(img_np, axis=0), axis=1)
 
             # Extract statistics from frequency bands
             features = {
@@ -1523,7 +1523,7 @@ class RealTimeAnalysisPipeline:
 
         # Step 8: Extract claims from caption/context
         caption_text = metadata.get('caption', '')
-        claims = self.claim_extractor.extract_claims(caption_text, image_id=image_hash[:8])
+        claims = self.claim_extractor.extract_claims(caption_text, image_id=image_hash)
 
         # Step 9: Record usage on blockchain
         for claim in claims['claims']:

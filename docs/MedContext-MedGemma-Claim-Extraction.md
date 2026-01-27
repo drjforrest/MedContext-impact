@@ -377,7 +377,8 @@ class MedicalClaimExtractor:
 
         Args:
             text (str): Text surrounding or describing image (caption, post text, etc.)
-            image_id (str): Associated image identifier
+            image_id (str): Associated image identifier (use full image hash or UUID;
+                avoid truncated IDs to prevent collisions)
 
         Returns:
             list: List of structured claims with metadata
@@ -500,7 +501,10 @@ I heard from my doctor friend that this happens all the time but they don't repo
 Look at the damage caused by the COVID vaccine!
 """
 
-result = extractor.extract_claims(example_text, image_id="IMG_042")
+result = extractor.extract_claims(
+    example_text,
+    image_id="6f1d4c9a9f4b1c4a1a0a7fdd4d4c6c09d0d7a6d2c3b4a5f6e7d8c9b0a1b2c3d4"
+)
 
 print(json.dumps(result, indent=2))
 ```
@@ -509,12 +513,12 @@ print(json.dumps(result, indent=2))
 
 ```json
 {
-  "image_id": "IMG_042",
+  "image_id": "6f1d4c9a9f4b1c4a1a0a7fdd4d4c6c09d0d7a6d2c3b4a5f6e7d8c9b0a1b2c3d4",
   "original_text": "This is a vaccine injured lung! The vaccine destroyed...",
   "claims_extracted": 3,
   "claims": [
     {
-      "claim_id": "CLM_IMG_042_000",
+      "claim_id": "CLM_6f1d4c9a9f4b1c4a1a0a7fdd4d4c6c09d0d7a6d2c3b4a5f6e7d8c9b0a1b2c3d4_000",
       "claim_text": "This is a vaccine injured lung!",
       "entities": [
         {
@@ -534,7 +538,7 @@ print(json.dumps(result, indent=2))
       "flags": ["emotionally_charged_language"]
     },
     {
-      "claim_id": "CLM_IMG_042_001",
+      "claim_id": "CLM_6f1d4c9a9f4b1c4a1a0a7fdd4d4c6c09d0d7a6d2c3b4a5f6e7d8c9b0a1b2c3d4_001",
       "claim_text": "The vaccine destroyed this person's respiratory system.",
       "entities": [
         {
@@ -558,6 +562,9 @@ print(json.dumps(result, indent=2))
   ]
 }
 ```
+
+**Storage note:** If persisting claims by `image_id` or `claim_id`, size keys and indexes
+for full SHA-256 hex identifiers (64 chars) or longer. Avoid schemas that assume 8-char IDs.
 
 ---
 
