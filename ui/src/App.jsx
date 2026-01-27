@@ -92,6 +92,11 @@ function App() {
         detail: 'We review the image and your context.',
       },
       {
+        key: 'medgemma',
+        label: 'MedGemma review',
+        detail: 'MedGemma checks medical plausibility and context.',
+      },
+      {
         key: 'reverse_search',
         label: 'Checking sources',
         detail: 'Looking for where this image appears online.',
@@ -126,13 +131,13 @@ function App() {
       agentStartRef.current = Date.now()
     }
 
-    const stepWindowMs = 1800
+    const stepWindowMs = 8000
     const updateStep = () => {
       const elapsed = Date.now() - (agentStartRef.current || Date.now())
-      const nextIndex = Math.min(
-        agentSteps.length - 1,
-        Math.floor(elapsed / stepWindowMs),
-      )
+      const computedIndex = Math.floor(elapsed / stepWindowMs)
+      const maxIndex =
+        status === 'loading' ? Math.max(0, agentSteps.length - 2) : agentSteps.length - 1
+      const nextIndex = Math.min(maxIndex, computedIndex)
       setAgentStepIndex(nextIndex)
     }
 
@@ -326,6 +331,7 @@ function App() {
     [forensicsData, orchestratorReverseSearch, provenanceData],
   )
   const agentStepStates = useMemo(() => {
+    const hasAnyToolActivity = Object.values(toolActivity).some(Boolean)
     return agentSteps.map((step, index) => {
       if (status === 'success') {
         if (step.key in toolActivity) {
@@ -337,10 +343,12 @@ function App() {
         if (step.key in toolActivity) {
           return toolActivity[step.key] ? 'done' : 'skipped'
         }
-        const hasAnyToolActivity = Object.values(toolActivity).some(Boolean)
         return hasAnyToolActivity ? 'skipped' : 'idle'
       }
       if (status === 'loading') {
+        if (step.key === 'medgemma') {
+          return hasAnyToolActivity ? 'done' : 'active'
+        }
         if (step.key in toolActivity && toolActivity[step.key]) {
           return 'done'
         }
@@ -445,6 +453,63 @@ function App() {
     }
     return { score: 0, label: 'Alignment is unclear.', tone: 'neutral' }
   }, [part2?.alignment, part2?.verdict])
+  const evidenceItems = useMemo(() => {
+    const items = []
+    if (part2?.alignment) {
+      items.push({
+        label: 'Alignment signal',
+        value: part2.alignment,
+        detail: alignmentScore.label,
+        tone: alignmentScore.tone,
+      })
+    }
+    if (integrityScorePercent !== null) {
+      items.push({
+        label: 'Integrity score',
+        value: `${integrityScorePercent}%`,
+        detail: 'Composite score across evidence signals.',
+        tone: integrityScoreTone,
+      })
+    }
+    if (orchestratorReverseSearch) {
+      const matchCount = orchestratorReverseSearch.matches?.length || 0
+      items.push({
+        label: 'Reverse search',
+        value: `${matchCount} matches`,
+        detail: matchCount ? 'Sources found online.' : 'No sources found.',
+        tone: matchCount ? 'high' : 'neutral',
+      })
+    }
+    if (provenanceData) {
+      const blockCount = provenanceData.blocks?.length || 0
+      items.push({
+        label: 'Provenance chain',
+        value: `${blockCount} blocks`,
+        detail: blockCount ? 'Immutable chain constructed.' : 'No chain data.',
+        tone: blockCount ? 'high' : 'neutral',
+      })
+    }
+    if (forensicsData) {
+      const statusLabel =
+        typeof forensicsData?.status === 'string' ? forensicsData.status : 'unknown'
+      items.push({
+        label: 'Forensics status',
+        value: statusLabel,
+        detail: forensicsData?.detail || 'No forensics detail returned.',
+        tone: statusLabel === 'completed' ? 'high' : 'neutral',
+      })
+    }
+    return items
+  }, [
+    alignmentScore.label,
+    alignmentScore.tone,
+    forensicsData,
+    integrityScorePercent,
+    integrityScoreTone,
+    orchestratorReverseSearch,
+    part2?.alignment,
+    provenanceData,
+  ])
   return (
     <div className="page">
       <header className="hero">
@@ -562,100 +627,111 @@ function App() {
           </section>
         ) : (
           <>
-            <section className="card activity-card">
-              <div className="reverse-header">
-                <div>
-                  <h2>Progress</h2>
-                  <p className="helper">
-                    Live status updates while we work on your request.
-                  </p>
+            <div className="top-grid">
+              <section className="card activity-card">
+                <div className="reverse-header">
+                  <div>
+                    <h2>Progress</h2>
+                    <p className="helper">
+                      Live status updates while we work on your request.
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="activity-grid">
-                {agentSteps.map((step, index) => {
-                  const state = agentStepStates[index]
-                  return (
-                    <div
-                      className={`activity-step activity-${state}`}
-                      key={step.key}
-                    >
-                      <div className="activity-header">
-                        <span>{step.label}</span>
-                        <span className={`activity-pill activity-${state}`}>
-                          {state}
-                        </span>
+                <div className="activity-grid">
+                  {agentSteps.map((step, index) => {
+                    const state = agentStepStates[index]
+                    return (
+                      <div
+                        className={`activity-step activity-${state}`}
+                        key={step.key}
+                      >
+                        <div className="activity-header">
+                          <span>{step.label}</span>
+                          <span className={`activity-pill activity-${state}`}>
+                            {state}
+                          </span>
+                        </div>
+                        <p className="helper">{step.detail}</p>
                       </div>
-                      <p className="helper">{step.detail}</p>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
-            <section className="card">
-              <h2>Provide an image</h2>
-              <div className="grid">
+                    )
+                  })}
+                </div>
+              </section>
+              <section className="card">
+                <h2>Provide an image</h2>
+                <div className="inline-status" aria-live="polite">
+                  <span className={`status-dot status-${status}`} />
+                  {status === 'loading' ? (
+                    <span className="spinner" aria-hidden="true" />
+                  ) : null}
+                  <span>{statusLabel}</span>
+                </div>
+                <div className="grid">
+                  <label className="field">
+                    <span>Image file</span>
+                    <input
+                      key={fileInputKey}
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) =>
+                        setImageFile(event.target.files?.[0] || null)
+                      }
+                    />
+                    <span className="helper">
+                      {imageFile
+                        ? imageFile.name
+                        : 'PNG, JPG, or HEIC recommended.'}
+                    </span>
+                  </label>
+                  <label className="field">
+                    <span>Public image URL</span>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={imageUrl}
+                      onChange={(event) => setImageUrl(event.target.value)}
+                    />
+                    <span className="helper">
+                      Use a direct image link if possible.
+                    </span>
+                  </label>
+                </div>
                 <label className="field">
-                  <span>Image file</span>
-                  <input
-                    key={fileInputKey}
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) =>
-                      setImageFile(event.target.files?.[0] || null)
-                    }
+                  <span>Optional context</span>
+                  <textarea
+                    rows="3"
+                    placeholder="Caption or claim about the image"
+                    value={context}
+                    onChange={(event) => setContext(event.target.value)}
                   />
-                  <span className="helper">
-                    {imageFile ? imageFile.name : 'PNG, JPG, or HEIC recommended.'}
-                  </span>
                 </label>
-                <label className="field">
-                  <span>Public image URL</span>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/image.jpg"
-                    value={imageUrl}
-                    onChange={(event) => setImageUrl(event.target.value)}
-                  />
-                  <span className="helper">
-                    Use a direct image link if possible.
-                  </span>
-                </label>
-              </div>
-              <label className="field">
-                <span>Optional context</span>
-                <textarea
-                  rows="3"
-                  placeholder="Caption or claim about the image"
-                  value={context}
-                  onChange={(event) => setContext(event.target.value)}
-                />
-              </label>
-              <div className="actions">
-                <button
-                  type="button"
-                  onClick={handleRun}
-                  disabled={status === 'loading'}
-                >
-                  Run verification
-                </button>
-                <button
-                  type="button"
-                  className="ghost"
-                  onClick={() => {
-                    setImageFile(null)
-                    setImageUrl('')
-                    setContext('')
-                    setResult(null)
-                    setError('')
-                    setStatus('idle')
-                    setFileInputKey((currentKey) => currentKey + 1)
-                  }}
-                >
-                  Clear
-                </button>
-              </div>
-              {error ? <p className="error">{error}</p> : null}
-            </section>
+                <div className="actions">
+                  <button
+                    type="button"
+                    onClick={handleRun}
+                    disabled={status === 'loading'}
+                  >
+                    Run verification
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setImageFile(null)
+                      setImageUrl('')
+                      setContext('')
+                      setResult(null)
+                      setError('')
+                      setStatus('idle')
+                      setFileInputKey((currentKey) => currentKey + 1)
+                    }}
+                  >
+                    Clear
+                  </button>
+                </div>
+                {error ? <p className="error">{error}</p> : null}
+              </section>
+            </div>
 
             <section className="card">
               <div className="reverse-header">
@@ -938,6 +1014,23 @@ function App() {
                             <p className="helper">No signal data available.</p>
                           )}
                         </div>
+                      </div>
+                    </div>
+                  ) : null}
+                  {evidenceItems.length ? (
+                    <div className="result-block">
+                      <h3>Explainability highlights</h3>
+                      <div className="evidence-grid">
+                        {evidenceItems.map((item) => (
+                          <div
+                            key={`${item.label}-${item.value}`}
+                            className={`evidence-card evidence-${item.tone}`}
+                          >
+                            <span className="evidence-label">{item.label}</span>
+                            <strong className="evidence-value">{item.value}</strong>
+                            <p className="helper">{item.detail}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ) : null}

@@ -47,15 +47,26 @@ class MedGemmaClient:
     def analyze_image(
         self, image_bytes: bytes, prompt: Optional[str] = None
     ) -> MedGemmaResult:
-        if self.provider == "huggingface":
-            return self._analyze_huggingface(image_bytes=image_bytes, prompt=prompt)
-        if self.provider == "local":
-            return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
-        if self.provider == "vllm":
-            return self._analyze_vllm(image_bytes=image_bytes, prompt=prompt)
-        if self.provider == "vertex":
-            return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
-        raise MedGemmaClientError(f"Unsupported provider: {self.provider}")
+        try:
+            if self.provider == "huggingface":
+                return self._analyze_huggingface(image_bytes=image_bytes, prompt=prompt)
+            if self.provider == "local":
+                return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
+            if self.provider == "vllm":
+                return self._analyze_vllm(image_bytes=image_bytes, prompt=prompt)
+            if self.provider == "vertex":
+                return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
+            raise MedGemmaClientError(f"Unsupported provider: {self.provider}")
+        except MedGemmaClientError as exc:
+            fallback = settings.medgemma_fallback_provider.strip().lower()
+            if fallback and fallback != self.provider:
+                if fallback == "local":
+                    return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
+                if fallback == "huggingface":
+                    return self._analyze_huggingface(image_bytes=image_bytes, prompt=prompt)
+                if fallback == "vertex":
+                    return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
+            raise
 
     def _analyze_huggingface(
         self, image_bytes: bytes, prompt: Optional[str]
@@ -156,7 +167,10 @@ class MedGemmaClient:
         inputs = inputs.to(self._local_device, dtype=dtype)
         input_len = inputs["input_ids"].shape[-1]
         do_sample = False
-        generation_kwargs = {"max_new_tokens": 2000, "do_sample": do_sample}
+        generation_kwargs = {
+            "max_new_tokens": settings.medgemma_max_new_tokens,
+            "do_sample": do_sample,
+        }
         if do_sample:
             if self._local_model.generation_config.top_p is not None:
                 generation_kwargs["top_p"] = self._local_model.generation_config.top_p
@@ -169,12 +183,14 @@ class MedGemmaClient:
             generation = self._local_model.generate(**inputs, **generation_kwargs)
             generation = generation[0][input_len:]
         decoded = self._local_processor.decode(generation, skip_special_tokens=True)
+        cleaned = self._clean_text(decoded)
+        parsed = self._parse_json(cleaned)
 
         return MedGemmaResult(
             provider="local",
             model=settings.medgemma_hf_model,
-            output={"text": decoded},
-            raw_text=decoded,
+            output=parsed if parsed is not None else {"text": cleaned},
+            raw_text=cleaned,
         )
 
     def _analyze_vertex(
@@ -236,14 +252,60 @@ class MedGemmaClient:
             "messages": [{"role": "user", "content": content}],
         }
 
-        try:
-            with httpx.Client(timeout=90.0) as client:
-                response = client.post(settings.medgemma_vllm_url, json=payload)
-                response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise MedGemmaClientError(f"vLLM request failed: {exc}") from exc
+        raw_url = settings.medgemma_vllm_url.rstrip("/")
+        candidate_urls = [raw_url]
+        if settings.medgemma_url:
+            candidate_urls.append(settings.medgemma_url.rstrip("/"))
+        if "/chat/completions" not in raw_url:
+            if raw_url.endswith("/v1"):
+                candidate_urls.append(f"{raw_url}/chat/completions")
+            else:
+                candidate_urls.append(f"{raw_url}/v1/chat/completions")
+                candidate_urls.append(f"{raw_url}/chat/completions")
+        for base_url in list(candidate_urls):
+            if "/chat/completions" in base_url:
+                continue
+            if base_url.endswith("/v1"):
+                candidate_urls.append(f"{base_url}/chat/completions")
+            else:
+                candidate_urls.append(f"{base_url}/v1/chat/completions")
+                candidate_urls.append(f"{base_url}/chat/completions")
+        candidate_urls = list(dict.fromkeys(candidate_urls))
 
-        data = response.json()
+        last_error: Exception | None = None
+        last_status: int | None = None
+        last_url: str | None = None
+        response = None
+        with httpx.Client(timeout=90.0) as client:
+            for url in candidate_urls:
+                try:
+                    response = client.post(url, json=payload)
+                    response.raise_for_status()
+                    break
+                except httpx.HTTPStatusError as exc:
+                    last_error = exc
+                    last_status = exc.response.status_code if exc.response else None
+                    last_url = url
+                    if exc.response is not None and exc.response.status_code == 404:
+                        continue
+                    raise MedGemmaClientError(f"vLLM request failed: {exc}") from exc
+                except httpx.HTTPError as exc:
+                    raise MedGemmaClientError(f"vLLM request failed: {exc}") from exc
+
+        if response is None:
+            raise MedGemmaClientError(
+                "vLLM request failed for URLs: "
+                f"{', '.join(candidate_urls)} (last_status={last_status}, last_url={last_url})"
+            ) from last_error
+
+        try:
+            data = response.json()
+        except ValueError as exc:
+            snippet = response.text[:300] if response.text else ""
+            raise MedGemmaClientError(
+                f"vLLM returned non-JSON response ({response.status_code}). "
+                f"Body: {snippet}"
+            ) from exc
         content = self._extract_vllm_content(data)
         cleaned = self._clean_text(content)
         parsed = self._parse_json(cleaned)

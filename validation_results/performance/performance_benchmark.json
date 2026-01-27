@@ -1,0 +1,59 @@
+{
+  "benchmark_summary": {
+    "dataset": "data/validation/uci_tamper",
+    "samples": 50,
+    "warmup": 3,
+    "mode": "stub",
+    "serpapi_enabled": false,
+    "medgemma_provider": "vllm",
+    "llm_provider": "openai_compatible"
+  },
+  "latency_ms": {
+    "total": {
+      "mean_ms": 0.23737843997878372,
+      "p50_ms": 0.22812499992141966,
+      "p95_ms": 0.3135063997660836
+    },
+    "triage": {
+      "mean_ms": 0.002600939969852334,
+      "p50_ms": 0.0023749998945277184,
+      "p95_ms": 0.0034728500622804837
+    },
+    "reverse_search": {
+      "mean_ms": 0.04957163995641167,
+      "p50_ms": 0.04968799999005569,
+      "p95_ms": 0.06446264999340201
+    },
+    "forensics": {
+      "mean_ms": 0.00262077998741006,
+      "p50_ms": 0.0023749998945277184,
+      "p95_ms": 0.0033123497587439475
+    },
+    "provenance": {
+      "mean_ms": 0.04807752000488108,
+      "p50_ms": 0.04824999996344559,
+      "p95_ms": 0.06443125014357064
+    },
+    "synthesis": {
+      "mean_ms": 0.029687379983442952,
+      "p50_ms": 0.018270499822392594,
+      "p95_ms": 0.02738300017881556
+    },
+    "postprocess": {
+      "mean_ms": 0.10372244000791397,
+      "p50_ms": 0.10566650007604039,
+      "p95_ms": 0.14206075009042252
+    }
+  },
+  "throughput": {
+    "images_per_second": 4172.67949774211,
+    "total_seconds": 0.011982708000232378
+  },
+  "cost_drivers": {
+    "medgemma_calls_per_image": 1,
+    "llm_calls_per_image": 1,
+    "reverse_search_calls_per_image": 1,
+    "provenance_calls_per_image": 1,
+    "forensics_calls_per_image": 1
+  }
+}

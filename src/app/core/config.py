@@ -12,10 +12,18 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("MEDGEMMA_HF_TOKEN"),
     )
+    medgemma_max_new_tokens: int = Field(
+        default=2000,
+        validation_alias=AliasChoices("MEDGEMMA_MAX_NEW_TOKENS"),
+    )
     medgemma_vllm_url: str = "http://localhost:8001/v1/chat/completions"
     medgemma_vertex_project: str = ""
     medgemma_vertex_location: str = "us-central1"
     medgemma_vertex_endpoint: str = ""
+    medgemma_fallback_provider: str = Field(
+        default="local",
+        validation_alias=AliasChoices("MEDGEMMA_FALLBACK_PROVIDER"),
+    )
     llm_provider: str = "openai_compatible"  # openai_compatible | ollama
     llm_orchestrator: str = "openai/gpt-4o-mini"
     llm_worker: str = "openai/gpt-4o-mini"

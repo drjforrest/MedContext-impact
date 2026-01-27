@@ -165,6 +165,44 @@ Tackles the critical problem of medical misinformation through **contextual inte
 
 ---
 
+## ⏱️ Performance Benchmarks
+
+**Benchmark mode:** Stubbed MedGemma/LLM (no external API latency), SerpAPI disabled  
+**Dataset:** `data/validation/uci_tamper` (50 images, 3 warmup)  
+**Report:** `validation_results/performance/performance_benchmark.json`
+
+**End-to-end latency (ms per image):**
+- Mean: 0.24 ms
+- P50: 0.23 ms
+- P95: 0.31 ms
+
+**Throughput:** ~4,173 images/sec (local orchestration overhead only)
+
+**Cost drivers (per image, worst-case):**
+- MedGemma calls: 1 (triage)
+- LLM calls: 1 (synthesis)
+- Reverse search calls: 1
+- Provenance build: 1
+- Forensics pass: 1
+
+**Interpretation:** These numbers isolate orchestration + local tool overhead.  
+Real-world latency is dominated by model inference and external APIs; cost scales with tool selection (the agent skips tools when not needed).
+
+**Local live run (today):** MedGemma local + OpenAI-compatible LLM  
+**Dataset:** `data/validation/uci_tamper` (1 image, 0 warmup)  
+**Config:** `MEDGEMMA_PROVIDER=local`, `MEDGEMMA_MAX_NEW_TOKENS=128`  
+**Report:** `validation_results/performance_live/performance_benchmark.json`
+
+**End-to-end latency (ms per image):**
+- Mean: 36,073 ms
+- P50: 36,073 ms
+- P95: 36,073 ms
+
+**Throughput:** ~0.028 images/sec  
+**Notes:** Single-sample run for local provisioning validation; scale numbers will stabilize with larger sample size.
+
+---
+
 ## 🚀 Quick Demo
 
 ### Setup (2 minutes)

@@ -101,6 +101,13 @@
   gap: 1.5rem;
 }
 
+.top-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(320px, 1.1fr) minmax(360px, 1fr);
+  align-items: start;
+}
+
 .card {
   background: var(--surface);
   border-radius: 18px;
@@ -242,6 +249,9 @@ button.ghost {
 
 .activity-card {
   border-style: dashed;
+  position: sticky;
+  top: 1rem;
+  z-index: 2;
 }
 
 .activity-grid {
@@ -324,6 +334,18 @@ button.ghost {
   gap: 0.75rem 1.5rem;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.inline-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--surface-muted);
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0.5rem 0 1rem;
 }
 
 .match-grid {
@@ -543,6 +565,53 @@ button.ghost {
   border-color: rgba(229, 72, 77, 0.35);
 }
 
+.evidence-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.evidence-card {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 1rem;
+  background: var(--surface-soft);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.evidence-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.evidence-value {
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.evidence-card.evidence-high {
+  border-color: rgba(45, 184, 138, 0.35);
+  background: linear-gradient(180deg, #f4fbf7 0%, #ffffff 100%);
+}
+
+.evidence-card.evidence-medium {
+  border-color: rgba(245, 165, 36, 0.35);
+  background: linear-gradient(180deg, #fff7ec 0%, #ffffff 100%);
+}
+
+.evidence-card.evidence-low {
+  border-color: rgba(229, 72, 77, 0.3);
+  background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
+}
+
+.evidence-card.evidence-neutral {
+  border-color: var(--border);
+}
+
 .hero-brand {
   display: flex;
   align-items: center;
@@ -551,7 +620,7 @@ button.ghost {
 }
 
 .hero-logo {
-  width: 220px;
+  width: 320px;
   height: auto;
   filter: drop-shadow(0 8px 18px rgba(11, 31, 58, 0.2));
 }
@@ -570,6 +639,14 @@ button.ghost {
 @media (max-width: 720px) {
   .hero h1 {
     font-size: 2rem;
+  }
+
+  .top-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-logo {
+    width: 220px;
   }
 }
 

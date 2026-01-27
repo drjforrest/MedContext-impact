@@ -289,7 +289,9 @@ class MedContextLangGraphAgent:
         triage: Any,
         tool_results: dict[str, Any],
     ) -> dict[str, Any]:
-        alignment_score, alignment_label = self._extract_alignment_signal(synthesis_output)
+        alignment_score, alignment_label = self._extract_alignment_signal(
+            synthesis_output
+        )
         plausibility_score = self._extract_plausibility(triage)
         source_reputation = self._derive_source_reputation(tool_results)
         genealogy_consistency = self._derive_genealogy_consistency(tool_results)
@@ -358,13 +360,16 @@ class MedContextLangGraphAgent:
         confidences = [
             match.get("confidence")
             for match in matches
-            if isinstance(match, dict) and isinstance(match.get("confidence"), (int, float))
+            if isinstance(match, dict)
+            and isinstance(match.get("confidence"), (int, float))
         ]
         if not confidences:
             return None
         return max(0.0, min(1.0, sum(confidences) / len(confidences)))
 
-    def _derive_genealogy_consistency(self, tool_results: dict[str, Any]) -> float | None:
+    def _derive_genealogy_consistency(
+        self, tool_results: dict[str, Any]
+    ) -> float | None:
         provenance = tool_results.get("provenance")
         if not isinstance(provenance, dict):
             return None
