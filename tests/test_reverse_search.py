@@ -48,6 +48,7 @@ class TestReverseSearchService:
         """Test reverse search with mocked SerpAPI response."""
         mock_response = MagicMock()
         mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
         mock_response.json.return_value = {
             "inline_images": [
                 {
@@ -62,7 +63,7 @@ class TestReverseSearchService:
         image_id = uuid4()
 
         with patch(
-            "app.reverse_search.service.requests.get", return_value=mock_response
+            "app.reverse_search.service.requests.post", return_value=mock_response
         ):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
                 with patch("app.reverse_search.service._LOGGER", MagicMock()):
@@ -89,8 +90,10 @@ class TestReverseSearchService:
             )
 
         # Should have same query_hash (based on image content)
-        if hasattr(result1, "query_hash") and hasattr(result2, "query_hash"):
-            assert result1.query_hash == result2.query_hash
+        # Note: query_hash may be None only if image_bytes is empty/None at submission time
+        assert hasattr(result1, "query_hash"), "result1 missing query_hash attribute"
+        assert hasattr(result2, "query_hash"), "result2 missing query_hash attribute"
+        assert result1.query_hash == result2.query_hash
 
     @pytest.mark.unit
     def test_run_reverse_search_without_api_key(self, sample_image_bytes):
@@ -105,7 +108,7 @@ class TestReverseSearchService:
         # Should still return valid structure
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
-        assert result.status in ["pending", "completed", "failed"]
+        assert result.status in ["queued", "completed", "invalid_request"]
 
     @pytest.mark.unit
     def test_run_reverse_search_api_failure(self, sample_image_bytes, caplog):
@@ -120,9 +123,9 @@ class TestReverseSearchService:
 
         image_id = uuid4()
 
-        caplog.set_level(logging.CRITICAL, logger="app.reverse_search.service")
+        caplog.set_level(logging.WARNING, logger="app.reverse_search.service")
         with patch(
-            "app.reverse_search.service.requests.get", return_value=mock_response
+            "app.reverse_search.service.requests.post", return_value=mock_response
         ):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
                 result = run_reverse_search(
@@ -132,6 +135,17 @@ class TestReverseSearchService:
         # Should return result with fallback status
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
+
+        # Verify that the API failure was logged
+        assert len(caplog.records) > 0, "Expected log messages to be captured"
+        assert any(
+            "SerpAPI reverse search failed" in record.message
+            for record in caplog.records
+        ), "Expected warning about SerpAPI failure in logs"
+
+        # Verify the log level was WARNING
+        warning_logs = [r for r in caplog.records if r.levelname == "WARNING"]
+        assert len(warning_logs) > 0, "Expected at least one WARNING level log"
 
     @pytest.mark.unit
     def test_reverse_search_returns_job_response(self, sample_image_bytes):
@@ -162,8 +176,10 @@ class TestReverseSearchService:
         assert queued_at.tzinfo is not None
 
     @pytest.mark.unit
-    def test_reverse_search_different_images(self, sample_image_bytes):
-        """Test that different image IDs produce different cache entries."""
+    def test_reverse_search_different_images(
+        self, sample_image_bytes, sample_image_bytes_alt
+    ):
+        """Test that different image bytes produce different query hashes."""
         image_id1 = uuid4()
         image_id2 = uuid4()
 
@@ -172,7 +188,15 @@ class TestReverseSearchService:
                 image_id=image_id1, image_bytes=sample_image_bytes
             )
             result2 = run_reverse_search(
-                image_id=image_id2, image_bytes=sample_image_bytes
+                image_id=image_id2, image_bytes=sample_image_bytes_alt
             )
 
+        # Different image IDs should be preserved
+        assert result1.image_id == image_id1
+        assert result2.image_id == image_id2
         assert result1.image_id != result2.image_id
+
+        # Different image bytes should produce different query hashes
+        assert hasattr(result1, "query_hash"), "result1 missing query_hash attribute"
+        assert hasattr(result2, "query_hash"), "result2 missing query_hash attribute"
+        assert result1.query_hash != result2.query_hash

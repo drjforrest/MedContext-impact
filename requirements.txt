@@ -113,6 +113,7 @@ httpx==0.28.1
     #   google-genai
     #   langgraph-sdk
     #   langsmith
+    #   python-telegram-bot
 huggingface-hub==0.36.0
     # via
     #   accelerate
@@ -236,6 +237,8 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
     # via pydantic-settings
 python-multipart==0.0.21
+    # via medcontext-impact (pyproject.toml)
+python-telegram-bot==22.6
     # via medcontext-impact (pyproject.toml)
 pyyaml==6.0.3
     # via

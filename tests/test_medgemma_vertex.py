@@ -29,8 +29,8 @@ class _FakeClient:
     def __exit__(self, exc_type, exc, tb):
         return False
 
-    def post(self, url, params=None, json=None):
-        self.last_request = SimpleNamespace(url=url, params=params, json=json)
+    def post(self, url, params=None, json=None, headers=None):
+        self.last_request = SimpleNamespace(url=url, params=params, json=json, headers=headers)
         return self._response
 
 

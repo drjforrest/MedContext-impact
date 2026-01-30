@@ -85,8 +85,6 @@ def test_with_rest():
             location=settings.medgemma_vertex_location,
         )
         endpoint_obj = aiplatform.Endpoint(settings.medgemma_vertex_endpoint)
-        # Extract numeric ID from resource name
-        endpoint_id = settings.medgemma_vertex_endpoint.split("/")[-1]
         # Check if it has dedicated domain info
         if hasattr(endpoint_obj, "network"):
             print(f"Endpoint network: {endpoint_obj.network}")

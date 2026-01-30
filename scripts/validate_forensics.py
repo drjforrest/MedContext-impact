@@ -161,22 +161,28 @@ def run_layer_1(
                 "ela_max_raw": round(ela_max_raw, 2),
                 "ela_std_raw": round(ela_std_raw, 4),
                 "ela_scale": round(scale, 4),
-                "ela_score": round(confidence if verdict == "MANIPULATED" else 1 - confidence, 4),
+                "ela_score": round(
+                    confidence if verdict == "MANIPULATED" else 1 - confidence, 4
+                ),
                 "image_size": original.size,
                 "image_mode": original.mode,
                 "thresholds": {
-                    "ela_std_authentic": round(thresholds.ela_std_authentic, 4)
-                    if thresholds
-                    else None,
-                    "ela_std_manipulated": round(thresholds.ela_std_manipulated, 4)
-                    if thresholds
-                    else None,
-                    "ela_max_authentic": round(thresholds.ela_max_authentic, 4)
-                    if thresholds and thresholds.ela_max_authentic is not None
-                    else None,
-                    "ela_max_manipulated": round(thresholds.ela_max_manipulated, 4)
-                    if thresholds and thresholds.ela_max_manipulated is not None
-                    else None,
+                    "ela_std_authentic": (
+                        round(thresholds.ela_std_authentic, 4) if thresholds else None
+                    ),
+                    "ela_std_manipulated": (
+                        round(thresholds.ela_std_manipulated, 4) if thresholds else None
+                    ),
+                    "ela_max_authentic": (
+                        round(thresholds.ela_max_authentic, 4)
+                        if thresholds and thresholds.ela_max_authentic is not None
+                        else None
+                    ),
+                    "ela_max_manipulated": (
+                        round(thresholds.ela_max_manipulated, 4)
+                        if thresholds and thresholds.ela_max_manipulated is not None
+                        else None
+                    ),
                 },
             },
         )
@@ -334,9 +340,7 @@ def run_integrity_checks(
             confidence = (
                 0.90
                 if manipulated_votes == 3
-                else 0.75
-                if manipulated_votes == 2
-                else 0.60
+                else 0.75 if manipulated_votes == 2 else 0.60
             )
         else:
             final_verdict = "UNCERTAIN"
@@ -1216,9 +1220,7 @@ class ForensicsValidator:
                 use_std_authentic = std_manipulated
                 use_mean_manipulated = mean_authentic
                 use_std_manipulated = std_authentic
-                print(
-                    "  ⚠️  ELA std means appear inverted; swapping label thresholds."
-                )
+                print("  ⚠️  ELA std means appear inverted; swapping label thresholds.")
 
             k_std = 0.5
             authentic_threshold = float(use_mean_authentic + k_std * use_std_authentic)
@@ -1240,22 +1242,22 @@ class ForensicsValidator:
                     f"manipulated_mean-{k_std:.1f}σ={manipulated_threshold:.2f})"
                 )
 
-            threshold_analysis["recommended_thresholds"]["ela_std_authentic"] = (
-                authentic_threshold
-            )
-            threshold_analysis["recommended_thresholds"]["ela_std_manipulated"] = (
-                manipulated_threshold
-            )
+            threshold_analysis["recommended_thresholds"][
+                "ela_std_authentic"
+            ] = authentic_threshold
+            threshold_analysis["recommended_thresholds"][
+                "ela_std_manipulated"
+            ] = manipulated_threshold
 
             # Always compute auxiliary thresholds using ELA max as a secondary signal.
             authentic_max_p90 = float(np.percentile(authentic_max_vals, 90))
             manipulated_max_p10 = float(np.percentile(manipulated_max_vals, 10))
-            threshold_analysis["recommended_thresholds"]["ela_max_authentic"] = (
-                authentic_max_p90
-            )
-            threshold_analysis["recommended_thresholds"]["ela_max_manipulated"] = (
-                manipulated_max_p10
-            )
+            threshold_analysis["recommended_thresholds"][
+                "ela_max_authentic"
+            ] = authentic_max_p90
+            threshold_analysis["recommended_thresholds"][
+                "ela_max_manipulated"
+            ] = manipulated_max_p10
 
         return threshold_analysis
 

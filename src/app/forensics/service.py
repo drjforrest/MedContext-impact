@@ -110,18 +110,22 @@ def _run_layer_1(
                 "image_size": original.size,
                 "image_mode": original.mode,
                 "thresholds": {
-                    "ela_std_authentic": round(thresholds.ela_std_authentic, 4)
-                    if thresholds
-                    else None,
-                    "ela_std_manipulated": round(thresholds.ela_std_manipulated, 4)
-                    if thresholds
-                    else None,
-                    "ela_max_authentic": round(thresholds.ela_max_authentic, 4)
-                    if thresholds and thresholds.ela_max_authentic is not None
-                    else None,
-                    "ela_max_manipulated": round(thresholds.ela_max_manipulated, 4)
-                    if thresholds and thresholds.ela_max_manipulated is not None
-                    else None,
+                    "ela_std_authentic": (
+                        round(thresholds.ela_std_authentic, 4) if thresholds else None
+                    ),
+                    "ela_std_manipulated": (
+                        round(thresholds.ela_std_manipulated, 4) if thresholds else None
+                    ),
+                    "ela_max_authentic": (
+                        round(thresholds.ela_max_authentic, 4)
+                        if thresholds and thresholds.ela_max_authentic is not None
+                        else None
+                    ),
+                    "ela_max_manipulated": (
+                        round(thresholds.ela_max_manipulated, 4)
+                        if thresholds and thresholds.ela_max_manipulated is not None
+                        else None
+                    ),
                 },
             },
         )
@@ -155,7 +159,9 @@ def _run_layer_2(image_bytes: bytes) -> IntegrityLayerResult:
             details={"error": str(exc), "method": "semantic_analysis"},
         )
 
-    verdict, confidence, details = _parse_medgemma_result(result.output, result.raw_text)
+    verdict, confidence, details = _parse_medgemma_result(
+        result.output, result.raw_text
+    )
     return IntegrityLayerResult(
         verdict=verdict,
         confidence=confidence,
@@ -186,7 +192,9 @@ def _parse_medgemma_result(
         text_candidate = str(output)
 
     json_candidate = None
-    if isinstance(parsed, dict) and any(key in parsed for key in ("verdict", "confidence")):
+    if isinstance(parsed, dict) and any(
+        key in parsed for key in ("verdict", "confidence")
+    ):
         json_candidate = parsed
     else:
         try:
@@ -301,7 +309,8 @@ def _run_layer_3(image_bytes: bytes) -> IntegrityLayerResult:
                 "key_fields": {
                     k: v
                     for k, v in exif_dict.items()
-                    if k in ("Make", "Model", "Software", "DateTime", "DateTimeOriginal")
+                    if k
+                    in ("Make", "Model", "Software", "DateTime", "DateTimeOriginal")
                 },
             },
         )
@@ -342,7 +351,11 @@ def _ensemble_results(results: list[IntegrityLayerResult]) -> dict[str, object]:
     return {
         "final_verdict": final_verdict,
         "confidence": round(float(confidence), 2),
-        "votes": {"AUTHENTIC": verdicts.count("AUTHENTIC"), "MANIPULATED": verdicts.count("MANIPULATED"), "UNCERTAIN": verdicts.count("UNCERTAIN")},
+        "votes": {
+            "AUTHENTIC": verdicts.count("AUTHENTIC"),
+            "MANIPULATED": verdicts.count("MANIPULATED"),
+            "UNCERTAIN": verdicts.count("UNCERTAIN"),
+        },
     }
 
 
@@ -362,7 +375,9 @@ def run_forensics(image_bytes: bytes, layers: list[str] | None = None) -> dict:
 
     requested = [layer.strip().lower() for layer in (layers or []) if layer]
     selected_layers = requested or ["layer_1", "layer_2", "layer_3"]
-    selected_layers = [layer for layer in selected_layers if layer in {"layer_1", "layer_2", "layer_3"}]
+    selected_layers = [
+        layer for layer in selected_layers if layer in {"layer_1", "layer_2", "layer_3"}
+    ]
 
     results: dict[str, IntegrityLayerResult] = {}
     if "layer_1" in selected_layers:

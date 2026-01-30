@@ -66,7 +66,9 @@ def ingest_and_run_agentic(
         try:
             resolved_image_id = UUID(str(image_id))
         except ValueError as exc:
-            raise HTTPException(status_code=400, detail="Invalid image_id format.") from exc
+            raise HTTPException(
+                status_code=400, detail="Invalid image_id format."
+            ) from exc
     image_hash = hashlib.sha256(image_bytes).hexdigest()
     detected_format = imghdr.what(None, h=image_bytes)
     if not detected_format:

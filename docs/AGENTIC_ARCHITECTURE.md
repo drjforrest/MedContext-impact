@@ -340,7 +340,7 @@ These thresholds are derived from ROC curve analysis (Youden's J statistic) to p
 
 ### Scientific Rigor Compliance
 
-Addressing methodological best practices (Khakzar et al., 2022):
+Addressing methodological best practices:
 
 | Requirement                 | MedContext Implementation                          | Status |
 | --------------------------- | -------------------------------------------------- | ------ |
