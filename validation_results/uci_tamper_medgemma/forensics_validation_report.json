@@ -1,0 +1,121 @@
+{
+  "validation_summary": {
+    "dataset": "data/validation/uci_tamper",
+    "bootstrap_iterations": 1000,
+    "prediction_mode": "ensemble",
+    "medgemma_enabled": true,
+    "forensics_source": "scripts.validate_forensics",
+    "medgemma_stats": {
+      "calls": 326,
+      "errors": 0,
+      "uncertain": 3,
+      "error_samples": []
+    },
+    "timestamp": "2026-01-28T06:52:24.501876"
+  },
+  "metrics": {
+    "accuracy": 0.5,
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1_score": 0.6666666666666666,
+    "roc_auc": 0.5329519364673115
+  },
+  "confidence_intervals_95": {
+    "accuracy": {
+      "mean": 0.499282208588957,
+      "lower_ci": 0.4447852760736196,
+      "upper_ci": 0.5552147239263804,
+      "ci_width": 0.11042944785276076
+    },
+    "precision": {
+      "mean": 0.499282208588957,
+      "lower_ci": 0.4447852760736196,
+      "upper_ci": 0.5552147239263804,
+      "ci_width": 0.11042944785276076
+    },
+    "recall": {
+      "mean": 1.0,
+      "lower_ci": 1.0,
+      "upper_ci": 1.0,
+      "ci_width": 0.0
+    },
+    "f1_score": {
+      "mean": 0.6655715381270402,
+      "lower_ci": 0.6157112526539278,
+      "upper_ci": 0.7140039447731755,
+      "ci_width": 0.09829269211924774
+    },
+    "roc_auc": {
+      "mean": 0.5330820276732076,
+      "lower_ci": 0.49560433078808264,
+      "upper_ci": 0.5716572963241973,
+      "ci_width": 0.07605296553611463
+    }
+  },
+  "threshold_analysis": {
+    "authentic_ela_std": {
+      "mean": 27.222208588957052,
+      "median": 27.18,
+      "std": 6.195454203756693
+    },
+    "manipulated_ela_std": {
+      "mean": 26.560122699386497,
+      "median": 26.48,
+      "std": 6.561901937712845
+    },
+    "authentic_ela_max": {
+      "mean": 255.0,
+      "median": 255.0,
+      "std": 0.0
+    },
+    "manipulated_ela_max": {
+      "mean": 255.0,
+      "median": 255.0,
+      "std": 0.0
+    },
+    "recommended_thresholds": {
+      "ela_std_authentic": 26.891165644171775,
+      "ela_std_manipulated": 26.891165644171775,
+      "ela_max_authentic": 255.0,
+      "ela_max_manipulated": 255.0
+    },
+    "separability": {
+      "authentic_mean": 27.222208588957052,
+      "manipulated_mean": 26.560122699386497,
+      "mean_gap": -0.6620858895705553,
+      "overlap": true
+    }
+  },
+  "prediction_diagnostics": {
+    "ground_truth_counts": {
+      "authentic": 163,
+      "manipulated": 163
+    },
+    "predicted_label_counts": {
+      "authentic": 0,
+      "manipulated": 326
+    },
+    "verdict_counts": {
+      "AUTHENTIC": 0,
+      "MANIPULATED": 39,
+      "UNCERTAIN": 287
+    },
+    "prediction_threshold": 0.5,
+    "score_summary": {
+      "min": 0.5,
+      "max": 0.75,
+      "mean": 0.5285276073619632
+    },
+    "confusion_matrix": {
+      "tn": 0,
+      "fp": 163,
+      "fn": 0,
+      "tp": 163
+    },
+    "score_quantiles": {
+      "p10": 0.5,
+      "p50": 0.5,
+      "p90": 0.75
+    }
+  }
+}

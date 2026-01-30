@@ -39,10 +39,16 @@ def _detect_image_format(image_bytes: bytes) -> str:
 
 class MedGemmaClient:
     def __init__(self) -> None:
-        self.provider = settings.medgemma_provider.lower()
+        self.provider = self._normalize_provider(settings.medgemma_provider)
         self._local_model = None
         self._local_processor = None
         self._local_device = None
+
+    def _normalize_provider(self, value: str) -> str:
+        provider = (value or "").strip().lower()
+        if provider in {"vertexai", "vertex_ai"}:
+            return "vertex"
+        return provider
 
     def analyze_image(
         self, image_bytes: bytes, prompt: Optional[str] = None
@@ -58,7 +64,9 @@ class MedGemmaClient:
                 return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
             raise MedGemmaClientError(f"Unsupported provider: {self.provider}")
         except MedGemmaClientError as exc:
-            fallback = (settings.medgemma_fallback_provider or "").strip().lower()
+            fallback = self._normalize_provider(
+                settings.medgemma_fallback_provider or ""
+            )
             if fallback and fallback != self.provider:
                 if fallback == "local":
                     return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
@@ -200,43 +208,111 @@ class MedGemmaClient:
     def _analyze_vertex(
         self, image_bytes: bytes, prompt: Optional[str]
     ) -> MedGemmaResult:
-        if (
-            not settings.medgemma_vertex_project
-            or not settings.medgemma_vertex_endpoint
-        ):
-            raise MedGemmaClientError(
-                "Missing MEDGEMMA_VERTEX_PROJECT or MEDGEMMA_VERTEX_ENDPOINT for Vertex AI."
-            )
+        if not settings.medgemma_vertex_endpoint:
+            raise MedGemmaClientError("Missing MEDGEMMA_VERTEX_ENDPOINT for Vertex AI.")
+        if not settings.medgemma_vertex_project and not settings.vertexai_api_key:
+            raise MedGemmaClientError("Missing MEDGEMMA_VERTEX_PROJECT for Vertex AI.")
 
+        # Build chat completions format for vLLM
+        encoded_image = base64.b64encode(image_bytes).decode("ascii")
+        image_url = f"data:image/png;base64,{encoded_image}"
+
+        user_content = [
+            {"type": "text", "text": prompt or "Analyze this medical image."},
+            {"type": "image_url", "image_url": {"url": image_url}},
+        ]
+
+        instance = {
+            "@requestFormat": "chatCompletions",
+            "messages": [{"role": "user", "content": user_content}],
+            "max_tokens": 1024,
+        }
+
+        # Use direct HTTP with ADC for dedicated endpoints
         try:
-            from google.cloud import aiplatform
-        except Exception as exc:
+            from google.auth import default
+            from google.auth.transport.requests import Request as AuthRequest
+        except ImportError as exc:
             raise MedGemmaClientError(
-                "Vertex AI client not installed. Install google-cloud-aiplatform."
+                "google-auth not installed. Install google-auth."
             ) from exc
 
-        aiplatform.init(
-            project=settings.medgemma_vertex_project,
-            location=settings.medgemma_vertex_location,
-        )
-
-        endpoint = aiplatform.Endpoint(settings.medgemma_vertex_endpoint)
-        encoded_image = base64.b64encode(image_bytes).decode("ascii")
-        instance = {"image": encoded_image}
-        if prompt:
-            instance["prompt"] = prompt
-
+        # Get ADC token
         try:
-            prediction = endpoint.predict(instances=[instance])
+            credentials, project = default()
+            credentials.refresh(AuthRequest())
+            token = credentials.token
         except Exception as exc:
+            raise MedGemmaClientError(f"Failed to get ADC token: {exc}") from exc
+
+        # Build URL
+        url = self._build_vertex_predict_url(settings.medgemma_vertex_endpoint)
+
+        # Make request
+        try:
+            with httpx.Client(timeout=120.0) as client:
+                response = client.post(
+                    url,
+                    headers={"Authorization": f"Bearer {token}"},
+                    json={"instances": [instance]},
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
             raise MedGemmaClientError(f"Vertex AI request failed: {exc}") from exc
+
+        # Parse response
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise MedGemmaClientError("Vertex AI returned non-JSON response.") from exc
+
+        # Extract text from chat completions response
+        predictions = data.get("predictions", {})
+        if isinstance(predictions, dict):
+            choices = predictions.get("choices", [])
+            if choices and isinstance(choices, list):
+                raw_text = choices[0].get("message", {}).get("content", "")
+            else:
+                raw_text = str(predictions)
+        else:
+            raw_text = str(predictions)
 
         return MedGemmaResult(
             provider="vertex",
-            model=settings.medgemma_vertex_endpoint,
-            output=prediction.predictions,
-            raw_text=None,
+            model=url,
+            output={"text": raw_text},
+            raw_text=raw_text,
         )
+
+    def _build_vertex_predict_url(self, endpoint: str) -> str:
+        cleaned = (endpoint or "").strip()
+        if cleaned.startswith("http://") or cleaned.startswith("https://"):
+            url = cleaned.rstrip("/")
+        else:
+            if cleaned.startswith("projects/"):
+                resource = cleaned
+            else:
+                if not settings.medgemma_vertex_project:
+                    raise MedGemmaClientError(
+                        "Missing MEDGEMMA_VERTEX_PROJECT for Vertex AI."
+                    )
+                resource = (
+                    f"projects/{settings.medgemma_vertex_project}/locations/"
+                    f"{settings.medgemma_vertex_location}/endpoints/{cleaned}"
+                )
+
+            # Use dedicated domain if set, otherwise shared domain
+            if settings.medgemma_vertex_dedicated_domain:
+                domain = settings.medgemma_vertex_dedicated_domain.rstrip("/")
+                url = f"https://{domain}/v1/{resource}"
+            else:
+                url = (
+                    f"https://{settings.medgemma_vertex_location}-aiplatform.googleapis.com/v1/"
+                    f"{resource}"
+                )
+        if not url.endswith(":predict"):
+            url = f"{url}:predict"
+        return url
 
     def _analyze_vllm(
         self, image_bytes: bytes, prompt: Optional[str]

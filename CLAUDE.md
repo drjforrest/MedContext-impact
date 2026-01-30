@@ -7,28 +7,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 MedContext is a modular system to verify medical image context and detect misinformation. It leverages MedGemma (Google's medical AI model) to assess context integrity in medical imaging and uses provenance tracking to combat medical misinformation.
 
 **Core Capabilities:**
+
 - Medical image context alignment using MedGemma
 - Integrity signals (reverse search, provenance, semantic checks)
 - Blockchain-like provenance tracking with immutable genealogy
 - Real-time social media monitoring (Reddit, WhatsApp, Facebook, Twitter)
 - Agentic orchestration with deterministic tool dispatch
-- Contextual integrity scoring
+- Contextual authenticity scoring
 
 ## Development Setup
 
 ### Backend (FastAPI + Python 3.12+)
 
 **Install dependencies:**
+
 ```bash
 uv venv && uv run pip install -r requirements.txt
 ```
 
 **Run the API server:**
+
 ```bash
 uv run uvicorn app.main:app --reload --app-dir src
 ```
 
 **Database migrations (Alembic):**
+
 ```bash
 # Create new migration
 alembic revision --autogenerate -m "description"
@@ -40,6 +44,7 @@ alembic upgrade head
 ### Frontend (React + Vite)
 
 **From the `ui/` directory:**
+
 ```bash
 # Install dependencies
 npm install
@@ -59,31 +64,37 @@ npm run lint
 Copy `.env.example` to `.env` and configure:
 
 **Required Variables:**
+
 - `DATABASE_URL`: PostgreSQL connection string (format: `postgresql://user:pass@host:5432/medcontext`)
 - `MEDGEMMA_PROVIDER`: Choose provider (`huggingface`, `local`, `vllm`, or `vertex`)
 
 **MedGemma Provider Setup:**
 
-*HuggingFace (recommended for development):*
+_HuggingFace (recommended for development):_
+
 - `MEDGEMMA_HF_TOKEN`: Get from https://huggingface.co/settings/tokens
 - `MEDGEMMA_HF_MODEL`: Default is `google/medgemma-1.5-4b-it`
 
-*Vertex AI (production):*
+_Vertex AI (production):_
+
 - `MEDGEMMA_VERTEX_PROJECT`: GCP project ID
 - `MEDGEMMA_VERTEX_LOCATION`: Region (e.g., `us-central1`)
 - `MEDGEMMA_VERTEX_ENDPOINT`: Vertex AI endpoint URL
 
-*Local inference:*
+_Local inference:_
+
 - Requires `torch`, `transformers`, `accelerate`, and `pillow`
 - Set `MEDGEMMA_HF_MODEL` to model path
 
 **LLM Configuration:**
+
 - `LLM_API_KEY`: API key for OpenRouter/Google/Vertex
 - `LLM_ORCHESTRATOR`: Model for orchestration (e.g., `openai/gpt-4o-mini`)
 - `LLM_WORKER`: Model for worker tasks
 - `LLM_BASE_URL`: Default is `https://openrouter.ai/api/v1`
 
 **Optional Services:**
+
 - `REDIS_URL`: Redis connection string
 - `SERP_API_KEY`: For reverse image search via SerpAPI
 - `TINEYE_API_KEY`: TinEye reverse image search
@@ -141,6 +152,7 @@ The `MedContextAgent` (`src/app/orchestrator/agent.py`) implements a determinist
 3. **Synthesis:** MedGemma combines tool results into final assessment with alignment verdict
 
 **API Endpoints:**
+
 - `POST /api/v1/orchestrator/run` - Execute deterministic agent
 - `POST /api/v1/orchestrator/run-langgraph` - Execute with LangGraph
 - `GET /api/v1/orchestrator/graph` - View LangGraph Mermaid diagram
@@ -164,6 +176,7 @@ Legacy integrity signals were previously layered (pixel/semantic/metadata). Thos
 ### Provenance System
 
 `src/app/provenance/service.py` implements blockchain-style hash chaining:
+
 - Each image gets a unique hash + metadata record
 - Usage events are chained with previous block hashes
 - Immutable audit trail for genealogy tracking
@@ -171,6 +184,7 @@ Legacy integrity signals were previously layered (pixel/semantic/metadata). Thos
 ### Monitoring System
 
 Background polling loop (`src/app/monitoring/service.py`) monitors platforms:
+
 - Reddit: polls configured subreddits for medical images matching keywords
 - WhatsApp, Facebook, Twitter: consent-based ingestion (stubs in place)
 
@@ -179,6 +193,7 @@ Controlled by `ENABLE_MONITORING_POLLING` environment variable.
 ### MedContext Integrity Score
 
 `src/app/metrics/integrity.py` computes a weighted score (0.0-1.0) from:
+
 - **Plausibility** (40%): MedGemma medical consistency score
 - **Genealogy Consistency** (30%): Provenance/blockchain verification
 - **Source Reputation** (30%): Reverse search credibility
@@ -203,12 +218,14 @@ Models in `src/app/db/models/`:
 - `monitoring.py`: `MonitoringItem`, `MonitoringEvent`
 
 Alembic migrations in `alembic/versions/`. Current migrations:
+
 - `1e35fda0b1c9_init.py` - Initial schema
 - `47e33d201752_monitoring.py` - Monitoring tables
 
 ## Testing
 
 **Run tests:**
+
 ```bash
 # Run all tests
 uv run pytest tests/ -v
@@ -224,17 +241,20 @@ pytest -m unit
 ```
 
 **Test Coverage (25 tests, all passing):**
+
 - ✅ Integrity Score (10 tests) - 100% coverage
 - ✅ Provenance Service (7 tests) - blockchain validation, hash chaining
 - ✅ Reverse Search Service (8 tests) - API mocking, caching, error handling
 
 **Test Structure:**
+
 - `tests/conftest.py` - Shared fixtures (sample image bytes)
 - `tests/test_integrity.py` - MedContext Integrity Score calculations
 - `tests/test_provenance.py` - Blockchain-style provenance chain
 - `tests/test_reverse_search.py` - Reverse image search with API mocks
 
 **Adding New Tests:**
+
 - Place in `tests/` directory
 - Follow naming: `test_*.py`
 - Use pytest fixtures from `conftest.py`
@@ -245,6 +265,7 @@ pytest -m unit
 ### Multi-Provider MedGemma Strategy
 
 The codebase supports 4 MedGemma providers to enable flexible deployment:
+
 - **Development:** Use `huggingface` (minimal setup, HF token only)
 - **Competition:** Use `huggingface` (reproducible, no GCP account needed)
 - **Production:** Use `vertex` (lower latency, higher scale)
@@ -268,6 +289,7 @@ User context is wrapped in `--- BEGIN USER CONTEXT ---` / `--- END USER CONTEXT 
 ## Documentation
 
 See `docs/` for architecture specs:
+
 - `MedContext-Backend-Architecture.md` - Context integrity, provenance, monitoring
 - `MedContext-Complete-TechSpec.md` - Full technical specification
 - `MedContext-MedGemma-Claim-Extraction.md` - Claim extraction patterns

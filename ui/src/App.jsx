@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Bar,
-  BarChart,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    Bar,
+    BarChart,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from 'recharts'
 import './App.css'
 
@@ -854,7 +854,7 @@ function App() {
                   <h2>Reverse image search only</h2>
                   <p className="helper">
                     Optional: use this for a standalone lookup. The full
-                    Contextual Integrity analysis already runs reverse search
+                    Contextual Authenticity analysis already runs reverse search
                     when needed.
                   </p>
                 </div>
@@ -991,7 +991,7 @@ function App() {
             </section>
 
             <section className="card">
-              <h2>Contextual integrity results</h2>
+              <h2>Contextual authenticity results</h2>
               <p className="helper">
                 Full analysis that combines MedGemma triage with embedded tools
                 (reverse search, provenance, and forensics) when needed.
@@ -1083,7 +1083,7 @@ function App() {
                       <div className="viz-grid">
                         <div className={`viz-card viz-score viz-${integrityScoreTone}`}>
                           <div className="viz-metric">
-                            <span>Contextual integrity score</span>
+                            <span>Contextual authenticity score</span>
                             <strong>
                               {integrityScorePercent === null
                                 ? '—'
@@ -1191,7 +1191,7 @@ function App() {
                 </div>
               ) : (
                 <p className="helper">
-                  Run an analysis to see the contextual integrity output here.
+                  Run an analysis to see the contextual authenticity output here.
                 </p>
               )}
             </section>

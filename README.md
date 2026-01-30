@@ -1,14 +1,15 @@
-# MedContext: Contextual Integrity Detector 2.0
+# MedContext: Contextual Authenticity Detector 2.0
 
 Medical images don't need to be fake to cause harm.
 Check your image context with MedContext.
 
-MedContext focuses on **contextual integrity** for medical images: whether an image (authentic or manipulated) is being used in a way that genuinely reflects what it depicts. Instead of claiming definitive authenticity judgments, the system evaluates alignment between the image, its provenance, and the surrounding claim or caption, surfacing risks of misleading reuse or miscaptioning.
+MedContext focuses on **contextual authenticity** for medical images: whether an image (authentic or manipulated) is being used in a way that genuinely reflects what it depicts. Instead of claiming definitive authenticity judgments, the system evaluates alignment between the image, its provenance, and the surrounding claim or caption, surfacing risks of misleading reuse or miscaptioning.
 
 ## Key Validation: Theory Meets Reality
 
 Our forensics layer achieved ~50% accuracy (chance)—**exactly as our literature review predicted**.
 This empirical result confirms that:
+
 - Real medical misinformation uses authentic images (not manipulated ones)
 - Pixel-level detection solves <20% of the problem
 - Context-based approaches are necessary
@@ -65,7 +66,7 @@ Document Vertex AI as the production path:
 `GET /api/v1/orchestrator/graph` returns a Mermaid diagram of the LangGraph.
 `POST /api/v1/orchestrator/trace` returns a trace with timestamps and durations per node.
 
-## Contextual Integrity Metric
+## Contextual Authenticity Metric
 
 `src/app/metrics/integrity.py` defines the MedContext Integrity Score, a weighted blend of plausibility, genealogy consistency, and source reputation. This score is used to communicate alignment risk rather than binary authenticity.
 
@@ -83,7 +84,7 @@ src/
 
 ## Immediate Next Steps
 
-- Strengthen claim extraction and alignment prompts for contextual integrity.
+- Strengthen claim extraction and alignment prompts for contextual authenticity.
 - Add citation and source-credibility weighting for reverse search results.
 - Expand provenance logging to capture claim/context at time of upload.
 - Add UI emphasis on alignment verdicts and evidence traceability.

@@ -1,4 +1,4 @@
-# The Validation Story: Evidence for Contextual Integrity
+# The Validation Story: Evidence for Contextual Authenticity
 
 ## The Prediction
 

@@ -4,12 +4,14 @@ import socket
 from urllib.parse import urlparse
 
 import httpx
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy.orm import Session
 
+from app.api.v1.endpoints.ingestion import ingest_and_run_agentic
 from app.clinical.medgemma_client import MedGemmaClientError
-from app.orchestrator.agent import MedContextAgent
 from app.orchestrator.image_scrape import extract_image_candidates, extract_page_context
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
+from app.db.session import get_db
 from app.schemas.orchestrator import (
     AgentRunResponse,
     ResolvedUrlResponse,
@@ -284,24 +286,23 @@ async def run_agent(
     image_url: str | None = Form(default=None),
     context: str | None = Form(default=None),
     image_id: str | None = Form(default=None),
+    db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, context_source = _resolve_context(context, scraped_context)
-    agent = MedContextAgent()
     try:
-        result = agent.run(
-            image_bytes=image_bytes, image_id=image_id, context=context_used
+        return ingest_and_run_agentic(
+            image_bytes=image_bytes,
+            context=context_used,
+            context_source=context_source,
+            db=db,
+            source_channel="agentic",
+            image_id=None if image_id is None else image_id,
+            content_type=file.content_type if file else None,
+            source_url=image_url,
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    return AgentRunResponse(
-        triage=result.triage,
-        tool_results=result.tool_results,
-        synthesis=result.synthesis,
-        context_used=context_used,
-        context_source=context_source,
-    )
 
 
 @router.post("/run-langgraph", response_model=AgentRunResponse)

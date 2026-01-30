@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -71,7 +71,9 @@
                 Resolve a page URL to review candidate images.
               </div>
             </div>
-            <button id="btnUseContext" class="secondary">Use Suggested Context</button>
+            <button id="btnUseContext" class="secondary">
+              Use Suggested Context
+            </button>
           </div>
           <div id="urlResolutionContext" class="url-context"></div>
           <div id="selectedImageMeta" class="muted"></div>
@@ -172,9 +174,10 @@
       </section>
 
       <section class="panel">
-        <h2>Contextual Integrity Score</h2>
+        <h2>Contextual Authenticity Score</h2>
         <p class="muted">
-          Weighted blend of plausibility, genealogy consistency, and source reputation.
+          Weighted blend of plausibility, genealogy consistency, and source
+          reputation.
         </p>
         <div class="integrity-visuals">
           <div class="score-header">
@@ -219,23 +222,51 @@
         <div class="grid">
           <label>
             Plausibility (0-1)
-            <input id="plausibilityInput" type="number" min="0" max="1" step="0.01" />
+            <input
+              id="plausibilityInput"
+              type="number"
+              min="0"
+              max="1"
+              step="0.01"
+            />
           </label>
           <label>
             Genealogy Consistency (0-1)
-            <input id="genealogyInput" type="number" min="0" max="1" step="0.01" />
+            <input
+              id="genealogyInput"
+              type="number"
+              min="0"
+              max="1"
+              step="0.01"
+            />
           </label>
           <label>
             Source Reputation (0-1)
-            <input id="sourceRepInput" type="number" min="0" max="1" step="0.01" />
+            <input
+              id="sourceRepInput"
+              type="number"
+              min="0"
+              max="1"
+              step="0.01"
+            />
           </label>
           <label>
             Weight: Plausibility
-            <input id="weightPlausibilityInput" type="number" min="0" step="0.05" />
+            <input
+              id="weightPlausibilityInput"
+              type="number"
+              min="0"
+              step="0.05"
+            />
           </label>
           <label>
             Weight: Genealogy
-            <input id="weightGenealogyInput" type="number" min="0" step="0.05" />
+            <input
+              id="weightGenealogyInput"
+              type="number"
+              min="0"
+              step="0.05"
+            />
           </label>
           <label>
             Weight: Source
@@ -280,7 +311,7 @@
             <textarea
               id="clusterClaimsInput"
               rows="4"
-              placeholder='Paste claims array JSON or leave empty to use last extraction'
+              placeholder="Paste claims array JSON or leave empty to use last extraction"
             ></textarea>
           </label>
         </div>
@@ -299,7 +330,9 @@
         <div class="consensus-visuals">
           <div class="consensus-header">
             <div class="consensus-title">Consensus Distribution</div>
-            <div class="consensus-meta" id="consensusMeta">No consensus yet.</div>
+            <div class="consensus-meta" id="consensusMeta">
+              No consensus yet.
+            </div>
           </div>
           <div id="consensusBars" class="consensus-bars"></div>
         </div>
@@ -309,7 +342,7 @@
             <textarea
               id="consensusClaimsInput"
               rows="4"
-              placeholder='Paste consensus claims array JSON or leave empty to use last extraction'
+              placeholder="Paste consensus claims array JSON or leave empty to use last extraction"
             ></textarea>
           </label>
         </div>

@@ -1,7 +1,7 @@
 # MedContext Competition Submission
 
 **Team:** Jamie Forrest
-**Project:** MedContext - Contextual Integrity Detector 2.0
+**Project:** MedContext - Contextual Authenticity Detector 2.0
 **Date:** January 22, 2026
 
 ---
@@ -10,9 +10,10 @@
 
 ### Primary: **Agentic AI System**
 
-MedContext implements a **fully autonomous agentic workflow** that evaluates **contextual integrity** for medical images. It dynamically orchestrates specialized tools to assess whether image content aligns with its claim or caption. See [AGENTIC_ARCHITECTURE.md](AGENTIC_ARCHITECTURE.md) for complete details.
+MedContext implements a **fully autonomous agentic workflow** that evaluates **contextual authenticity** for medical images. It dynamically orchestrates specialized tools to assess whether image content aligns with its claim or caption. See [AGENTIC_ARCHITECTURE.md](AGENTIC_ARCHITECTURE.md) for complete details.
 
 **Key Agentic Features:**
+
 - ✅ Dynamic tool selection based on image triage
 - ✅ Multi-modal evidence synthesis with reasoning
 - ✅ Context-aware adaptation to image characteristics
@@ -22,19 +23,21 @@ MedContext implements a **fully autonomous agentic workflow** that evaluates **c
 
 ### Secondary: **Medical AI & Healthcare Innovation**
 
-Tackles the critical problem of medical misinformation through **contextual integrity assessment** in medical imaging.
+Tackles the critical problem of medical misinformation through **contextual authenticity assessment** in medical imaging.
 
 ---
 
 ## 🎯 Problem Statement
 
 **Context misuse is a primary driver of medical misinformation:**
+
 - Authentic images are reused with misleading captions
 - Manipulated images are circulated without context
 - Patients and clinicians lack tools to verify alignment
 - Existing solutions focus on authenticity, not context
 
 **MedContext Solution:**
+
 - Agentic AI that adapts to each image + claim
 - Evidence-driven alignment analysis
 - Blockchain-style provenance tracking
@@ -47,13 +50,13 @@ Tackles the critical problem of medical misinformation through **contextual inte
 
 ### Why Agentic > Deterministic
 
-| Challenge | Deterministic Pipeline | MedContext Agent |
-|-----------|------------------------|------------------|
-| **Tool Selection** | Runs all tools every time | Adapts based on triage |
-| **Evidence Conflicts** | Simple majority vote | Context-aware reasoning |
-| **Performance** | Fixed cost | Optimizes per image |
-| **Explainability** | Black box scores | Traceable rationale |
-| **Extensibility** | Rewrite entire pipeline | Add tool to whitelist |
+| Challenge              | Deterministic Pipeline    | MedContext Agent        |
+| ---------------------- | ------------------------- | ----------------------- |
+| **Tool Selection**     | Runs all tools every time | Adapts based on triage  |
+| **Evidence Conflicts** | Simple majority vote      | Context-aware reasoning |
+| **Performance**        | Fixed cost                | Optimizes per image     |
+| **Explainability**     | Black box scores          | Traceable rationale     |
+| **Extensibility**      | Rewrite entire pipeline   | Add tool to whitelist   |
 
 ### Agent Workflow
 
@@ -72,6 +75,7 @@ Tackles the critical problem of medical misinformation through **contextual inte
 ```
 
 **Example: High-confidence image**
+
 - Agent skips expensive forensics
 - Focus on reverse search + provenance
 - Result: 60% faster, same accuracy
@@ -83,6 +87,7 @@ Tackles the critical problem of medical misinformation through **contextual inte
 ### Fully Implemented Features
 
 #### 1. **Agentic Orchestration** ✅
+
 - **Location:** `src/app/orchestrator/agent.py`
 - **Capabilities:**
   - Autonomous tool selection
@@ -91,24 +96,28 @@ Tackles the critical problem of medical misinformation through **contextual inte
   - LangGraph integration
 
 #### 2. **Forensics as Supporting Evidence** ✅
+
 - **Location:** `src/app/forensics/service.py`
 - **Layer 1 - Pixel Forensics:** ELA + compression artifacts
 - **Layer 3 - Metadata Analysis:** EXIF extraction + software flags
 - **Ensemble Voting:** Confidence-weighted signals used to support alignment
 
 #### 3. **Blockchain Provenance** ✅
+
 - **Location:** `src/app/provenance/service.py`
 - Hash-chained immutable records
 - Tamper detection
 - Genealogy tracking
 
 #### 4. **Reverse Image Search** ✅
+
 - **Location:** `src/app/reverse_search/service.py`
 - SerpAPI integration (real API calls)
 - Cache-aware (TTL-based)
 - Graceful fallback
 
 #### 5. **Integrity Scoring** ✅
+
 - **Location:** `src/app/metrics/integrity.py`
 - Weighted blend of:
   - Plausibility (40%)
@@ -116,12 +125,14 @@ Tackles the critical problem of medical misinformation through **contextual inte
   - Source reputation (30%)
 
 #### 6. **Social Media Monitoring** ✅
+
 - **Location:** `src/app/monitoring/`
 - Reddit integration (PRAW)
 - Background polling
 - Multi-platform ready
 
 #### 7. **React UI** ✅
+
 - **Location:** `ui/src/`
 - Image upload + URL input
 - Real-time analysis status
@@ -129,6 +140,7 @@ Tackles the critical problem of medical misinformation through **contextual inte
 - Context/claim input
 
 #### 8. **Comprehensive Tests** ✅
+
 - **Location:** `tests/`
 - **33 tests, all passing**
 - Integrity score (10 tests)
@@ -141,12 +153,14 @@ Tackles the critical problem of medical misinformation through **contextual inte
 ## 📊 Project Metrics
 
 **Code Quality:**
+
 - Python: 4,101 lines (core application)
 - JavaScript: 527 lines (React UI)
 - Test Coverage: 33 passing tests
 - Architecture: Modular, extensible, production-ready
 
 **Functionality:**
+
 - ✅ Multi-provider MedGemma support (HuggingFace, vLLM, Vertex, Local)
 - ✅ Real forensics detection (ELA + EXIF)
 - ✅ Blockchain provenance
@@ -157,6 +171,7 @@ Tackles the critical problem of medical misinformation through **contextual inte
 - ✅ Database with Alembic migrations
 
 **Security:**
+
 - ✅ Tool whitelist enforcement
 - ✅ Prompt injection protection
 - ✅ SSRF protection
@@ -172,6 +187,7 @@ Tackles the critical problem of medical misinformation through **contextual inte
 **Report:** `validation_results/performance/performance_benchmark.json`
 
 **End-to-end latency (ms per image):**
+
 - Mean: 0.24 ms
 - P50: 0.23 ms
 - P95: 0.31 ms
@@ -179,6 +195,7 @@ Tackles the critical problem of medical misinformation through **contextual inte
 **Throughput:** ~4,173 images/sec (local orchestration overhead only)
 
 **Cost drivers (per image, worst-case):**
+
 - MedGemma calls: 1 (triage)
 - LLM calls: 1 (synthesis)
 - Reverse search calls: 1
@@ -194,6 +211,7 @@ Real-world latency is dominated by model inference and external APIs; cost scale
 **Report:** `validation_results/performance_live/performance_benchmark.json`
 
 **End-to-end latency (ms per image):**
+
 - Mean: 36,073 ms
 - P50: 36,073 ms
 - P95: 36,073 ms
@@ -291,16 +309,19 @@ medcontext/
 ## 🎓 Educational Value
 
 ### For Healthcare Workers
-- Teaches contextual integrity assessment
+
+- Teaches contextual authenticity assessment
 - Provides explainable verdicts (not black box)
 - Empowers field workers with mobile tools
 
 ### For AI Developers
+
 - Reference implementation of agentic system
 - Security-hardened (tool whitelist, prompt injection protection)
 - Production-ready architecture
 
 ### For Policymakers
+
 - Demonstrates immutable provenance tracking
 - Shows scalability for national deployment
 - Proves feasibility of real-time monitoring
@@ -310,16 +331,19 @@ medcontext/
 ## 🌍 Impact Potential
 
 ### Immediate (MVP)
+
 - Flags misleading context on medical images shared online
 - Protects patients from misinformation
 - Supports clinicians in resource-limited settings
 
 ### Near-term (6 months)
+
 - WhatsApp integration for rural health workers
 - Federated learning from field deployments
 - Multi-language support (starting with French/Swahili for Africa)
 
 ### Long-term (1-2 years)
+
 - National health system integration
 - Edge agent deployment on mobile devices
 - Real-time monitoring across all major platforms
@@ -328,7 +352,7 @@ medcontext/
 
 ## 🔬 Novel Contributions
 
-1. **Agentic Contextual Integrity Assessment**
+1. **Agentic Contextual Authenticity Assessment**
    - Autonomous agent for claim-image alignment
    - Dynamic tool selection based on image + claim
    - Context-aware evidence synthesis
@@ -353,6 +377,7 @@ medcontext/
 ## 📈 Scalability & Performance
 
 **Current Performance:**
+
 - Agent execution: ~2.5s average
   - Triage: 1.2s
   - Tool dispatch: 0.8s
@@ -362,11 +387,13 @@ medcontext/
 - Database queries: <50ms
 
 **Optimizations:**
+
 - Adaptive tool selection (60% faster for genuine images)
 - TTL-based caching (reduces API calls by 80%)
 - Batch processing ready (parallel agents)
 
 **Scale Targets:**
+
 - 1000 images/hour (single instance)
 - 100,000 images/day (with horizontal scaling)
 - Sub-second response for 90% of queries
@@ -376,6 +403,7 @@ medcontext/
 ## 🛠️ Technology Stack
 
 **Backend:**
+
 - FastAPI (Python 3.12)
 - SQLAlchemy + PostgreSQL
 - Alembic migrations
@@ -383,17 +411,20 @@ medcontext/
 - LangGraph (agentic workflows)
 
 **Frontend:**
+
 - React 19
 - Vite build system
 - Modern CSS (no framework bloat)
 
 **AI/ML:**
+
 - MedGemma (multi-provider: HF, vLLM, Vertex, Local)
 - Gemini 2.5 Pro/Flash (LLM orchestration)
 - PIL + NumPy (forensics)
 - SerpAPI (reverse search)
 
 **Infrastructure:**
+
 - Redis (caching)
 - PRAW (Reddit monitoring)
 - Docker-ready
@@ -404,13 +435,16 @@ medcontext/
 ## 🏅 Why MedContext Should Win
 
 ### 1. **True Agentic Innovation**
+
 Not just "AI-powered"—actual autonomous decision-making with:
+
 - Dynamic tool selection
 - Context-aware reasoning
 - Explainable verdicts
 - Human-agent collaboration
 
 ### 2. **Production-Ready Quality**
+
 - 33 passing tests
 - Comprehensive documentation
 - Security hardened
@@ -418,18 +452,21 @@ Not just "AI-powered"—actual autonomous decision-making with:
 - Real API integrations (not mocks)
 
 ### 3. **Real-World Impact**
+
 - Solves critical healthcare problem
 - Field-deployable (WhatsApp)
 - Scalable architecture
 - Extensible for other domains
 
 ### 4. **Technical Excellence**
+
 - Clean architecture (modular, testable)
 - Modern stack (FastAPI, React, LangGraph)
 - Performance optimized
 - Well-documented
 
 ### 5. **Complete Implementation**
+
 - Not a proof-of-concept—fully working system
 - UI + Backend + Tests + Docs
 - Multiple deployment options
@@ -484,6 +521,7 @@ curl http://localhost:8000/api/v1/orchestrator/graph
 ## 🎬 Demo Video (Optional)
 
 If required, a video walkthrough can be provided showing:
+
 1. Agent dynamically selecting tools based on image type
 2. Multi-layer forensics detection in action
 3. Provenance chain visualization
@@ -494,16 +532,19 @@ If required, a video walkthrough can be provided showing:
 ## 💡 Future Roadmap
 
 **Phase 1 (3 months):**
+
 - WhatsApp bot deployment
 - Multi-language support
 - Mobile app (iOS/Android)
 
 **Phase 2 (6 months):**
+
 - Federated learning from field data
 - Edge agent optimization (4-bit quantization)
 - Hospital system integration
 
 **Phase 3 (12 months):**
+
 - National health system partnerships
 - Real-time monitoring at scale
 - Regulatory approval for clinical use
@@ -516,6 +557,7 @@ If required, a video walkthrough can be provided showing:
 **Developer:** Jamie Forrest
 
 **Questions?**
+
 - See [DEPLOYMENT.md](DEPLOYMENT.md) for setup issues
 - See [AGENTIC_ARCHITECTURE.md](AGENTIC_ARCHITECTURE.md) for technical details
 - See API docs at http://localhost:8000/docs when running
@@ -528,4 +570,4 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Thank you for considering MedContext! We're excited to demonstrate how agentic AI can restore contextual integrity in medical information. 🏥🤖**
+**Thank you for considering MedContext! We're excited to demonstrate how agentic AI can restore contextual authenticity in medical information. 🏥🤖**

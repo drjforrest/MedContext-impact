@@ -18,7 +18,7 @@ MedContext is a seven-module system designed to combat medical image misinformat
 4. **Extracting** health claims associated with each image
 5. **Building** provenance chains showing genealogy and consensus patterns
 6. **Visualizing** distribution patterns for end users
-7. **Providing** contextual integrity assessments and recommendations
+7. **Providing** contextual authenticity assessments and recommendations
 
 This document provides complete technical specification for a 6-week MVP development cycle.
 
@@ -67,7 +67,7 @@ User Submission
     └─ JSON Output
     ↓
 [7] DECISION SUPPORT MODULE
-    ├─ Contextual Integrity Assessment
+    ├─ Contextual Authenticity Assessment
     ├─ Recommendation Generation
     ├─ Risk Stratification
     └─ User-Facing Output
@@ -759,7 +759,7 @@ async def get_confidence_metrics(
 
 ### Purpose
 
-Coordinate agentic tool use and produce contextual integrity assessments and recommendations for healthcare providers and the public.
+Coordinate agentic tool use and produce contextual authenticity assessments and recommendations for healthcare providers and the public.
 
 ### Agentic Orchestration Logic
 
@@ -770,7 +770,7 @@ MedGemma acts as a clinical investigator that dynamically selects tools based on
 
 The flow emphasizes self-correction: anomalous clinical findings trigger deeper forensics and reverse search before synthesis.
 
-### Contextual Integrity Metric
+### Contextual Authenticity Metric
 
 Define a MedContext Integrity Score as a weighted average of:
 
@@ -928,7 +928,7 @@ class DecisionSupportOutput(Base):
 ```python
 # decision_support/assessment.py
 class DecisionSupportEngine:
-    """Generates contextual integrity assessments and recommendations"""
+    """Generates contextual authenticity assessments and recommendations"""
 
     def __init__(self, db: Session):
         self.db = db
@@ -1188,7 +1188,7 @@ async def assess_image(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ) -> AssessmentResponse:
-    """Generate contextual integrity assessment"""
+    """Generate contextual authenticity assessment"""
     engine = DecisionSupportEngine(db)
     assessment = engine.assess_image(image_id)
 

@@ -69,7 +69,7 @@ def compute_contextual_integrity_score(
     source_reputation: float | None,
     weights: ContextualIntegrityWeights | None = None,
 ) -> float:
-    """Compute contextual integrity score with alignment as primary signal."""
+    """Compute contextual authenticity score with alignment as primary signal."""
     active_weights = weights or ContextualIntegrityWeights()
     weighted_values: list[tuple[float, float | None]] = [
         (active_weights.alignment, alignment),

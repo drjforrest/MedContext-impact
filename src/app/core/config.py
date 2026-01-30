@@ -20,6 +20,13 @@ class Settings(BaseSettings):
     medgemma_vertex_project: str = ""
     medgemma_vertex_location: str = "us-central1"
     medgemma_vertex_endpoint: str = ""
+    medgemma_vertex_dedicated_domain: str = ""
+    vertexai_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "VERTEX_API_KEY", "VERTEXAI_API_KEY", "VERTEX_AI_API_KEY"
+        ),
+    )
     medgemma_fallback_provider: str = Field(
         default="local",
         validation_alias=AliasChoices("MEDGEMMA_FALLBACK_PROVIDER"),
@@ -57,6 +64,8 @@ class Settings(BaseSettings):
     reddit_keywords: str = ""
     reddit_poll_interval_minutes: int = 60
     enable_monitoring_polling: bool = False
+    enable_forensics: bool = False
+    enable_forensics_medgemma: bool = False
     jwt_secret: str = ""
     encryption_key: str = ""
     log_level: str = "INFO"

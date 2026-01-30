@@ -3,6 +3,7 @@
 ## ✅ What's Been Completed
 
 ### 1. Validation Framework Created
+
 - **Script:** `scripts/validate_forensics.py` (fully functional)
 - **Features:**
   - Bootstrap confidence interval computation (1,000 iterations)
@@ -12,11 +13,13 @@
   - JSON report generation
 
 ### 2. Documentation Prepared
+
 - **`docs/VALIDATION_DATASETS.md`:** Complete catalog of available datasets
 - **`scripts/README_VALIDATION.md`:** Step-by-step usage guide
 - **`AGENTIC_ARCHITECTURE.md`:** Updated with scientific validation section (ready for results)
 
 ### 3. Dependencies Added
+
 - Updated `pyproject.toml` with validation packages:
   - `scipy>=1.11.0` (statistical functions)
   - `scikit-learn>=1.3.0` (ML metrics)
@@ -65,6 +68,7 @@ cat validation_results/sample/forensics_validation_report.json
 #### Step 1: Obtain MedForensics Dataset
 
 **Option 1 - Academic Access (Recommended):**
+
 1. Search for "MedForensics dataset" on Google Scholar or arXiv
 2. Find the official paper/repository
 3. Request access (usually requires academic email)
@@ -74,6 +78,7 @@ cat validation_results/sample/forensics_validation_report.json
 If MedForensics is not accessible, use these alternatives:
 
 **A. Kaggle Medical Tamper Datasets:**
+
 ```bash
 # Search Kaggle for:
 # - "medical image tampering"
@@ -87,6 +92,7 @@ If MedForensics is not accessible, use these alternatives:
 ```
 
 **B. GitHub Repositories:**
+
 ```bash
 # Search GitHub for:
 # - "medical tampering detection dataset"
@@ -140,6 +146,7 @@ cat validation_results/medforensics/forensics_validation_report.json | jq '.conf
 Based on validation results, record updates alongside `scripts/validate_forensics.py` output:
 
 **Example:**
+
 ```python
 # In run_layer_1() function
 # OLD:
@@ -178,12 +185,14 @@ Add validation results to `AGENTIC_ARCHITECTURE.md`:
 3. Add dataset citation
 
 **Example:**
+
 ```markdown
 **Dataset:** MedForensics subset (1,000 images: 500 authentic, 500 manipulated)
 **Validation Method:** Bootstrap resampling (1,000 iterations)
 
 **Performance Metrics (95% CI):**
-- Accuracy: 0.847 [0.821, 0.871]  ← Replace with actual values
+
+- Accuracy: 0.847 [0.821, 0.871] ← Replace with actual values
 - Precision: 0.823 [0.798, 0.846]
 - Recall: 0.891 [0.869, 0.911]
 - F1 Score: 0.856 [0.832, 0.878]
@@ -194,11 +203,12 @@ Add validation results to `AGENTIC_ARCHITECTURE.md`:
 
 ## 📊 Interpreting Results
 
-The validation metrics measure **forensics signal stability** and help calibrate thresholds. They are **supporting evidence** for contextual integrity, not a definitive authenticity claim.
+The validation metrics measure **forensics signal stability** and help calibrate thresholds. They are **supporting evidence** for contextual authenticity, not a definitive authenticity claim.
 
 ### If Results Are Lower Than Expected
 
 **Possible causes:**
+
 1. **Dataset Quality:**
    - Mislabeled images
    - Low-quality fakes (easy to detect) or high-quality fakes (hard to detect)
@@ -210,6 +220,7 @@ The validation metrics measure **forensics signal stability** and help calibrate
    - Ensemble voting weights off
 
 **Solutions:**
+
 - Try different dataset
 - Tune ELA JPEG quality (try 90, 95, 98)
 - Adjust ensemble voting logic
@@ -230,6 +241,7 @@ Add validation section:
 **Method:** Bootstrap resampling (1,000 iterations)
 
 **Key Results:**
+
 - Accuracy: 84.7% [82.1%, 87.1%] (95% CI)
 - Recall: 89.1% [86.9%, 91.1%] (95% CI)
 - ROC-AUC: 0.912 [0.893, 0.929] (95% CI)
@@ -250,6 +262,7 @@ Add validation badge:
 ## Validation
 
 ✅ **Validated on MedForensics Dataset**
+
 - 84.7% accuracy [82.1%, 87.1%] (95% CI)
 - 89.1% recall [86.9%, 91.1%] (95% CI)
 - 1,000 bootstrap iterations
@@ -262,6 +275,7 @@ See `AGENTIC_ARCHITECTURE.md` for full validation methodology.
 ## 🚦 Status Check
 
 **Before submission, ensure:**
+
 - [ ] Validation script runs successfully
 - [ ] Results with confidence intervals documented
 - [ ] Thresholds recorded in validation notes
@@ -277,11 +291,13 @@ See `AGENTIC_ARCHITECTURE.md` for full validation methodology.
 ### Can't Find MedForensics Dataset
 
 **Alternatives:**
+
 1. Kaggle: Search "medical image tampering" or "synthetic medical images"
 2. Papers With Code: Look for datasets tagged "medical imaging" + "tamper detection"
 3. GitHub: Search repositories with medical tampering datasets
 
 **Minimum viable dataset:**
+
 - At least 200 images (100 authentic, 100 manipulated)
 - Medical imaging modality (X-ray, CT, MRI, ultrasound)
 - Clear labels
@@ -289,18 +305,21 @@ See `AGENTIC_ARCHITECTURE.md` for full validation methodology.
 ### Validation Script Errors
 
 **Import errors:**
+
 ```bash
 # Reinstall dev dependencies
 uv run pip install -e ".[dev]" --force-reinstall
 ```
 
 **Image loading errors:**
+
 ```bash
 # Check images are valid
 python -c "from PIL import Image; Image.open('data/validation/sample/authentic/img1.jpg').verify()"
 ```
 
 **Memory errors:**
+
 ```bash
 # Reduce dataset size or bootstrap iterations
 python scripts/validate_forensics.py --dataset data/validation/sample --bootstrap 100
@@ -311,12 +330,14 @@ python scripts/validate_forensics.py --dataset data/validation/sample --bootstra
 ## ⏰ Time Estimates
 
 **Quick validation (sample data):** 30 minutes
+
 - Setup: 5 min
 - Collect images: 10 min
 - Run validation: 5 min
 - Review results: 10 min
 
 **Full validation (MedForensics):** 2-4 hours
+
 - Dataset access/download: 1-2 hours
 - Setup: 10 min
 - Run validation: 20 min
@@ -329,6 +350,7 @@ python scripts/validate_forensics.py --dataset data/validation/sample --bootstra
 ## 📞 Need Help?
 
 **See:**
+
 - `scripts/README_VALIDATION.md` - Detailed usage guide
 - `docs/VALIDATION_DATASETS.md` - Dataset catalog
 - `scripts/validate_forensics.py` - Full validation implementation
@@ -340,6 +362,7 @@ python scripts/validate_forensics.py --dataset data/validation/sample --bootstra
 ## ✨ Summary
 
 You now have a **production-ready evidence validation framework** that:
+
 1. Computes confidence intervals via bootstrap resampling
 2. Supports multiple dataset formats
 3. Optimizes thresholds via ROC analysis

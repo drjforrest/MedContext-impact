@@ -1,8 +1,8 @@
-# Contextual Integrity Evidence Datasets
+# Contextual Authenticity Evidence Datasets
 
 ## Overview
 
-This document catalogs public medical image tampering datasets suitable for **supporting evidence validation** in MedContext. These datasets help calibrate forensics signals that feed the contextual integrity verdict.
+This document catalogs public medical image tampering datasets suitable for **supporting evidence validation** in MedContext. These datasets help calibrate forensics signals that feed the contextual authenticity verdict.
 
 ---
 
@@ -13,6 +13,7 @@ This document catalogs public medical image tampering datasets suitable for **su
 **Description:** 116,000 balanced real vs AI-generated medical images across 6 modalities
 
 **Modalities:**
+
 - Ultrasound
 - Endoscopy
 - Histopathology
@@ -23,22 +24,26 @@ This document catalogs public medical image tampering datasets suitable for **su
 **Use Case:** Comprehensive evaluation of generative model detection across diverse medical imaging types
 
 **Strengths:**
+
 - Large scale (116K images)
 - Balanced classes (real/fake)
 - Multiple modalities
 - Diverse generative models
 
 **Detection Focus:**
+
 - AI-generated entire images (GAN, Stable Diffusion, etc.)
 - Cross-modality generalization
 - Forensics feature robustness
 
 **Access:**
+
 - **Source:** [MedForensics Research Paper/GitHub]
 - **License:** Research use (check specific terms)
 - **Format:** Images with binary labels (real/fake)
 
 **Download Instructions:**
+
 ```bash
 # (Instructions to be added once dataset access obtained)
 # Expected structure:
@@ -60,27 +65,32 @@ This document catalogs public medical image tampering datasets suitable for **su
 **Description:** 3D lung CT scans with inserted/removed malignancies
 
 **Clinical Manipulation Types:**
+
 - Cancer insertion (fake tumors)
 - Cancer removal (hidden real tumors)
 
 **Use Case:** Detect clinically meaningful tampering in volumetric CT data
 
 **Strengths:**
+
 - Real-world clinical threat model
 - Ground truth localization masks
 - 3D volumetric data (can test 2D slices)
 
 **Detection Focus:**
+
 - Local manipulation detection (vs. entire image generation)
 - Medical plausibility assessment
 - High-stakes clinical scenarios
 
 **Access:**
+
 - **Source:** UCI Machine Learning Repository
 - **License:** Academic research use
 - **Format:** 3D CT volumes (.nii.gz) with tampering masks
 
 **Download Instructions:**
+
 ```bash
 # UCI ML Repository
 # https://archive.ics.uci.edu/dataset/.../medical+image+tamper+detection
@@ -93,30 +103,35 @@ This document catalogs public medical image tampering datasets suitable for **su
 **Description:** CT and MRI slices with tumor injections/removals using CT-GAN and fine-tuned Stable Diffusion
 
 **Datasets:**
+
 - **CT Lung:** Original vs. manipulated slices with tumor injection/removal
 - **Breast MRI:** Similar tampering methodology
 
 **Use Case:** Test detection against advanced diffusion-based manipulation
 
 **Strengths:**
+
 - Modern generative models (Stable Diffusion)
 - Clear manipulation labels
 - GitHub-hosted (easy access)
 
 **Detection Focus:**
+
 - Diffusion model artifacts
 - Semantic plausibility vs. pixel forensics
 - Tumor-specific manipulation patterns
 
 **Access:**
+
 - **Source:** GitHub (BTD project repository)
 - **License:** Open source (MIT/Apache)
 - **Format:** 2D slices with labels (original/manipulated/type)
 
 **Download Instructions:**
+
 ```bash
 # Clone BTD repository
-git clone https://github.com/drjforrest/medcontext.git 
+git clone https://github.com/drjforrest/medcontext.git
 # Follow dataset download instructions in repo
 ```
 
@@ -129,6 +144,7 @@ git clone https://github.com/drjforrest/medcontext.git
 **Description:** Clean and adversarial image pairs using FGSM, PGD, BIM attacks
 
 **Modalities:**
+
 - Lung CT
 - Mammography
 - Brain MRI
@@ -136,11 +152,13 @@ git clone https://github.com/drjforrest/medcontext.git
 **Use Case:** Test robustness to adversarial perturbations (imperceptible manipulations)
 
 **Detection Focus:**
+
 - Subtle noise patterns
 - Adversarial attack signatures
 - Forensics resilience to adversarial examples
 
 **Access:**
+
 - **Source:** Aneja Lab publications/GitHub
 - **License:** Research use
 - **Format:** Image pairs (clean/adversarial) with attack metadata
@@ -150,7 +168,9 @@ git clone https://github.com/drjforrest/medcontext.git
 ## 📊 Dataset Selection Strategy for MedContext
 
 ### Phase 1: Foundation Validation (Week 1)
+
 **Primary Dataset:** MedForensics (subset)
+
 - Select 500 images per modality (X-ray, CT, MRI priority)
 - Run bootstrap validation (1000 iterations)
 - Compute confidence intervals for:
@@ -162,7 +182,9 @@ git clone https://github.com/drjforrest/medcontext.git
 **Deliverable:** `FORENSICS_VALIDATION.md` with 95% CI metrics
 
 ### Phase 2: Clinical Tampering (Week 2)
+
 **Primary Dataset:** UCI Tamper Detection
+
 - Extract 2D slices from 3D volumes
 - Test tumor insertion/removal detection
 - Validate medical plausibility scoring
@@ -170,7 +192,9 @@ git clone https://github.com/drjforrest/medcontext.git
 **Deliverable:** Clinical manipulation detection report
 
 ### Phase 3: Advanced Threats (Week 3)
+
 **Primary Dataset:** BTD Test Sets
+
 - Evaluate against Stable Diffusion manipulations
 - Test generalization to diffusion models
 - Compare ELA vs. semantic detection
@@ -184,6 +208,7 @@ git clone https://github.com/drjforrest/medcontext.git
 ### Quick Start
 
 **1. Download MedForensics Dataset (Recommended)**
+
 ```bash
 # Place dataset in data/validation/medforensics/
 mkdir -p data/validation/medforensics/{authentic,manipulated}
@@ -191,6 +216,7 @@ mkdir -p data/validation/medforensics/{authentic,manipulated}
 ```
 
 **2. Run Validation Script**
+
 ```bash
 python scripts/validate_forensics.py \
   --dataset data/validation/medforensics \
@@ -199,6 +225,7 @@ python scripts/validate_forensics.py \
 ```
 
 **3. Review Results**
+
 ```bash
 cat validation_results/forensics_validation_report.json
 ```
@@ -219,7 +246,7 @@ cat validation_results/forensics_validation_report.json
       "mean": 0.847,
       "lower_ci": 0.821,
       "upper_ci": 0.871,
-      "ci_width": 0.050
+      "ci_width": 0.05
     }
   },
   "threshold_analysis": {
@@ -246,6 +273,7 @@ Add to `AGENTIC_ARCHITECTURE.md`:
 **Validation Method:** Bootstrap resampling (1000 iterations)
 
 **Performance Metrics (95% CI):**
+
 - Accuracy: 0.847 [0.821, 0.871]
 - Precision: 0.823 [0.798, 0.846]
 - Recall: 0.891 [0.869, 0.911]
@@ -253,6 +281,7 @@ Add to `AGENTIC_ARCHITECTURE.md`:
 - ROC-AUC: 0.912 [0.893, 0.929]
 
 **Threshold Calibration:**
+
 - ELA std (authentic): 5.2 (validated on 58K real images)
 - ELA std (manipulated): 17.3 (validated on 58K fake images)
 ```
@@ -262,13 +291,16 @@ Add to `AGENTIC_ARCHITECTURE.md`:
 ## 🔍 Ethical & Practical Considerations
 
 ### License Compliance
+
 - ✅ **MedForensics:** Research use only, no redistribution
 - ✅ **UCI Dataset:** Academic use, cite properly
 - ✅ **BTD:** Open source, check GitHub license
 - ⚠️ **Commercial Use:** Verify each dataset's commercial restrictions
 
 ### Clinical Tampering Context
+
 When using datasets with pathology manipulation:
+
 1. **AI-Generated Entire Images (MedForensics):**
    - Focus: Generative model artifacts
    - MedContext strength: ELA + EXIF + semantic
@@ -282,6 +314,7 @@ When using datasets with pathology manipulation:
    - MedContext limitation: ELA may not detect sub-pixel changes
 
 ### Dataset Bias & Limitations
+
 - **Cross-modality generalization:** Train on X-ray, test on MRI
 - **Generative model diversity:** Dataset may not cover latest models (DALL-E 3, Midjourney v6)
 - **Real-world distribution shift:** Public datasets may not match clinical settings
