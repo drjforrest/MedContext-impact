@@ -205,6 +205,12 @@ class MedContextTelegramBot:
             return WAITING_FOR_IMAGE
 
         elif query.data == "skip_context":
+            if user_id not in self.user_sessions:
+                await query.edit_message_text(
+                    "⚠️ Session expired. Please send /start to begin a new analysis."
+                )
+                return ConversationHandler.END
+
             self.user_sessions[user_id]["context"] = None
 
             keyboard = [
@@ -227,6 +233,12 @@ class MedContextTelegramBot:
             return CONFIRM_ANALYSIS
 
         elif query.data == "confirm_run":
+            if user_id not in self.user_sessions:
+                await query.edit_message_text(
+                    "⚠️ Session expired. Please send /start to begin a new analysis."
+                )
+                return ConversationHandler.END
+
             await query.edit_message_text(
                 "⚙️ *Analysis started...*\n\n"
                 "🔍 Checking medical plausibility\n"
