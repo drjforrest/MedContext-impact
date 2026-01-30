@@ -19,7 +19,7 @@ from telegram.ext import (
 )
 
 from app.core.config import settings
-from app.orchestrator.agent import MedContextAgent
+from app.orchestrator.agent import AgentRunResult, MedContextAgent
 
 # Configure logging
 logging.basicConfig(
@@ -44,9 +44,9 @@ class MedContextTelegramBot:
         user = update.effective_user
         welcome_message = (
             f"👋 Hi {user.mention_html()}!\n\n"
-            "Welcome to *MedContext* - Your medical image authenticity checker.\n\n"
+            "Welcome to <b>MedContext</b> - Your medical image authenticity checker.\n\n"
             "🔍 I help you verify if medical images match their claims.\n\n"
-            "*How it works:*\n"
+            "<b>How it works:</b>\n"
             "1️⃣ Send me a medical image\n"
             "2️⃣ Provide context about the image\n"
             "3️⃣ Get instant authenticity analysis\n\n"
@@ -180,7 +180,31 @@ class MedContextTelegramBot:
 
         user_id = update.effective_user.id
 
-        if query.data == "skip_context":
+        if query.data == "help":
+            # Show help message
+            help_text = (
+                "*MedContext Help* 📚\n\n"
+                "*Commands:*\n"
+                "• /start - Start a new analysis\n"
+                "• /help - Show this help message\n"
+                "• /cancel - Cancel current analysis\n"
+                "• /status - Check analysis status\n\n"
+                "*How to use:*\n"
+                "1. Send me a medical image (photo)\n"
+                "2. I'll ask for context/caption\n"
+                "3. Confirm to run analysis\n"
+                "4. Get detailed results\n\n"
+                "*What we check:*\n"
+                "✅ Context alignment\n"
+                "✅ Medical plausibility\n"
+                "✅ Source reputation\n"
+                "✅ Image provenance\n\n"
+                "Questions? Contact @medcontext_support"
+            )
+            await query.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
+            return WAITING_FOR_IMAGE
+
+        elif query.data == "skip_context":
             self.user_sessions[user_id]["context"] = None
 
             keyboard = [
@@ -264,17 +288,17 @@ class MedContextTelegramBot:
                 error_message, parse_mode=ParseMode.MARKDOWN
             )
 
-    async def _send_results(self, update: Update, result: dict[str, Any]) -> None:
+    async def _send_results(self, update: Update, result: AgentRunResult) -> None:
         """Format and send analysis results to user."""
-        synthesis = result.get("synthesis", {})
+        synthesis = result.synthesis or {}
         part2 = synthesis.get("part_2", {})
         contextual_integrity = synthesis.get("contextual_integrity", {})
-        tool_results = result.get("tool_results", {})
+        tool_results = result.tool_results or {}
 
         # Extract key metrics
         alignment = part2.get("alignment", "Unknown")
         verdict = part2.get("verdict", "Uncertain")
-        
+
         integrity_score = contextual_integrity.get("score")
         if integrity_score is not None:
             integrity_percent = round(float(integrity_score) * 100)
@@ -457,6 +481,7 @@ class MedContextTelegramBot:
             states={
                 WAITING_FOR_IMAGE: [
                     MessageHandler(filters.PHOTO, self.handle_image),
+                    CallbackQueryHandler(self.handle_callback, pattern="^help$"),
                     CommandHandler("cancel", self.cancel),
                 ],
                 WAITING_FOR_CONTEXT: [
