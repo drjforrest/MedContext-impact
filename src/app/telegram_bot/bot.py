@@ -232,7 +232,8 @@ class MedContextTelegramBot:
                 "🔍 Checking medical plausibility\n"
                 "🌐 Searching for sources\n"
                 "🔗 Building provenance chain\n\n"
-                "Please wait..."
+                "Please wait...",
+                parse_mode=ParseMode.MARKDOWN,
             )
 
             # Run analysis
@@ -342,12 +343,17 @@ class MedContextTelegramBot:
         # Tool results summary
         summary += "*🛠️ Tools Used:*\n"
 
-        if tool_results.get("reverse_search"):
-            matches = tool_results["reverse_search"].get("matches", [])
+        if tool_results.get("reverse_search_results"):
+            matches = tool_results["reverse_search_results"].get("matches", [])
             summary += f"• Reverse Search: {len(matches)} matches\n"
 
         if tool_results.get("provenance"):
-            blocks = tool_results["provenance"].get("blocks", [])
+            provenance_obj = tool_results["provenance"]
+            # Handle both Pydantic model and dict
+            if hasattr(provenance_obj, "blocks"):
+                blocks = provenance_obj.blocks
+            else:
+                blocks = provenance_obj.get("blocks", [])
             summary += f"• Provenance: {len(blocks)} blocks\n"
 
         if tool_results.get("forensics"):
@@ -366,9 +372,9 @@ class MedContextTelegramBot:
             )
 
         # Send reverse search matches
-        if tool_results.get("reverse_search", {}).get("matches"):
+        if tool_results.get("reverse_search_results", {}).get("matches"):
             await self._send_reverse_search_results(
-                update, tool_results["reverse_search"]["matches"]
+                update, tool_results["reverse_search_results"]["matches"]
             )
 
     async def _send_detailed_evidence(
