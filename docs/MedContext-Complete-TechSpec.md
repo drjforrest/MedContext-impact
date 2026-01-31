@@ -30,7 +30,7 @@ This document provides complete technical specification for a 6-week MVP develop
 User Submission
     ↓
 [1] IMAGE INGESTION MODULE
-    ├─ WhatsApp Bot Handler
+    ├─ Telegram Bot Handler
     ├─ Browser Extension Handler
     ├─ Web Form Handler
     └─ PostgreSQL Storage
@@ -85,7 +85,7 @@ Receive medical images from multiple channels, validate, normalize, and persist 
 
 ### Responsibilities
 
-- **WhatsApp Bot Handler:** Parse WhatsApp Business API webhook events
+- **Telegram Bot Handler:** Parse Telegram Bot API webhook events
 - **Browser Extension Handler:** Receive images from Chrome/Firefox extension
 - **Web Form Handler:** Simple web upload interface
 - **Image Validation:** Verify format, size, and content
@@ -94,7 +94,7 @@ Receive medical images from multiple channels, validate, normalize, and persist 
 
 ### Edge AI Triage (Hardening)
 
-- **Privacy-Preserving Triage:** For WhatsApp/mobile ingestion, explore 4-bit quantized MedGemma 1.5 4B (GGUF/CoreML) on-device to classify urgency before sending to the backend.
+- **Privacy-Preserving Triage:** For Telegram/mobile ingestion, explore 4-bit quantized MedGemma 1.5 4B (GGUF/CoreML) on-device to classify urgency before sending to the backend.
 - **Why:** Reduce latency and protect sensitive content while still routing complex cases to the full cloud workflow.
 
 ### Database Models
@@ -109,7 +109,7 @@ class ImageSubmission(Base):
     __tablename__ = "image_submissions"
 
     id: UUID = Column(UUID, primary_key=True)
-    source_channel: str = Column(String)  # 'whatsapp', 'extension', 'web'
+    source_channel: str = Column(String)  # 'telegram', 'extension', 'web'
     user_id: str = Column(String, index=True)
     image_hash: str = Column(String, unique=True, index=True)  # SHA256
     image_path: str = Column(String)  # IPFS path

@@ -24,7 +24,6 @@ dependencies = [
   "transformers==4.57.3",
   "accelerate>=1.12.0",
   "psycopg2-binary>=2.9.11",
-  "praw>=7.8.1",
   "cachetools>=6.2.4",
 ]
 

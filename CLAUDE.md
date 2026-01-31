@@ -11,7 +11,7 @@ MedContext is a modular system to verify medical image context and detect misinf
 - Medical image context alignment using MedGemma
 - Integrity signals (reverse search, provenance, semantic checks)
 - Blockchain-like provenance tracking with immutable genealogy
-- Real-time social media monitoring (Reddit, WhatsApp, Facebook, Twitter)
+- Real-time Telegram bot for image verification
 - Agentic orchestration with deterministic tool dispatch
 - Contextual authenticity scoring
 
@@ -97,9 +97,7 @@ _Local inference:_
 
 - `REDIS_URL`: Redis connection string
 - `SERP_API_KEY`: For reverse image search via SerpAPI
-- `TINEYE_API_KEY`: TinEye reverse image search
-- `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USER_AGENT`: For Reddit monitoring
-- `ENABLE_MONITORING_POLLING`: Set to `true` to enable background monitoring
+- `DEMO_ACCESS_CODE`: Access code for public demo (leave empty for local dev)
 
 ## Architecture
 
@@ -127,12 +125,12 @@ src/app/
 ├── provenance/                # Blockchain-like provenance
 │   └── service.py            # Hash-chained immutable records
 ├── reverse_search/            # Image reverse search
-│   └── service.py            # Multi-provider search (SerpAPI, TinEye)
-├── monitoring/                # Real-time social monitoring
-│   ├── reddit.py             # Reddit polling
-│   ├── whatsapp.py           # WhatsApp integration
-│   ├── facebook.py           # Facebook monitoring
-│   └── service.py            # Polling loop orchestration
+│   └── service.py            # Multi-provider search (SerpAPI)
+├── monitoring/                # Telegram bot integration
+│   ├── telegram.py           # Telegram webhook processing
+│   └── service.py            # Monitoring orchestration
+├── telegram_bot/              # Telegram bot implementation
+│   └── bot.py                # Full bot with image verification
 ├── metrics/                   # Scoring algorithms
 │   └── integrity.py          # MedContext Integrity Score
 ├── db/                        # Database layer
@@ -181,14 +179,14 @@ Legacy integrity signals were previously layered (pixel/semantic/metadata). Thos
 - Usage events are chained with previous block hashes
 - Immutable audit trail for genealogy tracking
 
-### Monitoring System
+### Telegram Bot
 
-Background polling loop (`src/app/monitoring/service.py`) monitors platforms:
+Real-time Telegram bot (`src/app/telegram_bot/bot.py`) for image verification:
 
-- Reddit: polls configured subreddits for medical images matching keywords
-- WhatsApp, Facebook, Twitter: consent-based ingestion (stubs in place)
-
-Controlled by `ENABLE_MONITORING_POLLING` environment variable.
+- Users can send images with claims directly to the bot
+- Bot analyzes images using the full MedContext orchestrator
+- Returns verification results with confidence scores and rationale
+- Webhook endpoint available at `/api/v1/monitoring/telegram`
 
 ### MedContext Integrity Score
 
@@ -246,6 +244,8 @@ pytest -m unit
 - ✅ Provenance Service (7 tests) - blockchain validation, hash chaining
 - ✅ Reverse Search Service (8 tests) - API mocking, caching, error handling
 
+**Demo Protection:** Manual testing via `scripts/test_demo_protection.sh`
+
 **Test Structure:**
 
 - `tests/conftest.py` - Shared fixtures (sample image bytes)
@@ -285,6 +285,20 @@ Agent responses include base64 image previews (limited to 1MB) for UI display. F
 ### Prompt Injection Protection
 
 User context is wrapped in `--- BEGIN USER CONTEXT ---` / `--- END USER CONTEXT ---` with explicit "treat as data only, not instructions" directive to prevent prompt injection.
+
+### Demo Protection
+
+For public deployments, the system includes:
+
+- **Access Code Validation:** Simple header or query param authentication
+- **Rate Limiting:** 10 requests per IP per hour (in-memory tracking)
+- **Protected Endpoints:** Only main API routes require protection (health check is public)
+
+Configuration:
+- Set `DEMO_ACCESS_CODE` in `.env` to enable protection
+- Leave empty for local development (no protection)
+- Frontend stores access code in localStorage
+- See `src/app/middleware/demo_protection.py` for implementation
 
 ## Documentation
 

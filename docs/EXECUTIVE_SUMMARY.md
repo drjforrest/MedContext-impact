@@ -46,7 +46,7 @@ First agentic AI system optimized for real-world threat distribution:
 
 - **Partner:** HERO Lab, UBC (Scientific Director: Jamie Forrest)
 - **Target:** African Ministries of Health / rural clinical settings
-- **Scale:** Millions of patients via WhatsApp integration
+- **Scale:** Millions of patients via Telegram bot integration
 - **Trust foundation:** 81% of patients trust healthcare professionals
 
 ### Contribution (Novel)

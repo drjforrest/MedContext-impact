@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-    Bar,
-    BarChart,
-    Cell,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
 import './App.css'
 
@@ -25,6 +25,13 @@ const getStoredApiBase = () => {
   return stored && stored.trim() ? stored : defaultApiBase
 }
 
+const getStoredAccessCode = () => {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+  return window.localStorage.getItem('medcontext_access_code') || ''
+}
+
 const getStoredNumber = (key, fallback) => {
   if (typeof window === 'undefined') {
     return fallback
@@ -37,6 +44,7 @@ const getStoredNumber = (key, fallback) => {
 function App() {
   const [activeView, setActiveView] = useState('main')
   const [apiBase, setApiBase] = useState(getStoredApiBase)
+  const [accessCode, setAccessCode] = useState(getStoredAccessCode)
   const [imageFile, setImageFile] = useState(null)
   const [imageUrl, setImageUrl] = useState('')
   const [context, setContext] = useState('')
@@ -170,10 +178,15 @@ function App() {
 
     setStatus('loading')
     try {
+      const headers = {}
+      if (accessCode.trim()) {
+        headers['X-Demo-Access-Code'] = accessCode.trim()
+      }
       const response = await fetch(
         `${apiBase.replace(/\/$/, '')}/api/v1/orchestrator/run`,
         {
           method: 'POST',
+          headers,
           body: formData,
         },
       )
@@ -193,6 +206,13 @@ function App() {
     setApiBase(value)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('medcontext_api_base', value)
+    }
+  }
+
+  const handleAccessCodeChange = (value) => {
+    setAccessCode(value)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('medcontext_access_code', value)
     }
   }
 
@@ -250,10 +270,15 @@ function App() {
     formData.append('file', reverseImageFile)
 
     try {
+      const headers = {}
+      if (accessCode.trim()) {
+        headers['X-Demo-Access-Code'] = accessCode.trim()
+      }
       const response = await fetch(
         `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/search/${imageId}`,
         {
           method: 'POST',
+          headers,
           body: formData,
         },
       )
@@ -270,8 +295,13 @@ function App() {
       let resultPayload = {}
 
       while (Date.now() - pollStart < pollTimeoutMs) {
+        const pollHeaders = {}
+        if (accessCode.trim()) {
+          pollHeaders['X-Demo-Access-Code'] = accessCode.trim()
+        }
         resultResponse = await fetch(
           `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/results/${imageId}`,
+          { headers: pollHeaders },
         )
         resultPayload = await resultResponse.json().catch(() => ({}))
         if (!resultResponse.ok) {
@@ -546,7 +576,7 @@ function App() {
           <div className="hero-logo-frame">
             <img
               className="hero-logo"
-              src="/medContext-logo.png"
+              src="/logo-w-tagline.png"
               alt="MedContext logo"
             />
           </div>
@@ -599,6 +629,20 @@ function App() {
                   />
                   <span className="helper">
                     Stored locally in your browser.
+                  </span>
+                </label>
+                <label className="field">
+                  <span>Demo Access Code</span>
+                  <input
+                    type="text"
+                    placeholder="Leave empty for local dev"
+                    value={accessCode}
+                    onChange={(event) =>
+                      handleAccessCodeChange(event.target.value)
+                    }
+                  />
+                  <span className="helper">
+                    Required for public demo. See README for code.
                   </span>
                 </label>
               </div>

@@ -57,6 +57,9 @@ def test_ingest_and_run_agentic_persists(sample_image_bytes, tmp_path, monkeypat
 
 
 def test_orchestrator_run_uses_agentic_ingestion(sample_image_bytes, monkeypatch):
+    # Disable demo protection for this test
+    monkeypatch.setattr(settings, "demo_access_code", "")
+
     client = TestClient(app)
     db = _make_db_session()
 

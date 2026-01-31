@@ -17,12 +17,9 @@ This is the **fastest way** to run MedContext. Everything—database, backend, f
 ## 🚀 Launch MedContext (3 Steps)
 
 ### Step 1: Clone Repository
-```bash
-git clone https://github.com/YOUR_USERNAME/medcontext.git
-cd medcontext
-```
 
 ### Step 2: Configure Environment
+
 ```bash
 # Copy the example environment file
 cp .env.example .env
@@ -33,12 +30,14 @@ nano .env  # or use your preferred editor
 ```
 
 **Quick config for HuggingFace (easiest option):**
+
 ```env
 MEDGEMMA_PROVIDER=huggingface
 MEDGEMMA_HF_TOKEN=hf_YOUR_TOKEN_HERE
 ```
 
 ### Step 3: Launch Everything
+
 ```bash
 docker-compose up -d
 ```
@@ -59,11 +58,13 @@ That's it! 🎉
 ## ✅ Verify It's Working
 
 ### Check all services are running:
+
 ```bash
 docker-compose ps
 ```
 
 You should see:
+
 ```
 NAME                    STATUS
 medcontext-backend      Up (healthy)
@@ -72,16 +73,19 @@ medcontext-frontend     Up
 ```
 
 ### Test the API:
+
 ```bash
 curl http://localhost:8000/health
 ```
 
 Expected response:
+
 ```json
-{"status": "healthy"}
+{ "status": "healthy" }
 ```
 
 ### View logs:
+
 ```bash
 # All services
 docker-compose logs -f
@@ -135,21 +139,23 @@ The Docker setup includes:
 ### Problem: "Port already in use"
 
 **Solution:** Change ports in `docker-compose.yml`:
+
 ```yaml
 # Change frontend port from 80 to 3000
 frontend:
   ports:
-    - "3000:80"  # Access at http://localhost:3000
+    - "3000:80" # Access at http://localhost:3000
 
 # Change backend port from 8000 to 8001
 backend:
   ports:
-    - "8001:8000"  # Access at http://localhost:8001
+    - "8001:8000" # Access at http://localhost:8001
 ```
 
 ### Problem: "Database connection failed"
 
 **Solution:** Wait for database to be ready:
+
 ```bash
 # Check database health
 docker-compose ps db
@@ -162,6 +168,7 @@ docker-compose restart backend
 ### Problem: "Missing MedGemma token"
 
 **Solution:** Ensure `.env` has your credentials:
+
 ```bash
 # Check what environment variables are set
 docker-compose config
@@ -264,6 +271,7 @@ docker-compose down -v --rmi all
 5. **One command** - `docker-compose up -d` and you're running
 
 **Alternative methods:**
+
 - **Manual setup:** See [DEPLOYMENT.md](DEPLOYMENT.md) for pip/npm installation
 - **Cloud deployment:** One-click deploy to Railway/Render (see README.md)
 

@@ -77,7 +77,7 @@ MedContext uses a **3-phase agentic workflow** to assess whether image content a
 
 ### How It Works
 
-**Architecture Principle:** *"The doctor does doctor work, the manager does management work."*
+**Architecture Principle:** _"The doctor does doctor work, the manager does management work."_
 
 1. **TRIAGE** (Two-Step Process)
    - **Medical Analysis:** MedGemma assesses image + evaluates claim plausibility
@@ -102,7 +102,7 @@ See [AGENTIC_WORKFLOW.md](docs/AGENTIC_WORKFLOW.md) for complete pipeline visual
 
 - **Scientific Director:** Jamie Forrest
 - **Target:** African Ministries of Health / rural clinical settings
-- **Scale:** Millions of patients via WhatsApp integration
+- **Scale:** Millions of patients via Telegram bot integration
 - **Trust Foundation:** 81% of patients trust healthcare professionals
 
 [**📈 See Impact Plan**](docs/SUBMISSION.md#-educational-value--impact)
@@ -170,6 +170,38 @@ docker-compose up -d
 **Why Docker?** No dependency conflicts, works on any OS, production-ready setup.
 
 See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete guide with troubleshooting.
+
+### 🔐 Demo Access (For Public Deployments)
+
+**For Judges/Users accessing the public demo:**
+
+The live demo requires an access code to prevent abuse and control API costs. 
+
+**Access Code:** `MEDCONTEXT-DEMO-2026`
+
+**How to use:**
+
+1. **Via UI Settings:**
+   - Click "Settings" in the top-right corner
+   - Enter the access code in the "Demo Access Code" field
+   - The code is stored locally in your browser
+
+2. **Via API (for developers):**
+   ```bash
+   # Include header in requests
+   curl -X POST http://your-demo-url/api/v1/orchestrator/run \
+     -H "X-Demo-Access-Code: MEDCONTEXT-DEMO-2026" \
+     -F "file=@image.jpg" \
+     -F "context=Your context here"
+   ```
+
+**Rate Limits:**
+- 10 requests per IP address per hour
+- If you hit the limit, wait an hour or contact the developer
+
+**For Local Development:**
+- Leave `DEMO_ACCESS_CODE` empty in your `.env` file
+- No access code required when running locally
 
 ---
 
@@ -392,8 +424,7 @@ medcontext/
 ### Real-Time Monitoring
 
 - **Reddit integration** (PRAW)
-- **WhatsApp ready** (field deployment)
-- **Multi-platform** (Facebook, Twitter stubs)
+- **Telegram bot** (field deployment ready)
 
 ---
 

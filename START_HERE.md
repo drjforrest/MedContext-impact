@@ -9,30 +9,37 @@ This guide will help you quickly understand our submission and navigate the docu
 ## ⏱️ Quick Navigation by Time Available
 
 ### Have 2 minutes?
+
 📄 **Read:** [docs/EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md)
 
 One-page overview covering:
+
 - The problem (87% of misinformation uses authentic images)
 - Our validation (50% forensics accuracy = chance)
 - The solution (agentic contextual authenticity)
 - Why we win
 
 ### Have 10 minutes?
+
 1. ✅ [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) (2 min)
 2. ✅ [VALIDATION.md - Part 1: The Story](docs/VALIDATION.md) (3 min)
 3. ✅ [SUBMISSION.md - Key Innovation section](docs/SUBMISSION.md#-key-innovation-agentic-architecture) (5 min)
 
 ### Have 30 minutes?
+
 **Recommended Reading Path:**
+
 1. [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) - The pitch
 2. [VALIDATION.md](docs/VALIDATION.md) - Our empirical evidence
 3. [SUBMISSION.md](docs/SUBMISSION.md) - Comprehensive submission
 4. [Demo Video](#) - See it in action (5-7 min)
 
 ### Want to verify our claims?
+
 **Run the system yourself** (5 minutes):
 
 **🐳 Option 1: Docker (Easiest - Recommended)**
+
 ```bash
 # 1. Configure
 cp .env.example .env
@@ -46,6 +53,7 @@ docker-compose up -d
 ```
 
 **🛠️ Option 2: Manual Setup**
+
 ```bash
 # 1. Install
 uv venv && uv run pip install -r requirements.txt
@@ -70,11 +78,13 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 ## 🎯 What Makes MedContext Different
 
 ### Most submissions optimize for:
+
 - ❌ Synthetic benchmark datasets
 - ❌ Deepfake detection (sophisticated manipulations)
 - ❌ Pixel-level forensics
 
 ### MedContext optimizes for:
+
 - ✅ **Real-world threat distribution** (80% authentic images with false context)
 - ✅ **Empirically validated** (proved forensics fails with 50% accuracy)
 - ✅ **Production deployment** (HERO Lab partnership ready)
@@ -86,6 +96,7 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 **Our Validation Proves the Thesis:**
 
 We tested pixel-level forensics on real medical images:
+
 - **Accuracy:** 49.9% [95% CI: 44.5%, 55.5%]
 - **Interpretation:** Chance performance
 - **Conclusion:** Pixel forensics cannot detect real-world medical misinformation
@@ -156,14 +167,16 @@ medcontext/
 ## 🏆 Competition Categories
 
 **Primary:** Agentic AI System
+
 - ✅ Autonomous tool selection
 - ✅ Dynamic workflow adaptation
 - ✅ Context-aware reasoning
 - ✅ Explainable verdicts
 
 **Secondary:** Medical AI & Healthcare Innovation
+
 - ✅ Addresses critical medical misinformation problem
-- ✅ Field-deployable (WhatsApp integration)
+- ✅ Field-deployable (Telegram bot integration)
 - ✅ Real deployment partner (HERO Lab, UBC)
 
 ---
@@ -173,6 +186,7 @@ medcontext/
 [Video embed - currently in production]
 
 **3-minute demonstration covering:**
+
 1. The problem (authentic images used misleadingly)
 2. Our validation (forensics fails at 50%)
 3. Live demo (upload → analysis → verdict)
@@ -189,6 +203,7 @@ medcontext/
 **Affiliation:** Scientific Director, HERO Lab, School of Nursing, University of British Columbia
 
 **Questions?**
+
 - Setup issues: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - Technical details: [docs/AGENTIC_ARCHITECTURE.md](docs/AGENTIC_ARCHITECTURE.md)
 - API documentation: `http://localhost:8000/docs` (when running)
@@ -198,11 +213,13 @@ medcontext/
 ## 🚀 Next Steps for Judges
 
 ### Option 1: Quick Review (10 min)
+
 1. Read [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md)
 2. Read [VALIDATION.md - Part 1](docs/VALIDATION.md)
 3. Watch demo video
 
 ### Option 2: Comprehensive Review (30 min)
+
 1. Read [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md)
 2. Read [VALIDATION.md](docs/VALIDATION.md)
 3. Read [SUBMISSION.md](docs/SUBMISSION.md)
@@ -210,6 +227,7 @@ medcontext/
 5. Check [AGENTIC_ARCHITECTURE.md](docs/AGENTIC_ARCHITECTURE.md) for technical depth
 
 ### Option 3: Hands-On Verification (45 min)
+
 1. Run setup commands above
 2. Execute test suite (33 tests)
 3. Start system and test API

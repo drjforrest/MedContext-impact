@@ -113,7 +113,6 @@ httpx==0.28.1
     #   google-genai
     #   langgraph-sdk
     #   langsmith
-    #   python-telegram-bot
 huggingface-hub==0.36.0
     # via
     #   accelerate
@@ -184,10 +183,6 @@ pillow==11.1.0
     # via medcontext-impact (pyproject.toml)
 pluggy==1.6.0
     # via pytest
-praw==7.8.1
-    # via medcontext-impact (pyproject.toml)
-prawcore==2.4.0
-    # via praw
 proto-plus==1.27.0
     # via
     #   google-api-core
@@ -238,8 +233,6 @@ python-dotenv==1.2.1
     # via pydantic-settings
 python-multipart==0.0.21
     # via medcontext-impact (pyproject.toml)
-python-telegram-bot==22.6
-    # via medcontext-impact (pyproject.toml)
 pyyaml==6.0.3
     # via
     #   accelerate
@@ -258,10 +251,8 @@ requests==2.32.5
     #   google-genai
     #   huggingface-hub
     #   langsmith
-    #   prawcore
     #   requests-toolbelt
     #   transformers
-    #   update-checker
 requests-toolbelt==1.0.0
     # via langsmith
 rsa==4.9.1
@@ -323,8 +314,6 @@ typing-inspection==0.4.2
     # via
     #   pydantic
     #   pydantic-settings
-update-checker==0.18.0
-    # via praw
 urllib3==2.6.3
     # via requests
 uuid-utils==0.13.0
@@ -333,8 +322,6 @@ uuid-utils==0.13.0
     #   langsmith
 uvicorn==0.34.0
     # via medcontext-impact (pyproject.toml)
-websocket-client==1.9.0
-    # via praw
 websockets==15.0.1
     # via google-genai
 wheel==0.46.3

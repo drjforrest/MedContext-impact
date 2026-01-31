@@ -52,24 +52,20 @@ class Settings(BaseSettings):
     )
     serp_api_timeout_seconds: float = 20.0
     google_vision_api_key: str = ""
-    whatsapp_business_api_key: str = ""
     telegram_bot_token: str = Field(
         default="",
         validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN"),
     )
-    reddit_client_id: str = ""
-    reddit_client_secret: str = ""
-    reddit_user_agent: str = ""
-    reddit_subreddits: str = ""
-    reddit_keywords: str = ""
-    reddit_poll_interval_minutes: int = 60
-    enable_monitoring_polling: bool = False
     enable_forensics: bool = False
     enable_forensics_medgemma: bool = False
     jwt_secret: str = ""
     encryption_key: str = ""
     log_level: str = "INFO"
     image_storage_dir: str = "data/images"
+    demo_access_code: str = Field(
+        default="",
+        validation_alias=AliasChoices("DEMO_ACCESS_CODE"),
+    )
     appwrite_project_id: str = Field(
         default="",
         validation_alias=AliasChoices(
