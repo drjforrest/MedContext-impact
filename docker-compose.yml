@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: medcontext-db
+    environment:
+      POSTGRES_USER: medcontext
+      POSTGRES_PASSWORD: PLACEHOLDER_PASSWORD
+      POSTGRES_DB: medcontext
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medcontext"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medcontext-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medcontext-backend
+    environment:
+      - DATABASE_URL=postgresql://medcontext:PLACEHOLDER_PASSWORD@db:5432/medcontext
+      - MEDGEMMA_PROVIDER=${MEDGEMMA_PROVIDER:-huggingface}
+      - MEDGEMMA_HF_TOKEN=${MEDGEMMA_HF_TOKEN}
+      - MEDGEMMA_VERTEX_PROJECT=${MEDGEMMA_VERTEX_PROJECT}
+      - MEDGEMMA_VERTEX_LOCATION=${MEDGEMMA_VERTEX_LOCATION}
+      - MEDGEMMA_VERTEX_ENDPOINT=${MEDGEMMA_VERTEX_ENDPOINT}
+      - VERTEX_API_KEY=${VERTEX_API_KEY}
+      - ENABLE_FORENSICS=${ENABLE_FORENSICS:-false}
+      - ENABLE_FORENSICS_MEDGEMMA=${ENABLE_FORENSICS_MEDGEMMA:-false}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - LLM_ORCHESTRATOR=${LLM_ORCHESTRATOR}
+      - LLM_WORKER=${LLM_WORKER}
+      - SERP_API_KEY=${SERP_API_KEY}
+      - TINEYE_API_KEY=${TINEYE_API_KEY}
+      - REDDIT_CLIENT_ID=${REDDIT_CLIENT_ID}
+      - REDDIT_CLIENT_SECRET=${REDDIT_CLIENT_SECRET}
+      - REDDIT_USER_AGENT=${REDDIT_USER_AGENT}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ENABLE_MONITORING_POLLING=${ENABLE_MONITORING_POLLING:-false}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./alembic:/app/alembic
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        sleep 5 &&
+        echo 'Running database migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting FastAPI application...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src --reload
+      "
+    networks:
+      - medcontext-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    container_name: medcontext-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - medcontext-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  medcontext-network:
+    driver: bridge

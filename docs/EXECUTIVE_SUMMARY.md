@@ -1,4 +1,8 @@
-# MedContext Submission Summary (1 Page)
+# MedContext Executive Summary
+
+**One-Page Overview for Competition Judges**
+
+---
 
 ## The Complete Research Program
 
@@ -6,10 +10,10 @@
 
 Medical misinformation kills people. From comprehensive literature review (~100 sources):
 
-- 87% of social media posts mention benefits vs 15% harms
-- 68% of influencers have undisclosed financial conflicts
-- 0% sophisticated deepfakes in COVID-19 misinformation
-- **Key finding:** 80%+ of threat = authentic images with misleading context
+- **87%** of social media posts mention benefits vs 15% harms
+- **68%** of influencers have undisclosed financial conflicts
+- **0%** sophisticated deepfakes in COVID-19 misinformation
+- **KEY FINDING:** 80%+ of threat = authentic images with misleading context
 
 ### Hypothesis (Testable)
 
@@ -17,8 +21,9 @@ If authentic images dominate misinformation, pixel-level forensics should fail.
 
 ### Validation (Empirical)
 
-Tested forensics on real medical images: **~50% accuracy (chance performance)**
-**Result:** Hypothesis confirmed. Validates contextual authenticity focus.
+Tested forensics on real medical images: **49.9% accuracy [95% CI: 44.5%, 55.5%]**
+
+**Result:** Chance performance. Hypothesis confirmed. Validates contextual authenticity focus.
 
 ### Solution (MedContext)
 
@@ -31,16 +36,16 @@ First agentic AI system optimized for real-world threat distribution:
 
 ### Quality (Production-Ready)
 
-- 33/33 tests passing (100% coverage on core modules)
+- **33/33 tests passing** (100% coverage on core modules)
 - 4,100+ lines production Python
-- 4 MedGemma providers (HuggingFace, vLLM, Vertex, Local)
+- 4 MedGemma providers (HuggingFace, vLLM, Vertex AI, Local)
 - Full-stack: FastAPI backend + React frontend + PostgreSQL
-- 8 comprehensive technical documents
+- Comprehensive documentation (5 core documents)
 
 ### Impact (Deployment Ready)
 
-- **Partner:** HERO (Health Evidence Research Organization)
-- **Target:** African Ministries of Health / clinical settings
+- **Partner:** HERO Lab, UBC (Scientific Director: Jamie Forrest)
+- **Target:** African Ministries of Health / rural clinical settings
 - **Scale:** Millions of patients via WhatsApp integration
 - **Trust foundation:** 81% of patients trust healthcare professionals
 

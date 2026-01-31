@@ -1,0 +1,46 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    # Enable hot reload in development
+    volumes:
+      - ./src:/app/src:cached
+      - ./alembic:/app/alembic:cached
+      - ./tests:/app/tests:cached
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    # Use single worker with reload for development
+    command: >
+      sh -c "
+        echo 'Development mode: Hot reload enabled' &&
+        sleep 5 &&
+        alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src --reload
+      "
+
+  frontend:
+    # Override with Vite dev server instead of nginx
+    build:
+      context: ./ui
+      target: builder
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ui/src:/app/src:cached
+      - ./ui/public:/app/public:cached
+    command: npm run dev -- --host 0.0.0.0
+    environment:
+      - VITE_API_URL=http://localhost:8000
+
+  db:
+    # Expose database port for local tools
+    ports:
+      - "5432:5432"
+    # Enable query logging in development
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    command: postgres -c log_statement=all
