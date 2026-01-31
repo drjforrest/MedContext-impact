@@ -30,7 +30,9 @@ class _FakeClient:
         return False
 
     def post(self, url, params=None, json=None, headers=None):
-        self.last_request = SimpleNamespace(url=url, params=params, json=json, headers=headers)
+        self.last_request = SimpleNamespace(
+            url=url, params=params, json=json, headers=headers
+        )
         return self._response
 
 
@@ -44,12 +46,29 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
     settings.vertexai_api_key = "test-key"
     settings.medgemma_provider = "vertexai"
     try:
-        response = _FakeResponse({"predictions": [{"text": "ok"}]})
+        # Mock response with chat completions format
+        response = _FakeResponse(
+            {
+                "predictions": {
+                    "choices": [{"message": {"content": "This is a test response"}}]
+                }
+            }
+        )
         fake_client = _FakeClient(response)
         monkeypatch.setattr(
             "app.clinical.medgemma_client.httpx.Client",
             lambda timeout=60.0: fake_client,
         )
+
+        # Mock ADC token
+        def mock_default():
+            from types import SimpleNamespace
+
+            creds = SimpleNamespace(token="test-token", refresh=lambda x: None)
+            return creds, "test-project"
+
+        monkeypatch.setattr("google.auth.default", mock_default)
+
         client = MedGemmaClient()
         result = client.analyze_image(sample_image_bytes, prompt="test")
     finally:
@@ -59,27 +78,31 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
         settings.medgemma_provider = original_provider
 
     assert result.provider == "vertex"
-    assert result.output == [{"text": "ok"}]
+    assert result.output == {"text": "This is a test response"}
     assert fake_client.last_request is not None
     assert fake_client.last_request.url.endswith(":predict")
-    assert fake_client.last_request.params == {"key": "test-key"}
 
 
 def test_vertex_requires_endpoint(sample_image_bytes):
     original_endpoint = settings.medgemma_vertex_endpoint
     original_key = settings.vertexai_api_key
     original_provider = settings.medgemma_provider
+    original_fallback = settings.medgemma_fallback_provider
     settings.medgemma_vertex_endpoint = ""
     settings.vertexai_api_key = "test-key"
     settings.medgemma_provider = "vertex"
+    settings.medgemma_fallback_provider = ""  # Disable fallback
     try:
         client = MedGemmaClient()
-        with pytest.raises(MedGemmaClientError):
+        with pytest.raises(
+            MedGemmaClientError, match="Missing MEDGEMMA_VERTEX_ENDPOINT"
+        ):
             client.analyze_image(sample_image_bytes, prompt="test")
     finally:
         settings.medgemma_vertex_endpoint = original_endpoint
         settings.vertexai_api_key = original_key
         settings.medgemma_provider = original_provider
+        settings.medgemma_fallback_provider = original_fallback
 
 
 def test_vertex_api_key_builds_predict_url_from_resource_name(
@@ -90,6 +113,7 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
     original_location = settings.medgemma_vertex_location
     original_key = settings.vertexai_api_key
     original_provider = settings.medgemma_provider
+    original_dedicated_domain = settings.medgemma_vertex_dedicated_domain
     settings.medgemma_vertex_endpoint = (
         "projects/medcontext/locations/us-central1/endpoints/abc123"
     )
@@ -97,13 +121,27 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
     settings.medgemma_vertex_location = "us-central1"
     settings.vertexai_api_key = "test-key"
     settings.medgemma_provider = "vertex"
+    settings.medgemma_vertex_dedicated_domain = ""  # Use standard domain
     try:
-        response = _FakeResponse({"predictions": [{"text": "ok"}]})
+        # Mock response with chat completions format
+        response = _FakeResponse(
+            {"predictions": {"choices": [{"message": {"content": "ok"}}]}}
+        )
         fake_client = _FakeClient(response)
         monkeypatch.setattr(
             "app.clinical.medgemma_client.httpx.Client",
             lambda timeout=60.0: fake_client,
         )
+
+        # Mock ADC token
+        def mock_default():
+            from types import SimpleNamespace
+
+            creds = SimpleNamespace(token="test-token", refresh=lambda x: None)
+            return creds, "test-project"
+
+        monkeypatch.setattr("google.auth.default", mock_default)
+
         client = MedGemmaClient()
         client.analyze_image(sample_image_bytes, prompt="test")
     finally:
@@ -112,6 +150,7 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
         settings.medgemma_vertex_location = original_location
         settings.vertexai_api_key = original_key
         settings.medgemma_provider = original_provider
+        settings.medgemma_vertex_dedicated_domain = original_dedicated_domain
 
     assert fake_client.last_request is not None
     assert fake_client.last_request.url.startswith(

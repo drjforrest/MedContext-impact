@@ -1,0 +1,43 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.8, pytest-9.0.2, pluggy-1.6.0 -- /Users/drjforrest/dev/projects/hero-counterforce/medcontext/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/drjforrest/dev/projects/hero-counterforce/medcontext
+configfile: pytest.ini
+plugins: anyio-4.12.1, mock-3.15.1, langsmith-0.6.4, cov-7.0.0
+collecting ... collected 33 items
+
+tests/test_agentic_default.py::test_ingest_and_run_agentic_persists PASSED [  3%]
+tests/test_agentic_default.py::test_orchestrator_run_uses_agentic_ingestion PASSED [  6%]
+tests/test_forensics.py::test_run_forensics_skipped_when_disabled PASSED [  9%]
+tests/test_forensics.py::test_run_forensics_enabled_returns_selected_layers PASSED [ 12%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_perfect_score PASSED [ 15%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_zero_score PASSED [ 18%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_with_default_weights PASSED [ 21%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_with_custom_weights PASSED [ 24%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_with_none_values PASSED [ 27%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_with_all_none PASSED [ 30%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_clamps_high_values PASSED [ 33%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_clamps_negative_values PASSED [ 36%]
+tests/test_integrity.py::TestIntegrityScore::test_compute_partial_none_with_weights PASSED [ 39%]
+tests/test_integrity.py::TestIntegrityScore::test_integrity_weights_immutable PASSED [ 42%]
+tests/test_integrity.py::TestIntegrityScore::test_contextual_integrity_alignment_weighted PASSED [ 45%]
+tests/test_integrity.py::TestIntegrityScore::test_contextual_integrity_custom_weights PASSED [ 48%]
+tests/test_medgemma_vertex.py::test_vertex_api_key_uses_predict_endpoint PASSED [ 51%]
+tests/test_medgemma_vertex.py::test_vertex_requires_endpoint PASSED      [ 54%]
+tests/test_medgemma_vertex.py::test_vertex_api_key_builds_predict_url_from_resource_name PASSED [ 57%]
+tests/test_provenance.py::TestProvenanceService::test_build_provenance_creates_chain PASSED [ 60%]
+tests/test_provenance.py::TestProvenanceService::test_provenance_block_structure PASSED [ 63%]
+tests/test_provenance.py::TestProvenanceService::test_provenance_chain_linking PASSED [ 66%]
+tests/test_provenance.py::TestProvenanceService::test_provenance_block_hash_format PASSED [ 69%]
+tests/test_provenance_repository.py::test_store_provenance_manifest_sets_label PASSED [ 72%]
+tests/test_provenance_repository.py::test_build_provenance_without_manifest PASSED [ 75%]
+tests/test_reverse_search.py::TestReverseSearchService::test_run_reverse_search_returns_result PASSED [ 78%]
+tests/test_reverse_search.py::TestReverseSearchService::test_run_reverse_search_with_mock_api PASSED [ 81%]
+tests/test_reverse_search.py::TestReverseSearchService::test_run_reverse_search_query_hash PASSED [ 84%]
+tests/test_reverse_search.py::TestReverseSearchService::test_run_reverse_search_without_api_key PASSED [ 87%]
+tests/test_reverse_search.py::TestReverseSearchService::test_run_reverse_search_api_failure PASSED [ 90%]
+tests/test_reverse_search.py::TestReverseSearchService::test_reverse_search_returns_job_response PASSED [ 93%]
+tests/test_reverse_search.py::TestReverseSearchService::test_reverse_search_timestamp_format PASSED [ 96%]
+tests/test_reverse_search.py::TestReverseSearchService::test_reverse_search_different_images PASSED [100%]
+
+======================== 33 passed, 3 warnings in 0.34s ========================

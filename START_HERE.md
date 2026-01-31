@@ -31,6 +31,21 @@ One-page overview covering:
 
 ### Want to verify our claims?
 **Run the system yourself** (5 minutes):
+
+**🐳 Option 1: Docker (Easiest - Recommended)**
+```bash
+# 1. Configure
+cp .env.example .env
+# Add: MEDGEMMA_HF_TOKEN=hf_your_token
+
+# 2. Launch everything
+docker-compose up -d
+
+# Visit http://localhost for UI
+# Visit http://localhost:8000/docs for API
+```
+
+**🛠️ Option 2: Manual Setup**
 ```bash
 # 1. Install
 uv venv && uv run pip install -r requirements.txt
@@ -47,6 +62,8 @@ uv run pytest tests/ -v
 uv run uvicorn app.main:app --reload --app-dir src
 # Visit http://localhost:8000/docs for API
 ```
+
+See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 ---
 

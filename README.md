@@ -77,14 +77,20 @@ MedContext uses a **3-phase agentic workflow** to assess whether image content a
 
 ### How It Works
 
-1. **TRIAGE** - MedGemma analyzes image + claim → determines which tools needed
+**Architecture Principle:** *"The doctor does doctor work, the manager does management work."*
+
+1. **TRIAGE** (Two-Step Process)
+   - **Medical Analysis:** MedGemma assesses image + evaluates claim plausibility
+   - **Tool Selection:** LLM orchestrator decides which investigative tools to deploy
 2. **DYNAMIC DISPATCH** - Selectively activates only necessary tools (60% faster)
    - Reverse search (finds prior uses)
-   - Forensics (supporting evidence)
+   - Forensics (pixel-level manipulation detection)
    - Provenance (blockchain-style verification)
-3. **SYNTHESIS** - Aggregates evidence → alignment verdict with rationale
+3. **SYNTHESIS** - Orchestrator aggregates all evidence → alignment verdict with rationale
 
-**Not just "AI-powered"—truly autonomous decision-making.**
+**Not just "AI-powered"—truly autonomous decision-making with separated concerns.**
+
+See [AGENTIC_WORKFLOW.md](docs/AGENTIC_WORKFLOW.md) for complete pipeline visualization.
 
 ---
 
@@ -143,15 +149,17 @@ curl http://localhost:8000/health
 
 **Total Time:** ~5 minutes from clone to running system
 
-### Alternative: Docker Setup (Recommended for Production)
+### 🐳 Docker Setup (Recommended for Judges - Easiest!)
+
+**One command to run everything:**
 
 ```bash
 # 1. Configure environment
 cp .env.example .env
 # Add: MEDGEMMA_HF_TOKEN=hf_your_token
 
-# 2. Build and run with Docker Compose
-docker-compose up --build
+# 2. Launch all services (database + backend + frontend)
+docker-compose up -d
 
 # Access at:
 # - Frontend: http://localhost
@@ -159,7 +167,9 @@ docker-compose up --build
 # - API Docs: http://localhost:8000/docs
 ```
 
-See [DOCKER.md](DOCKER.md) for detailed Docker deployment guide.
+**Why Docker?** No dependency conflicts, works on any OS, production-ready setup.
+
+See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete guide with troubleshooting.
 
 ---
 

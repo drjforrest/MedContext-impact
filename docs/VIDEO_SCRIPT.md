@@ -80,7 +80,7 @@
 **Visual:** Quick agentic workflow diagram, then switch to UI demo
 
 **Narration:**
-> "MedContext uses an agentic AI workflow. MedGemma triages each image to determine which tools are needed. Then it dynamically dispatches only the necessary checks—reverse search, forensics, or provenance. Finally, it synthesizes the evidence into an alignment verdict.
+> "MedContext uses an agentic AI workflow. A configurable LLM orchestrator—in our case, Gemini Pro—analyzes each image-claim pair to determine which tools are needed. Then it dynamically dispatches only the necessary checks—reverse search, forensics, or provenance. MedGemma provides medical domain expertise where needed. Finally, the orchestrator synthesizes all evidence into an alignment verdict.
 >
 > Here's a live example. I'm uploading a chest X-ray with the claim: 'This MRI shows vaccine side effects.'
 >

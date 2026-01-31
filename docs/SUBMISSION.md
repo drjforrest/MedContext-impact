@@ -46,6 +46,8 @@ We tested pixel forensics on real medical images and achieved **49.9% accuracy [
 
 ## ✨ Key Innovation: Agentic Architecture
 
+**Architecture Principle:** *"The doctor does doctor work, the manager does management work."*
+
 ### Why Agentic > Deterministic
 
 | Challenge | Deterministic Pipeline | MedContext Agent |
@@ -55,23 +57,39 @@ We tested pixel forensics on real medical images and achieved **49.9% accuracy [
 | **Performance** | Fixed cost | Optimizes per image |
 | **Explainability** | Black box scores | Traceable rationale |
 
-### Agent Workflow
+### Agent Workflow (Separated Concerns)
 
 ```
-1. TRIAGE (MedGemma)
-   ↓ Analyzes image → determines which tools needed
+1. TRIAGE (Two-Step Process)
+   Step 1: MEDICAL ANALYSIS (MedGemma)
+   ↓ Provides medical domain expertise:
+     • Image type identification (X-ray, MRI, CT, etc.)
+     • Anatomical findings
+     • Claim plausibility assessment
+     • Medical caveats and uncertainties
+
+   Step 2: TOOL SELECTION (Gemini Pro Orchestrator)
+   ↓ Makes strategic investigation decisions:
+     • Which tools to deploy?
+     • reverse_search, forensics, provenance?
+     • Based on medical analysis + claim characteristics
 
 2. TOOL DISPATCH (Dynamic)
-   ↓ Invokes only necessary tools:
-     • Reverse search if context critical
-     • Forensics if suspicious patterns detected
-     • Provenance for authenticity verification
+   ↓ Invokes only selected tools:
+     • Reverse search if context verification needed
+     • Forensics if manipulation suspected
+     • Provenance for source chain validation
 
-3. SYNTHESIS (LLM/MedGemma)
-   ↓ Aggregates evidence → final verdict with rationale
+3. SYNTHESIS (Gemini Pro Orchestrator)
+   ↓ Aggregates all evidence → final verdict with rationale:
+     • MedGemma's medical analysis (authoritative)
+     • Tool results from investigation
+     • User claim assessment
 ```
 
-**Example:** For high-confidence images, the agent skips expensive forensics and focuses on reverse search + provenance—**60% faster** with same accuracy.
+**Example:** For medically plausible claims, the agent focuses on provenance verification and skips expensive forensics—**60% faster** with same accuracy.
+
+**See [AGENTIC_WORKFLOW.md](AGENTIC_WORKFLOW.md) for complete pipeline visualization.**
 
 ---
 
@@ -79,11 +97,13 @@ We tested pixel forensics on real medical images and achieved **49.9% accuracy [
 
 ### Fully Implemented Features
 
-**1. Agentic Orchestration** (`src/app/orchestrator/agent.py`)
-- Autonomous tool selection
-- Prompt injection protection
-- Multi-modal synthesis
-- LangGraph integration
+**1. Agentic Orchestration** (`src/app/orchestrator/langgraph_agent.py`)
+- **Separated concerns:** MedGemma for medical expertise, Gemini Pro for strategic orchestration
+- **Two-step triage:** Medical analysis → Tool selection
+- **Autonomous tool selection** based on medical assessment and claim characteristics
+- **Prompt injection protection** with tool whitelisting
+- **Multi-modal synthesis** aggregating medical + investigative evidence
+- **LangGraph integration** for workflow visualization
 
 **2. Forensics as Supporting Evidence** (`src/app/forensics/service.py`)
 - Layer 1: ELA + compression artifacts
@@ -258,10 +278,13 @@ medcontext/
 
 ## 🔬 Novel Contributions
 
-1. **Agentic Contextual Authenticity Assessment**
+1. **Agentic Contextual Authenticity Assessment with Separated Concerns**
    - First autonomous agent for claim-image alignment
-   - Dynamic tool selection based on image + claim characteristics
-   - Context-aware evidence synthesis
+   - **Principled separation:** Medical expertise (MedGemma) vs. strategic orchestration (Gemini Pro)
+   - **Two-step triage:** Medical analysis → Tool selection
+   - **Dynamic tool selection** based on medical assessment and claim characteristics
+   - **Context-aware evidence synthesis** with clear attribution of each decision
+   - **Architecture principle:** "The doctor does doctor work, the manager does management work"
 
 2. **Empirical Validation of Thesis**
    - Proved pixel forensics achieves chance performance (50%) on real medical misinformation
@@ -291,8 +314,9 @@ medcontext/
 - React 19, Vite build system
 
 **AI/ML:**
-- MedGemma (multi-provider: HuggingFace, vLLM, Vertex AI, Local)
-- Gemini 2.5 Pro/Flash (LLM orchestration)
+- **MedGemma** (multi-provider: HuggingFace, vLLM, Vertex AI, Local) - Medical domain expertise
+- **Gemini 2.5 Pro** (via OpenRouter) - Strategic orchestration and evidence synthesis
+- **Gemini 2.5 Flash** (via OpenRouter) - Fast worker operations
 - PIL + NumPy (forensics), SerpAPI (reverse search)
 
 **Infrastructure:**
@@ -309,12 +333,14 @@ medcontext/
 - Honest negative results that strengthen our thesis
 - Bootstrap confidence intervals (1,000 iterations)
 
-### 2. True Agentic Innovation
-**Actual autonomous decision-making:**
-- Dynamic tool selection (60% faster for genuine images)
-- Context-aware reasoning (handles contradictory evidence)
-- Explainable verdicts (traceable rationale)
-- Human-agent collaboration checkpoints
+### 2. True Agentic Innovation with Architectural Rigor
+**Actual autonomous decision-making with separated concerns:**
+- **Medical expertise (MedGemma):** Diagnoses image content, assesses claim plausibility, provides medical caveats
+- **Strategic orchestration (Gemini Pro):** Decides which investigative tools to deploy, synthesizes evidence
+- **Dynamic tool selection:** 60% faster for medically plausible images (skips unnecessary forensics)
+- **Context-aware reasoning:** Handles contradictory evidence (e.g., authentic image with false caption)
+- **Explainable verdicts:** Traceable rationale with clear attribution—"per MedGemma's analysis" vs. "per strategic assessment"
+- **Production-ready architecture:** Clear boundaries prevent domain overstepping (medical AI doesn't make strategic decisions, orchestrator doesn't make medical judgments)
 
 ### 3. Production-Ready Quality
 - 33/33 tests passing
@@ -371,12 +397,13 @@ curl http://localhost:8000/api/v1/orchestrator/graph
 
 [Video will be embedded here - currently in production]
 
-**Video Preview (5-7 minutes):**
-1. The Problem: 80% of misinformation uses authentic images
-2. Our Validation: Pixel forensics achieves 50% accuracy (chance)
-3. The Solution: MedContext agentic workflow demonstration
-4. Live Demo: Upload image → Agentic analysis → Alignment verdict
-5. Impact: HERO Lab partnership for African deployment
+**Video Preview (3 minutes - competition requirement):**
+1. **The Problem (25 sec):** 80% of misinformation uses authentic images
+2. **Our Validation (40 sec):** Pixel forensics achieves 50% accuracy (chance)
+3. **The Solution + Demo (75 sec):** MedContext agentic workflow demonstration
+4. **Impact + Closing (40 sec):** HERO Lab partnership for African deployment
+
+**See [VIDEO_SCRIPT.md](VIDEO_SCRIPT.md) for complete script and timing breakdown.**
 
 ---
 
@@ -397,11 +424,13 @@ curl http://localhost:8000/api/v1/orchestrator/graph
 1. **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)** ← **Start here** (1 page)
 2. **[VALIDATION.md](VALIDATION.md)** ← Empirical evidence (our 50% result)
 3. **[SUBMISSION.md](SUBMISSION.md)** ← This file (comprehensive submission)
-4. **[AGENTIC_ARCHITECTURE.md](AGENTIC_ARCHITECTURE.md)** ← Technical deep dive
+4. **[AGENTIC_ARCHITECTURE.md](AGENTIC_ARCHITECTURE.md)** ← Technical deep dive on separated concerns
+5. **[AGENTIC_WORKFLOW.md](AGENTIC_WORKFLOW.md)** ← Complete pipeline with Mermaid diagram
 
 **Supporting Documentation:**
 - **[README.md](../README.md)** ← Project overview
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** ← Setup instructions
+- **[VIDEO_SCRIPT.md](VIDEO_SCRIPT.md)** ← 3-minute demo script
 - **[CLAUDE.md](../CLAUDE.md)** ← Full technical documentation
 - **White Paper** ← Literature review (~100 sources)
 
