@@ -175,7 +175,7 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete guide with tro
 
 **For Judges/Users accessing the public demo:**
 
-The live demo requires an access code to prevent abuse and control API costs. 
+The live demo requires an access code to prevent abuse and control API costs.
 
 **Access Code:** `MEDCONTEXT-DEMO-2026`
 
@@ -196,10 +196,12 @@ The live demo requires an access code to prevent abuse and control API costs.
    ```
 
 **Rate Limits:**
+
 - 10 requests per IP address per hour
 - If you hit the limit, wait an hour or contact the developer
 
 **For Local Development:**
+
 - Leave `DEMO_ACCESS_CODE` empty in your `.env` file
 - No access code required when running locally
 

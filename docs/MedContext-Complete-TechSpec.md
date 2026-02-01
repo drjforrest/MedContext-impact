@@ -137,7 +137,7 @@ class SubmissionContext(Base):
     claimed_condition: str = Column(String)
     claimed_origin: str = Column(String)
     source_url: str = Column(String, nullable=True)
-    source_whatsapp_group: str = Column(String, nullable=True)
+    source_telegram_chat: str = Column(String, nullable=True)
     language_code: str = Column(String, default="en")
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
 
@@ -152,9 +152,9 @@ from fastapi import APIRouter, UploadFile, File, Form
 
 router = APIRouter(prefix="/api/v1/ingest", tags=["ingestion"])
 
-@router.post("/whatsapp")
-async def handle_whatsapp_webhook(request: WhatsAppWebhookRequest, db: Session = Depends(get_db)):
-    """Receive image via WhatsApp Business API webhook"""
+@router.post("/telegram")
+async def handle_telegram_webhook(request: TelegramWebhookRequest, db: Session = Depends(get_db)):
+    """Receive image via Telegram Bot API webhook"""
     pass
 
 @router.post("/extension")
@@ -178,7 +178,7 @@ async def handle_web_upload(
 
 ### Development Timeline
 
-- **Week 1:** WhatsApp and web API setup, basic validation
+- **Week 1:** Telegram and web API setup, basic validation
 - **Week 2:** Browser extension integration, image normalization
 - **Week 3:** IPFS integration
 - **Week 4:** Error handling and edge cases
@@ -290,7 +290,7 @@ class ImageInstance(Base):
 
     # Instance details
     instance_url: str = Column(String, index=True)
-    source_type: str = Column(String)  # 'web', 'whatsapp', 'forum', 'social_media'
+    source_type: str = Column(String)  # 'web', 'telegram', 'forum', 'social_media'
     domain: str = Column(String, index=True)
 
     # Image matching
@@ -345,7 +345,7 @@ async def get_search_results(
 
 - **Week 1:** TinEye API integration
 - **Week 2:** Google Vision API, parallel execution
-- **Week 3:** WhatsApp crawler, context extraction
+- **Week 3:** Telegram crawler, context extraction
 - **Week 4:** Deduplication, credibility scoring
 
 ### Success Criteria
@@ -1484,7 +1484,7 @@ ANALYZE;
 | API rate limiting from TinEye/Google        | Search delays | Queue system, caching, fallback to local database              |
 | MedGemma hallucinations                     | False claims  | Post-processing validation, human review for critical analyses |
 | False positives in misinformation detection | User distrust | Conservative confidence thresholds, transparent scoring        |
-| Privacy concerns (WhatsApp data)            | Legal/ethical | Explicit consent, data minimization, anonymization             |
+| Privacy concerns (Telegram data)            | Legal/ethical | Explicit consent, data minimization, anonymization             |
 | IPFS availability                           | Data loss     | Redundant pinning, backup storage layer                        |
 | Malicious image submissions                 | System abuse  | File type validation, size limits, rate limiting               |
 
@@ -1612,7 +1612,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/medcontext
 # APIs
 TINEYE_API_KEY=xxx
 GOOGLE_VISION_API_KEY=xxx
-WHATSAPP_BUSINESS_API_KEY=xxx
+TELEGRAM_BOT_API_KEY=xxx
 
 # MedGemma
 MEDGEMMA_URL=http://localhost:8001
@@ -1642,7 +1642,7 @@ SENTRY_DSN=xxx
 ┌─────────────────────────────────────────────────────────────────┐
 │                      User Interfaces                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │ WhatsApp Bot │  │   Extension  │  │   Web Application    │  │
+│  │ Telegram Bot │  │   Extension  │  │   Web Application    │  │
 │  └──────────────┘  └──────────────┘  └──────────────────────┘  │
 └──────────┬──────────────────┬──────────────────┬────────────────┘
            │                  │                  │
@@ -1683,7 +1683,7 @@ SENTRY_DSN=xxx
 ### Phase 1: Foundation (Weeks 1-2)
 
 - [ ] PostgreSQL schema creation
-- [ ] WhatsApp API integration
+- [ ] Telegram API integration
 - [ ] Web form interface
 - [ ] Image storage (IPFS)
 - [ ] Unit tests for ingestion
@@ -1716,16 +1716,16 @@ SENTRY_DSN=xxx
 
 ## Appendix F: Cost Estimation
 
-| Component             | Cost/Month           | Notes                     |
-| --------------------- | -------------------- | ------------------------- |
-| Cloud Infrastructure  | $500-1,500           | GPU for MedGemma, storage |
-| TinEye API            | $100-500             | Based on searches         |
-| Google Vision API     | $50-200              | Based on requests         |
-| WhatsApp Business API | Free-100             | Volume-based pricing      |
-| PostgreSQL Database   | $100-300             | Managed service           |
-| IPFS Hosting          | 50-200               | Redundant pinning         |
-| Monitoring/Logging    | 50-100               | Sentry, DataDog           |
-| **Total Estimated**   | **$850-2,900/month** | Scales with usage         |
+| Component            | Cost/Month           | Notes                     |
+| -------------------- | -------------------- | ------------------------- |
+| Cloud Infrastructure | $500-1,500           | GPU for MedGemma, storage |
+| TinEye API           | $100-500             | Based on searches         |
+| Google Vision API    | $50-200              | Based on requests         |
+| Telegram Bot API     | Free-100             | Volume-based pricing      |
+| PostgreSQL Database  | $100-300             | Managed service           |
+| IPFS Hosting         | 50-200               | Redundant pinning         |
+| Monitoring/Logging   | 50-100               | Sentry, DataDog           |
+| **Total Estimated**  | **$850-2,900/month** | Scales with usage         |
 
 ---
 

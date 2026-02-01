@@ -9,7 +9,7 @@ I've successfully added cost-effective demo protection to your MedContext applic
 A simple middleware that validates access codes before allowing API requests:
 
 - ✅ Checks for `X-Demo-Access-Code` header
-- ✅ Checks for `access_code` query parameter  
+- ✅ Checks for `access_code` query parameter
 - ✅ Rate limits to 10 requests per IP per hour
 - ✅ Only protects main API endpoints (health check is public)
 - ✅ Automatically disabled when no code is configured (local dev)
@@ -17,6 +17,7 @@ A simple middleware that validates access codes before allowing API requests:
 ### 2. **Configuration Updates**
 
 **Added to `.env.example` and `.env.docker`:**
+
 ```bash
 # Optional: Demo Protection (for public deployments)
 # Leave empty for local development
@@ -24,11 +25,13 @@ A simple middleware that validates access codes before allowing API requests:
 ```
 
 **Updated `docker-compose.yml`:**
+
 - Added `DEMO_ACCESS_CODE` environment variable
 - Removed obsolete `version: '3.8'` (fixed warning)
 - Removed unused `VERTEX_API_KEY` (fixed warning)
 
 **Updated `src/app/core/config.py`:**
+
 - Added `demo_access_code` setting with validation alias
 
 ### 3. **Frontend Integration** (`ui/src/App.jsx`)
@@ -41,11 +44,13 @@ A simple middleware that validates access codes before allowing API requests:
 ### 4. **Documentation**
 
 **Updated `README.md`:**
+
 - Added "🔐 Demo Access" section with instructions
 - Documented access code: `MEDCONTEXT-DEMO-2026`
 - Explained rate limits and usage
 
 **Created `docs/DEMO_PROTECTION.md`:**
+
 - Comprehensive implementation guide
 - API usage examples
 - Security considerations
@@ -53,12 +58,14 @@ A simple middleware that validates access codes before allowing API requests:
 - Troubleshooting
 
 **Updated `CLAUDE.md`:**
+
 - Documented demo protection feature
 - Added middleware to architecture section
 
 ### 5. **Testing Script**
 
 Created `scripts/test_demo_protection.sh`:
+
 - Manual verification of all protection features
 - Easy to run: `./scripts/test_demo_protection.sh`
 - Tests all scenarios (with/without code, wrong code, etc.)
@@ -77,12 +84,14 @@ docker-compose up -d
 ### For Public Demo (With Protection)
 
 1. **Set the access code:**
+
    ```bash
    # Add to your .env file
    DEMO_ACCESS_CODE=MEDCONTEXT-DEMO-2026
    ```
 
 2. **Deploy:**
+
    ```bash
    docker-compose up -d
    ```
@@ -95,12 +104,14 @@ docker-compose up -d
 ### For Judges/Users
 
 **Via Web UI:**
+
 1. Open the demo site
 2. Click "Settings" (top-right)
 3. Enter access code: `MEDCONTEXT-DEMO-2026`
 4. Use the app normally
 
 **Via API:**
+
 ```bash
 curl -X POST https://your-demo-url/api/v1/orchestrator/run \
   -H "X-Demo-Access-Code: MEDCONTEXT-DEMO-2026" \
@@ -112,13 +123,14 @@ curl -X POST https://your-demo-url/api/v1/orchestrator/run \
 
 With these protections, you're protected from malicious abuse:
 
-| Protection Layer | Impact |
-|-----------------|--------|
-| **Access Code** | Prevents casual bots and random users |
-| **Rate Limiting** | 10 req/hour per IP = max ~$2-5 per attacker |
-| **Security through obscurity** | Code buried in README, not advertised |
+| Protection Layer               | Impact                                      |
+| ------------------------------ | ------------------------------------------- |
+| **Access Code**                | Prevents casual bots and random users       |
+| **Rate Limiting**              | 10 req/hour per IP = max ~$2-5 per attacker |
+| **Security through obscurity** | Code buried in README, not advertised       |
 
 **Maximum realistic cost:** $30-50 total
+
 - Even if code is shared widely, rate limits cap per-IP costs
 - Most judges will use 5-10 times each
 - You can monitor and manually disable if needed
@@ -128,6 +140,7 @@ With these protections, you're protected from malicious abuse:
 ### Verify Protection Works
 
 Run the test script:
+
 ```bash
 ./scripts/test_demo_protection.sh
 ```
@@ -165,20 +178,24 @@ Before deploying your demo:
 ## 🔧 Troubleshooting
 
 ### "Getting 422 instead of 403"
+
 - This means no access code is configured (local dev mode)
 - Set `DEMO_ACCESS_CODE` in your `.env` file
 
 ### "Access code not working"
+
 - Check that env var is set: `echo $DEMO_ACCESS_CODE`
 - Restart Docker containers: `docker-compose restart`
 - Check frontend localStorage (browser DevTools)
 
 ### "Want to change the access code"
+
 - Update `DEMO_ACCESS_CODE` in `.env`
 - Restart: `docker-compose restart backend`
 - Update README with new code
 
 ### "Want to disable protection"
+
 - Remove or comment out `DEMO_ACCESS_CODE` from `.env`
 - Restart: `docker-compose restart backend`
 
@@ -193,7 +210,7 @@ You now have:
 ✅ Zero config for local dev (auto-disabled when no code set)  
 ✅ Clean implementation (~100 lines of middleware)  
 ✅ Comprehensive documentation  
-✅ Manual testing script  
+✅ Manual testing script
 
 **Ready to deploy!** 🚀
 
@@ -202,6 +219,7 @@ Just set the access code and launch. The protection is transparent to legitimate
 ## 📞 Questions?
 
 See:
+
 - `docs/DEMO_PROTECTION.md` - Full technical documentation
 - `README.md` - User-facing instructions
 - `scripts/test_demo_protection.sh` - Testing script

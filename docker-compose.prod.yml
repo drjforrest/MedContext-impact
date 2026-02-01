@@ -9,7 +9,10 @@ services:
     command: >
       sh -c "
         echo 'Waiting for database...' &&
-        sleep 5 &&
+        until python -c 'import psycopg2; psycopg2.connect(\"$DATABASE_URL\")' 2>/dev/null; do
+          echo 'Database not ready, waiting...'
+          sleep 2
+        done &&
         echo 'Running database migrations...' &&
         alembic upgrade head &&
         echo 'Starting FastAPI application (production mode)...' &&

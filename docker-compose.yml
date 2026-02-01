@@ -4,15 +4,15 @@ services:
     image: postgres:16-alpine
     container_name: medcontext-db
     environment:
-      POSTGRES_USER: medcontext
-      POSTGRES_PASSWORD: PLACEHOLDER_PASSWORD
-      POSTGRES_DB: medcontext
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medcontext"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
     container_name: medcontext-backend
     environment:
-      - DATABASE_URL=postgresql://medcontext:PLACEHOLDER_PASSWORD@db:5432/medcontext
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - MEDGEMMA_PROVIDER=${MEDGEMMA_PROVIDER:-huggingface}
       - MEDGEMMA_HF_TOKEN=${MEDGEMMA_HF_TOKEN}
       - MEDGEMMA_VERTEX_PROJECT=${MEDGEMMA_VERTEX_PROJECT}

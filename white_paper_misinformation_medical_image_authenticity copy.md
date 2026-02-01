@@ -294,10 +294,10 @@ Sources
 [19] Study evaluates the accuracy of medical images generated ... <https://medicalxpress.com/news/2025-10-accuracy-medical-images-generated-artificial.html>
 [20] Synthetic Manipulation of Medical Images: Eroding Trust in ... <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4909781>
 [21] A comprehensive review of synthetic manipulations in medical imaging <https://ph.pollub.pl/index.php/acs/article/download/7054/5079>
-[22] How synthetic manipulations are threatening healthcare authenticity <https://hipaatimes.com/>
+[22] How deepfakes are threatening healthcare authenticity <https://hipaatimes.com/how-deepfakes-are-threatening-healthcare-authenticity>
 [23] Synthesis of realistic medical images with pathologies using diffusion models with application to lung CT and mammography <https://www.spiedigitallibrary.org/conference-proceedings-of-spie/13405/3047440/Synthesis-of-realistic-medical-images-with-pathologies-using-diffusion-models/10.1117/12.3047440.full>
 [24] Toward Medical Synthetic Manipulation Detection: A Comprehensive Dataset and Novel Method <https://link.springer.com/10.1007/978-3-032-05185-1_60>
-[25] AI synthetic manipulations of real doctors spreading health misinformation on social media <https://www.theguardian.com/society/>
+[25] AI synthetic manipulations of real doctors spreading health misinformation on social media <https://www.theguardian.com/society/2025/dec/05/ai-deepfakes-of-real-doctors-spreading-health-misinformation-on-social-media>
 [26] How to use a reverse image search to spot fake news <https://www.optimistdaily.com/2022/05/how-to-use-a-reverse-image-search-to-spot-fake-news/>
 [27] Let's flatten the infodemic curve <https://www.who.int/news-room/spotlight/let-s-flatten-the-infodemic-curve>
 [28] The 'Sift' strategy: A four-step method for spotting ... <https://www.bbc.com/future/article/20240509-the-sift-strategy-a-four-step-method-for-spotting-misinformation>

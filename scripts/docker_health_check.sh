@@ -69,7 +69,7 @@ echo ""
 
 # Summary
 echo "=================================="
-if [[ -z "$BACKEND_FAIL" && -z "$FRONTEND_FAIL" && -z "$DB_FAIL" ]]; then
+if [[ -z "$BACKEND_FAIL" && -z "$FRONTEND_FAIL" && -z "$DB_FAIL" && -z "$DOCS_FAIL" ]]; then
     echo -e "${GREEN}✓ All systems operational!${NC}"
     echo ""
     echo "Access your services at:"

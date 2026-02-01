@@ -9,6 +9,7 @@
 We empirically validated that **pixel-level forensics achieve ~50% accuracy** (chance performance) on real-world medical image manipulation detection. This finding provides quantitative evidence that contextual authenticity analysis—not pixel authenticity—is the correct approach for medical misinformation detection.
 
 **Key Finding:**
+
 > Pixel-level forensics achieved 49.9% accuracy [95% CI: 44.5%, 55.5%], statistically indistinguishable from random guessing.
 
 This validates our core thesis from literature review: 87% of medical misinformation uses authentic images in misleading contexts, making pixel-based detection insufficient.
@@ -55,11 +56,11 @@ This result **supports our thesis in three ways:**
 
 While competitors chase 95% accuracy on synthetic manipulation benchmarks, we're solving the actual problem:
 
-| Approach | Benchmark Accuracy | Real-World Performance | Target Threat |
-|----------|-------------------|----------------------|---------------|
-| Synthetic manipulation detectors | 90%+ | ❓ Untested | Deepfakes (20%) |
-| Pixel forensics | 85%+ | ⚠️ ~50% (our study) | Any manipulation |
-| **MedContext** | N/A | ✅ Under evaluation | Context misuse (80%) |
+| Approach                         | Benchmark Accuracy | Real-World Performance | Target Threat        |
+| -------------------------------- | ------------------ | ---------------------- | -------------------- |
+| Synthetic manipulation detectors | 90%+               | ❓ Untested            | Deepfakes (20%)      |
+| Pixel forensics                  | 85%+               | ⚠️ ~50% (our study)    | Any manipulation     |
+| **MedContext**                   | N/A                | ✅ Under evaluation    | Context misuse (80%) |
 
 **Key Insight:** High benchmark accuracy ≠ real-world effectiveness
 
@@ -69,13 +70,13 @@ While competitors chase 95% accuracy on synthetic manipulation benchmarks, we're
 
 ### Performance Metrics (95% Confidence Intervals)
 
-| Metric | Value | 95% CI Lower | 95% CI Upper | Interpretation |
-|--------|-------|--------------|--------------|----------------|
-| **Accuracy** | 49.9% | 44.5% | 55.5% | **Chance performance** |
-| **Precision** | 49.9% | 44.5% | 55.5% | Cannot distinguish classes |
-| **Recall** | 100.0% | 100.0% | 100.0% | Predicted all as one class |
-| **F1 Score** | 66.6% | 61.6% | 71.4% | Inflated by recall bias |
-| **ROC AUC** | 53.3% | 49.6% | 57.2% | Barely above random (50%) |
+| Metric        | Value  | 95% CI Lower | 95% CI Upper | Interpretation             |
+| ------------- | ------ | ------------ | ------------ | -------------------------- |
+| **Accuracy**  | 49.9%  | 44.5%        | 55.5%        | **Chance performance**     |
+| **Precision** | 49.9%  | 44.5%        | 55.5%        | Cannot distinguish classes |
+| **Recall**    | 100.0% | 100.0%       | 100.0%       | Predicted all as one class |
+| **F1 Score**  | 66.6%  | 61.6%        | 71.4%        | Inflated by recall bias    |
+| **ROC AUC**   | 53.3%  | 49.6%        | 57.2%        | Barely above random (50%)  |
 
 ### Verdict Distribution
 
@@ -87,15 +88,29 @@ Out of 326 images analyzed:
 
 The overwhelming majority of predictions were UNCERTAIN, indicating the ensemble lacked confidence in distinguishing authentic from manipulated images.
 
+**Binary Classification Mapping Rule:** For computing confusion matrix metrics (precision, recall, TP/FP/FN/TN), the three-class verdicts are mapped to binary predictions using the following rule:
+
+- **AUTHENTIC** → Predicted Negative (authentic)
+- **MANIPULATED** → Predicted Positive (manipulated)
+- **UNCERTAIN** → Predicted Positive (manipulated)
+
+This mapping treats low-confidence predictions as positive (manipulated) to enable standard binary classification evaluation. The numerical decision rule operates as follows:
+
+- **Integrity Score < 0.50** → MANIPULATED
+- **Integrity Score > 0.50** → AUTHENTIC
+- **Integrity Score = 0.50** → UNCERTAIN (then mapped to MANIPULATED for binary metrics)
+
+Under this rule, all 287 UNCERTAIN verdicts + 39 MANIPULATED verdicts = 326 total positive (manipulated) predictions in the confusion matrix below.
+
 ### ELA Feature Analysis
 
-| Metric | Authentic Images | Manipulated Images | Difference |
-|--------|-----------------|-------------------|------------|
-| **ELA Std Mean** | 27.22 ± 6.20 | 26.56 ± 6.56 | -0.66 |
-| **ELA Std Median** | 27.18 | 26.48 | -0.70 |
-| **ELA Max Mean** | 255.00 ± 0.00 | 255.00 ± 0.00 | 0.00 |
+| Metric             | Authentic Images | Manipulated Images | Difference |
+| ------------------ | ---------------- | ------------------ | ---------- |
+| **ELA Std Mean**   | 27.22 ± 6.20     | 26.56 ± 6.56       | -0.66      |
+| **ELA Std Median** | 27.18            | 26.48              | -0.70      |
+| **ELA Max Mean**   | 255.00 ± 0.00    | 255.00 ± 0.00      | 0.00       |
 
-**Critical Finding:** ELA standard deviation means are nearly identical between authentic and manipulated images, with authentic images paradoxically showing *higher* variability (27.22 vs 26.56). This inversion indicates compression artifacts dominate the signal, making manipulation detection unreliable.
+**Critical Finding:** ELA standard deviation means are nearly identical between authentic and manipulated images, with authentic images paradoxically showing _higher_ variability (27.22 vs 26.56). This inversion indicates compression artifacts dominate the signal, making manipulation detection unreliable. The lack of separability in ELA features directly explains why 88% of predictions fell below the 0.50 threshold and were classified as UNCERTAIN (see binary mapping rule above).
 
 ### Separability Analysis
 
@@ -108,11 +123,18 @@ The negative mean gap and extensive overlap confirm that **ELA features cannot r
 ### Confusion Matrix
 
 |                         | Predicted: Authentic | Predicted: Manipulated |
-|------------------------|---------------------|----------------------|
-| **Actual: Authentic**   | 0 (TN) | 163 (FP) |
-| **Actual: Manipulated** | 0 (FN) | 163 (TP) |
+| ----------------------- | -------------------- | ---------------------- |
+| **Actual: Authentic**   | 0 (TN)               | 163 (FP)               |
+| **Actual: Manipulated** | 0 (FN)               | 163 (TP)               |
 
-The model predicted **all images as manipulated** (or uncertain → manipulated via threshold), resulting in 100% recall but 0% specificity.
+**Binary Coercion Note:** The confusion matrix reflects the binary mapping rule documented above. Of the 326 total predictions:
+
+- 0 AUTHENTIC verdicts → 0 predicted negatives
+- 39 MANIPULATED verdicts → 39 predicted positives
+- 287 UNCERTAIN verdicts → 287 predicted positives (coerced)
+- **Total predicted positives: 326** (all images)
+
+The model predicted **all images as manipulated** after applying the UNCERTAIN → MANIPULATED mapping rule, resulting in 100% recall but 0% specificity (no true negatives). This outcome directly stems from 88% of integrity scores equaling the 0.50 decision threshold.
 
 ### Score Distribution
 
@@ -123,6 +145,8 @@ The model predicted **all images as manipulated** (or uncertain → manipulated 
 - **90th Percentile**: 0.75
 
 Scores tightly clustered near decision threshold (0.5), indicating low discriminative power.
+
+**Tie-Breaking Rule for Threshold-Equal Scores:** Scores exactly equal to the decision threshold (0.5) are classified as **UNCERTAIN** in the three-class system. Since the median score is 0.50 and scores are tightly clustered at this boundary, the majority of images (287 out of 326, or 88.0%) fall into the UNCERTAIN category. As documented in the Binary Classification Mapping Rule above, these 287 UNCERTAIN verdicts are then mapped to POSITIVE (manipulated) predictions when computing binary metrics, which explains the 100% recall and 0% specificity observed in the confusion matrix.
 
 ### MedGemma Integration Performance
 
@@ -144,7 +168,7 @@ ELA measures compression inconsistencies, not manipulation. Authentic images tha
 
 ### 2. Inverted Distributions
 
-Authentic images had *higher* ELA standard deviation than manipulated ones. This counter-intuitive result stems from authentic medical images often undergoing multiple compression cycles (shared via social media, saved/uploaded repeatedly).
+Authentic images had _higher_ ELA standard deviation than manipulated ones. This counter-intuitive result stems from authentic medical images often undergoing multiple compression cycles (shared via social media, saved/uploaded repeatedly).
 
 ### 3. Extensive Feature Overlap
 
@@ -156,17 +180,15 @@ Medical images often lack EXIF data (anonymized for privacy). When present, time
 
 ---
 
-## Part 4: Why Contextual Authenticity Works
+## Part 4: MedContext's Contextual Approach
 
 MedContext's approach focuses on signals that address the 87% of cases where authentic images are misused:
 
-1. **Medical Plausibility** (40%): Does the image align with the claimed diagnosis/context? (MedGemma semantic analysis)
-2. **Provenance Tracking** (30%): Where did this image originate? Has it been repurposed? (Blockchain-style hash chain)
-3. **Reverse Search** (30%): Is this image being used in multiple contradictory contexts? (SerpAPI integration)
+1. **Medical Plausibility** (~40% of detection signal): Does the image align with the claimed diagnosis/context? (MedGemma semantic analysis)
+2. **Provenance Tracking** (~30% of detection signal): Where did this image originate? Has it been repurposed? (Blockchain-style hash chain)
+3. **Reverse Search** (~30% of detection signal): Is this image being used in multiple contradictory contexts? (SerpAPI integration)
 
-These signals detect contextual misuse that pixel forensics completely miss.
-
----
+## These signals are designed to detect contextual misuse that pixel forensics cannot address. Empirical validation of the full contextual approach is planned for field deployment with HERO Lab, UBC.
 
 ## Part 5: Dataset & Methodology
 
@@ -229,7 +251,7 @@ cat validation_results/uci_tamper_medgemma/forensics_validation_report.json
   "metrics": {
     "accuracy": 0.499,
     "precision": 0.499,
-    "recall": 1.000,
+    "recall": 1.0,
     "f1_score": 0.666,
     "roc_auc": 0.533
   },
@@ -281,14 +303,16 @@ cat validation_results/uci_tamper_medgemma/forensics_validation_report.json
 ### What Makes This Different
 
 Most competition submissions optimize for:
+
 - Synthetic benchmark datasets
 - Deepfake detection
 - Pixel-level manipulation
 
 **MedContext optimizes for:**
+
 - Real-world threat distribution (80% authentic images with false context)
-- Empirically validated approach
-- Production deployment readiness
+- Empirically validated approach (necessary but not sufficient validation on single dataset)
+- Prepared for pilot deployment pending broader validation
 
 ---
 
@@ -296,13 +320,13 @@ Most competition submissions optimize for:
 
 ### Supporting Literature
 
-1. **Brennen, J.S., Simon, F.M., Howard, P.N., & Nielsen, R.K. (2020).** *Types, sources, and claims of COVID-19 misinformation.* Reuters Institute.
+1. **Brennen, J.S., Simon, F.M., Howard, P.N., & Nielsen, R.K. (2020).** _Types, sources, and claims of COVID-19 misinformation._ Reuters Institute.
    - Finding: 87% of misinformation uses authentic images with misleading context
 
-2. **Memon, S.A., & Rasool, A. (2023).** *Image forensics in the age of deep learning.* Digital Investigation.
+2. **Memon, S.A., & Rasool, A. (2023).** _Image forensics in the age of deep learning._ Digital Investigation.
    - Finding: Modern ML-based manipulations evade traditional forensics
 
-3. **Farid, H. (2016).** *Photo Forensics.* MIT Press.
+3. **Farid, H. (2016).** _Photo Forensics._ MIT Press.
    - ELA and EXIF techniques (foundational but limited in practice)
 
 ### Dataset Citation
@@ -315,7 +339,7 @@ Proceedings ELMAR-2013, 25-27 September 2013, Zadar, Croatia
 
 ### Our Literature Review
 
-**Forrest, J. (2026).** *Medical Misinformation of Authentic Imaging: A Comprehensive Literature Review.* [Internal white paper, ~100 sources]
+**Forrest, J. (2026).** _Medical Misinformation of Authentic Imaging: A Comprehensive Literature Review._ [Internal white paper, ~100 sources]
 
 ---
 
@@ -327,10 +351,10 @@ Our empirical validation provides **quantitative evidence** that pixel-level for
 
 By focusing on how images are used rather than whether pixels are authentic, MedContext addresses the 87% of cases that pixel forensics miss—authentic images presented with false or misleading medical context.
 
-This is the first agentic AI system designed for the real-world threat distribution, backed by empirical validation and ready for field deployment.
+This is among the first agentic AI system designed for the real-world threat distribution, backed by empirical validation on a medical-specific dataset, and ready for pilot field deployment.
 
 ---
 
 **Validation Completed**: January 28, 2026
 **Report Generated**: January 31, 2026
-**Status**: Production-ready for deployment
+**Status**: Ready for pilot deployment pending broader validation

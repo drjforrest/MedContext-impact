@@ -295,6 +295,7 @@ For public deployments, the system includes:
 - **Protected Endpoints:** Only main API routes require protection (health check is public)
 
 Configuration:
+
 - Set `DEMO_ACCESS_CODE` in `.env` to enable protection
 - Leave empty for local development (no protection)
 - Frontend stores access code in localStorage

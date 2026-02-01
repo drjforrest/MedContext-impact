@@ -81,11 +81,13 @@ Public endpoints (no access code required):
 ## Rate Limiting
 
 **Limits:**
+
 - 10 requests per IP address per hour
 - In-memory tracking (resets on server restart)
 - Separate limit per IP address
 
 **Exceeded Limit Response:**
+
 ```json
 {
   "detail": "Rate limit exceeded. Maximum 10 requests per hour."
@@ -125,7 +127,7 @@ The protection is implemented as a FastAPI middleware in `src/app/middleware/dem
 ```python
 class DemoProtectionMiddleware(BaseHTTPMiddleware):
     """Simple access code validation and rate limiting."""
-    
+
     def __init__(self, app, **kwargs):
         super().__init__(app, **kwargs)
         self._request_log: dict[str, list[float]] = defaultdict(list)
@@ -151,6 +153,7 @@ This is **NOT** designed for:
 - ❌ Long-term production use
 
 For production, implement:
+
 - OAuth2 / JWT authentication
 - API key management
 - Database-backed rate limiting (Redis)
@@ -175,16 +178,18 @@ curl http://localhost:8000/health
 # Expected: {"status":"ok"}
 ```
 
+> **Note:** The JSON response uses compact formatting (no spaces) as returned by FastAPI's default JSON encoder.
+
 ### Expected Cost Impact
 
 With these protections in place:
 
-| Scenario | Cost Estimate |
-|----------|---------------|
-| Normal judge usage (5-10 tests each) | **$5-15** |
-| Moderate sharing (50 unique users) | **$25-40** |
-| Malicious actor (before rate limit kicks in) | **$2-5** |
-| **Maximum possible cost** | **~$50** |
+| Scenario                                     | Cost Estimate |
+| -------------------------------------------- | ------------- |
+| Normal judge usage (5-10 tests each)         | **$5-15**     |
+| Moderate sharing (50 unique users)           | **$25-40**    |
+| Malicious actor (before rate limit kicks in) | **$2-5**      |
+| **Maximum possible cost**                    | **~$50**      |
 
 The rate limit of 10 requests/hour per IP means even if someone shares the code, total cost is bounded.
 

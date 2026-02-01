@@ -20,7 +20,12 @@ jobs:
       - name: Create test environment file
         run: |
           cp .env.docker .env
-          sed -i 's/your_huggingface_token_here/test_token_placeholder/' .env
+          # Use real HF token if available, otherwise use placeholder
+          if [ -n "${{ secrets.MEDGEMMA_HF_TOKEN }}" ]; then
+            sed -i 's/your_huggingface_token_here/${{ secrets.MEDGEMMA_HF_TOKEN }}/' .env
+          else
+            sed -i 's/your_huggingface_token_here/test_token_placeholder/' .env
+          fi
 
       - name: Validate Docker Compose configuration
         run: docker-compose config
@@ -41,8 +46,15 @@ jobs:
           docker-compose ps
 
       - name: Run tests in container
+        if: ${{ secrets.MEDGEMMA_HF_TOKEN != '' }}
         run: |
-          docker-compose exec -T backend pytest tests/ -v || echo "Tests skipped - no HF token"
+          docker-compose exec -T backend pytest tests/ -v
+
+      - name: Skip tests notification
+        if: ${{ secrets.MEDGEMMA_HF_TOKEN == '' }}
+        run: |
+          echo "⚠️  Tests skipped - MEDGEMMA_HF_TOKEN secret not configured"
+          echo "To enable tests, add MEDGEMMA_HF_TOKEN to repository secrets"
 
       - name: Show logs on failure
         if: failure()

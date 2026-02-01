@@ -37,10 +37,6 @@ make down
 
 Copy the example environment file and fill in your credentials:
 
-```bash
-cp .env.example .env
-```
-
 Edit `.env` and set at minimum:
 
 - `MEDGEMMA_HF_TOKEN` - Your HuggingFace token (or other provider credentials)
@@ -245,17 +241,23 @@ docker-compose logs db
 docker-compose exec backend ping db
 ```
 
-### Backend Won't Start
+# Verify connectivity from backend
 
-```bash
+docker-compose exec backend python -c "import socket; socket.create_connection(('db', 5432))"
+
 # Check logs
+
 docker-compose logs backend
 
 # Common issues:
+
 # - Missing environment variables
+
 # - Database not ready (increase wait time in docker-compose.yml)
+
 # - Port 8000 already in use
-```
+
+````
 
 ### Frontend Build Fails
 
@@ -266,7 +268,7 @@ docker-compose logs backend
 # Manual build test
 cd ui
 docker build -t medcontext-frontend-test .
-```
+````
 
 ### Port Conflicts
 

@@ -12,7 +12,7 @@ Medical misinformation kills people. From comprehensive literature review (~100 
 
 - **87%** of social media posts mention benefits vs 15% harms
 - **68%** of influencers have undisclosed financial conflicts
-- **0%** sophisticated deepfakes in COVID-19 misinformation
+- **0%** were found to be sophisticated deepfakes in COVID-19 misinformation
 - **KEY FINDING:** 80%+ of threat = authentic images with misleading context
 
 ### Hypothesis (Testable)
@@ -67,7 +67,7 @@ First agentic AI system optimized for real-world threat distribution:
 
 ```bash
 # 1. Install (2 min)
-uv venv && uv run pip install -r requirements.txt
+uv venv && uv pip install -r requirements.txt
 
 # 2. Configure (1 min)
 cp .env.example .env
@@ -76,7 +76,11 @@ cp .env.example .env
 # 3. Run (1 min)
 uv run uvicorn app.main:app --reload --app-dir src
 
-# 4. Test (1 min)
+# 4. Test backend (1 min)
 curl http://localhost:8000/health
+
+# 5. Start frontend (in new terminal)
+cd ui && npm run dev
 # Visit http://localhost:5173 (frontend)
+# Alternative: cd ui && yarn dev (if using yarn)
 ```

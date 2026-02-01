@@ -63,9 +63,13 @@ make db-shell
 make db-reset
 
 # Backup database
+# Note: Replace "medcontext" with your actual database name/username if different
+# (Format: pg_dump -U <username> <database_name>)
 docker-compose exec db pg_dump -U medcontext medcontext > backup.sql
 
 # Restore database
+# Note: Replace "medcontext" with your actual database name/username if different
+# (Format: psql -U <username> <database_name>)
 docker-compose exec -T db psql -U medcontext medcontext < backup.sql
 ```
 
@@ -173,8 +177,17 @@ make clean
 # Nuclear option (removes images too)
 make docker-prune
 
-# Docker system cleanup
-docker system prune -af --volumes
+# Docker system cleanup commands
+
+## Remove containers
+docker container prune -f
+
+## Remove dangling images
+docker image prune -f
+
+## Remove unused volumes
+docker volume prune -f
+# Limit resources (edit docker-compose.prod.yml)
 ```
 
 ## 📊 Resource Management

@@ -32,7 +32,7 @@ One-page overview covering:
 1. [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) - The pitch
 2. [VALIDATION.md](docs/VALIDATION.md) - Our empirical evidence
 3. [SUBMISSION.md](docs/SUBMISSION.md) - Comprehensive submission
-4. [Demo Video](#) - See it in action (5-7 min)
+4. [Demo Video](#-demo-video) - See it in action (5-7 min) _(video in production)_
 
 ### Want to verify our claims?
 

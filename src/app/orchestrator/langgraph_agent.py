@@ -137,11 +137,13 @@ class MedContextLangGraphAgent:
             "required_investigation": tool_selection.get("tools", []),
         }
 
-        state.update({
-            "medical_analysis": medical_analysis.output,
-            "triage": combined_triage,
-            "required_tools": tool_selection.get("tools", [])
-        })
+        state.update(
+            {
+                "medical_analysis": medical_analysis.output,
+                "triage": combined_triage,
+                "required_tools": tool_selection.get("tools", []),
+            }
+        )
 
         duration_ms = int((perf_counter() - start) * 1000)
         self._append_trace(
@@ -150,7 +152,7 @@ class MedContextLangGraphAgent:
             data={
                 "medical_findings": medical_analysis.output,
                 "required_tools": tool_selection.get("tools", []),
-                "reasoning": tool_selection.get("reasoning", "")
+                "reasoning": tool_selection.get("reasoning", ""),
             },
             duration_ms=duration_ms,
         )
@@ -190,19 +192,19 @@ class MedContextLangGraphAgent:
         prompt += (
             "Return JSON with:\n"
             "{\n"
-            "  \"image_type\": \"...\",\n"
-            "  \"anatomy\": \"...\",\n"
-            "  \"findings\": \"...\",\n"
+            '  "image_type": "...",\n'
+            '  "anatomy": "...",\n'
+            '  "findings": "...",\n'
         )
 
         if context:
             prompt += (
-                "  \"claim_assessment\": {\n"
-                "    \"plausibility\": \"high|medium|low\",\n"
-                "    \"reasoning\": \"...\",\n"
-                "    \"verifiable_from_image\": \"...\",\n"
-                "    \"additional_verification_needed\": \"...\",\n"
-                "    \"medical_caveats\": \"...\"\n"
+                '  "claim_assessment": {\n'
+                '    "plausibility": "high|medium|low",\n'
+                '    "reasoning": "...",\n'
+                '    "verifiable_from_image": "...",\n'
+                '    "additional_verification_needed": "...",\n'
+                '    "medical_caveats": "..."\n'
                 "  }\n"
             )
 
@@ -276,10 +278,7 @@ Return JSON only:
             # Sanitize tools
             sanitized_tools = self._sanitize_tools(tools)
 
-            return {
-                "tools": sanitized_tools,
-                "reasoning": reasoning
-            }
+            return {"tools": sanitized_tools, "reasoning": reasoning}
 
         except LlmClientError as e:
             logger.warning(f"LLM orchestrator failed for tool selection: {e}")
@@ -299,7 +298,11 @@ Return JSON only:
         medical_output = medical_analysis.output
         if isinstance(medical_output, dict):
             claim_assessment = medical_output.get("claim_assessment", {})
-            plausibility = claim_assessment.get("plausibility", "medium") if isinstance(claim_assessment, dict) else "medium"
+            plausibility = (
+                claim_assessment.get("plausibility", "medium")
+                if isinstance(claim_assessment, dict)
+                else "medium"
+            )
 
             # If claim exists, always check reverse search
             if context:
@@ -317,10 +320,7 @@ Return JSON only:
             tools = ["reverse_search"]
             reasoning = "Minimal fallback selection"
 
-        return {
-            "tools": self._sanitize_tools(tools),
-            "reasoning": reasoning
-        }
+        return {"tools": self._sanitize_tools(tools), "reasoning": reasoning}
 
     def _dispatch_node(self, state: AgentState) -> AgentState:
         start = perf_counter()

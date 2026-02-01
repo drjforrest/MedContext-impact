@@ -18,8 +18,6 @@ This is the **fastest way** to run MedContext. Everything—database, backend, f
 
 ### Step 1: Clone Repository
 
-### Step 2: Configure Environment
-
 ```bash
 # Copy the example environment file
 cp .env.example .env
@@ -81,8 +79,10 @@ curl http://localhost:8000/health
 Expected response:
 
 ```json
-{ "status": "healthy" }
+{ "status": "ok" }
 ```
+
+> **Note:** The JSON response uses compact formatting (no spaces) as returned by FastAPI's default JSON encoder.
 
 ### View logs:
 
