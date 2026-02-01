@@ -257,8 +257,6 @@ docker-compose logs backend
 
 # - Port 8000 already in use
 
-````
-
 ### Frontend Build Fails
 
 ```bash
@@ -268,7 +266,7 @@ docker-compose logs backend
 # Manual build test
 cd ui
 docker build -t medcontext-frontend-test .
-````
+```
 
 ### Port Conflicts
 

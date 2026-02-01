@@ -144,9 +144,390 @@ class SubmissionContext(Base):
     image = relationship("ImageSubmission", back_populates="submissions_context")
 ```
 
-### API Endpoints
+### Migration Guide: WhatsApp to Telegram
+
+**Context:** The system originally supported WhatsApp ingestion via the `source_whatsapp_group` column in the `submission_contexts` table and the `/api/v1/ingest/whatsapp` endpoint. This section documents the migration to Telegram-based ingestion using `source_telegram_chat` and `/api/v1/ingest/telegram`.
+
+#### 1. Database Migration Strategy
+
+**Objective:** Rename `source_whatsapp_group` to `source_telegram_chat` in the `submission_contexts` table while preserving existing data and maintaining backward compatibility during the transition period.
+
+**Pre-Migration Checklist:**
+
+1. **Create Full Database Backup:**
+
+   ```bash
+   # Create timestamped backup
+   pg_dump -h localhost -U medcontext_user -d medcontext > \
+     backup_medcontext_$(date +%Y%m%d_%H%M%S).sql
+
+   # Verify backup integrity
+   pg_restore --list backup_medcontext_*.sql
+   ```
+
+2. **Check Existing Data:**
+
+   ```sql
+   -- Count records with WhatsApp source data
+   SELECT COUNT(*) FROM submission_contexts WHERE source_whatsapp_group IS NOT NULL;
+
+   -- Sample existing data
+   SELECT id, source_whatsapp_group, created_at
+   FROM submission_contexts
+   WHERE source_whatsapp_group IS NOT NULL
+   LIMIT 10;
+   ```
+
+**Migration Steps (Alembic):**
 
 ```python
+# alembic/versions/xxxx_migrate_whatsapp_to_telegram.py
+"""Migrate WhatsApp source to Telegram source
+
+Revision ID: xxxx
+Revises: 8b1b3f0a7c3a
+Create Date: 2026-01-31 12:00:00.000000
+"""
+from alembic import op
+import sqlalchemy as sa
+
+revision = 'xxxx'
+down_revision = '8b1b3f0a7c3a'
+branch_labels = None
+depends_on = None
+
+def upgrade():
+    # Step 1: Add new column (nullable, no default)
+    op.add_column('submission_contexts',
+                  sa.Column('source_telegram_chat', sa.String(), nullable=True))
+
+    # Step 2: Copy data from old column to new column
+    op.execute("""
+        UPDATE submission_contexts
+        SET source_telegram_chat = source_whatsapp_group
+        WHERE source_whatsapp_group IS NOT NULL
+    """)
+
+    # Step 3: Drop old column (after compatibility period)
+    # COMMENTED OUT FOR COMPATIBILITY PERIOD - Uncomment after 30 days
+    # op.drop_column('submission_contexts', 'source_whatsapp_group')
+
+def downgrade():
+    # Reverse migration: restore WhatsApp column
+    op.add_column('submission_contexts',
+                  sa.Column('source_whatsapp_group', sa.String(), nullable=True))
+
+    # Copy data back
+    op.execute("""
+        UPDATE submission_contexts
+        SET source_whatsapp_group = source_telegram_chat
+        WHERE source_telegram_chat IS NOT NULL
+    """)
+
+    # Drop Telegram column
+    op.drop_column('submission_contexts', 'source_telegram_chat')
+```
+
+**Manual Migration (SQL - for emergency rollout):**
+
+```sql
+-- Phase 1: Add new column
+ALTER TABLE submission_contexts
+ADD COLUMN source_telegram_chat VARCHAR;
+
+-- Phase 2: Migrate existing data
+UPDATE submission_contexts
+SET source_telegram_chat = source_whatsapp_group
+WHERE source_whatsapp_group IS NOT NULL;
+
+-- Phase 3: Verify migration
+SELECT
+    COUNT(*) as total_rows,
+    COUNT(source_whatsapp_group) as whatsapp_count,
+    COUNT(source_telegram_chat) as telegram_count,
+    COUNT(CASE WHEN source_whatsapp_group = source_telegram_chat THEN 1 END) as matched_count
+FROM submission_contexts;
+
+-- Phase 4: Drop old column (WAIT 30 DAYS - see compatibility period)
+-- ALTER TABLE submission_contexts DROP COLUMN source_whatsapp_group;
+```
+
+**Column Handling Notes:**
+
+- **Nullable:** Both columns are nullable (`nullable=True`) to support images submitted without source chat context (e.g., web uploads, browser extension)
+- **No Default Value:** No default value is set; applications must explicitly provide chat identifiers when available
+- **Index Consideration:** If queries frequently filter by source chat, add an index:
+  ```sql
+  CREATE INDEX idx_submission_contexts_telegram_chat
+  ON submission_contexts(source_telegram_chat)
+  WHERE source_telegram_chat IS NOT NULL;
+  ```
+
+#### 2. API Transition and Versioning Strategy
+
+**Objective:** Transition from `/api/v1/ingest/whatsapp` to `/api/v1/ingest/telegram` while maintaining backward compatibility for 30 days.
+
+**Transition Timeline:**
+
+| Phase                     | Duration  | Actions                                                          |
+| ------------------------- | --------- | ---------------------------------------------------------------- |
+| **Phase 1: Dual Support** | Days 1-30 | Both endpoints active; WhatsApp endpoint deprecated with warning |
+| **Phase 2: Hard Cutover** | Day 31+   | WhatsApp endpoint returns 410 Gone; Telegram endpoint only       |
+
+**Implementation Approach:**
+
+```python
+# src/app/api/v1/endpoints/ingestion.py
+from fastapi import APIRouter, Depends, HTTPException, status, Header
+from sqlalchemy.orm import Session
+import warnings
+import logging
+
+router = APIRouter(prefix="/api/v1/ingest", tags=["ingestion"])
+logger = logging.getLogger(__name__)
+
+# Configuration
+WHATSAPP_ENDPOINT_CUTOFF_DATE = "2026-03-02"  # 30 days from migration
+COMPATIBILITY_MODE_ENABLED = True  # Toggle for emergency rollback
+
+@router.post("/telegram", status_code=201)
+async def handle_telegram_webhook(
+    request: TelegramWebhookRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Primary endpoint for Telegram Bot API webhook.
+
+    **Replaces:** /api/v1/ingest/whatsapp (deprecated 2026-01-31)
+
+    Stores source chat identifier in submission_contexts.source_telegram_chat.
+    """
+    # Parse Telegram update
+    message = request.message
+    chat_id = str(message.chat.id)
+
+    # Store with new schema
+    context = SubmissionContext(
+        image_id=image_id,
+        surrounding_text=message.caption or "",
+        source_telegram_chat=chat_id,  # NEW FIELD
+        language_code=message.from_user.language_code or "en"
+    )
+    db.add(context)
+    db.commit()
+
+    return {"status": "success", "image_id": image_id}
+
+
+@router.post("/whatsapp",
+             status_code=201,
+             deprecated=True,
+             description="⚠️ DEPRECATED: Use /api/v1/ingest/telegram instead. "
+                         f"This endpoint will be removed on {WHATSAPP_ENDPOINT_CUTOFF_DATE}.")
+async def handle_whatsapp_webhook_deprecated(
+    request: TelegramWebhookRequest,  # Schema is identical
+    db: Session = Depends(get_db),
+    x_compatibility_mode: bool = Header(default=False)
+):
+    """
+    **DEPRECATED:** Legacy WhatsApp ingestion endpoint.
+
+    **Migration Notice:**
+    - This endpoint is deprecated as of 2026-01-31
+    - All requests are transparently forwarded to Telegram handler
+    - Data is stored in source_telegram_chat column (WhatsApp column removed)
+    - Removal date: {WHATSAPP_ENDPOINT_CUTOFF_DATE}
+    - Migrate clients to /api/v1/ingest/telegram
+
+    **Compatibility Mode:**
+    - During transition period, this endpoint forwards to Telegram handler
+    - After cutover date, returns HTTP 410 Gone
+    """
+    # Check if past cutover date
+    from datetime import datetime
+    if datetime.utcnow().date() >= datetime.fromisoformat(WHATSAPP_ENDPOINT_CUTOFF_DATE).date():
+        if not COMPATIBILITY_MODE_ENABLED:
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail={
+                    "error": "endpoint_removed",
+                    "message": "The /whatsapp endpoint was removed on {WHATSAPP_ENDPOINT_CUTOFF_DATE}",
+                    "migration_guide": "Use /api/v1/ingest/telegram instead",
+                    "breaking_change": True
+                }
+            )
+
+    # Log deprecation warning
+    logger.warning(
+        f"Deprecated endpoint /whatsapp called. "
+        f"Client should migrate to /telegram. "
+        f"Request ID: {request.message.message_id}"
+    )
+
+    # Forward to Telegram handler (transparent proxy)
+    return await handle_telegram_webhook(request, db)
+```
+
+**Versioning Alternative (API v2 approach):**
+
+If stricter API versioning is required:
+
+```python
+# Option: Create v2 API with Telegram-only support
+router_v2 = APIRouter(prefix="/api/v2/ingest", tags=["ingestion-v2"])
+
+@router_v2.post("/telegram")
+async def handle_telegram_webhook_v2(...):
+    # Clean implementation without legacy compatibility
+    pass
+
+# Keep v1 with WhatsApp deprecation warnings
+# Users must explicitly upgrade to v2 for clean migration
+```
+
+**Client Migration Checklist:**
+
+- [ ] Update all Telegram Bot webhook URLs from `/whatsapp` to `/telegram`
+- [ ] Update internal service clients to use new endpoint
+- [ ] Update documentation and API client libraries
+- [ ] Monitor deprecated endpoint usage via logging/metrics
+- [ ] Notify external API consumers 14 days before cutover
+
+#### 3. Rollback Procedures
+
+**Objective:** Safely revert to WhatsApp-based schema and API endpoints if critical issues arise during migration.
+
+**Scenario 1: Rollback During Compatibility Period (Days 1-30)**
+
+If issues are detected while both columns exist:
+
+1. **Re-enable WhatsApp Column Writes:**
+
+   ```python
+   # Temporarily patch ingestion handler
+   context = SubmissionContext(
+       image_id=image_id,
+       source_whatsapp_group=chat_id,  # Write to BOTH columns
+       source_telegram_chat=chat_id,
+       ...
+   )
+   ```
+
+2. **Copy Recent Data Back to WhatsApp Column:**
+
+   ```sql
+   -- Copy any new Telegram-only records to WhatsApp column
+   UPDATE submission_contexts
+   SET source_whatsapp_group = source_telegram_chat
+   WHERE source_telegram_chat IS NOT NULL
+     AND source_whatsapp_group IS NULL
+     AND created_at >= '2026-01-31';  -- Migration start date
+   ```
+
+3. **Re-enable WhatsApp Endpoint (Remove Deprecation):**
+
+   ```python
+   @router.post("/whatsapp", deprecated=False)
+   async def handle_whatsapp_webhook(...):
+       # Remove deprecation warning, restore as primary endpoint
+       pass
+   ```
+
+4. **Restore Database Backup (Nuclear Option):**
+
+   ```bash
+   # Stop application
+   systemctl stop medcontext-api
+
+   # Drop current database
+   psql -U postgres -c "DROP DATABASE medcontext;"
+
+   # Restore from backup
+   psql -U postgres -c "CREATE DATABASE medcontext OWNER medcontext_user;"
+   pg_restore -h localhost -U medcontext_user -d medcontext \
+     backup_medcontext_20260131_120000.sql
+
+   # Restart application
+   systemctl start medcontext-api
+   ```
+
+**Scenario 2: Rollback After WhatsApp Column Removed (Day 31+)**
+
+If critical regression discovered after old column dropped:
+
+1. **Restore Database from Backup:**
+
+   ```bash
+   # Use most recent backup before column drop
+   pg_restore -h localhost -U medcontext_user -d medcontext \
+     --clean --if-exists \
+     backup_medcontext_20260301_000000.sql
+   ```
+
+2. **Run Downgrade Migration:**
+
+   ```bash
+   # Use Alembic downgrade
+   alembic downgrade -1  # Go back one revision
+
+   # Verify schema
+   psql -U medcontext_user -d medcontext -c "\d submission_contexts"
+   ```
+
+3. **Revert API Code:**
+
+   ```bash
+   # Roll back to pre-migration commit
+   git revert <migration-commit-hash>
+   git push origin main
+
+   # Redeploy previous version
+   docker-compose down
+   docker-compose up -d --build
+   ```
+
+4. **Update Configuration:**
+   ```bash
+   # Disable Telegram endpoint, re-enable WhatsApp
+   # Update environment variables
+   ENABLE_WHATSAPP_INGESTION=true
+   ENABLE_TELEGRAM_INGESTION=false
+   ```
+
+**Rollback Validation Checklist:**
+
+- [ ] Verify `source_whatsapp_group` column exists and contains data
+- [ ] Confirm `/whatsapp` endpoint responds successfully
+- [ ] Test end-to-end ingestion flow with WhatsApp webhook
+- [ ] Check logs for errors related to missing columns
+- [ ] Validate data integrity (no missing or corrupted records)
+- [ ] Notify stakeholders of rollback and revised timeline
+
+**Post-Rollback Actions:**
+
+1. **Root Cause Analysis:** Document why migration failed
+2. **Fix Issues:** Address technical problems before retry
+3. **Update Timeline:** Revise migration schedule based on findings
+4. **Communication:** Inform users/clients of revised plan
+
+**Monitoring During Migration:**
+
+- **Database Metrics:** Track query latency on `submission_contexts` table
+- **API Metrics:** Monitor error rates on both `/whatsapp` and `/telegram` endpoints
+- **Data Validation:** Daily comparison of record counts between columns
+- **Alerting:** Set up alerts for HTTP 500 errors on ingestion endpoints
+
+**References:**
+
+- **Affected Table:** `submission_contexts`
+- **Affected Columns:** `source_whatsapp_group` (deprecated) → `source_telegram_chat` (current)
+- **Affected Endpoints:** `/api/v1/ingest/whatsapp` (deprecated) → `/api/v1/ingest/telegram` (current)
+- **Migration Script:** `alembic/versions/xxxx_migrate_whatsapp_to_telegram.py`
+- **Schema Symbol:** `source_telegram_chat` (defined at line 140 of this document)
+
+### API Endpoints
+
+````python
 # image_ingestion/api.py
 from fastapi import APIRouter, UploadFile, File, Form
 
@@ -154,7 +535,153 @@ router = APIRouter(prefix="/api/v1/ingest", tags=["ingestion"])
 
 @router.post("/telegram")
 async def handle_telegram_webhook(request: TelegramWebhookRequest, db: Session = Depends(get_db)):
-    """Receive image via Telegram Bot API webhook"""
+    """
+    Receive image via Telegram Bot API webhook.
+
+    **Telegram Update Payload Structure:**
+    Telegram sends Update objects as JSON with nested message/photo arrays:
+
+    ```json
+    {
+      "update_id": 123456789,
+      "message": {
+        "message_id": 12345,
+        "from": {
+          "id": 987654321,
+          "is_bot": false,
+          "first_name": "John",
+          "username": "johndoe"
+        },
+        "chat": {
+          "id": 987654321,
+          "first_name": "John",
+          "username": "johndoe",
+          "type": "private"
+        },
+        "date": 1706745600,
+        "photo": [
+          {
+            "file_id": "AgACAgIAAxkBAAIBY2Z...",
+            "file_unique_id": "AQAD2XkxG-Qv9Hhy",
+            "file_size": 1234,
+            "width": 90,
+            "height": 90
+          },
+          {
+            "file_id": "AgACAgIAAxkBAAIBY2Z...",
+            "file_unique_id": "AQAD2XkxG-Qv9Hhz",
+            "file_size": 12345,
+            "width": 320,
+            "height": 320
+          },
+          {
+            "file_id": "AgACAgIAAxkBAAIBY2Z...",
+            "file_unique_id": "AQAD2XkxG-Qv9Hh-",
+            "file_size": 123456,
+            "width": 1280,
+            "height": 1280
+          }
+        ],
+        "caption": "MRI showing brain tumor in frontal lobe"
+      }
+    }
+    ```
+
+    **Note:** The `photo` array contains multiple resolutions (thumbnail → full-size).
+    Always use the last element (highest resolution) for analysis.
+
+    **Authentication & Webhook Setup:**
+
+    1. **Bot Token:** Obtain from @BotFather on Telegram
+       - Set as `TELEGRAM_BOT_TOKEN` environment variable
+       - Used for all API calls: `https://api.telegram.org/bot<TOKEN>/method`
+
+    2. **Webhook Registration:**
+       ```bash
+       curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
+         -H "Content-Type: application/json" \
+         -d '{
+           "url": "https://your-domain.com/api/v1/monitoring/telegram",
+           "secret_token": "your-secret-token-here",
+           "allowed_updates": ["message", "callback_query"]
+         }'
+       ```
+
+    3. **Secret Token Verification (RECOMMENDED):**
+       - Generate a random secret token (32+ chars)
+       - Telegram includes it in `X-Telegram-Bot-Api-Secret-Token` header
+       - Verify on every webhook request:
+       ```python
+       secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+       if secret_token != settings.telegram_webhook_secret:
+           raise HTTPException(status_code=403, detail="Invalid secret token")
+       ```
+
+    **Image Handling:**
+
+    Images are NOT directly included in webhook payloads. Instead:
+
+    1. **Extract `file_id`** from the photo array (use last/largest):
+       ```python
+       photo = update["message"]["photo"][-1]
+       file_id = photo["file_id"]
+       ```
+
+    2. **Call `getFile` API** to get download path:
+       ```bash
+       GET https://api.telegram.org/bot<TOKEN>/getFile?file_id=<FILE_ID>
+       ```
+       Response:
+       ```json
+       {
+         "ok": true,
+         "result": {
+           "file_id": "AgACAgIAAxkBAAIBY2Z...",
+           "file_unique_id": "AQAD2XkxG-Qv9Hh-",
+           "file_size": 123456,
+           "file_path": "photos/file_123.jpg"
+         }
+       }
+       ```
+
+    3. **Download the file** using `file_path`:
+       ```bash
+       GET https://api.telegram.org/file/bot<TOKEN>/<file_path>
+       ```
+       Store the binary content for analysis.
+
+    **Rate Limits & Retries:**
+
+    - **Global Limit:** 30 requests/second per bot (all methods combined)
+    - **Per-Chat Limit:** 1 message/second in groups, 20 messages/minute to same user
+    - **File Downloads:** No explicit limit, but respect 429 responses
+    - **Webhook Timeout:** Telegram expects response within 60 seconds
+
+    **Retry Strategy:**
+    - On 429 (Too Many Requests), check `Retry-After` header
+    - Exponential backoff: 1s, 2s, 4s, 8s, 16s (max 5 retries)
+    - On 5xx errors: retry up to 3 times with 2s delay
+    - On network timeout: single retry after 5s
+
+    **Webhook Verification Guidelines:**
+
+    ✅ **Always Verify:**
+    - Secret token in `X-Telegram-Bot-Api-Secret-Token` header
+    - Request method is POST
+    - Content-Type is application/json
+    - Payload structure matches Update schema
+
+    ⚠️ **Security Considerations:**
+    - Use HTTPS only (required by Telegram)
+    - Validate `update_id` is monotonically increasing (detect replay attacks)
+    - Implement request logging for audit trails
+    - Rate limit by `user_id` to prevent abuse (10 requests/hour per user)
+
+    📋 **Error Responses:**
+    - Return 200 OK even on validation errors (prevents Telegram retries)
+    - Log errors internally for monitoring
+    - Use 5xx only for unrecoverable server errors
+    """
     pass
 
 @router.post("/extension")
@@ -174,7 +701,7 @@ async def handle_web_upload(
 ) -> SubmissionResponse:
     """Simple web form upload"""
     pass
-```
+````
 
 ### Development Timeline
 
@@ -1338,7 +1865,7 @@ class TestMedContextEndToEnd:
         # 4. Run reverse image search (background task)
         time.sleep(10)
         instances = db.query(ImageInstance).filter_by(source_image_id=image_id).all()
-        assert len(instances) > 0
+| Privacy concerns (Telegram data)            | Legal/ethical | Explicit consent, data minimization, anonymization, note: Telegram uses cloud storage (not E2E encrypted by default); consider PHI/PII handling implications; avoid storing identifiable medical data in bot messages |
 
         # 5. Semantic analysis (background task)
         time.sleep(5)

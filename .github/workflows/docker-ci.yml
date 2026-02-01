@@ -18,13 +18,16 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Create test environment file
+        env:
+          MEDGEMMA_HF_TOKEN: ${{ secrets.MEDGEMMA_HF_TOKEN }}
         run: |
           cp .env.docker .env
           # Use real HF token if available, otherwise use placeholder
-          if [ -n "${{ secrets.MEDGEMMA_HF_TOKEN }}" ]; then
-            sed -i 's/your_huggingface_token_here/${{ secrets.MEDGEMMA_HF_TOKEN }}/' .env
+          # Safe replacement using awk to avoid issues with special chars in token
+          if [ -n "$MEDGEMMA_HF_TOKEN" ]; then
+            awk -v token="$MEDGEMMA_HF_TOKEN" '{gsub(/your_huggingface_token_here/, token)}1' .env > .env.tmp && mv .env.tmp .env
           else
-            sed -i 's/your_huggingface_token_here/test_token_placeholder/' .env
+            awk '{gsub(/your_huggingface_token_here/, "test_token_placeholder")}1' .env > .env.tmp && mv .env.tmp .env
           fi
 
       - name: Validate Docker Compose configuration

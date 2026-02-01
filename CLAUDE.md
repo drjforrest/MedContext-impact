@@ -220,7 +220,9 @@ Alembic migrations in `alembic/versions/`. Current migrations:
 - `1e35fda0b1c9_init.py` - Initial schema
 - `47e33d201752_monitoring.py` - Monitoring tables
 
-## Testing
+## Testing & Validation
+
+### Unit Tests
 
 **Run tests:**
 
@@ -245,6 +247,38 @@ pytest -m unit
 - ✅ Reverse Search Service (8 tests) - API mocking, caching, error handling
 
 **Demo Protection:** Manual testing via `scripts/test_demo_protection.sh`
+
+### Empirical Validation
+
+**Pixel Forensics Validation (✅ Complete):**
+
+Validated on UCI Tamper Detection dataset. Result: 49.9% accuracy (chance performance), confirming that pixel forensics are insufficient for real-world medical misinformation.
+
+See `docs/VALIDATION.md` for full results.
+
+**Contextual Signals Validation (🔄 Framework Ready):**
+
+Comprehensive validation framework designed for the four contextual signals:
+
+- Alignment (60% weight)
+- Plausibility (15% weight)
+- Genealogy Consistency (15% weight)
+- Source Reputation (10% weight)
+
+```bash
+# Prepare validation dataset
+python scripts/prepare_contextual_validation_dataset.py \
+  --input-csv validation_datasets/sample_template.csv \
+  --image-dir data/medical_images \
+  --output validation_datasets/contextual_signals_v1.json
+
+# Run validation
+python scripts/validate_contextual_signals.py \
+  --dataset validation_datasets/contextual_signals_v1.json \
+  --output-dir validation_results/contextual_signals_v1
+```
+
+See `docs/CONTEXTUAL_SIGNALS_VALIDATION.md` for methodology, metrics, and expected baselines.
 
 **Test Structure:**
 
@@ -309,6 +343,8 @@ See `docs/` for architecture specs:
 - `MedContext-Complete-TechSpec.md` - Full technical specification
 - `MedContext-MedGemma-Claim-Extraction.md` - Claim extraction patterns
 - `MedContext-Blockchain-Cleaned.md` - Provenance system details
+- `VALIDATION.md` - Empirical validation results (pixel forensics)
+- `CONTEXTUAL_SIGNALS_VALIDATION.md` - Validation framework for contextual signals
 
 ## Interface
 

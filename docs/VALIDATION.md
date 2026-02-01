@@ -56,11 +56,13 @@ This result **supports our thesis in three ways:**
 
 While competitors chase 95% accuracy on synthetic manipulation benchmarks, we're solving the actual problem:
 
-| Approach                         | Benchmark Accuracy | Real-World Performance | Target Threat        |
-| -------------------------------- | ------------------ | ---------------------- | -------------------- |
-| Synthetic manipulation detectors | 90%+               | ❓ Untested            | Deepfakes (20%)      |
-| Pixel forensics                  | 85%+               | ⚠️ ~50% (our study)    | Any manipulation     |
-| **MedContext**                   | N/A                | ✅ Under evaluation    | Context misuse (80%) |
+| Approach                                  | Benchmark Accuracy | Real-World Performance | Target Threat        |
+| ----------------------------------------- | ------------------ | ---------------------- | -------------------- |
+| Synthetic manipulation detectors          | 90%+               | ❓ Untested            | Deepfakes (20%)      |
+| Pixel forensics                           | 85%+               | ⚠️ ~50% (our study)    | Any manipulation     |
+| **MedContext (forensics layer only)**[^1] | N/A                | ✅ Under evaluation    | Context misuse (80%) |
+
+[^1]: This validation tested only MedContext's forensics layer (ELA + MedGemma image analysis + EXIF metadata). The full contextual system includes provenance tracking, reverse image search, source reputation analysis, and genealogy verification—components not evaluated in this study.
 
 **Key Insight:** High benchmark accuracy ≠ real-world effectiveness
 
@@ -94,7 +96,32 @@ The overwhelming majority of predictions were UNCERTAIN, indicating the ensemble
 - **MANIPULATED** → Predicted Positive (manipulated)
 - **UNCERTAIN** → Predicted Positive (manipulated)
 
-This mapping treats low-confidence predictions as positive (manipulated) to enable standard binary classification evaluation. The numerical decision rule operates as follows:
+**Rationale for UNCERTAIN → Positive Mapping:**
+
+This mapping reflects a **conservative evaluation policy** for benchmarking purposes. When users submit images for verification in medical misinformation contexts, uncertain verdicts likely prompt user skepticism and additional fact-checking (similar behavioral outcomes to positive manipulation findings). Mapping UNCERTAIN → Positive in metrics provides a lower-bound estimate of system performance, assuming uncertain results trigger user caution rather than acceptance. This evaluation choice prioritizes **recall over precision** in metric calculation.
+
+**Important:** This mapping is **used only for calculating binary classification metrics** to enable comparison with traditional binary classifiers. In actual deployment, users receive the true three-class verdict (AUTHENTIC, MANIPULATED, or UNCERTAIN) with detailed signal breakdowns—not a forced binary classification.
+
+**Metric Consequences:**
+
+- **Maximizes Recall (Sensitivity):** All truly manipulated images that score UNCERTAIN are counted as correctly identified, ensuring high true positive rate in metrics
+- **Penalizes Precision:** Authentic images scoring UNCERTAIN become false positives in metrics, inflating the false positive count
+- **Biases toward Type I errors in evaluation:** Metrics over-estimate manipulation predictions at the expense of specificity
+- **Evaluation Assumption:** This mapping assumes uncertain verdicts prompt user skepticism (functionally similar to manipulation warnings), providing conservative performance estimates for safety-critical applications
+
+**Alternative Evaluation Strategies:**
+
+For readers interested in different evaluation perspectives, the following alternative mappings are possible:
+
+1. **UNCERTAIN → Negative (optimistic):** Treats uncertain cases as authentic unless proven otherwise. This would increase precision but decrease recall in metrics, reflecting an assumption that users treat uncertain verdicts similarly to authentic findings (reduced skepticism).
+
+2. **UNCERTAIN → Random Assignment:** Assigns UNCERTAIN predictions randomly (50/50) to positive/negative classes to simulate neutral confidence. Provides balanced metrics but doesn't reflect real deployment behavior.
+
+3. **Exclude UNCERTAIN from Binary Metrics:** Compute precision/recall only on AUTHENTIC and MANIPULATED verdicts, treating UNCERTAIN as abstentions. This evaluates the model's performance only when confident, but requires reporting abstention rate separately (88% in this case).
+
+4. **Three-Class Metrics:** Report multi-class confusion matrix and metrics (macro/micro F1) without binary reduction. Most faithful to system behavior but harder to compare with traditional binary benchmarks.
+
+The current **UNCERTAIN → Positive** mapping was chosen as the **primary evaluation method** because it provides conservative performance bounds aligned with user behavior assumptions (uncertain verdicts likely trigger skepticism) in medical verification contexts. The numerical decision rule operates as follows:
 
 - **Integrity Score < 0.50** → MANIPULATED
 - **Integrity Score > 0.50** → AUTHENTIC
@@ -146,7 +173,62 @@ The model predicted **all images as manipulated** after applying the UNCERTAIN �
 
 Scores tightly clustered near decision threshold (0.5), indicating low discriminative power.
 
-**Tie-Breaking Rule for Threshold-Equal Scores:** Scores exactly equal to the decision threshold (0.5) are classified as **UNCERTAIN** in the three-class system. Since the median score is 0.50 and scores are tightly clustered at this boundary, the majority of images (287 out of 326, or 88.0%) fall into the UNCERTAIN category. As documented in the Binary Classification Mapping Rule above, these 287 UNCERTAIN verdicts are then mapped to POSITIVE (manipulated) predictions when computing binary metrics, which explains the 100% recall and 0% specificity observed in the confusion matrix.
+### Tie-Breaking Rule for Threshold-Equal Scores
+
+**Design Intent and Operational Rationale:**
+
+MedContext implements a **three-class decision system** (AUTHENTIC, MANIPULATED, UNCERTAIN) rather than a conventional binary cutoff to explicitly represent model uncertainty at the decision boundary. This design choice reflects the following operational principles:
+
+1. **Explicit Uncertainty Representation**: When users submit images for verification, the system should transparently communicate its confidence level rather than forcing binary decisions on borderline cases. The UNCERTAIN class captures predictions where the integrity score exactly equals the 0.50 threshold—cases where the model has no statistical basis for preferring one class over the other.
+
+2. **User-Initiated Verification Model**: MedContext operates as a **verification tool, not an automated surveillance system**. Users submit images and captions they believe may be misleading, and the system returns analysis results. The three-class system enables the system to communicate "I cannot determine this with confidence" rather than providing potentially misleading binary verdicts on ambiguous cases.
+
+3. **Separation of Model Confidence from Evaluation Policy**: The three-class output preserves the model's true confidence state (uncertain at threshold), while the subsequent binary mapping applies an **evaluation policy** for benchmarking purposes—it does not reflect automated decision-making in production.
+
+**Why Three-Class Over Binary Cutoff:**
+
+A conventional binary threshold (e.g., "integrity < 0.50 → MANIPULATED, ≥ 0.50 → AUTHENTIC") would arbitrarily assign borderline cases to the AUTHENTIC class, creating false confidence in cases where the model is genuinely uncertain. The three-class system:
+
+- **Prevents False Confidence**: Binary systems mask uncertainty; three-class systems expose it to users who need honest assessments
+- **Enables Transparent Communication**: UNCERTAIN verdicts tell users "this case is ambiguous" rather than providing potentially misleading binary classifications, allowing users to seek additional verification or exercise appropriate skepticism
+- **Supports Calibration Analysis**: Explicit uncertainty labels enable post-hoc analysis of model calibration and threshold optimization to improve future user-facing results
+
+**Production Intent: UNCERTAIN Label and Binary Classification Mapping Rule:**
+
+The **UNCERTAIN** label communicates model uncertainty directly to users who requested verification, not an automated flagging decision. In the user-initiated verification workflow:
+
+1. **Primary Role**: UNCERTAIN verdicts inform users that the system cannot confidently determine authenticity based on available signals. Users receive this transparency in the analysis results and can seek additional verification methods, consult domain experts, or apply their own judgment based on the detailed signal breakdown provided.
+
+2. **Binary Metric Mapping**: For evaluation purposes and benchmarking against traditional binary classifiers, UNCERTAIN verdicts are mapped to POSITIVE (manipulated) predictions using the conservative mapping rule documented above. This mapping reflects an evaluation policy assumption that uncertain cases would trigger user skepticism (similar to positive findings), providing a lower bound on system performance. **This mapping is for metric calculation only—it does not represent automated decision-making in production.**
+
+3. **User Transparency**: The system returns detailed signal breakdowns (alignment scores, plausibility assessments, provenance chains, source reputation) alongside verdicts, enabling users to understand why a prediction is uncertain and make informed judgments about the image-caption pair they submitted for verification.
+
+**Observed Performance and Deployment Guidance:**
+
+In this validation run, **88% of predictions (287 out of 326 images) fell into the UNCERTAIN category** because integrity scores clustered tightly at the 0.50 decision threshold. This high uncertainty rate indicates the underlying pixel forensics features (ELA) lack discriminative power on this dataset. When deploying user-initiated verification systems with elevated UNCERTAIN rates, consider the following strategies:
+
+1. **Threshold Recalibration**:
+   - If user-submitted images show similar clustering at 0.50, conduct calibration studies to determine if alternative thresholds (e.g., 0.45 or 0.55) provide better separation while maintaining transparent uncertainty communication.
+   - Use precision-recall curves and domain-specific risk assessments to select optimal operating points that balance false positive and false negative rates.
+   - Monitor threshold stability across different image sources and manipulation types submitted by users.
+
+2. **Model Improvement**:
+   - High UNCERTAIN rates (>50%) suggest the feature set cannot reliably discriminate between classes. For pixel forensics, this validation confirms that **contextual signals** (alignment, plausibility, genealogy, source reputation) should replace or augment pixel-level features.
+   - Investigate whether adding multimodal signals (metadata, reverse search, provenance) improves confidence distribution and provides more definitive verdicts to users requesting verification.
+
+3. **Enhanced User Guidance**:
+   - When returning UNCERTAIN verdicts, provide users with actionable guidance: which signals contributed to uncertainty, what additional context might help (higher resolution images, original sources, publication metadata), and alternative verification methods.
+   - Surface detailed signal breakdowns so users understand the reasoning behind uncertain verdicts rather than receiving opaque classifications.
+   - Consider collecting user feedback on UNCERTAIN cases ("Was this image actually misleading?") to improve model calibration and understand real-world uncertainty patterns.
+
+4. **Transparent Result Communication**:
+   - Display UNCERTAIN rates in system documentation so users understand the tool's limitations before submitting verification requests.
+   - Communicate confidence levels clearly in results (e.g., "Low confidence: UNCERTAIN" with explanatory details vs. "High confidence: MANIPULATED" with supporting evidence).
+   - Track and report UNCERTAIN rate trends to identify potential data drift, model degradation, or shifts in the types of images users submit for verification.
+
+**Current Validation Outcome:**
+
+Since the median integrity score is 0.50 and scores are tightly clustered at this boundary, the majority of images (287 out of 326, or 88.0%) fall into the UNCERTAIN category. As documented in the Binary Classification Mapping Rule above, these 287 UNCERTAIN verdicts are then mapped to POSITIVE (manipulated) predictions when computing binary metrics, which explains the 100% recall and 0% specificity observed in the confusion matrix. This outcome demonstrates that the pixel forensics approach tested here is **unsuitable for production deployment** without substantial threshold recalibration or feature augmentation—further validating MedContext's strategic pivot toward contextual signals.
 
 ### MedGemma Integration Performance
 
@@ -182,13 +264,24 @@ Medical images often lack EXIF data (anonymized for privacy). When present, time
 
 ## Part 4: MedContext's Contextual Approach
 
-MedContext's approach focuses on signals that address the 87% of cases where authentic images are misused:
+MedContext's approach focuses on signals that address the 87% of cases where authentic images are misused. The system uses four contextual signals:
 
-1. **Medical Plausibility** (~40% of detection signal): Does the image align with the claimed diagnosis/context? (MedGemma semantic analysis)
-2. **Provenance Tracking** (~30% of detection signal): Where did this image originate? Has it been repurposed? (Blockchain-style hash chain)
-3. **Reverse Search** (~30% of detection signal): Is this image being used in multiple contradictory contexts? (SerpAPI integration)
+1. **Alignment** (60% weight): Does the image content match the claimed context? (MedGemma/LLM synthesis)
+2. **Medical Plausibility** (15% weight): Is the medical claim itself plausible based on visual evidence? (MedGemma semantic analysis)
+3. **Genealogy Consistency** (15% weight): Is the provenance chain intact and consistent? (Blockchain-style hash chain)
+4. **Source Reputation** (10% weight): Do credible sources use this image similarly? (Reverse search via SerpAPI)
 
-## These signals are designed to detect contextual misuse that pixel forensics cannot address. Empirical validation of the full contextual approach is planned for field deployment with HERO Lab, UBC.
+These signals are designed to detect contextual misuse that pixel forensics cannot address.
+
+**Validation Status:** A comprehensive validation framework for these contextual signals has been designed (see `docs/CONTEXTUAL_SIGNALS_VALIDATION.md`). The framework includes:
+
+- Ground truth datasets with expert-annotated image-claim pairs
+- Individual signal performance metrics (ROC AUC, precision, recall)
+- Ablation studies to measure each signal's contribution
+- Bootstrap confidence intervals for statistical rigor
+- Target performance: 75%+ accuracy, 0.80+ ROC AUC
+
+Empirical validation is ready to run pending dataset curation. Field deployment validation is planned with HERO Lab, UBC.
 
 ## Part 5: Dataset & Methodology
 
@@ -316,7 +409,37 @@ Most competition submissions optimize for:
 
 ---
 
-## Part 8: References & Citations
+## Part 8: Contextual Signals Validation
+
+For comprehensive documentation on validating the contextual signals (alignment, plausibility, genealogy consistency, and source reputation), see:
+
+**📄 [`docs/CONTEXTUAL_SIGNALS_VALIDATION.md`](./CONTEXTUAL_SIGNALS_VALIDATION.md)**
+
+This document provides:
+
+- Detailed validation methodology for each signal
+- Dataset requirements and preparation guides
+- Expected performance targets and baselines
+- Implementation scripts and reproducibility protocols
+
+Quick start:
+
+```bash
+# 1. Prepare validation dataset
+python scripts/prepare_contextual_validation_dataset.py \
+  --input-csv validation_datasets/sample_template.csv \
+  --image-dir data/medical_images \
+  --output validation_datasets/contextual_signals_v1.json
+
+# 2. Run validation
+python scripts/validate_contextual_signals.py \
+  --dataset validation_datasets/contextual_signals_v1.json \
+  --output-dir validation_results/contextual_signals_v1
+```
+
+---
+
+## Part 9: References & Citations
 
 ### Supporting Literature
 
@@ -340,6 +463,34 @@ Proceedings ELMAR-2013, 25-27 September 2013, Zadar, Croatia
 ### Our Literature Review
 
 **Forrest, J. (2026).** _Medical Misinformation of Authentic Imaging: A Comprehensive Literature Review._ [Internal white paper, ~100 sources]
+
+---
+
+## Part 10: Next Steps
+
+### Pixel Forensics Validation ✅ Complete
+
+Our empirical study demonstrates that pixel-level forensics achieve ~50% accuracy on the UCI Tamper Detection dataset, validating our core thesis that pixel forensics are insufficient for real-world medical misinformation detection.
+
+### Contextual Signals Validation 🔄 Framework Ready
+
+A comprehensive validation framework for the four contextual signals has been designed and is ready for implementation:
+
+1. **Dataset Curation** (in progress):
+   - Collect 500-1,000 medical image-claim pairs with expert annotations
+   - Include real misinformation cases from fact-checking organizations
+   - Stratify by modality, claim type, and alignment labels
+
+2. **Validation Execution** (pending datasets):
+   - Individual signal performance analysis
+   - Integrated score evaluation
+   - Ablation studies to measure signal contributions
+   - Statistical rigor with bootstrap confidence intervals
+
+3. **Field Deployment** (planned with HERO Lab, UBC):
+   - Real-world validation in African healthcare settings
+   - Continuous monitoring and feedback loop
+   - Iterative refinement based on deployment data
 
 ---
 
