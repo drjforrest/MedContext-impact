@@ -5,7 +5,7 @@ source reputation, genealogy consistency) against ground truth datasets.
 
 Usage:
     python scripts/validate_contextual_signals.py \
-        --dataset validation_datasets/contextual_signals_v1.json \
+        --dataset data/contextual_signals_v1.json \
         --output-dir validation_results/contextual_signals_v1
 """
 
@@ -33,7 +33,6 @@ from sklearn.utils import resample
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from app.clinical.medgemma_client import MedGemmaClient
 from app.metrics.integrity import compute_contextual_integrity_score
 from app.orchestrator.agent import MedContextAgent
 
@@ -87,7 +86,7 @@ class ContextualSignalsValidator:
             if not image_path.is_absolute():
                 # Try relative to dataset file
                 image_path = self.dataset_path.parent / image_path
-            
+
             if not image_path.exists():
                 print(f"Warning: Image not found: {image_path}")
                 continue
@@ -106,20 +105,22 @@ class ContextualSignalsValidator:
             signals = ci.get("signals", {})
 
             # Record prediction
-            self.results.append({
-                "image_id": item.get("image_id", str(image_path)),
-                "claim": item["claim"],
-                "ground_truth": item["ground_truth"],
-                "predicted": {
-                    "alignment": ci.get("alignment"),
-                    "alignment_score": signals.get("alignment"),
-                    "plausibility_score": signals.get("plausibility"),
-                    "genealogy_score": signals.get("genealogy_consistency"),
-                    "source_score": signals.get("source_reputation"),
-                    "overall_score": ci.get("score"),
-                },
-                "synthesis": result.synthesis,
-            })
+            self.results.append(
+                {
+                    "image_id": item.get("image_id", str(image_path)),
+                    "claim": item["claim"],
+                    "ground_truth": item["ground_truth"],
+                    "predicted": {
+                        "alignment": ci.get("alignment"),
+                        "alignment_score": signals.get("alignment"),
+                        "plausibility_score": signals.get("plausibility"),
+                        "genealogy_score": signals.get("genealogy_consistency"),
+                        "source_score": signals.get("source_reputation"),
+                        "overall_score": ci.get("score"),
+                    },
+                    "synthesis": result.synthesis,
+                }
+            )
 
         print(f"\nValidation complete! Processed {len(self.results)} samples.")
         print(f"Completed: {datetime.now(timezone.utc).isoformat()}\n")
@@ -240,24 +241,22 @@ class ContextualSignalsValidator:
                     roc_auc = None
 
                 # Compute mean difference between aligned vs. misaligned
-                aligned_vals = [
-                    s for s, t in zip(signal_values, y_true) if t == 1
-                ]
-                misaligned_vals = [
-                    s for s, t in zip(signal_values, y_true) if t == 0
-                ]
+                aligned_vals = [s for s, t in zip(signal_values, y_true) if t == 1]
+                misaligned_vals = [s for s, t in zip(signal_values, y_true) if t == 0]
 
                 signal_analysis[signal_name] = {
                     "roc_auc": roc_auc,
-                    "mean_aligned": float(np.mean(aligned_vals))
-                    if aligned_vals
-                    else None,
-                    "mean_misaligned": float(np.mean(misaligned_vals))
-                    if misaligned_vals
-                    else None,
-                    "separation": float(np.mean(aligned_vals) - np.mean(misaligned_vals))
-                    if aligned_vals and misaligned_vals
-                    else None,
+                    "mean_aligned": (
+                        float(np.mean(aligned_vals)) if aligned_vals else None
+                    ),
+                    "mean_misaligned": (
+                        float(np.mean(misaligned_vals)) if misaligned_vals else None
+                    ),
+                    "separation": (
+                        float(np.mean(aligned_vals) - np.mean(misaligned_vals))
+                        if aligned_vals and misaligned_vals
+                        else None
+                    ),
                     "coverage": len(signal_values) / len(self.results),
                 }
 
@@ -347,9 +346,7 @@ class ContextualSignalsValidator:
         }
 
         # Save report
-        report_path = (
-            self.output_dir / "contextual_signals_validation_report.json"
-        )
+        report_path = self.output_dir / "contextual_signals_validation_report.json"
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 

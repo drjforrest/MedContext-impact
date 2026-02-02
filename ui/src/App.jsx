@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts'
 import './App.css'
+import ValidationStory from './ValidationStory'
 
 const defaultApiBase =
   import.meta.env.VITE_API_BASE || 'http://localhost:8000'
@@ -592,6 +593,14 @@ function App() {
           <button
             type="button"
             className="ghost"
+            onClick={() => setActiveView('validation')}
+            disabled={activeView === 'validation'}
+          >
+            Validation Story
+          </button>
+          <button
+            type="button"
+            className="ghost"
             onClick={() =>
               setActiveView((current) =>
                 current === 'settings' ? 'main' : 'settings',
@@ -604,7 +613,9 @@ function App() {
       </header>
 
       <main className="content">
-        {activeView === 'settings' ? (
+        {activeView === 'validation' ? (
+          <ValidationStory onNavigateBack={() => setActiveView('main')} />
+        ) : activeView === 'settings' ? (
           <section className="card settings-card">
             <div className="settings-header">
               <div>

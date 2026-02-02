@@ -20,11 +20,9 @@
 1. Fill in the template:
 
    ```bash
-   # Copy template
-   cp validation_datasets/sample_template.csv validation_datasets/my_dataset.csv
-
-   # Edit with your data
-   # Columns: image_filename, claim, alignment, plausibility, is_misinformation
+   # Create your dataset CSV in data/
+   # Columns: image_filename, claim, alignment, plausibility, is_misinformation, notes
+   # See scripts/prepare_contextual_validation_dataset.py for format details
    ```
 
 2. Place your images in a directory:
@@ -39,9 +37,9 @@
 3. Convert to validation format:
    ```bash
    python scripts/prepare_contextual_validation_dataset.py \
-     --input-csv validation_datasets/my_dataset.csv \
+     --input-csv data/my_dataset.csv \
      --image-dir data/medical_images \
-     --output validation_datasets/my_dataset_v1.json
+     --output data/my_dataset_v1.json
    ```
 
 ### Option B: Use JSONL Format
@@ -57,8 +55,8 @@ Convert:
 
 ```bash
 python scripts/prepare_contextual_validation_dataset.py \
-  --input-jsonl validation_datasets/my_dataset.jsonl \
-  --output validation_datasets/my_dataset_v1.json
+  --input-jsonl data/my_dataset.jsonl \
+  --output data/my_dataset_v1.json
 ```
 
 ### Option C: Create Sample Template
@@ -68,7 +66,7 @@ Generate a sample template to get started:
 ```bash
 python scripts/prepare_contextual_validation_dataset.py \
   --create-sample \
-  --output validation_datasets/sample_v1.json
+  --output data/sample_v1.json
 ```
 
 ---
@@ -96,7 +94,7 @@ MEDGEMMA_VERTEX_ENDPOINT=your-endpoint-id
 
 ```bash
 python scripts/validate_contextual_signals.py \
-  --dataset validation_datasets/my_dataset_v1.json \
+  --dataset data/my_dataset_v1.json \
   --output-dir validation_results/my_dataset_v1
 ```
 
@@ -199,6 +197,7 @@ validation_results/my_dataset_v1/
    ```
 
 2. **Check Signal Coverage:**
+
    - Low genealogy coverage? Images may lack provenance data.
    - Low source coverage? Reverse search may not find matches.
    - Consider adjusting weights based on available signals.
@@ -332,8 +331,8 @@ df.to_csv("validation_results/my_dataset_v1/predictions.csv", index=False)
 For questions or issues:
 
 1. Check `docs/CONTEXTUAL_SIGNALS_VALIDATION.md` for detailed methodology
-2. Review sample dataset: `validation_datasets/sample_template.csv`
-3. Inspect validator code: `scripts/validate_contextual_signals.py`
+2. Review validator code: `scripts/validate_contextual_signals.py` for dataset format details
+3. See `scripts/prepare_contextual_validation_dataset.py` for sample dataset format
 
 ---
 

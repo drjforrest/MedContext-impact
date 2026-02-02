@@ -30,25 +30,28 @@ This document outlines the empirical validation framework for MedContext's four 
 
 MedContext computes a **Contextual Integrity Score** from four signals:
 
-| Signal | Weight | Source | Range | Purpose |
-|--------|--------|--------|-------|---------|
-| **Alignment** | 60% | MedGemma/LLM synthesis | 0.0-1.0 | Does image content match claimed context? |
-| **Plausibility** | 15% | MedGemma triage | 0.0-1.0 | Is the medical claim medically plausible? |
-| **Genealogy Consistency** | 15% | Provenance tracking | 0.4-0.8 | Is the image usage history consistent? |
-| **Source Reputation** | 10% | Reverse image search | 0.0-1.0 | Do credible sources use this image similarly? |
+| Signal                    | Weight | Source                 | Range   | Purpose                                       |
+| ------------------------- | ------ | ---------------------- | ------- | --------------------------------------------- |
+| **Alignment**             | 60%    | MedGemma/LLM synthesis | 0.0-1.0 | Does image content match claimed context?     |
+| **Plausibility**          | 15%    | MedGemma triage        | 0.0-1.0 | Is the medical claim medically plausible?     |
+| **Genealogy Consistency** | 15%    | Provenance tracking    | 0.4-0.8 | Is the image usage history consistent?        |
+| **Source Reputation**     | 10%    | Reverse image search   | 0.0-1.0 | Do credible sources use this image similarly? |
 
 ### Signal Definitions
 
 #### 1.1 Alignment Signal
+
 **Question:** Does the visual content of the image align with the textual claim?
 
 **Example:**
+
 - ✅ **Aligned:** Chest X-ray showing opacity + claim "pneumonia"
 - ⚠️ **Partially Aligned:** CT brain scan + claim "stroke" (plausible but needs confirmation)
 - ❌ **Misaligned:** Skin rash photo + claim "lung cancer"
 - ❓ **Unclear:** Abstract medical diagram + vague claim
 
 **Scoring:**
+
 ```python
 alignment_labels = {
     "aligned": 1.0,
@@ -60,25 +63,31 @@ alignment_labels = {
 ```
 
 #### 1.2 Plausibility Signal
+
 **Question:** Is the medical claim itself plausible based on visual evidence?
 
 **Example:**
+
 - **High (0.9):** Clear visual evidence supports claim
 - **Medium (0.6):** Claim is possible but not definitively shown
 - **Low (0.3):** Claim contradicts visual evidence or medical knowledge
 
 #### 1.3 Source Reputation Signal
+
 **Question:** Do authoritative sources use this image in similar contexts?
 
 **Derived from:** Reverse image search confidence scores
+
 - High confidence matches to medical journals → high reputation
 - Matches to social media misinformation → low reputation
 - No matches → neutral (0.5)
 
 #### 1.4 Genealogy Consistency Signal
+
 **Question:** Is the provenance chain intact and consistent?
 
 **Binary assessment:**
+
 - **0.8:** Provenance completed with valid hash chain
 - **0.4:** Provenance missing or incomplete
 
@@ -89,6 +98,7 @@ alignment_labels = {
 ### 2.1 Required Dataset Characteristics
 
 For robust validation, we need datasets with:
+
 1. **Authentic medical images** (not manipulated)
 2. **Ground truth labels** for context alignment
 3. **Diverse claim types:** Clinical diagnoses, treatment claims, health advice, news captions
@@ -97,7 +107,9 @@ For robust validation, we need datasets with:
 ### 2.2 Proposed Datasets
 
 #### Dataset A: Medical Image-Caption Pairs (Ground Truth)
+
 **Source:** Curated from medical literature with verified captions
+
 - **Size:** 500-1,000 image-claim pairs
 - **Composition:**
   - 40% aligned (correct context)
@@ -111,7 +123,9 @@ For robust validation, we need datasets with:
   - Verified social media posts from health authorities
 
 #### Dataset B: Social Media Misinformation Corpus
+
 **Source:** Real misinformation cases from fact-checking organizations
+
 - **Size:** 200-500 flagged posts
 - **Composition:**
   - Authentic images with false captions
@@ -124,7 +138,9 @@ For robust validation, we need datasets with:
   - WHO infodemic reports
 
 #### Dataset C: Synthetic Context Mismatches
+
 **Source:** Programmatically generated mismatches
+
 - **Size:** 300-500 pairs
 - **Method:**
   - Take verified medical images with correct captions
@@ -133,7 +149,9 @@ For robust validation, we need datasets with:
 - **Labels:** Automatically generated (known misalignments)
 
 #### Dataset D: Temporal Provenance Cases
+
 **Source:** Images with documented reuse history
+
 - **Size:** 100-200 images
 - **Composition:**
   - Images repurposed across multiple contexts
@@ -144,6 +162,7 @@ For robust validation, we need datasets with:
 ### 2.3 Dataset Stratification
 
 All datasets should be stratified by:
+
 - **Modality:** X-ray, CT, MRI, ultrasound, dermoscopy, histology
 - **Body Region:** Chest, brain, abdomen, skin, other
 - **Claim Type:** Diagnosis, treatment, causation, prevention
@@ -158,6 +177,7 @@ All datasets should be stratified by:
 For each individual signal:
 
 #### Classification Metrics (with threshold = 0.5)
+
 - **Accuracy:** Overall correctness
 - **Precision:** Of positive predictions, how many are correct?
 - **Recall:** Of actual positives, how many are detected?
@@ -165,11 +185,13 @@ For each individual signal:
 - **Matthews Correlation Coefficient (MCC):** Balanced measure for imbalanced datasets
 
 #### Discrimination Metrics
+
 - **ROC AUC:** Area under receiver operating characteristic curve
 - **PR AUC:** Area under precision-recall curve (better for imbalanced data)
 - **Calibration:** Do predicted probabilities match observed frequencies?
 
 #### Distribution Analysis
+
 - **Signal Separation:** Distance between aligned vs. misaligned distributions
 - **Overlap:** Percentage of distribution overlap
 - **Decision Threshold:** Optimal cutoff via Youden's J statistic
@@ -179,15 +201,18 @@ For each individual signal:
 For the combined Contextual Integrity Score:
 
 #### Detection Performance
+
 - **Accuracy @ 0.5 threshold:** Binary classification performance
 - **Accuracy @ optimal threshold:** Performance at best threshold
 - **Multi-class accuracy:** Aligned / Partially Aligned / Misaligned / Unclear
 
 #### Confidence Calibration
+
 - **Expected Calibration Error (ECE):** Difference between predicted confidence and accuracy
 - **Reliability Diagram:** Visual calibration assessment
 
 #### Ablation Analysis
+
 - **Signal Contribution:** Performance with each signal removed
 - **Weight Sensitivity:** Impact of weight adjustments
 - **Failure Mode Analysis:** Which cases are systematically misclassified?
@@ -195,6 +220,7 @@ For the combined Contextual Integrity Score:
 ### 3.3 Statistical Rigor
 
 All metrics reported with:
+
 - **95% Confidence Intervals** via bootstrap resampling (1,000+ iterations)
 - **Statistical Significance Testing** for comparisons (McNemar's test for classifiers)
 - **Effect Sizes** (Cohen's d for distribution differences)
@@ -212,6 +238,7 @@ All metrics reported with:
 1. **Dataset:** Use Dataset A (medical image-caption pairs) + Dataset B (misinformation corpus)
 2. **Ground Truth:** Expert annotations (aligned / partially / misaligned / unclear)
 3. **Procedure:**
+
    ```python
    for image, claim in dataset:
        result = medgemma_client.analyze_image(
@@ -220,7 +247,7 @@ All metrics reported with:
        )
        predicted_alignment = extract_alignment_label(result)
        alignment_score = map_to_score(predicted_alignment, confidence)
-       
+
        # Compare to ground truth
        record_prediction(predicted_alignment, ground_truth)
    ```
@@ -232,12 +259,12 @@ All metrics reported with:
 
 #### Expected Performance Targets
 
-| Metric | Minimum | Target | Stretch |
-|--------|---------|--------|---------|
-| Accuracy | 65% | 75% | 85% |
-| ROC AUC | 0.70 | 0.80 | 0.90 |
-| Precision (misaligned) | 70% | 80% | 90% |
-| Recall (misaligned) | 60% | 70% | 80% |
+| Metric                 | Minimum | Target | Stretch |
+| ---------------------- | ------- | ------ | ------- |
+| Accuracy               | 65%     | 75%    | 85%     |
+| ROC AUC                | 0.70    | 0.80   | 0.90    |
+| Precision (misaligned) | 70%     | 80%    | 90%     |
+| Recall (misaligned)    | 60%     | 70%    | 80%     |
 
 **Rationale:** Medical context alignment is challenging due to ambiguous language and visual similarity between conditions. 75% accuracy would be meaningful.
 
@@ -255,11 +282,12 @@ All metrics reported with:
 #### Validation Protocol
 
 1. **Dataset:** Dataset A + Dataset C (synthetic mismatches)
-2. **Ground Truth:** 
+2. **Ground Truth:**
    - High plausibility: Clear visual evidence supports claim
    - Medium plausibility: Claim possible but not definitive
    - Low plausibility: Claim contradicts visual evidence
 3. **Procedure:**
+
    ```python
    for image, claim in dataset:
        triage_result = medgemma_client.analyze_image(
@@ -268,7 +296,7 @@ All metrics reported with:
        )
        plausibility = extract_plausibility(triage_result)
        plausibility_score = map_plausibility_to_score(plausibility)
-       
+
        # Compare to ground truth
        record_prediction(plausibility_score, ground_truth)
    ```
@@ -280,11 +308,11 @@ All metrics reported with:
 
 #### Expected Performance Targets
 
-| Metric | Minimum | Target | Stretch |
-|--------|---------|--------|---------|
-| 3-way accuracy | 55% | 65% | 75% |
-| Spearman correlation | 0.50 | 0.65 | 0.80 |
-| Low vs. High discrimination (AUC) | 0.75 | 0.85 | 0.93 |
+| Metric                            | Minimum | Target | Stretch |
+| --------------------------------- | ------- | ------ | ------- |
+| 3-way accuracy                    | 55%     | 65%    | 75%     |
+| Spearman correlation              | 0.50    | 0.65   | 0.80    |
+| Low vs. High discrimination (AUC) | 0.75    | 0.85   | 0.93    |
 
 **Rationale:** Medical plausibility is subjective and context-dependent. Even moderate performance is valuable.
 
@@ -300,11 +328,12 @@ All metrics reported with:
    - Medium reputation: News media, educational sites
    - Low reputation: Social media, unverified blogs, known misinformation sites
 3. **Procedure:**
+
    ```python
    for image in dataset:
        search_results = reverse_search_service.search(image)
        reputation_score = compute_source_reputation(search_results)
-       
+
        # Compare to ground truth source reputation
        record_prediction(reputation_score, ground_truth_reputation)
    ```
@@ -316,11 +345,11 @@ All metrics reported with:
 
 #### Expected Performance Targets
 
-| Metric | Minimum | Target | Stretch |
-|--------|---------|--------|---------|
-| ROC AUC (high vs. low reputation) | 0.65 | 0.75 | 0.85 |
-| Coverage (images with results) | 60% | 75% | 90% |
-| Correlation with fact-checker verdicts | 0.40 | 0.55 | 0.70 |
+| Metric                                 | Minimum | Target | Stretch |
+| -------------------------------------- | ------- | ------ | ------- |
+| ROC AUC (high vs. low reputation)      | 0.65    | 0.75   | 0.85    |
+| Coverage (images with results)         | 60%     | 75%    | 90%     |
+| Correlation with fact-checker verdicts | 0.40    | 0.55   | 0.70    |
 
 **Rationale:** Reverse search is noisy and coverage-limited. Moderate discrimination is realistic.
 
@@ -341,11 +370,12 @@ All metrics reported with:
    - Consistent: Image used in same context repeatedly
    - Inconsistent: Image repurposed for different claims
 3. **Procedure:**
+
    ```python
    for image, usage_history in dataset:
        provenance = provenance_service.build_provenance(image)
        consistency_score = compute_genealogy_consistency(provenance)
-       
+
        # Compare to ground truth usage consistency
        record_prediction(consistency_score, ground_truth_consistency)
    ```
@@ -357,10 +387,10 @@ All metrics reported with:
 
 #### Expected Performance Targets
 
-| Metric | Minimum | Target | Stretch |
-|--------|---------|--------|---------|
-| Accuracy (consistent vs. inconsistent) | 60% | 70% | 80% |
-| Chain completion rate | 70% | 85% | 95% |
+| Metric                                 | Minimum | Target | Stretch |
+| -------------------------------------- | ------- | ------ | ------- |
+| Accuracy (consistent vs. inconsistent) | 60%     | 70%    | 80%     |
+| Chain completion rate                  | 70%     | 85%    | 95%     |
 
 **Rationale:** Provenance tracking is deterministic but limited by data availability. Most validation focuses on implementation correctness.
 
@@ -373,6 +403,7 @@ All metrics reported with:
 ### 5.1 End-to-End Validation Protocol
 
 1. **Dataset:** Combined test set (stratified sample from all datasets)
+
    - 300 aligned pairs (positive class)
    - 300 misaligned pairs (negative class)
    - 100 unclear/ambiguous pairs (excluded from binary metrics)
@@ -380,6 +411,7 @@ All metrics reported with:
 2. **Ground Truth:** Expert consensus labels (2+ medical professionals)
 
 3. **Procedure:**
+
    ```python
    for image, claim, ground_truth in test_set:
        # Run full agentic workflow
@@ -388,14 +420,14 @@ All metrics reported with:
            image_bytes=image,
            context=claim
        )
-       
+
        # Extract contextual integrity score
        ci_score = result.synthesis["contextual_integrity"]["score"]
        alignment = result.synthesis["contextual_integrity"]["alignment"]
-       
+
        # Threshold at 0.5 for binary classification
        predicted = "aligned" if ci_score >= 0.5 else "misaligned"
-       
+
        # Record for analysis
        record_prediction(
            predicted=predicted,
@@ -417,6 +449,7 @@ All metrics reported with:
 **Question:** How much does each signal contribute to overall performance?
 
 **Method:**
+
 ```python
 # Baseline: All signals (60% alignment, 15% plausibility, 15% genealogy, 10% source)
 baseline_accuracy = evaluate_full_model(test_set)
@@ -443,6 +476,7 @@ contribution = {
 ```
 
 **Expected Contributions:**
+
 - **Alignment:** Largest drop (>15%)—primary signal
 - **Plausibility:** Moderate drop (5-10%)—supports alignment
 - **Genealogy:** Small drop (2-5%)—limited availability
@@ -453,13 +487,14 @@ contribution = {
 **Question:** Are the current weights (60/15/15/10) optimal?
 
 **Method:** Grid search or Bayesian optimization over weight space
+
 ```python
 from scipy.optimize import differential_evolution
 
 def objective(weights):
     """Maximize F1 score on validation set."""
     alignment_w, plausibility_w, genealogy_w, source_w = weights
-    
+
     # Evaluate on validation set
     predictions = []
     for image, claim, truth in validation_set:
@@ -476,7 +511,7 @@ def objective(weights):
             )
         )
         predictions.append((score >= 0.5, truth))
-    
+
     return -compute_f1(predictions)  # Negative for minimization
 
 # Constraint: weights sum to 1.0
@@ -493,7 +528,8 @@ result = differential_evolution(
 optimal_weights = result.x
 ```
 
-**Validation:** 
+**Validation:**
+
 - Optimize on validation set (70% of data)
 - Evaluate on held-out test set (30% of data)
 - Report both validation and test performance
@@ -505,11 +541,13 @@ optimal_weights = result.x
 ### 6.1 Dataset Splitting
 
 **Stratified Train/Validation/Test Split:**
+
 - **Training:** 50% (for weight optimization, if needed)
 - **Validation:** 20% (for threshold tuning)
 - **Test:** 30% (for final evaluation, never seen during development)
 
 **Stratification Variables:**
+
 - Alignment label (aligned / misaligned / unclear)
 - Modality (X-ray, CT, MRI, etc.)
 - Claim type (diagnosis, treatment, etc.)
@@ -517,6 +555,7 @@ optimal_weights = result.x
 ### 6.2 Statistical Testing
 
 #### Bootstrap Confidence Intervals
+
 ```python
 from sklearn.utils import resample
 
@@ -528,20 +567,21 @@ def bootstrap_metric(y_true, y_pred, metric_fn, n_iterations=1000):
         indices = resample(range(len(y_true)), random_state=i)
         y_true_sample = [y_true[i] for i in indices]
         y_pred_sample = [y_pred[i] for i in indices]
-        
+
         # Compute metric
         score = metric_fn(y_true_sample, y_pred_sample)
         scores.append(score)
-    
+
     # Compute percentiles
     lower = np.percentile(scores, 2.5)
     upper = np.percentile(scores, 97.5)
     mean = np.mean(scores)
-    
+
     return {"mean": mean, "lower_ci": lower, "upper_ci": upper}
 ```
 
 #### McNemar's Test for Classifier Comparison
+
 ```python
 from statsmodels.stats.contingency_tables import mcnemar
 
@@ -550,15 +590,15 @@ def compare_classifiers(y_true, y_pred1, y_pred2):
     # Build contingency table
     correct1 = (y_pred1 == y_true)
     correct2 = (y_pred2 == y_true)
-    
+
     both_correct = sum(correct1 & correct2)
     only1_correct = sum(correct1 & ~correct2)
     only2_correct = sum(~correct1 & correct2)
     both_wrong = sum(~correct1 & ~correct2)
-    
+
     table = [[both_correct, only2_correct],
              [only1_correct, both_wrong]]
-    
+
     result = mcnemar(table, exact=True)
     return result.pvalue
 ```
@@ -566,6 +606,7 @@ def compare_classifiers(y_true, y_pred1, y_pred2):
 ### 6.3 Reproducibility Requirements
 
 All validation runs must include:
+
 - **Random Seed:** Fixed for reproducibility (seed=42)
 - **Environment Snapshot:** Python version, library versions (requirements.txt)
 - **Dataset Version:** SHA256 hash of dataset files
@@ -580,17 +621,20 @@ All validation runs must include:
 ### 7.1 Naive Baselines
 
 #### Random Classifier
+
 - **Accuracy:** 50% (binary), 33% (3-way aligned/partial/misaligned)
 - **ROC AUC:** 0.50
 - **Purpose:** Sanity check (must exceed random guessing)
 
 #### Majority Class Baseline
+
 - **Method:** Always predict most common class
 - **Accuracy:** Depends on class balance (e.g., 60% if 60% aligned)
 - **F1 Score:** Poor for minority classes
 - **Purpose:** Ensure model captures signal beyond class distribution
 
 #### Text-Only Baseline
+
 - **Method:** Use LLM to judge claim plausibility from text alone (no image)
 - **Expected Accuracy:** 55-65% (can detect obviously implausible claims)
 - **Purpose:** Validate that visual analysis adds value
@@ -599,14 +643,15 @@ All validation runs must include:
 
 Based on task difficulty and literature review:
 
-| Task | Naive Baseline | Text-Only | Target (Image + Text) |
-|------|----------------|-----------|------------------------|
-| Alignment detection | 50% | 60% | **75%+** |
-| Plausibility (3-way) | 33% | 55% | **65%+** |
-| Integrated score (binary) | 50% | 60% | **75%+** |
-| ROC AUC (integrated) | 0.50 | 0.65 | **0.80+** |
+| Task                      | Naive Baseline | Text-Only | Target (Image + Text) |
+| ------------------------- | -------------- | --------- | --------------------- |
+| Alignment detection       | 50%            | 60%       | **75%+**              |
+| Plausibility (3-way)      | 33%            | 55%       | **65%+**              |
+| Integrated score (binary) | 50%            | 60%       | **75%+**              |
+| ROC AUC (integrated)      | 0.50           | 0.65      | **0.80+**             |
 
 **Rationale:**
+
 - Medical misinformation detection is inherently difficult (expert-level task)
 - Ambiguous cases exist where even human experts disagree
 - 75% accuracy represents meaningful improvement over baselines
@@ -614,9 +659,9 @@ Based on task difficulty and literature review:
 
 ### 7.3 Comparison to Pixel Forensics
 
-| Approach | Dataset | Accuracy | ROC AUC | Threat Coverage |
-|----------|---------|----------|---------|-----------------|
-| Pixel forensics | UCI Tamper | 49.9% | 0.533 | 20% (manipulated images) |
+| Approach               | Dataset           | Accuracy          | ROC AUC            | Threat Coverage                               |
+| ---------------------- | ----------------- | ----------------- | ------------------ | --------------------------------------------- |
+| Pixel forensics        | UCI Tamper        | 49.9%             | 0.533              | 20% (manipulated images)                      |
 | **Contextual signals** | Image-claim pairs | **75%+ (target)** | **0.80+ (target)** | **87% (authentic images with false context)** |
 
 **Key Differentiation:** Contextual signals address the dominant threat (authentic images with misleading claims), while pixel forensics only detect manipulated images.
@@ -648,18 +693,18 @@ import seaborn as sns
 
 class ContextualSignalsValidator:
     """Validates MedContext contextual signals against ground truth."""
-    
+
     def __init__(self, dataset_path: Path, output_dir: Path):
         self.dataset_path = dataset_path
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.agent = MedContextAgent()
         self.results = []
-        
+
     def load_dataset(self) -> List[Dict[str, Any]]:
         """Load validation dataset with ground truth labels.
-        
+
         Expected format:
         [
             {
@@ -676,30 +721,30 @@ class ContextualSignalsValidator:
         """
         with open(self.dataset_path) as f:
             return json.load(f)
-    
+
     def run_validation(self):
         """Execute validation on full dataset."""
         dataset = self.load_dataset()
-        
+
         print(f"Validating {len(dataset)} image-claim pairs...")
-        
+
         for i, item in enumerate(dataset):
             if i % 10 == 0:
                 print(f"Progress: {i}/{len(dataset)}")
-            
+
             # Load image
             image_bytes = Path(item["image_path"]).read_bytes()
-            
+
             # Run MedContext agent
             result = self.agent.run(
                 image_bytes=image_bytes,
                 context=item["claim"]
             )
-            
+
             # Extract signals and scores
             ci = result.synthesis.get("contextual_integrity", {})
             signals = ci.get("signals", {})
-            
+
             # Record prediction
             self.results.append({
                 "image_id": item.get("image_id", item["image_path"]),
@@ -715,26 +760,26 @@ class ContextualSignalsValidator:
                 },
                 "synthesis": result.synthesis,
             })
-        
+
         print("Validation complete!")
-    
+
     def compute_metrics(self) -> Dict[str, Any]:
         """Compute evaluation metrics."""
         # Extract ground truth and predictions
         y_true = []
         y_pred = []
         scores = []
-        
+
         for result in self.results:
             gt = result["ground_truth"]["alignment"]
             pred = result["predicted"]["alignment"]
             score = result["predicted"]["overall_score"]
-            
+
             # Binary mapping: aligned vs. not aligned
             y_true.append(1 if gt == "aligned" else 0)
             y_pred.append(1 if pred == "aligned" else 0)
             scores.append(score if score is not None else 0.5)
-        
+
         # Compute metrics
         metrics = {
             "accuracy": accuracy_score(y_true, y_pred),
@@ -743,7 +788,7 @@ class ContextualSignalsValidator:
             "f1_score": f1_score(y_true, y_pred, zero_division=0),
             "roc_auc": roc_auc_score(y_true, scores),
         }
-        
+
         # Bootstrap confidence intervals
         metrics_with_ci = {}
         for metric_name, metric_fn in [
@@ -754,77 +799,77 @@ class ContextualSignalsValidator:
         ]:
             ci = self.bootstrap_metric(y_true, y_pred, metric_fn)
             metrics_with_ci[metric_name] = ci
-        
+
         # ROC AUC bootstrap
         roc_ci = self.bootstrap_metric(
-            y_true, scores, 
+            y_true, scores,
             lambda y, s: roc_auc_score(y, s)
         )
         metrics_with_ci["roc_auc"] = roc_ci
-        
+
         return {
             "metrics": metrics,
             "metrics_with_ci": metrics_with_ci,
             "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),
             "classification_report": classification_report(
-                y_true, y_pred, 
+                y_true, y_pred,
                 target_names=["misaligned", "aligned"],
                 output_dict=True
             ),
         }
-    
+
     def bootstrap_metric(self, y_true, y_pred, metric_fn, n_iterations=1000):
         """Compute 95% CI via bootstrap."""
         from sklearn.utils import resample
-        
+
         scores = []
         for i in range(n_iterations):
             indices = resample(range(len(y_true)), random_state=i)
             y_true_sample = [y_true[i] for i in indices]
             y_pred_sample = [y_pred[i] for i in indices]
-            
+
             try:
                 score = metric_fn(y_true_sample, y_pred_sample)
                 scores.append(score)
             except ValueError:
                 # Handle cases where resampling creates all-one-class
                 continue
-        
+
         return {
             "mean": float(np.mean(scores)),
             "lower_ci": float(np.percentile(scores, 2.5)),
             "upper_ci": float(np.percentile(scores, 97.5)),
         }
-    
+
     def analyze_signals(self) -> Dict[str, Any]:
         """Analyze individual signal performance."""
         signal_analysis = {}
-        
-        for signal_name in ["alignment_score", "plausibility_score", 
+
+        for signal_name in ["alignment_score", "plausibility_score",
                             "genealogy_score", "source_score"]:
             # Extract signal values
             y_true = []
             signal_values = []
-            
+
             for result in self.results:
                 gt = result["ground_truth"]["alignment"]
                 signal_val = result["predicted"].get(signal_name)
-                
+
                 if signal_val is not None:
                     y_true.append(1 if gt == "aligned" else 0)
                     signal_values.append(signal_val)
-            
+
             if len(signal_values) > 0:
                 # Compute ROC AUC for this signal alone
                 try:
                     roc_auc = roc_auc_score(y_true, signal_values)
                 except ValueError:
                     roc_auc = None
-                
+
                 # Compute mean difference between aligned vs. misaligned
                 aligned_vals = [s for s, t in zip(signal_values, y_true) if t == 1]
                 misaligned_vals = [s for s, t in zip(signal_values, y_true) if t == 0]
-                
+
                 signal_analysis[signal_name] = {
                     "roc_auc": roc_auc,
                     "mean_aligned": float(np.mean(aligned_vals)) if aligned_vals else None,
@@ -832,35 +877,35 @@ class ContextualSignalsValidator:
                     "separation": float(np.mean(aligned_vals) - np.mean(misaligned_vals)) if aligned_vals and misaligned_vals else None,
                     "coverage": len(signal_values) / len(self.results),
                 }
-        
+
         return signal_analysis
-    
+
     def ablation_study(self) -> Dict[str, Any]:
         """Measure contribution of each signal via ablation."""
         from app.metrics.integrity import compute_contextual_integrity_score
-        
+
         # Baseline: All signals
         y_true = []
         y_pred_baseline = []
-        
+
         for result in self.results:
             gt = result["ground_truth"]["alignment"]
             score = result["predicted"]["overall_score"]
-            
+
             y_true.append(1 if gt == "aligned" else 0)
             y_pred_baseline.append(1 if score >= 0.5 else 0)
-        
+
         baseline_acc = accuracy_score(y_true, y_pred_baseline)
-        
+
         # Ablation: Remove each signal
         ablation_results = {"baseline": baseline_acc}
-        
+
         for signal_to_remove in ["alignment", "plausibility", "genealogy", "source"]:
             y_pred_ablated = []
-            
+
             for result in self.results:
                 signals = result["predicted"]
-                
+
                 # Recompute score without this signal
                 signal_values = {
                     "alignment": signals.get("alignment_score"),
@@ -868,7 +913,7 @@ class ContextualSignalsValidator:
                     "genealogy_consistency": signals.get("genealogy_score"),
                     "source_reputation": signals.get("source_score"),
                 }
-                
+
                 # Set removed signal to None
                 if signal_to_remove == "alignment":
                     signal_values["alignment"] = None
@@ -878,44 +923,44 @@ class ContextualSignalsValidator:
                     signal_values["genealogy_consistency"] = None
                 elif signal_to_remove == "source":
                     signal_values["source_reputation"] = None
-                
+
                 # Recompute score (weights will auto-adjust)
                 ablated_score = compute_contextual_integrity_score(**signal_values)
                 y_pred_ablated.append(1 if ablated_score >= 0.5 else 0)
-            
+
             ablated_acc = accuracy_score(y_true, y_pred_ablated)
             contribution = baseline_acc - ablated_acc
-            
+
             ablation_results[f"without_{signal_to_remove}"] = {
                 "accuracy": ablated_acc,
                 "contribution": contribution,
             }
-        
+
         return ablation_results
-    
+
     def generate_plots(self):
         """Generate visualization plots."""
         # Confusion matrix
         self.plot_confusion_matrix()
-        
+
         # ROC curve
         self.plot_roc_curve()
-        
+
         # Signal distributions
         self.plot_signal_distributions()
-        
+
         # Calibration plot
         self.plot_calibration()
-    
+
     def plot_confusion_matrix(self):
         """Plot confusion matrix heatmap."""
-        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0 
+        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0
                   for r in self.results]
-        y_pred = [1 if r["predicted"]["alignment"] == "aligned" else 0 
+        y_pred = [1 if r["predicted"]["alignment"] == "aligned" else 0
                   for r in self.results]
-        
+
         cm = confusion_matrix(y_true, y_pred)
-        
+
         plt.figure(figsize=(8, 6))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                     xticklabels=["Misaligned", "Aligned"],
@@ -926,18 +971,18 @@ class ContextualSignalsValidator:
         plt.tight_layout()
         plt.savefig(self.output_dir / "confusion_matrix.png", dpi=300)
         plt.close()
-    
+
     def plot_roc_curve(self):
         """Plot ROC curve."""
         from sklearn.metrics import roc_curve
-        
-        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0 
+
+        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0
                   for r in self.results]
         scores = [r["predicted"]["overall_score"] or 0.5 for r in self.results]
-        
+
         fpr, tpr, thresholds = roc_curve(y_true, scores)
         roc_auc = roc_auc_score(y_true, scores)
-        
+
         plt.figure(figsize=(8, 6))
         plt.plot(fpr, tpr, label=f'Contextual Signals (AUC = {roc_auc:.3f})', linewidth=2)
         plt.plot([0, 1], [0, 1], 'k--', label='Random Classifier (AUC = 0.500)')
@@ -951,35 +996,35 @@ class ContextualSignalsValidator:
         plt.tight_layout()
         plt.savefig(self.output_dir / "roc_curve.png", dpi=300)
         plt.close()
-    
+
     def plot_signal_distributions(self):
         """Plot signal value distributions for aligned vs. misaligned."""
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
         axes = axes.flatten()
-        
-        signal_names = ["alignment_score", "plausibility_score", 
+
+        signal_names = ["alignment_score", "plausibility_score",
                         "genealogy_score", "source_score"]
-        signal_labels = ["Alignment", "Plausibility", 
+        signal_labels = ["Alignment", "Plausibility",
                          "Genealogy Consistency", "Source Reputation"]
-        
+
         for ax, signal_name, label in zip(axes, signal_names, signal_labels):
             aligned_vals = []
             misaligned_vals = []
-            
+
             for result in self.results:
                 gt = result["ground_truth"]["alignment"]
                 val = result["predicted"].get(signal_name)
-                
+
                 if val is not None:
                     if gt == "aligned":
                         aligned_vals.append(val)
                     else:
                         misaligned_vals.append(val)
-            
+
             if aligned_vals and misaligned_vals:
                 ax.hist(aligned_vals, bins=20, alpha=0.6, label="Aligned", color="green")
                 ax.hist(misaligned_vals, bins=20, alpha=0.6, label="Misaligned", color="red")
-                ax.axvline(np.mean(aligned_vals), color="darkgreen", linestyle="--", 
+                ax.axvline(np.mean(aligned_vals), color="darkgreen", linestyle="--",
                           label=f"Aligned Mean: {np.mean(aligned_vals):.2f}")
                 ax.axvline(np.mean(misaligned_vals), color="darkred", linestyle="--",
                           label=f"Misaligned Mean: {np.mean(misaligned_vals):.2f}")
@@ -988,21 +1033,21 @@ class ContextualSignalsValidator:
                 ax.set_title(f"{label} Signal Distribution")
                 ax.legend()
                 ax.grid(alpha=0.3)
-        
+
         plt.tight_layout()
         plt.savefig(self.output_dir / "signal_distributions.png", dpi=300)
         plt.close()
-    
+
     def plot_calibration(self):
         """Plot calibration curve."""
         from sklearn.calibration import calibration_curve
-        
-        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0 
+
+        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0
                   for r in self.results]
         scores = [r["predicted"]["overall_score"] or 0.5 for r in self.results]
-        
+
         prob_true, prob_pred = calibration_curve(y_true, scores, n_bins=10)
-        
+
         plt.figure(figsize=(8, 6))
         plt.plot(prob_pred, prob_true, marker='o', linewidth=2, label="Contextual Signals")
         plt.plot([0, 1], [0, 1], 'k--', label="Perfect Calibration")
@@ -1014,13 +1059,13 @@ class ContextualSignalsValidator:
         plt.tight_layout()
         plt.savefig(self.output_dir / "calibration.png", dpi=300)
         plt.close()
-    
+
     def generate_report(self):
         """Generate comprehensive validation report."""
         metrics = self.compute_metrics()
         signal_analysis = self.analyze_signals()
         ablation = self.ablation_study()
-        
+
         report = {
             "dataset": {
                 "path": str(self.dataset_path),
@@ -1031,38 +1076,38 @@ class ContextualSignalsValidator:
             "ablation_study": ablation,
             "raw_results": self.results,
         }
-        
+
         # Save report
         report_path = self.output_dir / "contextual_signals_validation_report.json"
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
-        
+
         print(f"\n{'='*60}")
         print("CONTEXTUAL SIGNALS VALIDATION REPORT")
         print(f"{'='*60}\n")
-        
+
         print(f"Dataset: {len(self.results)} samples\n")
-        
+
         print("Overall Performance (with 95% CI):")
         for metric, values in metrics["metrics_with_ci"].items():
             print(f"  {metric:15s}: {values['mean']:.3f} [{values['lower_ci']:.3f}, {values['upper_ci']:.3f}]")
-        
+
         print("\nSignal Analysis (Individual ROC AUC):")
         for signal, analysis in signal_analysis.items():
             if analysis["roc_auc"] is not None:
                 print(f"  {signal:25s}: {analysis['roc_auc']:.3f} (coverage: {analysis['coverage']:.1%})")
-        
+
         print("\nAblation Study (Signal Contribution):")
         for key, value in ablation.items():
             if key == "baseline":
                 print(f"  {key:25s}: {value:.3f}")
             else:
                 print(f"  {key:25s}: {value['accuracy']:.3f} (contribution: {value['contribution']:+.3f})")
-        
+
         print(f"\nFull report saved to: {report_path}")
         print(f"Plots saved to: {self.output_dir}/")
         print(f"{'='*60}\n")
-        
+
         return report
 
 
@@ -1082,14 +1127,14 @@ def main():
         default=Path("validation_results/contextual_signals"),
         help="Output directory for results"
     )
-    
+
     args = parser.parse_args()
-    
+
     validator = ContextualSignalsValidator(
         dataset_path=args.dataset,
         output_dir=args.output_dir
     )
-    
+
     validator.run_validation()
     validator.generate_plots()
     validator.generate_report()
@@ -1102,6 +1147,7 @@ if __name__ == "__main__":
 ### 8.2 Dataset Preparation Scripts
 
 You'll also need scripts to:
+
 1. **Curate datasets** from medical literature
 2. **Collect ground truth labels** from expert annotators
 3. **Format datasets** into the expected JSON structure
@@ -1123,11 +1169,11 @@ cp .env.example .env
 # 3. Prepare validation dataset (see Section 2)
 python scripts/prepare_contextual_validation_dataset.py \
   --source-dir data/medical_images \
-  --output validation_datasets/contextual_signals_v1.json
+  --output data/contextual_signals_v1.json
 
 # 4. Run validation
 python scripts/validate_contextual_signals.py \
-  --dataset validation_datasets/contextual_signals_v1.json \
+  --dataset data/contextual_signals_v1.json \
   --output-dir validation_results/contextual_signals_v1
 
 # 5. View results
@@ -1156,7 +1202,7 @@ uname -a
 
 ```bash
 # Compute dataset hash
-sha256sum validation_datasets/contextual_signals_v1.json > dataset_hash.txt
+sha256sum data/contextual_signals_v1.json > dataset_hash.txt
 
 # Include in results
 echo "dataset_sha256: $(cat dataset_hash.txt)" >> validation_results/metadata.txt
@@ -1165,6 +1211,7 @@ echo "dataset_sha256: $(cat dataset_hash.txt)" >> validation_results/metadata.tx
 ### 9.3 Random Seeding
 
 All random operations use fixed seeds:
+
 - Bootstrap resampling: `seed=42`
 - Dataset splitting: `seed=42`
 - Model inference: Deterministic (no sampling)
@@ -1172,6 +1219,7 @@ All random operations use fixed seeds:
 ### 9.4 Results Archive
 
 Each validation run produces:
+
 ```
 validation_results/contextual_signals_v1/
 ├── contextual_signals_validation_report.json  # Full results
@@ -1190,6 +1238,7 @@ validation_results/contextual_signals_v1/
 This validation framework provides a rigorous, reproducible approach to evaluating MedContext's contextual signals. By targeting the 87% of medical misinformation cases where authentic images are misused, this validation directly addresses the real-world threat distribution.
 
 **Key Differentiators:**
+
 1. **Ground Truth Datasets:** Expert-annotated image-claim pairs with verified labels
 2. **Multi-Signal Analysis:** Individual and integrated signal validation
 3. **Ablation Studies:** Quantify each signal's contribution
@@ -1197,6 +1246,7 @@ This validation framework provides a rigorous, reproducible approach to evaluati
 5. **Reproducibility:** Fixed seeds, versioned datasets, environment snapshots
 
 **Next Steps:**
+
 1. Curate Dataset A (medical image-caption pairs) with expert annotations
 2. Collect Dataset B (social media misinformation corpus) from fact-checkers
 3. Implement validation scripts and run pilot validation

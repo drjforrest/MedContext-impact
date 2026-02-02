@@ -99,6 +99,24 @@ _Local inference:_
 - `SERP_API_KEY`: For reverse image search via SerpAPI
 - `DEMO_ACCESS_CODE`: Access code for public demo (leave empty for local dev)
 
+**Optional Services - Telegram:**
+
+To enable the Telegram bot (`scripts/run_telegram_bot.py`), configure:
+
+- `TELEGRAM_BOT_TOKEN`: Bot token from @BotFather (required to run the bot)
+- `TELEGRAM_CHAT_ID`: Optional - specific chat ID for restricted bot access
+- `TELEGRAM_PROXY`: Optional - proxy URL if running behind a firewall
+
+Export in your environment:
+
+```bash
+export TELEGRAM_BOT_TOKEN="your_bot_token_here"
+export TELEGRAM_CHAT_ID="your_chat_id"  # optional
+export TELEGRAM_PROXY="http://proxy:port"  # optional
+```
+
+Note: `TELEGRAM_BOT_TOKEN` must be set to run `scripts/run_telegram_bot.py`.
+
 ## Architecture
 
 ### Module Structure
@@ -212,7 +230,9 @@ Models in `src/app/db/models/`:
 
 Alembic migrations in `alembic/versions/`. Current migrations:
 
-- `1e35fda0b1c9_init.py` - Initial schema
+- `1e35fda0b1c9_init.py` - Initial schema (placeholder)
+- `5b287932865b_init.py` - Core tables (`ImageSubmission`, `SubmissionContext`, `MedGemmaAnalysis`)
+- `8b1b3f0a7c3a_provenance_tables.py` - Provenance system (`ProvenanceBlock`, `ProvenanceManifest`)
 
 ## Testing & Validation
 
@@ -262,13 +282,13 @@ Comprehensive validation framework designed for the four contextual signals:
 ```bash
 # Prepare validation dataset
 python scripts/prepare_contextual_validation_dataset.py \
-  --input-csv validation_datasets/sample_template.csv \
+  --input-csv data/image_claims.csv \
   --image-dir data/medical_images \
-  --output validation_datasets/contextual_signals_v1.json
+  --output data/contextual_signals_v1.json
 
 # Run validation
 python scripts/validate_contextual_signals.py \
-  --dataset validation_datasets/contextual_signals_v1.json \
+  --dataset data/contextual_signals_v1.json \
   --output-dir validation_results/contextual_signals_v1
 ```
 

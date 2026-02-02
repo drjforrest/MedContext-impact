@@ -20,6 +20,7 @@ A complete empirical validation framework for MedContext's four contextual signa
 ### 📄 Documentation
 
 1. **`docs/CONTEXTUAL_SIGNALS_VALIDATION.md`** (11,500+ words)
+
    - Complete validation methodology
    - Dataset requirements and specifications
    - Evaluation metrics (ROC AUC, precision, recall, F1, calibration)
@@ -38,6 +39,7 @@ A complete empirical validation framework for MedContext's four contextual signa
 ### 🔧 Implementation Scripts
 
 3. **`scripts/validate_contextual_signals.py`** (500+ lines)
+
    - Main validation script
    - Runs MedContext agent on full dataset
    - Computes metrics with bootstrap confidence intervals
@@ -54,14 +56,15 @@ A complete empirical validation framework for MedContext's four contextual signa
 
 ### 📊 Sample Data
 
-5. **`validation_datasets/sample_template.csv`**
-   - Template CSV with 10 example rows
-   - Shows expected format for ground truth labels
+5. **Dataset Format**
+   - See `scripts/prepare_contextual_validation_dataset.py` for CSV format
+   - Expected columns: image_filename, claim, alignment, plausibility, is_misinformation, notes
    - Includes alignment, plausibility, and misinformation labels
 
 ### 📝 Updated Files
 
 6. **`docs/VALIDATION.md`** (updated)
+
    - Added Part 8: Contextual Signals Validation section
    - References to new validation framework
    - Next steps roadmap
@@ -134,9 +137,9 @@ Required labels:
 ```bash
 # 1. Prepare your dataset
 python scripts/prepare_contextual_validation_dataset.py \
-  --input-csv validation_datasets/my_data.csv \
+  --input-csv data/my_data.csv \
   --image-dir data/medical_images \
-  --output validation_datasets/my_data_v1.json
+  --output data/my_data_v1.json
 
 # 2. Configure MedGemma in .env
 # MEDGEMMA_PROVIDER=huggingface
@@ -144,7 +147,7 @@ python scripts/prepare_contextual_validation_dataset.py \
 
 # 3. Run validation
 python scripts/validate_contextual_signals.py \
-  --dataset validation_datasets/my_data_v1.json \
+  --dataset data/my_data_v1.json \
   --output-dir validation_results/my_data_v1
 
 # 4. Review results
@@ -215,12 +218,14 @@ Ablation Study (Signal Contribution):
 ### Required Components
 
 1. **Medical Images**
+
    - Authentic (not manipulated)
    - Diverse modalities (X-ray, CT, MRI, ultrasound, etc.)
    - Various anatomical regions
    - Clear, diagnostic-quality
 
 2. **Claims/Context**
+
    - Medical diagnoses
    - Treatment claims
    - Health advice
@@ -236,11 +241,13 @@ Ablation Study (Signal Contribution):
 ### Recommended Sources
 
 1. **Dataset A: Medical Literature** (ground truth)
+
    - PubMed Central image database
    - Medical education repositories (MedPix, Radiopaedia)
    - Verified health authority posts
 
 2. **Dataset B: Social Media Misinformation**
+
    - HealthFeedback.org verified claims
    - Snopes medical fact-checks
    - WHO infodemic reports
@@ -319,11 +326,13 @@ Ablation Study (Signal Contribution):
 ### Short-Term (Pending Dataset Curation)
 
 4. **Curate Dataset A** (Medical literature with verified captions)
+
    - Target: 300-500 image-claim pairs
    - Expert annotations needed
    - Stratify by modality and claim type
 
 5. **Curate Dataset B** (Social media misinformation)
+
    - Source from fact-checking organizations
    - Real-world misinformation cases
    - Target: 200-300 flagged posts
@@ -336,11 +345,13 @@ Ablation Study (Signal Contribution):
 ### Medium-Term (After Initial Results)
 
 7. **Weight Optimization**
+
    - Use ablation results to refine signal weights
    - Current: 60/15/15/10 (alignment/plausibility/genealogy/source)
    - Optimize via grid search or Bayesian optimization
 
 8. **Cross-Validation**
+
    - Split data into train/validation/test
    - Optimize on validation set
    - Final evaluation on held-out test set
@@ -417,8 +428,7 @@ Ablation Study (Signal Contribution):
 ### Implementation
 
 - **Validator:** `scripts/validate_contextual_signals.py` (500+ lines)
-- **Dataset Prep:** `scripts/prepare_contextual_validation_dataset.py` (450+ lines)
-- **Sample Template:** `validation_datasets/sample_template.csv`
+- **Dataset Prep:** `scripts/prepare_contextual_validation_dataset.py` (450+ lines with format documentation)
 
 ### Integration
 

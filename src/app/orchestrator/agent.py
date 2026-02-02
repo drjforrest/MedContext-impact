@@ -74,9 +74,15 @@ class MedContextAgent:
     def _triage(self, image_bytes: bytes, context: str | None) -> MedGemmaResult:
         prompt = (
             "You are a clinical investigator. "
-            "Return JSON with: required_investigation (list), "
-            "primary_findings (string), plausibility (low|medium|high), "
-            "context_risk (low|medium|high), claim_type (caption|clinical|news|social|unknown)."
+            "Return ONLY valid JSON with this exact structure:\n"
+            "{\n"
+            '  "required_investigation": [<list of needed tools>],\n'
+            '  "primary_findings": "<description>",\n'
+            '  "plausibility": "<low|medium|high>",\n'
+            '  "context_risk": "<low|medium|high>",\n'
+            '  "claim_type": "<caption|clinical|news|social|unknown>"\n'
+            "}\n"
+            "CRITICAL: plausibility must be exactly one of: low, medium, high"
         )
         if context:
             prompt += (
@@ -104,14 +110,19 @@ class MedContextAgent:
                 system=self._alignment_system(),
                 model=settings.llm_orchestrator,
             )
-        except LlmClientError:
+        except (LlmClientError, Exception) as e:
+            # Fallback to MedGemma if LLM fails
+            self._logger.warning(f"LLM synthesis failed: {e}, falling back to MedGemma")
             return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _alignment_system(self) -> str:
         return (
             "You are a clinical alignment analyst. "
             "Use the provided evidence to judge whether the image content "
-            "aligns with the claimed context. Return valid JSON only."
+            "aligns with the claimed context. "
+            "CRITICAL: You MUST respond with ONLY valid JSON. "
+            "Do not include any explanatory text, thinking, or narrative before or after the JSON. "
+            "Start your response with { and end with }."
         )
 
     def _build_alignment_prompt(
@@ -134,17 +145,27 @@ class MedContextAgent:
 
         prompt = (
             "Analyze MedGemma triage + tool results against the user context. "
-            "Return JSON with:\n"
-            "- part_1: { image_description }\n"
-            "- part_2: { context_quote, alignment_analysis, verdict, confidence, "
-            "alignment (aligned|partially_aligned|misaligned|unclear), "
-            "claim_risk (low|medium|high), summary, rationale }\n"
-            "Keep part_1 strictly factual about the image only. "
-            "Part_2 should evaluate the user claim against the provided context. "
-            "Do not treat the user context as confirmed; if evidence is insufficient, "
-            "set alignment to unclear. "
-            "If provided, context_quote must be a direct short quote from user context, "
-            "not a paraphrase or confirmation."
+            "Return ONLY valid JSON (no other text) with this exact structure:\n"
+            "{\n"
+            '  "part_1": {"image_description": "<factual description of image only>"},\n'
+            '  "part_2": {\n'
+            '    "context_quote": "<short quote from user context>",\n'
+            '    "alignment_analysis": "<evaluation of alignment>",\n'
+            '    "verdict": "<aligned or not>",\n'
+            '    "confidence": <0.0-1.0>,\n'
+            '    "alignment": "<aligned|partially_aligned|misaligned|unclear>",\n'
+            '    "claim_risk": "<low|medium|high>",\n'
+            '    "summary": "<brief summary>",\n'
+            '    "rationale": "<reasoning>"\n'
+            "  }\n"
+            "}\n\n"
+            "CRITICAL REQUIREMENTS:\n"
+            "1. Respond with ONLY the JSON object above, no other text\n"
+            "2. confidence must be a number between 0.0 and 1.0\n"
+            "3. alignment must be exactly one of: aligned, partially_aligned, misaligned, unclear\n"
+            "4. claim_risk must be exactly one of: low, medium, high\n"
+            "5. part_1 must be strictly factual about the image only\n"
+            "6. If evidence is insufficient, set alignment to 'unclear'\n"
             f"\nTriage: {triage_json}\n"
             f"ToolResults: {tools_json}\n"
         )
@@ -430,5 +451,6 @@ class MedContextAgent:
             return ["layer_2"]
         if plausibility_normalized in {"low", "medium"}:
             return ["layer_1", "layer_2"]
+        return ["layer_1", "layer_2"]
         return ["layer_1", "layer_2"]
         return ["layer_1", "layer_2"]

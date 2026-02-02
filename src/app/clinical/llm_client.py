@@ -161,9 +161,36 @@ class LlmClient:
 
         cleaned = content.strip()
         cleaned = cleaned.lstrip("|").strip()
-        cleaned = re.sub(r"<unused\d+>\s*thought", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(r"<unused\d+>", "", cleaned)
-        cleaned = re.sub(r"^thought\s*:\s*", "", cleaned, flags=re.IGNORECASE)
+
+        # Remove leading "JSON" markers
+        cleaned = re.sub(r"^JSON\s*\n+", "", cleaned, flags=re.IGNORECASE)
+
+        # Remove common prefixes from model thinking/explanation
+        cleaned = re.sub(r"<unused\d+>", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(
+            r"^thought\s*:?\s*", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
+        )
+        cleaned = re.sub(
+            r"^tool_name\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
+        )
+        cleaned = re.sub(
+            r"^tool_code\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
+        )
+
+        # Try to extract JSON from markdown code fences first
+        json_fence = re.search(
+            r"```json\s*(.*?)```", cleaned, flags=re.DOTALL | re.IGNORECASE
+        )
+        if json_fence:
+            return json_fence.group(1).strip()
+
+        # Try any code fence
+        any_fence = re.search(r"```\s*(.*?)```", cleaned, flags=re.DOTALL)
+        if any_fence:
+            potential = any_fence.group(1).strip()
+            if potential.startswith("{"):
+                return potential
+
         cleaned = re.sub(r"\s{3,}", "  ", cleaned)
         return cleaned.strip()
 
@@ -177,17 +204,40 @@ class LlmClient:
             except json.JSONDecodeError:
                 return None
 
+        # Try direct parsing first
         direct = _try_load(content)
         if direct is not None:
             return direct
 
-        fenced = re.search(r"```json(.*?)```", content, flags=re.DOTALL | re.IGNORECASE)
+        # Try to extract from markdown code fences (```json...```)
+        fenced = re.search(
+            r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE
+        )
         if fenced:
             candidate = fenced.group(1).strip()
             loaded = _try_load(candidate)
             if loaded is not None:
                 return loaded
 
+        # Try to extract from any code fence (```...```)
+        fenced_any = re.search(r"```\s*(.*?)```", content, flags=re.DOTALL)
+        if fenced_any:
+            candidate = fenced_any.group(1).strip()
+            loaded = _try_load(candidate)
+            if loaded is not None:
+                return loaded
+
+        # Try to find outermost JSON object, being greedy to get complete object
+        # Look for patterns with balanced braces
+        for match in re.finditer(
+            r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", content, flags=re.DOTALL
+        ):
+            candidate = match.group(0).strip()
+            loaded = _try_load(candidate)
+            if loaded is not None:
+                return loaded
+
+        # Last resort: find any {...} pattern
         match = re.search(r"\{.*\}", content, flags=re.DOTALL)
         if match:
             candidate = match.group(0).strip()

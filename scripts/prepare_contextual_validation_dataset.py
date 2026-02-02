@@ -5,9 +5,9 @@ by the contextual signals validator.
 
 Usage:
     python scripts/prepare_contextual_validation_dataset.py \
-        --input-csv data/raw/image_claims.csv \
-        --image-dir data/raw/images \
-        --output validation_datasets/contextual_signals_v1.json
+        --input-csv data/image_claims.csv \
+        --image-dir data/medical_images \
+        --output data/contextual_signals_v1.json
 """
 
 from __future__ import annotations
@@ -122,9 +122,7 @@ def load_jsonl_dataset(jsonl_path: Path) -> List[Dict[str, Any]]:
 
             # Validate required fields
             if "image_path" not in item or "claim" not in item:
-                print(
-                    f"Warning: Missing required fields on line {line_num}. Skipping."
-                )
+                print(f"Warning: Missing required fields on line {line_num}. Skipping.")
                 continue
 
             # Ensure ground_truth exists
@@ -223,9 +221,7 @@ def validate_dataset(dataset: List[Dict[str, Any]]) -> bool:
         gt = item.get("ground_truth", {})
         for field in required_gt_fields:
             if field not in gt:
-                print(
-                    f"Error: Item {i} ground_truth missing required field '{field}'"
-                )
+                print(f"Error: Item {i} ground_truth missing required field '{field}'")
                 return False
 
         # Validate alignment values
@@ -235,9 +231,7 @@ def validate_dataset(dataset: List[Dict[str, Any]]) -> bool:
             "partially_aligned",
             "unclear",
         ]:
-            print(
-                f"Error: Item {i} has invalid alignment value '{gt['alignment']}'"
-            )
+            print(f"Error: Item {i} has invalid alignment value '{gt['alignment']}'")
             return False
 
         # Validate plausibility values
@@ -320,9 +314,7 @@ def main():
         print(f"Loaded {len(dataset)} items")
 
     else:
-        print(
-            "Error: Must specify --input-csv, --input-jsonl, or --create-sample"
-        )
+        print("Error: Must specify --input-csv, --input-jsonl, or --create-sample")
         return
 
     # Validate dataset
@@ -354,9 +346,7 @@ def main():
 
         # Count plausibility
         plausibility = gt["plausibility"]
-        plausibility_counts[plausibility] = (
-            plausibility_counts.get(plausibility, 0) + 1
-        )
+        plausibility_counts[plausibility] = plausibility_counts.get(plausibility, 0) + 1
 
         # Count misinformation
         if gt.get("is_misinformation"):
@@ -364,23 +354,19 @@ def main():
 
     print("\n  Alignment distribution:")
     for alignment, count in sorted(alignment_counts.items()):
-        print(f"    {alignment:20s}: {count:4d} ({count/len(dataset)*100:.1f}%)")
+        print(f"    {alignment:20s}: {count:4d} ({count / len(dataset) * 100:.1f}%)")
 
     print("\n  Plausibility distribution:")
     for plausibility, count in sorted(plausibility_counts.items()):
-        print(
-            f"    {plausibility:20s}: {count:4d} ({count/len(dataset)*100:.1f}%)"
-        )
+        print(f"    {plausibility:20s}: {count:4d} ({count / len(dataset) * 100:.1f}%)")
 
     print(
         f"\n  Misinformation cases: {misinformation_count} "
-        f"({misinformation_count/len(dataset)*100:.1f}%)"
+        f"({misinformation_count / len(dataset) * 100:.1f}%)"
     )
 
     print("\nReady for validation! Run:")
-    print(
-        f"  python scripts/validate_contextual_signals.py --dataset {args.output}"
-    )
+    print(f"  python scripts/validate_contextual_signals.py --dataset {args.output}")
 
 
 if __name__ == "__main__":

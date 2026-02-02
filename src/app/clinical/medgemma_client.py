@@ -110,11 +110,16 @@ class MedGemmaClient:
         except httpx.HTTPError as exc:
             raise MedGemmaClientError(f"HuggingFace request failed: {exc}") from exc
 
+        # Clean and parse the response
+        raw_text = response.text
+        cleaned = self._clean_text(raw_text)
+        parsed = self._parse_json(cleaned)
+
         return MedGemmaResult(
             provider="huggingface",
             model=settings.medgemma_hf_model,
-            output=response.json(),
-            raw_text=response.text,
+            output=parsed,
+            raw_text=raw_text,
         )
 
     def _load_local_model(self) -> None:
@@ -277,10 +282,14 @@ class MedGemmaClient:
         else:
             raw_text = str(predictions)
 
+        # Clean and parse the response (like other providers)
+        cleaned = self._clean_text(raw_text)
+        parsed = self._parse_json(cleaned)
+
         return MedGemmaResult(
             provider="vertex",
             model=url,
-            output={"text": raw_text},
+            output=parsed,
             raw_text=raw_text,
         )
 
@@ -419,9 +428,29 @@ class MedGemmaClient:
 
         cleaned = content.strip()
         cleaned = cleaned.lstrip("|").strip()
-        cleaned = re.sub(r"<unused\d+>\s*thought", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(r"<unused\d+>", "", cleaned)
-        cleaned = re.sub(r"^thought\s*:\s*", "", cleaned, flags=re.IGNORECASE)
+        
+        # Remove leading "JSON" markers that models sometimes add
+        cleaned = re.sub(r"^JSON\s*\n+", "", cleaned, flags=re.IGNORECASE)
+        
+        # Remove <unused*> tags and thought markers
+        cleaned = re.sub(r"<unused\d+>", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"^thought\s*:?\s*", "", cleaned, flags=re.IGNORECASE | re.MULTILINE)
+        cleaned = re.sub(r"^tool_name\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE)
+        cleaned = re.sub(r"^tool_code\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE)
+        
+        # Try to extract JSON from markdown code fences - this is critical
+        json_fence = re.search(r'```json\s*(.*?)```', cleaned, flags=re.DOTALL | re.IGNORECASE)
+        if json_fence:
+            return json_fence.group(1).strip()
+        
+        # Try any code fence
+        any_fence = re.search(r'```\s*(.*?)```', cleaned, flags=re.DOTALL)
+        if any_fence:
+            potential = any_fence.group(1).strip()
+            # If it looks like JSON, use it
+            if potential.startswith('{'):
+                return potential
+        
         cleaned = re.sub(r"\s{3,}", "  ", cleaned)
         return cleaned.strip()
 
@@ -442,11 +471,13 @@ class MedGemmaClient:
             except (UnicodeDecodeError, ValueError):
                 return raw
 
+        # Try direct parsing first
         direct = _try_load(content)
         if direct is not None:
             return direct
 
-        fenced = re.search(r"```json(.*?)```", content, flags=re.DOTALL | re.IGNORECASE)
+        # Try to extract from markdown code fences (```json...```)
+        fenced = re.search(r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE)
         if fenced:
             candidate = fenced.group(1).strip()
             loaded = _try_load(candidate)
@@ -457,6 +488,15 @@ class MedGemmaClient:
             if loaded is not None:
                 return loaded
 
+        # Try to extract from any code fence (```...```)
+        fenced_any = re.search(r"```\s*(.*?)```", content, flags=re.DOTALL)
+        if fenced_any:
+            candidate = fenced_any.group(1).strip()
+            loaded = _try_load(candidate)
+            if loaded is not None:
+                return loaded
+
+        # Try to find outermost JSON object
         match = re.search(r"\{.*\}", content, flags=re.DOTALL)
         if match:
             candidate = match.group(0).strip()
