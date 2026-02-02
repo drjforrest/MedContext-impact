@@ -111,7 +111,6 @@ src/app/
 │   ├── orchestrator.py       # Agentic workflow execution
 │   ├── forensics.py          # Legacy integrity signals (stubbed)
 │   ├── reverse_search.py     # Reverse image search
-│   ├── monitoring.py         # Social media monitoring
 │   └── ...
 ├── orchestrator/              # Agentic orchestration
 │   ├── agent.py              # Deterministic agent (triage → tools → synthesis)
@@ -126,9 +125,6 @@ src/app/
 │   └── service.py            # Hash-chained immutable records
 ├── reverse_search/            # Image reverse search
 │   └── service.py            # Multi-provider search (SerpAPI)
-├── monitoring/                # Telegram bot integration
-│   ├── telegram.py           # Telegram webhook processing
-│   └── service.py            # Monitoring orchestration
 ├── telegram_bot/              # Telegram bot implementation
 │   └── bot.py                # Full bot with image verification
 ├── metrics/                   # Scoring algorithms
@@ -186,7 +182,7 @@ Real-time Telegram bot (`src/app/telegram_bot/bot.py`) for image verification:
 - Users can send images with claims directly to the bot
 - Bot analyzes images using the full MedContext orchestrator
 - Returns verification results with confidence scores and rationale
-- Webhook endpoint available at `/api/v1/monitoring/telegram`
+- Run with: `python scripts/run_telegram_bot.py`
 
 ### MedContext Integrity Score
 
@@ -204,7 +200,6 @@ All endpoints are prefixed with `/api/v1`. Key routes:
 - `POST /api/v1/orchestrator/run` - Run agentic workflow
 - `POST /api/v1/forensics/analyze` - Legacy integrity signal stub
 - `POST /api/v1/reverse-search/search` - Reverse image search
-- `GET /api/v1/monitoring/items` - List monitored items
 
 Health check: `GET /health`
 
@@ -212,13 +207,12 @@ Health check: `GET /health`
 
 Models in `src/app/db/models/`:
 
-- `ingestion.py`: `ImageSubmission`, `SubmissionContext`
-- `monitoring.py`: `MonitoringItem`, `MonitoringEvent`
+- `ingestion.py`: `ImageSubmission`, `SubmissionContext`, `MedGemmaAnalysis`
+- `provenance.py`: `ProvenanceBlock`, `ProvenanceManifest`
 
 Alembic migrations in `alembic/versions/`. Current migrations:
 
 - `1e35fda0b1c9_init.py` - Initial schema
-- `47e33d201752_monitoring.py` - Monitoring tables
 
 ## Testing & Validation
 
@@ -339,7 +333,7 @@ Configuration:
 
 See `docs/` for architecture specs:
 
-- `MedContext-Backend-Architecture.md` - Context integrity, provenance, monitoring
+- `MedContext-Backend-Architecture.md` - Context integrity, provenance
 - `MedContext-Complete-TechSpec.md` - Full technical specification
 - `MedContext-MedGemma-Claim-Extraction.md` - Claim extraction patterns
 - `MedContext-Blockchain-Cleaned.md` - Provenance system details

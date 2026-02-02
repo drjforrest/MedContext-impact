@@ -98,7 +98,7 @@ The overwhelming majority of predictions were UNCERTAIN, indicating the ensemble
 
 **Rationale for UNCERTAIN → Positive Mapping:**
 
-This mapping reflects a **conservative evaluation policy** for benchmarking purposes. When users submit images for verification in medical misinformation contexts, uncertain verdicts likely prompt user skepticism and additional fact-checking (similar behavioral outcomes to positive manipulation findings). Mapping UNCERTAIN → Positive in metrics provides a lower-bound estimate of system performance, assuming uncertain results trigger user caution rather than acceptance. This evaluation choice prioritizes **recall over precision** in metric calculation.
+Mapping reflects a **conservative evaluation policy** for benchmarking purposes. When users submit images for verification in medical misinformation contexts, uncertain verdicts likely prompt user skepticism and additional fact-checking (similar behavioral outcomes to positive manipulation findings). Mapping UNCERTAIN → Positive in metrics provides a lower-bound estimate of system performance, assuming uncertain results trigger user caution rather than acceptance. This evaluation choice prioritizes **recall over precision** in metric calculation.
 
 **Important:** This mapping is **used only for calculating binary classification metrics** to enable comparison with traditional binary classifiers. In actual deployment, users receive the true three-class verdict (AUTHENTIC, MANIPULATED, or UNCERTAIN) with detailed signal breakdowns—not a forced binary classification.
 
@@ -264,24 +264,26 @@ Medical images often lack EXIF data (anonymized for privacy). When present, time
 
 ## Part 4: MedContext's Contextual Approach
 
-MedContext's approach focuses on signals that address the 87% of cases where authentic images are misused. The system uses four contextual signals:
+MedContext's approach focuses on signals that address the 87% of cases where authentic images are misused. The system uses four contextual signals with initial heuristic weights:
 
 1. **Alignment** (60% weight): Does the image content match the claimed context? (MedGemma/LLM synthesis)
 2. **Medical Plausibility** (15% weight): Is the medical claim itself plausible based on visual evidence? (MedGemma semantic analysis)
 3. **Genealogy Consistency** (15% weight): Is the provenance chain intact and consistent? (Blockchain-style hash chain)
 4. **Source Reputation** (10% weight): Do credible sources use this image similarly? (Reverse search via SerpAPI)
 
+**Weight Rationale:** These weights represent initial empirical starting points based on literature indicating that approximately 87% of medical misinformation involves contextual misuse rather than pixel manipulation (Wardle & Derakhshan, 2017; Brennen et al., 2020). The dominant weight on **Alignment** reflects its direct assessment of image-claim correspondence, while **Medical Plausibility**, **Genealogy Consistency**, and **Source Reputation** provide complementary verification signals. These weights are subject to refinement through planned ablation studies and holdout experiments once the validation dataset is fully curated.
+
 These signals are designed to detect contextual misuse that pixel forensics cannot address.
 
-**Validation Status:** A comprehensive validation framework for these contextual signals has been designed (see `docs/CONTEXTUAL_SIGNALS_VALIDATION.md`). The framework includes:
+**Validation Status:** A comprehensive validation framework for these four contextual signals has been designed but not yet executed (see `docs/CONTEXTUAL_SIGNALS_VALIDATION.md` for full methodology). The framework design includes:
 
-- Ground truth datasets with expert-annotated image-claim pairs
+- Ground truth dataset specifications with expert-annotated image-claim pairs
 - Individual signal performance metrics (ROC AUC, precision, recall)
-- Ablation studies to measure each signal's contribution
+- Ablation study protocols to measure each signal's contribution
 - Bootstrap confidence intervals for statistical rigor
-- Target performance: 75%+ accuracy, 0.80+ ROC AUC
+- Target performance baselines: 75%+ accuracy, 0.80+ ROC AUC
 
-Empirical validation is ready to run pending dataset curation. Field deployment validation is planned with HERO Lab, UBC.
+**Empirical validation results will follow** upon completion of ongoing dataset curation. The framework is ready for execution, and field deployment validation is planned with HERO Lab, UBC, to gather real-world performance data.
 
 ## Part 5: Dataset & Methodology
 
@@ -409,7 +411,11 @@ Most competition submissions optimize for:
 
 ---
 
-## Part 8: Contextual Signals Validation
+## Part 8: Contextual Signals Validation Framework
+
+**📋 Status: Framework Designed (Execution Pending)**
+
+The following validation methodology in `docs/CONTEXTUAL_SIGNALS_VALIDATION.md` is designed and ready for execution pending dataset curation.
 
 For comprehensive documentation on validating the contextual signals (alignment, plausibility, genealogy consistency, and source reputation), see:
 

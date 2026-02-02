@@ -5,7 +5,6 @@ from app.api.v1.endpoints import (
     decision_support,
     forensics,
     ingestion,
-    monitoring,
     orchestrator,
     provenance,
     reverse_search,
@@ -25,7 +24,6 @@ api_router.include_router(
 )
 api_router.include_router(forensics.router, prefix="/forensics", tags=["forensics"])
 api_router.include_router(provenance.router, prefix="/provenance", tags=["provenance"])
-api_router.include_router(monitoring.router, prefix="/monitoring", tags=["monitoring"])
 api_router.include_router(
     visualization.router, prefix="/visualization", tags=["visualization"]
 )
