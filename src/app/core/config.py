@@ -31,9 +31,14 @@ class Settings(BaseSettings):
         default="local",
         validation_alias=AliasChoices("MEDGEMMA_FALLBACK_PROVIDER"),
     )
-    llm_provider: str = "openai_compatible"  # openai_compatible | ollama | gemini
-    llm_orchestrator: str = "gemini-2.5-pro"
-    llm_worker: str = "gemini-2.5-flash"
+    llm_provider: str = (
+        "openai_compatible"  # openrouter | gemini | openai_compatible | ollama
+    )
+    # Model names:
+    #   - OpenRouter format: "google/gemini-2.0-flash-exp", "anthropic/claude-3.5-sonnet"
+    #   - Google AI Studio (gemini provider): "gemini-2.0-flash-exp", "gemini-1.5-pro"
+    llm_orchestrator: str = "google/gemini-2.5-pro"
+    llm_worker: str = "google/gemini-2.5-flash"
     llm_api_key: str = Field(
         default="",
         validation_alias=AliasChoices(
@@ -94,7 +99,7 @@ class Settings(BaseSettings):
         ),
     )
 
-    model_config = ConfigDict(env_file=".env")
+    model_config = ConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()

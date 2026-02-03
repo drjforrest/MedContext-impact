@@ -34,6 +34,14 @@ class LlmClient:
         temperature: float = 0.2,
         max_tokens: int = 4096,
     ) -> LlmResult:
+        if self.provider == "openrouter":
+            return self._generate_openrouter(
+                prompt,
+                system=system,
+                model=model or settings.llm_orchestrator,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
         if self.provider == "openai_compatible":
             return self._generate_openai_compatible(
                 prompt,
@@ -58,6 +66,75 @@ class LlmClient:
                 max_tokens=max_tokens,
             )
         raise LlmClientError(f"Unsupported provider: {self.provider}")
+
+    def _generate_openrouter(
+        self,
+        prompt: str,
+        *,
+        system: Optional[str],
+        model: Optional[str],
+        temperature: float,
+        max_tokens: int,
+    ) -> LlmResult:
+        """Generate using OpenRouter API (OpenAI-compatible format)."""
+        base_url = "https://openrouter.ai/api/v1"
+
+        # Use OPENROUTER_API_KEY if available, otherwise fall back to LLM_API_KEY
+        api_key = settings.llm_api_key
+        if not api_key:
+            raise LlmClientError(
+                "Missing OPENROUTER_API_KEY or LLM_API_KEY for OpenRouter."
+            )
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        }
+
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+
+        try:
+            with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
+                response = client.post(
+                    f"{base_url}/chat/completions",
+                    headers=headers,
+                    json=payload,
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise LlmClientError(f"OpenRouter request failed: {exc}") from exc
+
+        try:
+            data = response.json()
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise LlmClientError(
+                f"Invalid JSON in OpenRouter response: {exc}. Raw: {response.text[:500]}"
+            ) from exc
+
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LlmClientError(
+                f"Unexpected OpenRouter response format: {str(data)[:500]}"
+            ) from exc
+
+        cleaned = self._clean_text(content)
+        return LlmResult(
+            provider="openrouter",
+            model=model or settings.llm_orchestrator,
+            output=self._parse_json(cleaned),
+            raw_text=cleaned,
+        )
 
     def _generate_openai_compatible(
         self,
@@ -212,7 +289,7 @@ class LlmClient:
             content = data["candidates"][0]["content"]["parts"][0]["text"]
         except (KeyError, IndexError, TypeError) as exc:
             raise LlmClientError(
-                f"Unexpected Gemini response format: {data}"
+                f"Unexpected Gemini response format: {str(data)[:500]}"
             ) from exc
 
         cleaned = self._clean_text(content)

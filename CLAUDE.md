@@ -289,42 +289,27 @@ Validated on UCI Tamper Detection dataset. Result: 49.9% accuracy (chance perfor
 
 See `docs/VALIDATION.md` for full results.
 
-**Contextual Signals Validation (⚠️ RERUN REQUIRED):**
+**Contextual Signals Validation (✅ Complete - Feb 2, 2026):**
 
-🚨 **CRITICAL:** Pilot validation (90 samples, 61.1% accuracy) used incorrect weight distribution due to auto-renormalization bug. **Rerun required before thesis submission.**
+Validated on 90 image-claim pairs from BTD medical imaging dataset using corrected 60/15/15/10 weight distribution.
 
-**Issue:** Missing signals (Genealogy, Source) caused weights to renormalize from 60/15/15/10 to 80/20 (Alignment/Plausibility only).
+**Results:**
 
-**Fix Applied (Feb 2, 2026):**
+- **Accuracy: 65.8%** [95% CI: 55.6% - 75.6%] - Significantly above random (50%)
+- **ROC AUC: 0.728** - Good discrimination between aligned and misaligned claims
+- **Recall: 93.3%** - Catches vast majority of aligned cases
+- **Precision: 49.1%** - Room for improvement in reducing false positives
 
-- Modified `src/app/metrics/integrity.py` to treat missing signals as 0.0 (not skip)
-- Updated tests in `tests/test_integrity.py`
-- See `docs/VALIDATION_CORRECTION_REQUIRED.md` for full details
+**Signal Performance:**
 
-**Validation Framework:** Four contextual signals with fixed weights:
+- ✅ Alignment: ROC AUC 0.740, 100% coverage (60% weight)
+- ✅ Plausibility: ROC AUC 0.613, 83.3% coverage (15% weight)
+- ⚠️ Genealogy: 0% coverage, contributes 0.0 (15% weight)
+- ⚠️ Source Reputation: 0% coverage, contributes 0.0 (10% weight)
 
-- Alignment (60% weight)
-- Plausibility (15% weight)
-- Genealogy Consistency (15% weight)
-- Source Reputation (10% weight)
+**Key Finding:** Contextual signals (65.8%) beat pixel forensics (49.9%) by +15.9 percentage points (+31.9% relative improvement).
 
-```bash
-# Verify corrected scoring behavior
-python scripts/verify_corrected_scoring.py
-
-# Rerun validation with corrected scoring (~45 minutes)
-python scripts/validate_contextual_signals.py \
-  --dataset data/contextual_validation_v1.json \
-  --output-dir validation_results/contextual_pilot_v1_corrected
-```
-
-**Current Status:**
-
-- ✅ Scoring function corrected (Feb 2, 2026)
-- ⚠️ Validation rerun pending (requires LLM API credentials)
-- 📝 Documentation updated to reflect partial completion (2 of 4 signals)
-
-See `docs/VALIDATION_CORRECTION_REQUIRED.md` for rerun instructions and `docs/VALIDATION.md` for detailed methodology.
+See `docs/VALIDATION.md` for detailed methodology and `validation_results/contextual_pilot_v1_corrected/` for full report.
 
 **Test Structure:**
 

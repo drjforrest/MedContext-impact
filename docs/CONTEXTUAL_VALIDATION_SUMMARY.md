@@ -200,10 +200,10 @@ Ablation Study (Signal Contribution):
 
 **Comparison to Pixel Forensics:**
 
-| Approach               | Dataset           | Accuracy | ROC AUC   | Threat Coverage          |
-| ---------------------- | ----------------- | -------- | --------- | ------------------------ |
-| Pixel forensics        | UCI Tamper        | 49.9%    | 0.533     | 20% (manipulated)        |
-| **Contextual signals** | Image-claim pairs | **75%+** | **0.80+** | **87%** (context misuse) |
+| Approach               | Dataset           | Accuracy | ROC AUC   | Threat Coverage                  |
+| ---------------------- | ----------------- | -------- | --------- | -------------------------------- |
+| Pixel forensics        | UCI Tamper        | 49.9%    | 0.533     | 20% (manipulated)                |
+| **Contextual signals** | Image-claim pairs | **75%+** | **0.80+** | dominant threat (context misuse) |
 
 ---
 

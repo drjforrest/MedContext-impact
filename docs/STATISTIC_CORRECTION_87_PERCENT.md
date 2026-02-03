@@ -151,7 +151,7 @@ The corrected statistic **actually strengthens** our argument:
 **With:**
 
 ```
-Over half of medical misinformation includes visuals, predominantly authentic images used in misleading contexts (Brennen et al., 2021)
+Over half of medical misinformation includes visuals, predominantly authentic images used in misleading contexts (Brennen et al., 2020)
 ```
 
 ### For Threat Model Claims
@@ -181,7 +181,7 @@ addresses the dominant threat: authentic images weaponized through false context
 
 ```
 <span className="insight-number">52%+</span>
-<p>of medical misinformation includes <strong>visuals</strong>, mostly authentic images with misleading context (Brennen et al., 2021)</p>
+<p>of medical misinformation includes <strong>visuals</strong>, mostly authentic images with misleading context (Brennen et al., 2020)</p>
 ```
 
 ### For Weight Rationale (VALIDATION.md line 277)
@@ -195,7 +195,7 @@ Since approximately 87% of medical misinformation involves contextual misuse rat
 **Corrected:**
 
 ```
-Since over half of medical misinformation includes visuals, with the vast majority being authentic images in misleading contexts rather than pixel manipulations (Brennen et al., 2021)...
+Since over half of medical misinformation includes visuals, with the vast majority being authentic images in misleading contexts rather than pixel manipulations (Brennen et al., 2020)...
 ```
 
 ---

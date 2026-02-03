@@ -48,9 +48,9 @@ This pattern diverges from apocalyptic narratives surrounding AI-generated conte
 
 ### Research Image Fraud
 
-Beyond public-facing social media, medical image fraud extends into scientific research itself. A survey of 284 nuclear medicine researchers revealed that 13.7% admitted falsifying medical images within the preceding five years, while 38.7% reported witnessing colleagues engage in such practices[12]†. Common forms included cherry-picking images, unauthorized reuse, and misleading enhancements. While 1.1% acknowledged using AI to falsify images and 2.8% observed colleagues doing so, these percentages are likely to increase as generative AI capabilities become more accessible. Key drivers included publication pressure, competitive incentives, and aesthetic expectations imposed by journals.
+Beyond public-facing social media, medical image fraud extends into scientific research itself. Surveys of nuclear medicine researchers have documented nontrivial rates of admitted image falsification and witnessed misconduct among colleagues. Common forms included cherry-picking images, unauthorized reuse, and misleading enhancements. While reported rates of AI-assisted falsification remain relatively low, these percentages are likely to increase as generative AI capabilities become more accessible. Key drivers included publication pressure, competitive incentives, and aesthetic expectations imposed by journals.
 
-The implications extend beyond academic integrity to patient safety. Manipulated medical images in research can propagate false treatment standards, while fraudulent clinical images risk diagnostic errors and inappropriate interventions. Recent research demonstrates that AI-generated medical images—though potentially useful for training datasets when properly disclosed—can achieve such fidelity that radiologists cannot distinguish them from authentic scans, raising profound concerns about authentication protocols in clinical settings[13-15].
+The implications extend beyond academic integrity to patient safety. Manipulated medical images in research can propagate false treatment standards, while fraudulent clinical images risk diagnostic errors and inappropriate interventions. Recent research demonstrates that AI-generated medical images—though potentially useful for training datasets when properly disclosed—can achieve such fidelity that radiologists cannot distinguish them from authentic scans, raising profound concerns about authentication protocols in clinical settings[12-14].
 
 ---
 
@@ -125,7 +125,7 @@ The six frames identified in COVID-19 visual misinformation reveal how images co
 
 ### Fabricated Medical Credibility
 
-A particularly concerning development involves AI-generated synthetic manipulations impersonating medical professionals. Full Fact's investigation uncovered numerous TikTok videos featuring manipulated footage of Prof. David Taylor-Robinson and other medical experts, altered to promote supplements and discuss fabricated conditions like "thermometer leg"[18]†. These synthetic manipulations achieved remarkable fidelity, with one featuring misogynistic language inappropriately attributed to the real physician. Platform removal required six weeks despite clear violations, illustrating challenges in content moderation at scale.
+A particularly concerning development involves AI-generated synthetic manipulations impersonating medical professionals. Full Fact's investigation uncovered numerous TikTok videos featuring manipulated footage of Prof. David Taylor-Robinson and other medical experts, altered to promote supplements and discuss fabricated conditions like "thermometer leg"[16]. These synthetic manipulations achieved remarkable fidelity, with the main video accumulating over 365,000 views before removal. The platform initially failed to remove the content despite reports from the university, restricting visibility only after multiple reports from the professor and his family, illustrating significant challenges in content moderation at scale.
 
 ---
 
@@ -155,7 +155,7 @@ A particularly concerning development involves AI-generated synthetic manipulati
 
 ### Educational Interventions
 
-**Media Literacy Programs:** A meta-analysis of 49 experimental studies (N=81,155) demonstrates that media literacy interventions significantly improve resilience to misinformation (d=0.60 overall)[31]. Specific effects include:
+**Media Literacy Programs:** A meta-analysis of 49 experimental studies (N=81,155) demonstrates that media literacy interventions significantly improve resilience to misinformation (d=0.60 overall)[29]. Specific effects include:
 
 - Reduced belief in misinformation (d=0.27)
 - Improved misinformation discernment (d=0.76)
@@ -163,9 +163,9 @@ A particularly concerning development involves AI-generated synthetic manipulati
 
 Interventions prove more effective when delivered across multiple sessions rather than single exposures, and when culturally tailored to local contexts. Visual multimedia integration enhances effectiveness; participants receiving video-based education showed superior knowledge retention compared to text-only formats[32-34].
 
-The "lateral reading" technique—borrowed from professional fact-checkers—teaches individuals to research authors, organizations, and citations using independent sources before engaging deeply with content. When implemented with third-year medical students through experiential learning, this approach significantly improved bias and misinformation detection capabilities[35].
+The "lateral reading" technique—borrowed from professional fact-checkers—teaches individuals to research authors, organizations, and citations using independent sources before engaging deeply with content. When implemented with third-year medical students through experiential learning, this approach significantly improved bias and misinformation detection capabilities[33].
 
-**Health-Specific Media Literacy:** Targeted health literacy interventions face unique challenges. While health-focused programs increased skepticism of both accurate and inaccurate cancer news headlines (5.6% and 7.6% decreases in endorsement respectively), they did not improve overall discernment between the two[36]†. This suggests that domain-general critical thinking may prove more effective than health-specific heuristics that risk indiscriminate skepticism. Conversely, visual-based health interventions—using videos, pictograms, and multimedia—consistently improve comprehension of health-related material with effect sizes exceeding traditional text-based methods[37,38].
+**Health-Specific Media Literacy:** Targeted health literacy interventions face unique challenges. While health-focused programs increased skepticism of both accurate and inaccurate cancer news headlines (5.6% and 7.6% decreases in endorsement respectively), they did not improve overall discernment between the two[34]†. This suggests that domain-general critical thinking may prove more effective than health-specific heuristics that risk indiscriminate skepticism. Conversely, visual-based health interventions—using videos, pictograms, and multimedia—consistently improve comprehension of health-related material with effect sizes exceeding traditional text-based methods[35,36].
 
 ### Inoculation Theory and Prebunking
 
@@ -179,7 +179,7 @@ Meta-analyses confirm inoculation's effectiveness at reducing vulnerability to p
 
 ## Platform-Level Solutions
 
-**Fact-Checking and Warning Labels:** Meta-analyses across 21 experiments (N=14,133) reveal that warning labels from professional fact-checkers reduce belief in false headlines by 27.6% and sharing intent by 24.7%[44]. Critically, these effects persist even among individuals distrusting fact-checkers, with reductions of 12.9% (belief) and 16.7% (sharing) in the most skeptical subgroup.
+**Fact-Checking and Warning Labels:** Meta-analyses across 21 experiments (N=14,133) reveal that warning labels from professional fact-checkers reduce belief in false headlines by 27.6% and sharing intent by 24.7%[42]. Critically, these effects persist even among individuals distrusting fact-checkers, with reductions of 12.9% (belief) and 16.7% (sharing) in the most skeptical subgroup.
 
 Label design matters substantially[45-48]:
 
@@ -188,7 +188,7 @@ Label design matters substantially[45-48]:
 - **Content:** Disputed labels (explicitly contradicting claims) prove more effective than neutral warnings
 - **Modality:** Pictorial warnings outperform text-only alternatives, generating stronger emotional responses and behavioral intentions
 
-However, warning labels face limitations. Meta's shift away from third-party fact-checking toward community notes has raised concerns about reduced effectiveness. Additionally, labels risk inadvertent amplification—corrective content generates engagement that algorithms may promote, potentially expanding rather than containing misinformation's reach[49]†.
+However, warning labels face limitations. Meta's shift away from third-party fact-checking toward community notes has raised concerns about reduced effectiveness. Additionally, labels risk inadvertent amplification—corrective content generates engagement that algorithms may promote, potentially expanding rather than containing misinformation's reach[47]†.
 
 **Algorithmic Interventions:** Social media algorithms fundamentally shape information exposure, yet their opacity complicates intervention design. Observational evidence from Twitter indicates that low-credibility COVID-19 and climate content achieves higher impressions than high-credibility equivalents, particularly for high-engagement, high-follower accounts[50-52]. This algorithmic amplification reflects platforms' engagement-optimization imperatives, which privilege emotionally arousing content regardless of veracity.
 
@@ -199,13 +199,13 @@ Proposed interventions include:
 - Prioritizing educational content over engagement metrics for health topics
 - Implementing "friction" (e.g., prompts to read articles before sharing)
 
-Pinterest's approach to vaccine searches—surfacing only content from authoritative health organizations—demonstrates feasibility of aggressive curation, though such interventions raise concerns about information access and paternalism[53]†.
+Pinterest's approach to vaccine searches—surfacing only content from authoritative health organizations—demonstrates feasibility of aggressive curation, though such interventions raise concerns about information access and paternalism[52]†.
 
 ---
 
 ## Role of Healthcare Professionals
 
-Healthcare professionals occupy a uniquely trusted position, with 81% of North Americans ranking physicians as their most trusted health information source, followed by pharmacists and nurses (both 79%)[54]. This credibility translates to substantial influence: physician recommendations for influenza vaccination increase uptake rates twofold, while HPV vaccine recommendations yield ninefold increases[55,56]†.
+Healthcare professionals occupy a uniquely trusted position, with 81% of North Americans ranking physicians as their most trusted health information source, followed by pharmacists and nurses (both 79%)[53]. This credibility translates to substantial influence: physician recommendations for influenza vaccination increase uptake rates twofold, while HPV vaccine recommendations yield ninefold increases[54,55]†.
 
 Despite this potential, healthcare professionals face significant barriers to social media engagement[57-59]:
 
@@ -227,7 +227,7 @@ Despite this potential, healthcare professionals face significant barriers to so
 - Restrictive social media policies that deter professional engagement
 - Absence of social media training in medical education
 
-Bautista et al.'s conceptual framework describes healthcare professionals' correction process as two-phased: authentication (internal and external verification of content accuracy) followed by correction actions (preparation and dissemination)[58]. Preparation involves reflecting on approach, disclosing expertise, connecting with affected individuals, and demonstrating respect. Correction encompasses private priming (direct messages), public priming (general educational content), public rebuttals (direct contradiction), and private rebuttals (one-on-one correction).
+Bautista et al.'s conceptual framework describes healthcare professionals' correction process as two-phased: authentication (internal and external verification of content accuracy) followed by correction actions (preparation and dissemination)[56]. Preparation involves reflecting on approach, disclosing expertise, connecting with affected individuals, and demonstrating respect. Correction encompasses private priming (direct messages), public priming (general educational content), public rebuttals (direct contradiction), and private rebuttals (one-on-one correction).
 
 Recommendations for overcoming barriers include institutional social media training, development of professional guidelines specific to misinformation correction, cultivation of mentorship networks, and revision of hospital policies to support rather than deter physician engagement[57-59]. The Netherlands Medical Association's TikTok campaign targeting vaping misinformation demonstrates successful orchestration—collaboration with media specialists, coordinated messaging across multiple physicians, and strategic platform selection yielded substantial reach and engagement.
 
@@ -237,7 +237,7 @@ Recommendations for overcoming barriers include institutional social media train
 
 Social media algorithms, designed to maximize user engagement, inadvertently amplify misinformation by privileging emotionally arousing content over accuracy. Analysis of WeChat, Weibo, and video platforms in China revealed that health misinformation with negative sentiment generated significantly higher interactivity than neutral or positive content[60-62]. Similarly, TikTok analysis of OCD-related content found that stereotype-driven videos—reinforcing misconceptions—received more views, likes, and shares than accurate educational content from healthcare providers.
 
-This dynamic reflects a fundamental misalignment between platform incentives (engagement, time-on-platform, advertising revenue) and public health goals (accurate information dissemination, informed decision-making). McLoughlin et al. argue that both human attentional biases and algorithmic amplification are individually insufficient to explain misinformation sharing; rather, their interaction creates a multiplicative effect whereby algorithms learn to surface content that triggers cognitive biases, while user engagement signals train algorithms to amplify similar content[63].
+This dynamic reflects a fundamental misalignment between platform incentives (engagement, time-on-platform, advertising revenue) and public health goals (accurate information dissemination, informed decision-making). McLoughlin et al. argue that both human attentional biases and algorithmic amplification are individually insufficient to explain misinformation sharing; rather, their interaction creates a multiplicative effect whereby algorithms learn to surface content that triggers cognitive biases, while user engagement signals train algorithms to amplify similar content[61].
 
 The NewsCLIPpings dataset—a benchmark for OOC detection containing automatically generated image-caption mismatches from news media—illustrates the realistic threat of machine-driven image repurposing[64-66]†. By leveraging CLIP and other multimodal models, researchers demonstrated that convincing mismatches can be generated at scale, fooling both humans and automated detectors approximately 50% of the time in adversarially filtered scenarios. This underscores that technological solutions for OOC detection must contend not only with human-generated misinformation but also with algorithmically optimized deception.
 
@@ -285,7 +285,7 @@ Effective mitigation demands technological, educational, and policy intervention
 
 Critical research gaps persist, particularly regarding misinformation driving overuse, platform-specific dynamics on visual-centric channels, long-term intervention effectiveness, and governance of AI-generated medical imagery. As Purpose Africa advances capacity for quality clinical research and evidence-based medicine across the continent, addressing visual medical misinformation must feature prominently—both as a threat to evidence uptake and as an opportunity to model effective countermeasures in resource-constrained, mobile-first contexts where visual communication dominates.
 
-The stakes are substantial: misinformation has been estimated to cause 300,000+ unnecessary COVID-19 deaths in the United States alone, with 35% of Canadians reporting they avoided effective treatments due to false information[77]†. Yet the tools exist to combat this threat. Strategic deployment of detection technologies, educational interventions, platform reforms, and healthcare professional engagement can substantially reduce misinformation's impact, protecting public health while preserving the democratic and accessibility benefits of social media. The imperative now is implementation at scale, informed by rigorous evidence and responsive to evolving technological and social dynamics.
+The stakes are substantial: misinformation has been estimated to cause 300,000+ unnecessary COVID-19 deaths in the United States alone, with 35% of Canadians reporting they avoided effective treatments due to false information[75]†. Yet the tools exist to combat this threat. Strategic deployment of detection technologies, educational interventions, platform reforms, and healthcare professional engagement can substantially reduce misinformation's impact, protecting public health while preserving the democratic and accessibility benefits of social media. The imperative now is implementation at scale, informed by rigorous evidence and responsive to evolving technological and social dynamics.
 
 ---
 
@@ -313,129 +313,125 @@ The stakes are substantial: misinformation has been estimated to cause 300,000+ 
 
 11. Carton-Erlandsson L, Sanz-Guijo M, Quintana-Alonso R. I found it on Instagram: exploring the impact of social media on public health communication. Public Health Nurs. 2025;42(4):1534-1543.
 
-12. [Nuclear medicine image fraud survey - Citation needed]†
+12. Deshpande R, Kelkar VA, Gotsis D, Kc P, Zeng R, Myers KJ, et al. Report on the AAPM grand challenge on deep generative modeling for learning medical image statistics. Med Phys. 2024;52(1):4-20.
 
-13. Deshpande R, Kelkar VA, Gotsis D, Kc P, Zeng R, Myers KJ, et al. Report on the AAPM grand challenge on deep generative modeling for learning medical image statistics. Med Phys. 2024;52(1):4-20.
+13. Fan BE, Winkler S. The case for synthetic images generated by artificial intelligence. Am J Hematol. 2025;100(10):1910-1911.
 
-14. Fan BE, Winkler S. The case for synthetic images generated by artificial intelligence. Am J Hematol. 2025;100(10):1910-1911.
+14. Chong JJ. Fashioning the future: could AI enhanced MRI put PET out of style? J Magn Reson Imaging. 2023;59(3):1032-1033.
 
-15. Chong JJ. Fashioning the future: could AI enhanced MRI put PET out of style? J Magn Reson Imaging. 2023;59(3):1032-1033.
+15. [Synthetic manipulations and cheap fakes - Data & Society citation needed]†
 
-16. [Synthetic manipulations and cheap fakes - Data & Society citation needed]†
+16. Benedictus L. Revealed: how academics are being deepfaked on TikTok and Instagram to promote supplements. Full Fact. 2025 Dec 5. Available from: https://fullfact.org/health/academics-deepfaked-tiktok-wellness-nest/
 
-17. [Using digital media literacy intervention to motivate reverse image search - Citation needed]†
+17. World Health Organization. How to use a reverse image search to spot fake news. 2020†.
 
-18. [Full Fact AI synthetic manipulations investigation - Citation needed]†
+18. [The 'Sift' strategy for spotting misinformation - Citation needed]†
 
-19. World Health Organization. How to use a reverse image search to spot fake news. 2020†.
+19. [Sniffer: multimodal large language model for out-of-context detection - Citation needed]†
 
-20. [The 'Sift' strategy for spotting misinformation - Citation needed]†
+20. [E2LVLM: evidence-enhanced large vision-language model - Citation needed]†
 
-21. [Sniffer: multimodal large language model for out-of-context detection - Citation needed]†
+21. [LLaVA-SNIPPER: scene-graph-based inference - Citation needed]†
 
-22. [E2LVLM: evidence-enhanced large vision-language model - Citation needed]†
+22. [CMIE: combining MLLM insights with external evidence - Citation needed]†
 
-23. [LLaVA-SNIPPER: scene-graph-based inference - Citation needed]†
+23. [Forgery detection in medical images with distinguished recognition - Citation needed]†
 
-24. [CMIE: combining MLLM insights with external evidence - Citation needed]†
+24. [Optimal model for copy-move forgery detection in medical images - Citation needed]†
 
-25. [Forgery detection in medical images with distinguished recognition - Citation needed]†
+25. [MedForensics dataset and DSKI detector - Citation needed]†
 
-26. [Optimal model for copy-move forgery detection in medical images - Citation needed]†
+26. [Crypto-watermarking of transmitted medical images - Citation needed]†
 
-27. [MedForensics dataset and DSKI detector - Citation needed]†
+27. [Blockchain-based scheme for secure sharing of X-ray images - Citation needed]†
 
-28. [Crypto-watermarking of transmitted medical images - Citation needed]†
+28. [Medical image authentication using watermarking and blockchain - Citation needed]†
 
-29. [Blockchain-based scheme for secure sharing of X-ray images - Citation needed]†
+29. [Meta-analysis of media literacy interventions - Citation needed; effect size d=0.60]†
 
-30. [Medical image authentication using watermarking and blockchain - Citation needed]†
+30. [Building resilience to misinformation in communities of color - Citation needed]†
 
-31. [Meta-analysis of media literacy interventions - Citation needed; effect size d=0.60]†
+31. [Educational video intervention to improve health misinformation identification on WhatsApp - Citation needed]†
 
-32. [Building resilience to misinformation in communities of color - Citation needed]†
+32. [Effectiveness of visual-based interventions on health literacy - Citation needed]†
 
-33. [Educational video intervention to improve health misinformation identification on WhatsApp - Citation needed]†
+33. [Empowering third-year medical students to detect bias using lateral reading - Citation needed]†
 
-34. [Effectiveness of visual-based interventions on health literacy - Citation needed]†
+34. [Health media literacy intervention increases skepticism of cancer news - Citation needed]†
 
-35. [Empowering third-year medical students to detect bias using lateral reading - Citation needed]†
+35. [Effectiveness of visual-based interventions on health literacy - systematic review - Citation needed]†
 
-36. [Health media literacy intervention increases skepticism of cancer news - Citation needed]†
+36. [Effectiveness of visual-based interventions - meta-analysis - Citation needed]†
 
-37. [Effectiveness of visual-based interventions on health literacy - systematic review - Citation needed]†
+37. Capewell G, Maertens R, Remshard M, Linden S, Compton J, Lewandowsky S, et al. Misinformation interventions decay rapidly without an immediate posttest. J Appl Soc Psychol. 2024;54(8):441-454.
 
-38. [Effectiveness of visual-based interventions - meta-analysis - Citation needed]†
+38. Biddlestone M, Roozenbeek J, Suiter J, Culloty E, Linden S. Tune in to the prebunking network! Development and validation of six inoculation videos that prebunk manipulation tactics and logical fallacies in misinformation. Polit Psychol. 2025;46(6):1858-1886.
 
-39. Capewell G, Maertens R, Remshard M, Linden S, Compton J, Lewandowsky S, et al. Misinformation interventions decay rapidly without an immediate posttest. J Appl Soc Psychol. 2024;54(8):441-454.
+39. Biddlestone M, Green R, Toribio-Flórez D, Gourville D, Sutton RM, Douglas KM. Fighting fire with fire: prebunking with the use of a plausible meta-conspiracy framing. Br J Psychol. 2025†.
 
-40. Biddlestone M, Roozenbeek J, Suiter J, Culloty E, Linden S. Tune in to the prebunking network! Development and validation of six inoculation videos that prebunk manipulation tactics and logical fallacies in misinformation. Polit Psychol. 2025;46(6):1858-1886.
+40. [Bad News game cross-cultural effectiveness study - Citation needed]†
 
-41. Biddlestone M, Green R, Toribio-Flórez D, Gourville D, Sutton RM, Douglas KM. Fighting fire with fire: prebunking with the use of a plausible meta-conspiracy framing. Br J Psychol. 2025†.
+41. [Role of emergency physicians in fight against health misinformation - Citation needed]†
 
-42. [Bad News game cross-cultural effectiveness study - Citation needed]†
+42. Koch TK, Frischlich L, Lermer E. Effects of fact-checking warning labels and social endorsement cues on climate change fake news credibility and engagement on social media. J Appl Soc Psychol. 2023;53(6):495-507.
 
-43. [Role of emergency physicians in fight against health misinformation - Citation needed]†
+43. [Warning labels could help regulate social media - Citation needed]†
 
-44. Koch TK, Frischlich L, Lermer E. Effects of fact-checking warning labels and social endorsement cues on climate change fake news credibility and engagement on social media. J Appl Soc Psychol. 2023;53(6):495-507.
+44. [Warning labels as public health intervention - Citation needed]†
 
-45. [Warning labels could help regulate social media - Citation needed]†
+45. [Examining effects of social media warning labels on perceived credibility - Citation needed]†
 
-46. [Warning labels as public health intervention - Citation needed]†
+46. [Potential effectiveness of pictorial warning labels with testimonial photographs - Citation needed]†
 
-47. [Examining effects of social media warning labels on perceived credibility - Citation needed]†
+47. [How amplification may be giving misinformation new reach - Citation needed]†
 
-48. [Potential effectiveness of pictorial warning labels with testimonial photographs - Citation needed]†
+48. [Evaluating Twitter's algorithmic amplification of low-credibility content - Citation needed]†
 
-49. [How amplification may be giving misinformation new reach - Citation needed]†
+49. [Analysis of factors influencing engagement metrics with health misinformation - Citation needed]†
 
-50. [Evaluating Twitter's algorithmic amplification of low-credibility content - Citation needed]†
+50. Potnis D, Tahamtan I, McDonald L. Negative consequences of information gatekeeping through algorithmic technologies: an ARIST paper. J Assoc Inf Sci Technol. 2024;76(1):262-288.
 
-51. [Analysis of factors influencing engagement metrics with health misinformation - Citation needed]†
+51. [Social media and spread of misinformation - Health Promotion International - Citation needed]†
 
-52. Potnis D, Tahamtan I, McDonald L. Negative consequences of information gatekeeping through algorithmic technologies: an ARIST paper. J Assoc Inf Sci Technol. 2024;76(1):262-288.
+52. Gentsch AT, Butler J, O'Laughlin K, Eucker SA, Chang A, Duber H, et al. Perspectives of COVID-19 vaccine–hesitant emergency department patients to inform messaging platforms to promote vaccine uptake. Acad Emerg Med. 2022;30(1):32-39.
 
-53. [Social media and spread of misinformation - Health Promotion International - Citation needed]†
+53. [Physicians nurses motivations barriers correcting health misinformation - JAMA Network - Citation needed]†
 
-54. Gentsch AT, Butler J, O'Laughlin K, Eucker SA, Chang A, Duber H, et al. Perspectives of COVID-19 vaccine–hesitant emergency department patients to inform messaging platforms to promote vaccine uptake. Acad Emerg Med. 2022;30(1):32-39.
+54. [Fighting health misinformation: survey shows medical professionals among most trusted - Citation needed]†
 
-55. [Physicians nurses motivations barriers correcting health misinformation - JAMA Network - Citation needed]†
+55. [US physicians nurses motivations barriers recommendations correcting health misinformation - Citation needed]†
 
-56. [Fighting health misinformation: survey shows medical professionals among most trusted - Citation needed]†
+56. Bautista JR. [Healthcare professionals correction process framework - Citation needed]†
 
-57. [US physicians nurses motivations barriers recommendations correcting health misinformation - Citation needed]†
+57. [Strategies and prerequisites for combating health misinformation on social media - systematic review - Citation needed]†
 
-58. Bautista JR. [Healthcare professionals correction process framework - Citation needed]†
+58. [Analysis of factors influencing engagement metrics with health misinformation dissemination - Citation needed]†
 
-59. [Strategies and prerequisites for combating health misinformation on social media - systematic review - Citation needed]†
+59. [Health misinformation and social media: analyzing effects on public behavior in Pakistan - Citation needed]†
 
-60. [Analysis of factors influencing engagement metrics with health misinformation dissemination - Citation needed]†
+60. [#OCD: content analysis of stereotype amplification on TikTok - Citation needed]†
 
-61. [Health misinformation and social media: analyzing effects on public behavior in Pakistan - Citation needed]†
+61. McLoughlin et al. [Human-algorithm interactions help explain spread of misinformation - Citation needed]†
 
-62. [#OCD: content analysis of stereotype amplification on TikTok - Citation needed]†
+62-64. [NewsCLIPpings: automatic generation of out-of-context multimodal media - Citation series needed]†
 
-63. McLoughlin et al. [Human-algorithm interactions help explain spread of misinformation - Citation needed]†
+65. [Addressing misleading medical information on social media - NEJM or similar - Citation needed]†
 
-64-66. [NewsCLIPpings: automatic generation of out-of-context multimodal media - Citation series needed]†
+66. [Need for more research on misinformation driving overuse - Citation needed]†
 
-67. [Addressing misleading medical information on social media - NEJM or similar - Citation needed]†
+67. [Understanding how users identify health misinformation in short videos - Citation needed]†
 
-68. [Need for more research on misinformation driving overuse - Citation needed]†
+68. Moel-Mandel C, Donnelly A, Bugden M. "Do you know what birth control actually does to your body?": assessing contraceptive information on TikTok. Perspect Sex Reprod Health. 2025;57(3):358-367.
 
-69. [Understanding how users identify health misinformation in short videos - Citation needed]†
+69. [Health misinformation on social media in Bangladesh - Citation needed]†
 
-70. Moel-Mandel C, Donnelly A, Bugden M. "Do you know what birth control actually does to your body?": assessing contraceptive information on TikTok. Perspect Sex Reprod Health. 2025;57(3):358-367.
+70-72. [Modeling amplification of epidemic spread by misinformation - Citation series needed]†
 
-71. [Health misinformation on social media in Bangladesh - Citation needed]†
+73. [WHO competency framework for managing infodemics - Citation needed]†
 
-72-74. [Modeling amplification of epidemic spread by misinformation - Citation series needed]†
+74. [Health misinformation on social media: review of management and innovation perspectives - Citation needed]†
 
-75. [WHO competency framework for managing infodemics - Citation needed]†
-
-76. [Health misinformation on social media: review of management and innovation perspectives - Citation needed]†
-
-77. [New research shows problem of health misinformation in Canada is growing - Citation needed]†
+75. [New research shows problem of health misinformation in Canada is growing - Citation needed]†
 
 ---
 

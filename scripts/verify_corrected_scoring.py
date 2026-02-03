@@ -3,6 +3,7 @@
 This script demonstrates the difference between the old (renormalized) and
 corrected (fixed weights) scoring behavior.
 """
+
 import sys
 from pathlib import Path
 
@@ -37,8 +38,12 @@ print(f"  Genealogy:    {genealogy_score} (weight: 15%)")
 print(f"  Source:       {source_score} (weight: 10%)")
 print()
 print(f"  CORRECTED calculation (fixed weights):")
-print(f"    = 0.60 × {alignment_score} + 0.15 × {plausibility_score} + 0.15 × 0.0 + 0.10 × 0.0")
-print(f"    = {0.60 * alignment_score:.3f} + {0.15 * plausibility_score:.3f} + 0.000 + 0.000")
+print(
+    f"    = 0.60 × {alignment_score} + 0.15 × {plausibility_score} + 0.15 × 0.0 + 0.10 × 0.0"
+)
+print(
+    f"    = {0.60 * alignment_score:.3f} + {0.15 * plausibility_score:.3f} + 0.000 + 0.000"
+)
 print(f"    = {final_score:.3f}")
 print()
 print(f"  OLD calculation (renormalized weights):")
@@ -71,8 +76,12 @@ print(f"  Genealogy:    {genealogy_score} (weight: 15%)")
 print(f"  Source:       {source_score} (weight: 10%)")
 print()
 print(f"  CORRECTED calculation (fixed weights):")
-print(f"    = 0.60 × {alignment_score} + 0.15 × {plausibility_score} + 0.15 × {genealogy_score} + 0.10 × {source_score}")
-print(f"    = {0.60 * alignment_score:.3f} + {0.15 * plausibility_score:.3f} + {0.15 * genealogy_score:.3f} + {0.10 * source_score:.3f}")
+print(
+    f"    = 0.60 × {alignment_score} + 0.15 × {plausibility_score} + 0.15 × {genealogy_score} + 0.10 × {source_score}"
+)
+print(
+    f"    = {0.60 * alignment_score:.3f} + {0.15 * plausibility_score:.3f} + {0.15 * genealogy_score:.3f} + {0.10 * source_score:.3f}"
+)
 print(f"    = {final_score:.3f}")
 print()
 
@@ -82,7 +91,9 @@ print("-" * 70)
 print("OLD (renormalized): 61.1% reflects 80/20 system (Alignment/Plausibility)")
 print("CORRECTED (fixed):  61.1% will likely be LOWER for 60/15/15/10 system")
 print()
-print("Why? Because missing signals now contribute 0% instead of redistributing weight.")
+print(
+    "Why? Because missing signals now contribute 0% instead of redistributing weight."
+)
 print("This is more accurate and honest about system performance!")
 print()
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 # Load environment variables before any other imports
 from dotenv import load_dotenv
+
 load_dotenv(override=True)
 
 import argparse

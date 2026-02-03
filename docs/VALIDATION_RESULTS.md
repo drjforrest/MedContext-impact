@@ -17,7 +17,7 @@ Our empirical validation demonstrates that **pixel-level forensics achieve ~50% 
 
 This validates our core thesis from the literature review:
 
-- Over half of medical misinformation includes visuals, predominantly **authentic images in misleading contexts** (Brennen et al., 2021)
+- Over half of medical misinformation includes visuals, predominantly **authentic images in misleading contexts** (Brennen et al., 2020)
 - 0% sophisticated deepfakes detected in COVID misinformation studies
 - Pixel analysis addresses <20% of the actual problem
 

@@ -103,33 +103,47 @@ def ingest_and_run_agentic(
         image_format=image_format,
     )
 
-    submission = ImageSubmission(
-        id=resolved_image_id,
-        source_channel=source_channel,
-        user_id=None,
-        image_hash=image_hash,
-        image_path=str(stored_image_path),
-        file_size=len(image_bytes),
-        mime_type=mime_type,
-        image_format=image_format,
-        width=None,
-        height=None,
-        orientation_corrected=False,
-        metadata_extracted=False,
-    )
-    submission_context = SubmissionContext(
-        image_id=resolved_image_id,
-        surrounding_text=context,
-        claimed_condition=None,
-        claimed_origin=None,
-        source_url=source_url,
-        source_whatsapp_group=None,
-        language_code="en",
-    )
     agent = MedContextAgent()
     try:
         with db.begin():
-            db.add(submission)
+            # Check if image already exists by hash
+            existing_submission = (
+                db.query(ImageSubmission)
+                .filter(ImageSubmission.image_hash == image_hash)
+                .first()
+            )
+
+            if existing_submission:
+                # Reuse existing submission
+                submission = existing_submission
+                resolved_image_id = existing_submission.id
+            else:
+                # Create new submission
+                submission = ImageSubmission(
+                    id=resolved_image_id,
+                    source_channel=source_channel,
+                    user_id=None,
+                    image_hash=image_hash,
+                    image_path=str(stored_image_path),
+                    file_size=len(image_bytes),
+                    mime_type=mime_type,
+                    image_format=image_format,
+                    width=None,
+                    height=None,
+                    orientation_corrected=False,
+                    metadata_extracted=False,
+                )
+                db.add(submission)
+
+            submission_context = SubmissionContext(
+                image_id=resolved_image_id,
+                surrounding_text=context,
+                claimed_condition=None,
+                claimed_origin=None,
+                source_url=source_url,
+                source_whatsapp_group=None,
+                language_code="en",
+            )
             db.add(submission_context)
             store_provenance_manifest(
                 db,

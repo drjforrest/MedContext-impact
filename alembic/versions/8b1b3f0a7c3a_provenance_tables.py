@@ -1,7 +1,7 @@
 """provenance tables
 
 Revision ID: 8b1b3f0a7c3a
-Revises: 47e33d201752
+Revises: 5b287932865b
 Create Date: 2026-01-27 13:05:00.000000
 """
 
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "8b1b3f0a7c3a"
-down_revision = "47e33d201752"
+down_revision = "5b287932865b"
 branch_labels = None
 depends_on = None
 

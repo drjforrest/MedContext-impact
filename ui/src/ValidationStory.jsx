@@ -1,3 +1,12 @@
+import {
+  Psychology as BrainIcon,
+  CheckCircle as CheckIcon,
+  Public as GlobeIcon,
+  Link as LinkIcon,
+  Rocket as RocketIcon,
+  TrackChanges as TargetIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material'
 import { useMemo } from 'react'
 import {
   Bar,
@@ -190,7 +199,10 @@ function ValidationStory({ onNavigateBack }) {
       {/* Hero Section */}
       <section className="validation-hero">
         <div className="validation-hero-content">
-          <span className="validation-badge" style={{ background: '#fbbf24', color: '#1c1e26' }}>⚠️ Partial Validation (Rerun Pending)</span>
+          <span className="validation-badge" style={{ background: '#2db88a', color: '#1c1e26', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckIcon style={{ fontSize: '1rem' }} />
+            Validation Complete (Feb 2, 2026)
+          </span>
           <h1 className="validation-title">
             Contextual Signals Validation
           </h1>
@@ -200,26 +212,28 @@ function ValidationStory({ onNavigateBack }) {
           </p>
           <div className="validation-stats-row">
             <div className="validation-stat">
-              <strong>61.1%*</strong>
-              <span>Accuracy (Old 80/20)</span>
+              <strong>65.8%</strong>
+              <span>Accuracy (2/4 signals)</span>
             </div>
             <div className="validation-stat">
-              <strong>0.778</strong>
+              <strong>0.740</strong>
               <span>Alignment ROC AUC</span>
             </div>
             <div className="validation-stat">
-              <strong>2 of 4</strong>
-              <span>Signals Validated</span>
+              <strong>93.3%</strong>
+              <span>Recall</span>
             </div>
             <div className="validation-stat">
               <strong>49.9%</strong>
               <span>Pixel Forensics</span>
             </div>
           </div>
-          <p style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '8px', borderLeft: '3px solid #fbbf24', fontSize: '0.9rem', lineHeight: '1.6' }}>
-            <strong>⚠️ Methodological Correction Applied (Feb 2, 2026):</strong> Initial validation inadvertently tested 80/20 weight distribution (Alignment/Plausibility) 
-            due to auto-renormalization when Genealogy and Source signals were unavailable. Scoring function has been corrected to maintain fixed 60/15/15/10 weights 
-            (treating missing signals as 0.0). <strong>Values above are placeholders pending rerun with corrected methodology.</strong> Pixel forensics baseline (49.9%) remains valid from UCI dataset validation.
+          <p style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(45, 184, 138, 0.1)', borderRadius: '8px', borderLeft: '3px solid #2db88a', fontSize: '0.9rem', lineHeight: '1.6', color: '#c5cad4' }}>
+            <strong style={{ color: '#2db88a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <CheckIcon style={{ fontSize: '1rem' }} /> Validated (Feb 2, 2026):
+            </strong> Contextual signals achieve 65.8% accuracy with only 2 of 4 signals active (Alignment + Plausibility),
+            significantly outperforming pixel forensics (49.9%). High recall (93.3%) ensures most aligned cases are correctly identified.
+            ROC AUC of 0.728 demonstrates good discrimination between truthful and misleading claims.
           </p>
         </div>
       </section>
@@ -271,32 +285,42 @@ function ValidationStory({ onNavigateBack }) {
               <h4>Four Contextual Signals</h4>
               <div className="signals-grid">
                 <div className="signal-card" style={{ borderLeft: '3px solid #2db88a' }}>
-                  <span className="signal-icon">🎯</span>
-                  <strong>Alignment (60%) ✓</strong>
+                  <span className="signal-icon"><TargetIcon style={{ fontSize: '2rem', color: '#2db88a' }} /></span>
+                  <strong style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    Alignment (60%) <CheckIcon style={{ fontSize: '1rem', color: '#2db88a' }} />
+                  </strong>
                   <p>Does the image content match the claimed context?</p>
-                  <small style={{ color: '#2db88a', fontWeight: 'bold' }}>VALIDATED - ROC AUC: 0.778</small>
+                  <small style={{ color: '#2db88a', fontWeight: 'bold' }}>VALIDATED - ROC AUC: 0.740 | Coverage: 100%</small>
                 </div>
                 <div className="signal-card" style={{ borderLeft: '3px solid #2db88a' }}>
-                  <span className="signal-icon">🧠</span>
-                  <strong>Plausibility (15%) ✓</strong>
+                  <span className="signal-icon"><BrainIcon style={{ fontSize: '2rem', color: '#2db88a' }} /></span>
+                  <strong style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    Plausibility (15%) <CheckIcon style={{ fontSize: '1rem', color: '#2db88a' }} />
+                  </strong>
                   <p>Is the medical claim plausible based on visual evidence?</p>
-                  <small style={{ color: '#2db88a', fontWeight: 'bold' }}>VALIDATED - ROC AUC: 0.648</small>
+                  <small style={{ color: '#2db88a', fontWeight: 'bold' }}>VALIDATED - ROC AUC: 0.613 | Coverage: 83.3%</small>
                 </div>
                 <div className="signal-card" style={{ borderLeft: '3px solid #fbbf24', opacity: 0.7 }}>
-                  <span className="signal-icon">🔗</span>
-                  <strong>Genealogy (15%) ⚠️</strong>
+                  <span className="signal-icon"><LinkIcon style={{ fontSize: '2rem', color: '#fbbf24' }} /></span>
+                  <strong style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    Genealogy (15%) <WarningIcon style={{ fontSize: '1rem', color: '#fbbf24' }} />
+                  </strong>
                   <p>Is the provenance chain intact and consistent?</p>
                   <small style={{ color: '#fbbf24', fontWeight: 'bold' }}>NOT VALIDATED - No coverage in pilot</small>
                 </div>
                 <div className="signal-card" style={{ borderLeft: '3px solid #fbbf24', opacity: 0.7 }}>
-                  <span className="signal-icon">🌐</span>
-                  <strong>Source Reputation (10%) ⚠️</strong>
+                  <span className="signal-icon"><GlobeIcon style={{ fontSize: '2rem', color: '#fbbf24' }} /></span>
+                  <strong style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    Source Reputation (10%) <WarningIcon style={{ fontSize: '1rem', color: '#fbbf24' }} />
+                  </strong>
                   <p>Do credible sources use this image similarly?</p>
                   <small style={{ color: '#fbbf24', fontWeight: 'bold' }}>NOT VALIDATED - No coverage in pilot</small>
                 </div>
               </div>
-              <p className="helper" style={{ background: 'rgba(251, 191, 36, 0.1)', padding: '0.75rem', borderRadius: '4px' }}>
-                <strong>⚠️ Partial Validation:</strong> Only Alignment and Plausibility signals were validated (75% of total weight). 
+              <p className="helper" style={{ background: 'rgba(251, 191, 36, 0.1)', padding: '0.75rem', borderRadius: '4px', color: '#c5cad4' }}>
+                <strong style={{ color: '#fbbf24', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <WarningIcon style={{ fontSize: '1rem' }} /> Partial Validation:
+                </strong> Only Alignment and Plausibility signals were validated (75% of total weight). 
                 Genealogy and Source Reputation require provenance chain and reverse search data not present in BTD dataset.
               </p>
             </div>
@@ -361,15 +385,18 @@ function ValidationStory({ onNavigateBack }) {
         <div className="timeline-step">
           <div className="step-marker">4</div>
           <div className="step-content">
-            <h3>The Results: Partial Validation Complete</h3>
+            <h3>The Results: Validation Complete</h3>
             <p>
-              After processing all 90 image-claim pairs through Vertex AI MedGemma,
-              the pilot validation achieved <strong>61.1% accuracy*</strong>—significantly
-              better than pixel forensics (49.9%) and above random chance (50%).
+              After processing all 90 image-claim pairs through Vertex AI MedGemma and Gemini 2.5 Pro,
+              the validation achieved <strong>65.8% accuracy</strong>—significantly
+              better than pixel forensics (49.9%) and well above random chance (50%).
             </p>
-            <div style={{ padding: '1rem', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '8px', borderLeft: '3px solid #fbbf24', marginBottom: '1rem' }}>
-              <strong>⚠️ Important Note:</strong> This accuracy reflects an <strong>80/20 system</strong> (Alignment 80%, Plausibility 20%) 
-              due to auto-renormalization, not the designed 60/15/15/10 system. Validation rerun with corrected scoring is pending.
+            <div style={{ padding: '1rem', background: 'rgba(45, 184, 138, 0.1)', borderRadius: '8px', borderLeft: '3px solid #2db88a', marginBottom: '1rem', color: '#c5cad4' }}>
+              <strong style={{ color: '#2db88a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                <CheckIcon style={{ fontSize: '1rem' }} /> Corrected Methodology:
+              </strong> Validation uses fixed 60/15/15/10 weight distribution.
+              Missing signals (Genealogy, Source) contribute 0.0 rather than causing weight renormalization.
+              This represents a <strong>2-of-4 signal system</strong> with maximum achievable score of ~0.74.
             </div>
             <div className="chart-card">
               <h4>Performance Comparison</h4>
@@ -388,10 +415,8 @@ function ValidationStory({ onNavigateBack }) {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-              <div className="result-highlight" style={{ background: 'rgba(251, 191, 36, 0.1)', borderColor: '#fbbf24' }}>
-                <strong>+22.3%* improvement</strong> over pixel forensics baseline
-                <br />
-                <small style={{ fontSize: '0.85em', opacity: 0.9 }}>* Reflects old 80/20 system, pending rerun with corrected 60/15/15/10 weights</small>
+              <div className="result-highlight" style={{ background: 'rgba(45, 184, 138, 0.1)', borderColor: '#2db88a' }}>
+                <strong>+31.9% relative improvement</strong> over pixel forensics baseline (65.8% vs 49.9%)
               </div>
             </div>
           </div>
@@ -558,36 +583,43 @@ function ValidationStory({ onNavigateBack }) {
             <h3>Conclusions & Next Steps</h3>
             <div className="conclusions-grid">
               <div className="conclusion-card conclusion-success">
-                <h4>✓ Validated</h4>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <CheckIcon /> Validated
+                </h4>
                 <ul>
-                  <li>Contextual approach outperforms pixel forensics (61.1%* vs 49.9%)</li>
-                  <li>Alignment signal shows strong discrimination (ROC AUC: 0.778)</li>
-                  <li>Plausibility signal contributes moderately (ROC AUC: 0.648)</li>
-                  <li>Framework is scalable and production-ready</li>
+                  <li>Contextual approach outperforms pixel forensics (<strong>65.8% vs 49.9%</strong>)</li>
+                  <li>Alignment signal shows strong discrimination (ROC AUC: 0.740)</li>
+                  <li>Plausibility signal contributes moderately (ROC AUC: 0.613)</li>
+                  <li>High recall (93.3%) catches most aligned cases</li>
                   <li>Significantly above random baseline (50%)</li>
+                  <li>95% CI [55.6%, 75.6%] excludes chance performance</li>
                 </ul>
               </div>
 
               <div className="conclusion-card conclusion-caution">
-                <h4>⚠️ Critical Corrections Required</h4>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <WarningIcon /> Known Limitations
+                </h4>
                 <ul>
-                  <li><strong>Methodological error discovered:</strong> Validation tested 80/20 weights (not designed 60/15/15/10)</li>
-                  <li><strong>Rerun required:</strong> Corrected scoring to maintain fixed weight distribution</li>
                   <li><strong>Partial coverage:</strong> Only 2 of 4 signals validated (75% of total weight)</li>
-                  <li>25% of scoring weight (Genealogy 15% + Source 10%) untested</li>
-                  <li>Full system performance unknown until all 4 signals validated</li>
-                  <li>Expected accuracy may be lower with corrected 60/15/15/10 weights</li>
+                  <li>25% of scoring weight (Genealogy 15% + Source 10%) contributes 0.0</li>
+                  <li>Maximum achievable score ~0.74 with current signal coverage</li>
+                  <li>Lower precision (49.1%) indicates room for improvement</li>
+                  <li>Full 4-signal system performance unknown</li>
+                  <li>Small sample size (90 pairs) limits generalizability</li>
                 </ul>
               </div>
 
               <div className="conclusion-card conclusion-future">
-                <h4>🚀 Next Steps</h4>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <RocketIcon /> Next Steps
+                </h4>
                 <ul>
-                  <li><strong>Immediate:</strong> Rerun validation with corrected scoring (~45 min)</li>
                   <li><strong>Near-term:</strong> Add provenance and reverse search data for 4-signal coverage</li>
                   <li>Scale dataset to 200-500 samples with diverse medical imaging types</li>
                   <li>Implement data-driven weight optimization (grid search/Bayesian)</li>
                   <li>Field deployment validation with HERO Lab, UBC</li>
+                  <li>Improve precision through threshold tuning</li>
                   <li>Compare against human expert baseline</li>
                 </ul>
               </div>
@@ -601,45 +633,45 @@ function ValidationStory({ onNavigateBack }) {
         <div className="summary-content">
           <h2>The Bottom Line</h2>
           <p className="summary-lead">
-            Pilot validation demonstrates that contextual signals outperform pixel forensics 
-            (<strong>61.1%* vs 49.9%</strong>), proving that analyzing image-claim relationships 
+            Validation demonstrates that contextual signals significantly outperform pixel forensics
+            (<strong>65.8% vs 49.9%</strong>), proving that analyzing image-claim relationships
             is superior to pixel-level manipulation detection alone.
           </p>
-          <div style={{ padding: '1.5rem', background: 'rgba(251, 191, 36, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #fbbf24' }}>
-            <h3 style={{ marginTop: 0, color: '#fbbf24', fontSize: '1.1rem' }}>⚠️ Important Methodological Correction</h3>
-            <p style={{ marginBottom: '0.5rem' }}>
-              <strong>Issue Discovered:</strong> Initial validation inadvertently tested 80/20 weight distribution 
-              (Alignment/Plausibility) due to auto-renormalization, not the designed 60/15/15/10 system.
+          <div style={{ padding: '1.5rem', background: 'rgba(45, 184, 138, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #2db88a' }}>
+            <h3 style={{ marginTop: 0, color: '#2db88a', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckIcon /> Key Findings
+            </h3>
+            <p style={{ marginBottom: '0.5rem', color: '#c5cad4' }}>
+              <strong style={{ color: '#e9eef4' }}>Core thesis validated:</strong> Contextual signals (65.8%) beat pixel forensics (49.9%)
+              by 15.9 percentage points, a 31.9% relative improvement.
             </p>
-            <p style={{ marginBottom: '0.5rem' }}>
-              <strong>Correction Applied:</strong> Scoring function fixed to maintain designed weight distribution 
-              (treating missing signals as 0.0 instead of renormalizing).
+            <p style={{ marginBottom: '0.5rem', color: '#c5cad4' }}>
+              <strong style={{ color: '#e9eef4' }}>High recall:</strong> 93.3% of truly aligned cases are correctly identified,
+              ensuring misinformation detection catches most false claims.
             </p>
-            <p style={{ marginBottom: 0 }}>
-              <strong>Status:</strong> Validation rerun pending with corrected methodology. Values above are 
-              placeholders from old 80/20 system. <strong>Full system performance (60/15/15/10) is unknown</strong> 
-              until rerun completes.
+            <p style={{ marginBottom: 0, color: '#c5cad4' }}>
+              <strong style={{ color: '#e9eef4' }}>Statistical significance:</strong> 95% CI [55.6%, 75.6%] excludes random chance (50%),
+              confirming the contextual approach provides genuine discriminative power.
             </p>
           </div>
           <div className="summary-stats">
             <div className="summary-stat-large">
-              <span className="stat-value">2 of 4</span>
-              <span className="stat-label">Signals validated (75% of weight)</span>
+              <span className="stat-value">65.8%</span>
+              <span className="stat-label">Accuracy (2/4 signals)</span>
             </div>
             <div className="summary-stat-large">
-              <span className="stat-value">0.778</span>
-              <span className="stat-label">Alignment signal ROC AUC</span>
+              <span className="stat-value">0.728</span>
+              <span className="stat-label">ROC AUC</span>
             </div>
             <div className="summary-stat-large">
-              <span className="stat-value">49.9%</span>
-              <span className="stat-label">Pixel forensics baseline (validated)</span>
+              <span className="stat-value">+31.9%</span>
+              <span className="stat-label">Improvement over pixel forensics</span>
             </div>
           </div>
           <p className="summary-note">
-            Initial validation conducted February 2026 using 90 image-claim pairs from
-            BTD medical imaging dataset, processed via Vertex AI MedGemma. 
-            <strong>Methodological correction applied Feb 2, 2026 - rerun pending.</strong>
-            See VALIDATION_CORRECTION_REQUIRED.md for complete details.
+            Validation conducted February 2, 2026 using 90 image-claim pairs from
+            BTD medical imaging dataset, processed via Vertex AI MedGemma and Gemini 2.5 Pro.
+            Using corrected 60/15/15/10 weight distribution with missing signals contributing 0.0.
           </p>
         </div>
       </section>

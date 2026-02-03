@@ -97,34 +97,29 @@ function App() {
   const agentSteps = useMemo(
     () => [
       {
-        key: 'triage',
-        label: 'Preparing analysis',
-        detail: 'We review the image and your context.',
+        key: 'database',
+        label: 'Checking database',
+        detail: 'Looking for previous analyses of this image.',
       },
       {
-        key: 'medgemma',
-        label: 'MedGemma review',
-        detail: 'MedGemma checks medical plausibility and context.',
+        key: 'triage',
+        label: 'Medical analysis',
+        detail: 'MedGemma evaluates medical plausibility and context alignment.',
       },
       {
         key: 'reverse_search',
-        label: 'Checking sources',
-        detail: 'Looking for where this image appears online.',
-      },
-      {
-        key: 'forensics',
-        label: 'Inspecting the image',
-        detail: 'Scanning for manipulation signals and anomalies.',
+        label: 'Source verification',
+        detail: 'Searching for where this image appears online.',
       },
       {
         key: 'provenance',
-        label: 'Tracing history',
-        detail: 'Pulling provenance and usage clues.',
+        label: 'Tracking genealogy',
+        detail: 'Building usage history and provenance chain.',
       },
       {
         key: 'synthesis',
-        label: 'Finalizing',
-        detail: 'Summarizing findings and generating the report.',
+        label: 'Generating report',
+        detail: 'Combining findings into final authenticity assessment.',
       },
     ],
     [],
@@ -577,8 +572,8 @@ function App() {
           <div className="hero-logo-frame">
             <img
               className="hero-logo"
-              src="/logo-w-tagline.png"
-              alt="MedContext logo"
+              src="/MedContext-banner-final.jpeg"
+              alt="MedContext - Real images can mislead. We verify the claims, not just the image."
             />
           </div>
           <div>
@@ -593,14 +588,6 @@ function App() {
           <button
             type="button"
             className="ghost"
-            onClick={() => setActiveView('validation')}
-            disabled={activeView === 'validation'}
-          >
-            Validation Story
-          </button>
-          <button
-            type="button"
-            className="ghost"
             onClick={() =>
               setActiveView((current) =>
                 current === 'settings' ? 'main' : 'settings',
@@ -611,6 +598,24 @@ function App() {
           </button>
         </div>
       </header>
+
+      {/* Tab Toggle */}
+      <nav className="tab-toggle">
+        <button
+          type="button"
+          className={`tab-button ${activeView === 'main' || activeView === 'settings' ? 'tab-active' : ''}`}
+          onClick={() => setActiveView('main')}
+        >
+          Verify Image
+        </button>
+        <button
+          type="button"
+          className={`tab-button ${activeView === 'validation' ? 'tab-active' : ''}`}
+          onClick={() => setActiveView('validation')}
+        >
+          Validation Results
+        </button>
+      </nav>
 
       <main className="content">
         {activeView === 'validation' ? (
@@ -762,6 +767,24 @@ function App() {
                     onChange={(event) => setContext(event.target.value)}
                   />
                 </label>
+                {(error && (error.includes('Access denied') || error.includes('403'))) || accessCode ? (
+                  <label className="field">
+                    <span>Demo Access Code</span>
+                    <input
+                      type="text"
+                      placeholder="Enter access code"
+                      value={accessCode}
+                      onChange={(event) =>
+                        handleAccessCodeChange(event.target.value)
+                      }
+                    />
+                    <span className="helper">
+                      {error && (error.includes('Access denied') || error.includes('403'))
+                        ? '⚠️ Access denied. Please enter the demo access code to continue.'
+                        : 'Code saved locally. Leave empty to remove.'}
+                    </span>
+                  </label>
+                ) : null}
                 <div className="actions">
                   <button
                     type="button"
@@ -786,7 +809,9 @@ function App() {
                     Clear
                   </button>
                 </div>
-                {error ? <p className="error">{error}</p> : null}
+                {error && !error.includes('Access denied') && !error.includes('403') ? (
+                  <p className="error">{error}</p>
+                ) : null}
               </section>
               {showProgressCard ? (
                 <section className="card activity-card">
@@ -823,8 +848,7 @@ function App() {
                 <section className="card module-card">
                   <h2>Module activity</h2>
                   <p className="helper">
-                    Modules light up when triage activates them. Metrics in each
-                    quadrant are valid only when lit.
+                    Modules light up when activated during analysis. Grayed modules marked "Dev" are in development and not yet in production.
                   </p>
                   <div className="module-grid">
                     <div
@@ -867,20 +891,18 @@ function App() {
                       ) : null}
                     </div>
                     <div
-                      className={`module-tile ${
-                        moduleActivity.forensics ? 'module-active' : 'module-inactive'
-                      }`}
-                      aria-label={`Forensics ${
-                        moduleActivity.forensics ? 'active' : 'inactive'
-                      }`}
+                      className={`module-tile module-inactive module-dev`}
+                      aria-label="Forensics (not in production)"
+                      style={{ opacity: 0.5 }}
                     >
-                      <span className="module-label">Forensics</span>
+                      <span className="module-label">
+                        Forensics
+                        <span className="badge badge-dev">Dev</span>
+                      </span>
                       <span className="module-detail">Integrity signals</span>
-                      {moduleActivity.forensics && forensicsStatus ? (
-                        <span className="module-metric">
-                          Status: {forensicsStatus}
-                        </span>
-                      ) : null}
+                      <span className="module-metric" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                        Not in production
+                      </span>
                     </div>
                     <div
                       className={`module-tile ${
@@ -1110,10 +1132,10 @@ function App() {
                               ) : null}
                               <div className="analysis-meta">
                                 {part2.alignment ? (
-                                  <span>Alignment: {part2.alignment}</span>
+                                  <span>Alignment: {part2.alignment.toUpperCase()}</span>
                                 ) : null}
                                 {part2.verdict ? (
-                                  <span>Verdict: {part2.verdict}</span>
+                                  <span>Verdict: {part2.verdict.toUpperCase()}</span>
                                 ) : null}
                                 {part2.confidence ? (
                                   <span>Confidence: {part2.confidence}</span>
@@ -1426,8 +1448,12 @@ function App() {
         <div className="footer-inner">
           <span>Jamie Forrest</span>
           <span className="footer-sep">•</span>
+          <a href="https://drjforrest.com" target="_blank" rel="noreferrer">
+            drjforrest.com
+          </a>
+          <span className="footer-sep">•</span>
           <a href="https://github.com/drjforrest" target="_blank" rel="noreferrer">
-            GitHub: drjforrest
+            GitHub
           </a>
           <span className="footer-sep">•</span>
           <a
@@ -1435,7 +1461,7 @@ function App() {
             target="_blank"
             rel="noreferrer"
           >
-            LinkedIn: jamie_forrest
+            LinkedIn
           </a>
         </div>
       </footer>

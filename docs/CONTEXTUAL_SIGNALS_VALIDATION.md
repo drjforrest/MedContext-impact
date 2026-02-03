@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-This document outlines the empirical validation framework for MedContext's four contextual signals that detect medical image misinformation. Unlike pixel-level forensics (which achieved ~50% accuracy on manipulation detection), contextual signals target the dominant threat: **authentic images misused with misleading context** (Brennen et al., 2021).
+This document outlines the empirical validation framework for MedContext's four contextual signals that detect medical image misinformation. Unlike pixel-level forensics (which achieved ~50% accuracy on manipulation detection), contextual signals target the dominant threat: **authentic images misused with misleading context** (Brennen et al., 2020).
 
 **Validation Objective:** Demonstrate that contextual signals can reliably detect when medical images are presented with false or misleading claims, even when the images themselves are authentic and unmanipulated.
 
