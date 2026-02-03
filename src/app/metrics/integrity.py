@@ -23,18 +23,27 @@ def _clamp(value: float) -> float:
 
 
 def _compute_weighted_score(values: list[tuple[float, float | None]]) -> float:
-    total_weight = 0.0
+    """Compute weighted score with fixed weight distribution.
+    
+    Missing signals (None) are treated as 0.0, maintaining the designed
+    weight distribution. This ensures that the absence of a signal
+    contributes a neutral (0.0) score rather than redistributing weight
+    to other signals.
+    
+    Example: With weights 60/15/15/10, if Genealogy and Source are None:
+    - Alignment contributes 60% of final score
+    - Plausibility contributes 15% of final score  
+    - Genealogy contributes 0% (15% weight × 0.0 score)
+    - Source contributes 0% (10% weight × 0.0 score)
+    Result: Final score = 0.6×alignment + 0.15×plausibility + 0 + 0
+    """
     score = 0.0
     for weight, value in values:
-        if value is None:
-            continue
-        total_weight += weight
-        score += weight * _clamp(float(value))
+        # Treat None as 0.0 (no confidence) rather than skipping
+        signal_value = 0.0 if value is None else _clamp(float(value))
+        score += weight * signal_value
 
-    if total_weight == 0:
-        return 0.0
-
-    return _clamp(score / total_weight)
+    return _clamp(score)
 
 
 def compute_integrity_score(

@@ -232,10 +232,10 @@ Congratulations! Your contextual signals are working well. Consider:
 
 ## Comparison to Pixel Forensics
 
-| Approach                        | Accuracy | ROC AUC   | Threat Coverage                               |
-| ------------------------------- | -------- | --------- | --------------------------------------------- |
-| Pixel Forensics (UCI Tamper)    | 49.9%    | 0.533     | 20% (manipulated images)                      |
-| **Contextual Signals** (target) | **75%+** | **0.80+** | **87%** (authentic images with false context) |
+| Approach                        | Accuracy | ROC AUC   | Threat Coverage                                           |
+| ------------------------------- | -------- | --------- | --------------------------------------------------------- |
+| Pixel Forensics (UCI Tamper)    | 49.9%    | 0.533     | 20% (manipulated images)                                  |
+| **Contextual Signals** (target) | **75%+** | **0.80+** | **Dominant threat** (authentic images with false context) |
 
 Contextual signals address the dominant threat in medical misinformation.
 

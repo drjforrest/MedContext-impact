@@ -32,7 +32,7 @@ class LlmClient:
         system: Optional[str] = None,
         model: Optional[str] = None,
         temperature: float = 0.2,
-        max_tokens: int = 900,
+        max_tokens: int = 4096,
     ) -> LlmResult:
         if self.provider == "openai_compatible":
             return self._generate_openai_compatible(
@@ -48,6 +48,14 @@ class LlmClient:
                 system=system,
                 model=model or settings.llm_orchestrator,
                 temperature=temperature,
+            )
+        if self.provider == "gemini":
+            return self._generate_gemini(
+                prompt,
+                system=system,
+                model=model or settings.llm_orchestrator,
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
         raise LlmClientError(f"Unsupported provider: {self.provider}")
 
@@ -152,6 +160,65 @@ class LlmClient:
         return LlmResult(
             provider="ollama",
             model=model or settings.llm_orchestrator,
+            output=self._parse_json(cleaned),
+            raw_text=cleaned,
+        )
+
+    def _generate_gemini(
+        self,
+        prompt: str,
+        *,
+        system: Optional[str],
+        model: Optional[str],
+        temperature: float,
+        max_tokens: int,
+    ) -> LlmResult:
+        if not settings.llm_api_key:
+            raise LlmClientError("Missing LLM_API_KEY for Gemini API.")
+
+        model_name = model or "gemini-2.0-flash-exp"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+
+        contents = [{"role": "user", "parts": [{"text": prompt}]}]
+        payload: dict[str, Any] = {
+            "contents": contents,
+            "generationConfig": {
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
+            },
+        }
+        if system:
+            payload["systemInstruction"] = {"parts": [{"text": system}]}
+
+        try:
+            with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
+                response = client.post(
+                    url,
+                    params={"key": settings.llm_api_key},
+                    json=payload,
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise LlmClientError(f"Gemini API request failed: {exc}") from exc
+
+        try:
+            data = response.json()
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise LlmClientError(
+                f"Invalid JSON in Gemini response: {exc}. Raw: {response.text[:500]}"
+            ) from exc
+
+        try:
+            content = data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LlmClientError(
+                f"Unexpected Gemini response format: {data}"
+            ) from exc
+
+        cleaned = self._clean_text(content)
+        return LlmResult(
+            provider="gemini",
+            model=model_name,
             output=self._parse_json(cleaned),
             raw_text=cleaned,
         )

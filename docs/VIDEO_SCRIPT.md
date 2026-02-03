@@ -48,14 +48,14 @@
 
 > "Medical misinformation kills people. But here's what most people get wrong: the problem isn't fake images—it's real images used in fake contexts.
 >
-> After analyzing nearly 100 research sources, we discovered that 87% of medical misinformation uses authentic images with misleading captions. Zero percent—that's right, zero—involved sophisticated deepfakes.
+> After analyzing nearly 100 research sources, we discovered that over half of medical misinformation includes visuals, predominantly authentic images with misleading captions. Zero sophisticated deepfakes were found in COVID-19 misinformation studies.
 >
 > I'm Jamie Forrest, and I'm going to show you how we proved this, and built the first AI system designed for the real problem."
 
 **On-Screen Text:**
 
-- "87% authentic images with false context"
-- "0% sophisticated deepfakes"
+- "52%+ of misinformation includes visuals"
+- "Vast majority: authentic images + false context"
 - "MedContext: Built for Reality"
 
 ---
@@ -136,22 +136,26 @@
 ## B-Roll Suggestions (Record Separately)
 
 1. **Code Scrolling:**
+
    - `src/app/orchestrator/agent.py` (show agentic logic)
    - `tests/` directory (show comprehensive tests)
    - Terminal running `pytest` with green checkmarks
 
 2. **UI Interactions:**
+
    - Upload multiple sample images
    - Different verdict outcomes (ALIGNED, PARTIALLY_ALIGNED, MISALIGNED)
    - Hovering over confidence scores
    - Expanding evidence panels
 
 3. **Architecture:**
+
    - Mermaid diagram of agent workflow
    - LangGraph visualization (`/api/v1/orchestrator/graph`)
    - Database schema diagram
 
 4. **Documentation:**
+
    - Scrolling through VALIDATION.md
    - Bootstrap confidence interval plots
    - Literature review statistics

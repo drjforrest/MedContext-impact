@@ -63,14 +63,15 @@ class TestIntegrityScore:
 
     @pytest.mark.unit
     def test_compute_with_none_values(self):
-        """Test that None values are ignored in computation."""
+        """Test that None values are treated as 0.0 (maintaining weight distribution)."""
         score = compute_integrity_score(
             plausibility=0.8,
             genealogy_consistency=None,
             source_reputation=None,
         )
-        # Only plausibility contributes
-        assert score == pytest.approx(0.8, abs=0.001)
+        # None treated as 0.0, weights not renormalized:
+        # Expected: 0.4*0.8 + 0.3*0.0 + 0.3*0.0 = 0.32
+        assert score == pytest.approx(0.32, abs=0.001)
 
     @pytest.mark.unit
     def test_compute_with_all_none(self):
@@ -104,16 +105,15 @@ class TestIntegrityScore:
 
     @pytest.mark.unit
     def test_compute_partial_none_with_weights(self):
-        """Test weighted average when some values are None."""
+        """Test that None values contribute 0.0 (no weight renormalization)."""
         score = compute_integrity_score(
             plausibility=0.9,
             genealogy_consistency=None,
             source_reputation=0.6,
         )
-        # Only plausibility (0.4) and source_reputation (0.3) contribute
-        # Total weight = 0.7, score = (0.4*0.9 + 0.3*0.6) / 0.7
-        # = (0.36 + 0.18) / 0.7 = 0.54 / 0.7 = 0.771...
-        assert score == pytest.approx(0.771, abs=0.001)
+        # None treated as 0.0, weights not renormalized:
+        # Expected: 0.4*0.9 + 0.3*0.0 + 0.3*0.6 = 0.36 + 0.0 + 0.18 = 0.54
+        assert score == pytest.approx(0.54, abs=0.001)
 
     @pytest.mark.unit
     def test_integrity_weights_immutable(self):

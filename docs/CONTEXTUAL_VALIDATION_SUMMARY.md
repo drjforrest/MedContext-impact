@@ -383,7 +383,7 @@ Ablation Study (Signal Contribution):
 
 **MedContext validation:**
 
-- ✅ Targets real-world threat distribution (87% authentic images with false context)
+- ✅ Targets real-world threat distribution (authentic images with false context as dominant threat)
 - ✅ Empirically validated on medical-specific datasets
 - ✅ Context-aware, not just pixel-aware
 - ✅ Statistical rigor (bootstrap CIs, ablation studies)
@@ -404,7 +404,7 @@ Ablation Study (Signal Contribution):
 ### Novel Aspects
 
 1. **First comprehensive validation framework** for contextual authenticity in medical images
-2. **Addresses 87% threat model** (authentic images with misleading context)
+2. **Addresses dominant threat model** (authentic images with misleading context)
 3. **Multi-signal ablation analysis** to quantify contribution of each signal
 4. **Production-ready implementation** with reproducibility guarantees
 5. **Field deployment path** with real-world validation partner

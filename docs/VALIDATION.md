@@ -12,7 +12,7 @@ We empirically validated that **pixel-level forensics achieve ~50% accuracy** (c
 
 > Pixel-level forensics achieved 49.9% accuracy [95% CI: 44.5%, 55.5%], statistically indistinguishable from random guessing.
 
-This validates our core thesis from literature review: 87% of medical misinformation uses authentic images in misleading contexts, making pixel-based detection insufficient.
+This validates our core thesis from literature review: over half of medical misinformation includes visuals, predominantly authentic images used in misleading contexts (Brennen et al., 2021), making pixel-based detection insufficient.
 
 ---
 
@@ -267,18 +267,18 @@ Medical images often lack EXIF data (anonymized for privacy). When present, time
 
 ## Part 4: MedContext's Contextual Approach
 
-MedContext's approach focuses on signals that address the 87% of cases where authentic images are misused. The system uses four contextual signals with initial heuristic weights:
+MedContext's approach focuses on signals that address the dominant threat: authentic images weaponized through false contextual claims. The system uses four contextual signals with initial heuristic weights:
 
 1. **Alignment** (60% weight): Does the image content match the claimed context? (MedGemma/LLM synthesis)
 2. **Medical Plausibility** (15% weight): Is the medical claim itself plausible based on visual evidence? (MedGemma semantic analysis)
 3. **Genealogy Consistency** (15% weight): Is the provenance chain intact and consistent? (Blockchain-style hash chain)
 4. **Source Reputation** (10% weight): Do credible sources use this image similarly? (Reverse search via SerpAPI)
 
-**Weight Rationale:** These weights are expert-informed heuristic starting points rather than empirically derived values. Since approximately 87% of medical misinformation involves contextual misuse rather than pixel manipulation (Wardle & Derakhshan, 2017; Brennen et al., 2020), we allocate the majority weight (60%) to **Alignment** to reflect its primary role in detecting image-claim correspondence. The three complementary signals—**Medical Plausibility**, **Genealogy Consistency**, and **Source Reputation**—receive a pragmatic split of the remaining weight (15%, 15%, and 10% respectively) pending planned ablation studies and holdout experiments. These weights will be refined after validation experiments once the dataset is fully curated.
+**Weight Rationale:** These weights are expert-informed heuristic starting points rather than empirically derived values. Since over half of medical misinformation includes visuals, with the vast majority being authentic images in misleading contexts rather than pixel manipulations (Brennen et al., 2021), we allocate the majority weight (60%) to **Alignment** to reflect its primary role in detecting image-claim correspondence. The three complementary signals—**Medical Plausibility**, **Genealogy Consistency**, and **Source Reputation**—receive a pragmatic split of the remaining weight (15%, 15%, and 10% respectively) pending planned ablation studies and holdout experiments. These weights will be refined after validation experiments once the dataset is fully curated.
 
 These signals are designed to detect contextual misuse that pixel forensics cannot address.
 
-**Validation Status:** ✅ **COMPLETED** - Contextual signals validation has been successfully executed on 90 image-claim pairs (30 authentic medical images with 3 contextual variants each: aligned, misaligned, and partially aligned claims).
+**Validation Status:** ⚠️ **PARTIALLY COMPLETED (2 of 4 signals validated)** - Contextual signals validation has been executed on 90 image-claim pairs (30 authentic medical images with 3 contextual variants each: aligned, misaligned, and partially aligned claims). **Only Alignment and Plausibility signals were tested**, representing 75% of the total scoring weight. Genealogy Consistency (15%) and Source Reputation (10%) remain unvalidated due to insufficient provenance and reverse search data in the pilot dataset.
 
 ### Contextual Signals Validation Results
 
@@ -288,9 +288,10 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 - 30 misaligned claims (false/exaggerated misinformation)
 - 30 partially aligned claims (vague descriptions)
 
-**Overall Performance:**
+**Overall Performance (Alignment + Plausibility signals only):**
 
 - **Accuracy: 61.1%** [95% CI: 51.1% - 71.1%] ✅ Significantly above random (50%)
+  - ⚠️ **Note:** This accuracy reflects only 2 of 4 signals (75% of scoring weight). Full system performance with all 4 signals is unknown.
 - **ROC AUC: 0.721** - Good discrimination between truthful and misleading claims
 - **Precision: 44.2%** [95% CI: 28.9% - 59.2%]
 - **Recall: 63.3%** [95% CI: 45.5% - 80.0%] - Catches majority of misinformation cases
@@ -298,10 +299,12 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 **Individual Signal Performance:**
 
-- **Alignment Signal: ROC AUC = 0.778** (75.6% coverage) - Strong contextual detection
-- **Plausibility Signal: ROC AUC = 0.648** (88.9% coverage) - Moderate medical consistency detection
-- **Genealogy Consistency:** No coverage in pilot (requires provenance data)
-- **Source Reputation:** No coverage in pilot (requires reverse image search data)
+- ✅ **Alignment Signal: ROC AUC = 0.778** (75.6% coverage, 60% weight) - Strong contextual detection
+- ✅ **Plausibility Signal: ROC AUC = 0.648** (88.9% coverage, 15% weight) - Moderate medical consistency detection
+- ❌ **Genealogy Consistency: NOT VALIDATED** (15% weight) - Requires provenance chain data not present in pilot dataset
+- ❌ **Source Reputation: NOT VALIDATED** (10% weight) - Requires reverse image search results not present in pilot dataset
+
+**⚠️ Validation Gap:** 25% of the total scoring weight (Genealogy 15% + Source Reputation 10%) remains untested. The reported 61.1% accuracy does not reflect these signals' contribution to system performance.
 
 **Ablation Study:**
 
@@ -311,11 +314,12 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 **Key Findings:**
 
-1. ✅ Contextual signals successfully detect image-claim misalignment at 61% accuracy
-2. ✅ Alignment signal (ROC AUC 0.778) is the strongest individual performer, validating the 60% weight allocation
-3. ⚠️ Signal weights are heuristic starting points; empirical tuning may improve performance
-4. 📈 Performance significantly exceeds pixel forensics alone (49.9% accuracy)
-5. 🎯 Framework scales: validation completed in ~43 minutes for 90 samples using Vertex AI MedGemma
+1. ✅ **Partial validation complete:** Alignment + Plausibility signals detect image-claim misalignment at 61% accuracy
+2. ✅ **Alignment signal is strongest:** ROC AUC 0.778 validates the 60% weight allocation
+3. ⚠️ **Full system performance unknown:** 25% of scoring weight (Genealogy + Source Reputation) remains untested
+4. ⚠️ **Signal weights are heuristic:** Empirical tuning may improve performance once all signals are validated
+5. 📈 **Contextual approach validated:** Performance significantly exceeds pixel forensics alone (49.9% accuracy)
+6. 🎯 **Framework scales:** Validation completed in ~43 minutes for 90 samples using Vertex AI MedGemma
 
 **Framework Methodology:** See `docs/CONTEXTUAL_SIGNALS_VALIDATION.md` for complete technical specifications, including:
 
@@ -325,7 +329,15 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 - Bootstrap confidence intervals (1000 iterations) for statistical rigor
 - Validation scripts: `scripts/validate_contextual_signals.py` (425 lines, production-ready)
 
-**Future Work:** Field deployment validation planned with HERO Lab, UBC, to gather real-world performance data and refine signal weights through larger-scale empirical testing.
+**Future Work:**
+
+- **Complete signal validation:** Genealogy Consistency and Source Reputation signals require real-world deployment data with:
+  - Provenance chain tracking across multiple image uses
+  - Reverse image search results for source credibility assessment
+- **Field deployment validation:** Planned with HERO Lab, UBC, to gather sufficient provenance and source data for full 4-signal validation
+- **Weight optimization:** Once all signals are validated, use empirical data to optimize the 60/15/15/10 weight distribution
+
+**Limitation Acknowledgment:** The current 61.1% accuracy represents a **lower bound estimate** based on validated signals only. Full system performance may be higher or lower depending on how Genealogy Consistency and Source Reputation contribute to detection capability.
 
 ## Part 5: Dataset & Methodology
 
@@ -491,9 +503,9 @@ python scripts/validate_contextual_signals.py \
 
 ### Supporting Literature
 
-1. **Brennen, J.S., Simon, F.M., Howard, P.N., & Nielsen, R.K. (2020).** _Types, sources, and claims of COVID-19 misinformation._ Reuters Institute.
+1. **Brennen, J.S., Simon, F.M., Howard, P.N., & Nielsen, R.K. (2021).** _Beyond (mis)representation: Visuals in COVID-19 misinformation._ International Journal of Press/Politics, 26(1), 277-299.
 
-   - Finding: 87% of misinformation uses authentic images with misleading context
+   - Finding: Visuals appeared in over half (52%) of misinformation cases, predominantly mislabeled authentic content rather than manipulated imagery
 
 2. **Memon, S.A., & Rasool, A. (2023).** _Image forensics in the age of deep learning._ Digital Investigation.
 
@@ -552,7 +564,7 @@ Our empirical validation provides **quantitative evidence** that pixel-level for
 
 **Medical misinformation detection requires contextual authenticity analysis, not pixel authenticity verification.**
 
-By focusing on how images are used rather than whether pixels are authentic, MedContext addresses the 87% of cases that pixel forensics miss—authentic images presented with false or misleading medical context.
+By focusing on how images are used rather than whether pixels are authentic, MedContext addresses the dominant threat that pixel forensics miss—authentic images presented with false or misleading medical context.
 
 This is among the first agentic AI system designed for the real-world threat distribution, backed by empirical validation on a medical-specific dataset, and ready for pilot field deployment.
 

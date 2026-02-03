@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-This document outlines the empirical validation framework for MedContext's four contextual signals that detect medical image misinformation. Unlike pixel-level forensics (which achieved ~50% accuracy on manipulation detection), contextual signals target the 87% of medical misinformation cases where **authentic images are misused with misleading context**.
+This document outlines the empirical validation framework for MedContext's four contextual signals that detect medical image misinformation. Unlike pixel-level forensics (which achieved ~50% accuracy on manipulation detection), contextual signals target the dominant threat: **authentic images misused with misleading context** (Brennen et al., 2021).
 
 **Validation Objective:** Demonstrate that contextual signals can reliably detect when medical images are presented with false or misleading claims, even when the images themselves are authentic and unmanipulated.
 
@@ -659,10 +659,10 @@ Based on task difficulty and literature review:
 
 ### 7.3 Comparison to Pixel Forensics
 
-| Approach               | Dataset           | Accuracy          | ROC AUC            | Threat Coverage                               |
-| ---------------------- | ----------------- | ----------------- | ------------------ | --------------------------------------------- |
-| Pixel forensics        | UCI Tamper        | 49.9%             | 0.533              | 20% (manipulated images)                      |
-| **Contextual signals** | Image-claim pairs | **75%+ (target)** | **0.80+ (target)** | **87% (authentic images with false context)** |
+| Approach               | Dataset           | Accuracy          | ROC AUC            | Threat Coverage                                           |
+| ---------------------- | ----------------- | ----------------- | ------------------ | --------------------------------------------------------- |
+| Pixel forensics        | UCI Tamper        | 49.9%             | 0.533              | 20% (manipulated images)                                  |
+| **Contextual signals** | Image-claim pairs | **75%+ (target)** | **0.80+ (target)** | **Dominant threat (authentic images with false context)** |
 
 **Key Differentiation:** Contextual signals address the dominant threat (authentic images with misleading claims), while pixel forensics only detect manipulated images.
 
@@ -1235,7 +1235,7 @@ validation_results/contextual_signals_v1/
 
 ## Conclusion
 
-This validation framework provides a rigorous, reproducible approach to evaluating MedContext's contextual signals. By targeting the 87% of medical misinformation cases where authentic images are misused, this validation directly addresses the real-world threat distribution.
+This validation framework provides a rigorous, reproducible approach to evaluating MedContext's contextual signals. By targeting the dominant threat where authentic images are weaponized through false context, this validation directly addresses the real-world threat distribution.
 
 **Key Differentiators:**
 

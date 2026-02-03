@@ -88,10 +88,29 @@ _Local inference:_
 
 **LLM Configuration:**
 
-- `LLM_API_KEY`: API key for OpenRouter/Google/Vertex
-- `LLM_ORCHESTRATOR`: Model for orchestration (e.g., `openai/gpt-4o-mini`)
+- `LLM_PROVIDER`: Choose provider (`openai_compatible`, `ollama`, or `gemini`)
+- `LLM_API_KEY`: API key for the chosen provider
+- `LLM_ORCHESTRATOR`: Model for orchestration
 - `LLM_WORKER`: Model for worker tasks
-- `LLM_BASE_URL`: Default is `https://openrouter.ai/api/v1`
+- `LLM_BASE_URL`: Required for `openai_compatible` provider
+
+_Gemini API (recommended):_
+
+```bash
+LLM_PROVIDER=gemini
+LLM_API_KEY=<your-google-api-key>
+LLM_ORCHESTRATOR=gemini-2.5-pro      # Complex alignment reasoning
+LLM_WORKER=gemini-2.5-flash          # Fast text generation
+```
+
+_OpenRouter:_
+
+```bash
+LLM_PROVIDER=openai_compatible
+LLM_BASE_URL=https://openrouter.ai/api/v1
+LLM_API_KEY=<your-openrouter-key>
+LLM_ORCHESTRATOR=openai/gpt-4o-mini
+```
 
 **Optional Services:**
 
@@ -270,9 +289,19 @@ Validated on UCI Tamper Detection dataset. Result: 49.9% accuracy (chance perfor
 
 See `docs/VALIDATION.md` for full results.
 
-**Contextual Signals Validation (🔄 Framework Ready):**
+**Contextual Signals Validation (⚠️ RERUN REQUIRED):**
 
-Comprehensive validation framework designed for the four contextual signals:
+🚨 **CRITICAL:** Pilot validation (90 samples, 61.1% accuracy) used incorrect weight distribution due to auto-renormalization bug. **Rerun required before thesis submission.**
+
+**Issue:** Missing signals (Genealogy, Source) caused weights to renormalize from 60/15/15/10 to 80/20 (Alignment/Plausibility only).
+
+**Fix Applied (Feb 2, 2026):**
+
+- Modified `src/app/metrics/integrity.py` to treat missing signals as 0.0 (not skip)
+- Updated tests in `tests/test_integrity.py`
+- See `docs/VALIDATION_CORRECTION_REQUIRED.md` for full details
+
+**Validation Framework:** Four contextual signals with fixed weights:
 
 - Alignment (60% weight)
 - Plausibility (15% weight)
@@ -280,19 +309,22 @@ Comprehensive validation framework designed for the four contextual signals:
 - Source Reputation (10% weight)
 
 ```bash
-# Prepare validation dataset
-python scripts/prepare_contextual_validation_dataset.py \
-  --input-csv data/image_claims.csv \
-  --image-dir data/medical_images \
-  --output data/contextual_signals_v1.json
+# Verify corrected scoring behavior
+python scripts/verify_corrected_scoring.py
 
-# Run validation
+# Rerun validation with corrected scoring (~45 minutes)
 python scripts/validate_contextual_signals.py \
-  --dataset data/contextual_signals_v1.json \
-  --output-dir validation_results/contextual_signals_v1
+  --dataset data/contextual_validation_v1.json \
+  --output-dir validation_results/contextual_pilot_v1_corrected
 ```
 
-See `docs/CONTEXTUAL_SIGNALS_VALIDATION.md` for methodology, metrics, and expected baselines.
+**Current Status:**
+
+- ✅ Scoring function corrected (Feb 2, 2026)
+- ⚠️ Validation rerun pending (requires LLM API credentials)
+- 📝 Documentation updated to reflect partial completion (2 of 4 signals)
+
+See `docs/VALIDATION_CORRECTION_REQUIRED.md` for rerun instructions and `docs/VALIDATION.md` for detailed methodology.
 
 **Test Structure:**
 

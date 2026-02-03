@@ -180,7 +180,9 @@ class MedContextLangGraphAgent:
             safe_context = html.escape(context, quote=True)
             prompt += (
                 "\n4. Claim Assessment: A user has made the following claim about this image:\n"
-                f"   <user_claim>{safe_context}</user_claim>\n\n"
+                "--- BEGIN USER CONTEXT ---\n"
+                f"{safe_context}\n"
+                "--- END USER CONTEXT ---\n\n"
                 "   Evaluate:\n"
                 "   - Is this claim medically plausible given what you see in the image?\n"
                 "   - What aspects of the claim can or cannot be verified from the image alone?\n"
@@ -190,25 +192,29 @@ class MedContextLangGraphAgent:
             )
 
         prompt += (
-            "Return JSON with:\n"
+            "Return ONLY valid JSON (no other text) with this exact structure:\n"
             "{\n"
-            '  "image_type": "...",\n'
-            '  "anatomy": "...",\n'
-            '  "findings": "...",\n'
+            '  "image_type": "<imaging modality>",\n'
+            '  "anatomy": "<anatomical structures visible>",\n'
+            '  "findings": "<medical findings and observations>",\n'
         )
 
         if context:
             prompt += (
                 '  "claim_assessment": {\n'
-                '    "plausibility": "high|medium|low",\n'
-                '    "reasoning": "...",\n'
-                '    "verifiable_from_image": "...",\n'
-                '    "additional_verification_needed": "...",\n'
-                '    "medical_caveats": "..."\n'
+                '    "plausibility": "<high|medium|low>",\n'
+                '    "reasoning": "<medical reasoning>",\n'
+                '    "verifiable_from_image": "<what can be verified>",\n'
+                '    "additional_verification_needed": "<what additional info needed>",\n'
+                '    "medical_caveats": "<any uncertainties or caveats>"\n'
                 "  }\n"
             )
 
-        prompt += "}"
+        prompt += (
+            "}\n\n"
+            "CRITICAL: plausibility must be exactly one of: high, medium, low\n"
+            "Respond with ONLY the JSON object, no other text."
+        )
 
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
@@ -236,11 +242,17 @@ Your strategic considerations:
 3. If the image appears in a high-stakes context (medical advice, clinical claims), verify provenance
 4. Consider computational cost - don't run all tools unless necessary
 
-Return JSON only:
+Return ONLY valid JSON (no other text) with this exact structure:
 {
   "tools": ["tool1", "tool2"],
   "reasoning": "Brief explanation of why these tools were selected based on the medical analysis"
-}"""
+}
+
+CRITICAL REQUIREMENTS:
+- Respond with ONLY the JSON object above, no other text
+- tools must be an array of strings (can be empty array)
+- Only use tool names from the available tools list above
+- Start your response with { and end with }"""
 
         # Build user prompt with medical analysis
         user_prompt = "Medical Analysis from MedGemma:\n"
@@ -390,7 +402,10 @@ Return JSON only:
         return (
             "You are a clinical alignment analyst. "
             "Use the provided evidence to judge whether the image content "
-            "aligns with the claimed context. Return valid JSON only."
+            "aligns with the claimed context. "
+            "CRITICAL: You MUST respond with ONLY valid JSON. "
+            "Do not include any explanatory text, thinking, or narrative before or after the JSON. "
+            "Start your response with { and end with }."
         )
 
     def _build_alignment_prompt(
@@ -409,17 +424,27 @@ Return JSON only:
 
         prompt = (
             "Analyze medical evidence and investigative tool results to determine alignment. "
-            "Return JSON with:\n"
-            "- part_1: { image_description }\n"
-            "- part_2: { context_quote, alignment_analysis, verdict, confidence, "
-            "alignment (aligned|partially_aligned|misaligned|unclear), "
-            "claim_risk (low|medium|high), summary, rationale }\n"
-            "Keep part_1 strictly factual about the image only. "
-            "Part_2 should evaluate the user claim against the provided context. "
-            "Do not treat the user context as confirmed; if evidence is insufficient, "
-            "set alignment to unclear. "
-            "If provided, context_quote must be a direct short quote from user context, "
-            "not a paraphrase or confirmation."
+            "Return ONLY valid JSON (no other text) with this exact structure:\n"
+            "{\n"
+            '  "part_1": {"image_description": "<factual description of image only>"},\n'
+            '  "part_2": {\n'
+            '    "context_quote": "<short quote from user context>",\n'
+            '    "alignment_analysis": "<evaluation of alignment>",\n'
+            '    "verdict": "<aligned or not>",\n'
+            '    "confidence": <0.0-1.0>,\n'
+            '    "alignment": "<aligned|partially_aligned|misaligned|unclear>",\n'
+            '    "claim_risk": "<low|medium|high>",\n'
+            '    "summary": "<brief summary>",\n'
+            '    "rationale": "<reasoning>"\n'
+            "  }\n"
+            "}\n\n"
+            "CRITICAL REQUIREMENTS:\n"
+            "1. Respond with ONLY the JSON object above, no other text\n"
+            "2. confidence must be a number between 0.0 and 1.0\n"
+            "3. alignment must be exactly one of: aligned, partially_aligned, misaligned, unclear\n"
+            "4. claim_risk must be exactly one of: low, medium, high\n"
+            "5. part_1 must be strictly factual about the image only\n"
+            "6. If evidence is insufficient, set alignment to 'unclear'\n"
         )
         prompt += (
             f"\nMedical Analysis & Tool Selection: {_serialize_payload(triage)}\n"

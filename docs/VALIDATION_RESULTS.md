@@ -17,7 +17,7 @@ Our empirical validation demonstrates that **pixel-level forensics achieve ~50% 
 
 This validates our core thesis from the literature review:
 
-- 87% of social media medical misinformation uses **authentic images in misleading contexts**
+- Over half of medical misinformation includes visuals, predominantly **authentic images in misleading contexts** (Brennen et al., 2021)
 - 0% sophisticated deepfakes detected in COVID misinformation studies
 - Pixel analysis addresses <20% of the actual problem
 
@@ -137,15 +137,18 @@ The manipulation probability scores are tightly clustered near the decision thre
 ### Why Pixel-Level Forensics Failed
 
 1. **Compression Artifacts Dominate**
+
    - ELA measures compression inconsistencies, not manipulation
    - Authentic images that have been repeatedly shared/compressed show high ELA values
    - Modern manipulations use sophisticated compression-aware techniques
 
 2. **Inverted Distributions**
+
    - Authentic images had _higher_ ELA standard deviation than manipulated ones
    - This counter-intuitive result stems from authentic medical images often undergoing multiple compression cycles (e.g., shared via social media, saved/uploaded repeatedly)
 
 3. **Extensive Feature Overlap**
+
    - The 95% confidence intervals for accuracy span from 44.5% to 55.5%, encompassing random chance (50%)
    - No effective threshold can separate the two classes
 
@@ -161,7 +164,7 @@ These results **empirically confirm** the central premise of MedContext:
 
 From our literature review:
 
-- **87% of misleading medical posts use authentic images with false context**
+- **Over half of misleading medical content includes visuals, predominantly authentic images with false context**
 - **0% of COVID-19 misinformation involved sophisticated deepfakes**
 - **Pixel forensics address <20% of real-world misinformation**
 
@@ -180,7 +183,7 @@ MedContext's approach focuses on:
 3. **Reverse Search**: Is this image being used in multiple contradictory contexts?
 4. **Source Credibility**: Is the poster a verified medical professional or institution?
 
-These signals address the **87% of cases where authentic images are misused**, making contextual authenticity the correct paradigm shift.
+These signals address the **dominant threat where authentic images are weaponized through false context**, making contextual authenticity the correct paradigm shift.
 
 ---
 
@@ -189,13 +192,15 @@ These signals address the **87% of cases where authentic images are misused**, m
 ### For Competition Submission
 
 1. **Highlight Empirical Validation**
+
    - Use these results to demonstrate that pixel-level approaches are insufficient
    - Emphasize the 49.9% accuracy with confidence intervals
    - Show the ELA distribution overlap as visual evidence
 
 2. **Position MedContext as Evidence-Based**
+
    - We didn't just claim contextual authenticity is better—we validated it
-   - Our approach is informed by both literature (87% authentic-image misuse) and empirical testing
+   - Our approach is informed by both literature (authentic images as dominant threat) and empirical testing
 
 3. **Emphasize MedGemma Integration**
    - 326 successful API calls with 0 errors demonstrates production readiness
@@ -204,10 +209,12 @@ These signals address the **87% of cases where authentic images are misused**, m
 ### For Future Work
 
 1. **Expand Dataset Coverage**
+
    - Validate on BTD MRI dataset for medical-specific results
    - Test on COVID-19 misinformation datasets with known ground truth
 
 2. **Ablation Studies**
+
    - Isolate MedGemma's contribution vs pixel forensics
    - Test contextual authenticity signals independently
 
@@ -247,7 +254,7 @@ All validation code is available in `scripts/validate_forensics.py` with:
 
 Our empirical validation provides **quantitative evidence** that pixel-level forensics achieve chance-level performance (49.9% accuracy) on real-world image manipulation detection. This finding validates the MedContext approach: **medical misinformation detection requires contextual authenticity analysis, not pixel authenticity verification.**
 
-By focusing on how images are used rather than whether pixels are authentic, MedContext addresses the 87% of cases that pixel forensics miss—authentic images presented with false or misleading medical context.
+By focusing on how images are used rather than whether pixels are authentic, MedContext addresses the dominant threat that pixel forensics miss—authentic images presented with false or misleading medical context.
 
 ---
 
@@ -256,9 +263,11 @@ By focusing on how images are used rather than whether pixels are authentic, Med
 ### Supporting Literature
 
 1. Brennen, J.S., Simon, F.M., Howard, P.N., & Nielsen, R.K. (2020). _Types, sources, and claims of COVID-19 misinformation_. Reuters Institute.
-   - Finding: 87% of misinformation uses authentic images with misleading context
+
+   - Finding: Visuals appeared in over half (52%) of misinformation cases, predominantly mislabeled authentic content
 
 2. Memon, S.A., & Rasool, A. (2023). _Image forensics in the age of deep learning_. Digital Investigation.
+
    - Finding: Modern ML-based manipulations evade traditional forensics
 
 3. Farid, H. (2016). _Photo Forensics_. MIT Press.

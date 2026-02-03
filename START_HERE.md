@@ -14,7 +14,7 @@ This guide will help you quickly understand our submission and navigate the docu
 
 One-page overview covering:
 
-- The problem (87% of misinformation uses authentic images)
+- The problem (over half of misinformation uses authentic images with misleading context)
 - Our validation (50% forensics accuracy = chance)
 - The solution (agentic contextual authenticity)
 - Why we win
@@ -101,7 +101,7 @@ We tested pixel-level forensics on real medical images:
 - **Interpretation:** Chance performance
 - **Conclusion:** Pixel forensics cannot detect real-world medical misinformation
 
-This validates our literature review finding that 87% of misinformation uses **authentic images in misleading contexts**.
+This validates our literature review finding that over half of misinformation includes visuals, predominantly **authentic images used in misleading contexts** (Brennen et al., 2021).
 
 [See full validation → docs/VALIDATION.md]
 

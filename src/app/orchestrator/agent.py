@@ -110,9 +110,15 @@ class MedContextAgent:
                 system=self._alignment_system(),
                 model=settings.llm_orchestrator,
             )
-        except (LlmClientError, Exception) as e:
-            # Fallback to MedGemma if LLM fails
-            self._logger.warning(f"LLM synthesis failed: {e}, falling back to MedGemma")
+        except LlmClientError as e:
+            self._logger.warning(
+                "LLM synthesis failed: %s, falling back to MedGemma", e
+            )
+            return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
+        except Exception as e:
+            self._logger.exception(
+                "Unexpected error during LLM synthesis, falling back to MedGemma"
+            )
             return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _alignment_system(self) -> str:
@@ -445,12 +451,10 @@ class MedContextAgent:
         if triage is not None and isinstance(triage.output, dict):
             plausibility = triage.output.get("plausibility")
         plausibility_normalized = (
-            plausibility.strip().lower() if isinstance(plausibility, str) else None
+            plausibility.strip().lower() if isinstance(plausibility, str) else ""
         )
         if plausibility_normalized == "high":
             return ["layer_2"]
         if plausibility_normalized in {"low", "medium"}:
             return ["layer_1", "layer_2"]
-        return ["layer_1", "layer_2"]
-        return ["layer_1", "layer_2"]
         return ["layer_1", "layer_2"]
