@@ -309,9 +309,11 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 **Ablation Study:**
 
-- Baseline accuracy: 65.6%
-- Without Alignment: 66.7% (contribution: -1.1%)
-- Without Plausibility/Genealogy/Source: 65.6% (contribution: 0.0%)
+- Baseline accuracy: 65.8%
+- Without Alignment: 66.7% (contribution: -0.9%)*
+- Without Plausibility/Genealogy/Source: 65.8% (contribution: 0.0%)
+
+*Note: The small negative contribution from Alignment (-0.9%) is a statistical fluctuation within the margin of error; removing a signal can occasionally improve accuracy on a small test set due to sampling variance. The 95% CI [55.6%, 75.6%] spans ±10 percentage points, so differences <1% are not statistically meaningful.
 
 **Key Findings:**
 

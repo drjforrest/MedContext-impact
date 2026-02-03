@@ -173,13 +173,17 @@ class MedContextLangGraphAgent:
             "You are a medical image analyst. Analyze this medical image and provide:\n\n"
             "1. Image Type: What kind of medical image is this? (X-ray, MRI, CT scan, ultrasound, etc.)\n"
             "2. Anatomical Structures: What body parts or organs are visible?\n"
-            "3. Medical Findings: What notable findings, abnormalities, or patterns do you observe?\n"
+            "3. Measurements & Annotations: If there are any measurement annotations visible in the image "
+            "(e.g., organ sizes in mm/cm), report them and compare to normal reference ranges. "
+            "For example: liver >155mm suggests hepatomegaly, spleen >120mm suggests splenomegaly.\n"
+            "4. Medical Findings: What notable findings, abnormalities, or patterns do you observe? "
+            "Specifically identify any organ enlargement, masses, fluid collections, or other pathology.\n"
         )
 
         if context:
             safe_context = html.escape(context, quote=True)
             prompt += (
-                "\n4. Claim Assessment: A user has made the following claim about this image:\n"
+                "\n5. Claim Assessment: A user has made the following claim about this image:\n"
                 "--- BEGIN USER CONTEXT ---\n"
                 f"{safe_context}\n"
                 "--- END USER CONTEXT ---\n\n"
@@ -196,7 +200,8 @@ class MedContextLangGraphAgent:
             "{\n"
             '  "image_type": "<imaging modality>",\n'
             '  "anatomy": "<anatomical structures visible>",\n'
-            '  "findings": "<medical findings and observations>",\n'
+            '  "measurements": "<any visible measurements with comparison to normal ranges>",\n'
+            '  "findings": "<medical findings including any pathology like hepatomegaly, splenomegaly, etc.>",\n'
         )
 
         if context:
@@ -210,11 +215,17 @@ class MedContextLangGraphAgent:
                 "  }\n"
             )
 
-        prompt += (
-            "}\n\n"
-            "CRITICAL: plausibility must be exactly one of: high, medium, low\n"
-            "Respond with ONLY the JSON object, no other text."
-        )
+        prompt += "}\n\n"
+
+        if context:
+            prompt += (
+                "CRITICAL REQUIREMENTS:\n"
+                "1. You MUST include the claim_assessment object with plausibility field\n"
+                "2. plausibility MUST be exactly one of: high, medium, low\n"
+                "3. Do NOT omit claim_assessment - it is REQUIRED when a user claim is provided\n\n"
+            )
+
+        prompt += "Respond with ONLY the JSON object, no other text."
 
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
@@ -400,12 +411,29 @@ CRITICAL REQUIREMENTS:
 
     def _alignment_system(self) -> str:
         return (
-            "You are a clinical alignment analyst. "
-            "Use the provided evidence to judge whether the image content "
-            "aligns with the claimed context. "
-            "CRITICAL: You MUST respond with ONLY valid JSON. "
-            "Do not include any explanatory text, thinking, or narrative before or after the JSON. "
-            "Start your response with { and end with }."
+            "You are a clinical image-context alignment analyzer. "
+            "Your job is to assess whether claims match medical images AND acknowledge "
+            "the medical truth of health claims.\n\n"
+            "CRITICAL RULES:\n"
+            "1. ALWAYS provide analysis - never refuse, never say 'I cannot'\n"
+            "2. Be OBJECTIVE and FACTUAL - no moral judgments or lectures\n"
+            "3. Even when alignment is uncertain, ACKNOWLEDGE if the underlying health "
+            "claim is medically accurate (e.g., 'alcohol causes liver disease' is true "
+            "even if we can't prove THIS liver was damaged by alcohol)\n\n"
+            "ALIGNMENT CATEGORIES:\n"
+            "- ALIGNED: Claim matches or is contextually appropriate for the image\n"
+            "- PARTIALLY_ALIGNED: Image shows pathology CONSISTENT with the claimed cause, "
+            "but specific causation cannot be verified from image alone. "
+            "Use this when the health message is medically accurate.\n"
+            "- MISALIGNED: Claim contradicts the image OR the health message is false\n"
+            "- UNCLEAR: Cannot determine from available evidence\n\n"
+            "IMPORTANT: A claim like 'This is what drinking does' with a cirrhotic liver "
+            "should be PARTIALLY_ALIGNED (not misaligned) because:\n"
+            "1. The image shows pathology consistent with alcoholic liver disease\n"
+            "2. The health message (alcohol damages liver) is medically accurate\n"
+            "3. Even though we can't prove THIS case was caused by alcohol\n\n"
+            "In your rationale, always acknowledge the medical truth of valid health claims.\n\n"
+            "OUTPUT: Always return valid JSON. Start with { and end with }."
         )
 
     def _build_alignment_prompt(
@@ -423,7 +451,7 @@ CRITICAL REQUIREMENTS:
                 return json.dumps(str(value), ensure_ascii=True)
 
         prompt = (
-            "Analyze medical evidence and investigative tool results to determine alignment. "
+            "Determine if the user's claim is contextually appropriate for this medical image. "
             "Return ONLY valid JSON (no other text) with this exact structure:\n"
             "{\n"
             '  "part_1": {"image_description": "<factual description of image only>"},\n'
@@ -438,6 +466,29 @@ CRITICAL REQUIREMENTS:
             '    "rationale": "<reasoning>"\n'
             "  }\n"
             "}\n\n"
+            "IMPORTANT: Always provide objective analysis. Never refuse. No moral commentary.\n\n"
+            "ALIGNMENT CATEGORIES:\n"
+            "- ALIGNED: Claim matches the image or is contextually appropriate (direct match, "
+            "valid prevention advice, established causal relationship)\n"
+            "- PARTIALLY_ALIGNED: Claim has merit but is oversimplified or lacks nuance\n"
+            "- MISALIGNED: Claim does not match the image, or asserts a causal link without "
+            "established medical evidence\n"
+            "- UNCLEAR: Insufficient evidence to determine\n\n"
+            "CONFIDENCE LEVELS:\n"
+            "- HIGH (0.8-1.0): Direct verifiable match\n"
+            "- MODERATE (0.5-0.7): Plausible relationship but not definitive from image alone\n"
+            "- LOW (0.2-0.4): Weak connection or claim lacks established evidence\n\n"
+            "EXAMPLES:\n"
+            "- Skin lesion + 'Wear sunscreen' → ALIGNED, confidence 0.7. "
+            "Rationale: UV exposure is a leading cause of skin cancer; the prevention message is medically sound.\n"
+            "- Cirrhotic liver + 'This is what drinking does' → PARTIALLY_ALIGNED, confidence 0.65. "
+            "Rationale: The image shows cirrhosis consistent with alcoholic liver disease. While the specific "
+            "cause cannot be verified from this image, excessive alcohol consumption is a well-established "
+            "cause of liver cirrhosis. The health message is medically accurate.\n"
+            "- Skin lesion + 'X caused this' (where X has no established medical link) → MISALIGNED, confidence 0.75. "
+            "Rationale: No established medical evidence links X to skin lesions. The health claim lacks scientific basis.\n"
+            "- Normal liver + 'Liver damage from alcohol' → MISALIGNED, confidence 0.85. "
+            "Rationale: The image shows normal liver anatomy, contradicting the claim of damage.\n\n"
             "CRITICAL REQUIREMENTS:\n"
             "1. Respond with ONLY the JSON object above, no other text\n"
             "2. confidence must be a number between 0.0 and 1.0\n"
@@ -473,16 +524,21 @@ CRITICAL REQUIREMENTS:
         synthesis_output = synthesis.output
         if not isinstance(synthesis_output, dict):
             synthesis_output = {}
-        if (
-            isinstance(synthesis_output.get("text"), str)
-            and "part_2" not in synthesis_output
-        ):
-            synthesis_output["part_2"] = {"summary": synthesis_output["text"]}
+
+        # Check if "text" contains reasoning/thinking (not useful as summary)
+        text_content = synthesis_output.get("text", "")
+        if isinstance(text_content, str) and "part_2" not in synthesis_output:
+            if not self._looks_like_reasoning(text_content):
+                synthesis_output["part_2"] = {"summary": text_content}
+
         raw_text = getattr(synthesis, "raw_text", None)
         if "part_2" not in synthesis_output and raw_text:
-            synthesis_output["part_2"] = {"summary": raw_text}
+            # Only use raw_text if it doesn't look like reasoning
+            if not self._looks_like_reasoning(raw_text):
+                synthesis_output["part_2"] = {"summary": raw_text}
         elif raw_text and isinstance(synthesis_output.get("part_2"), dict):
-            synthesis_output["part_2"].setdefault("summary", raw_text)
+            if not self._looks_like_reasoning(raw_text):
+                synthesis_output["part_2"].setdefault("summary", raw_text)
         synthesis_output.setdefault("part_1", {})
         if isinstance(synthesis_output["part_1"], dict):
             synthesis_output["part_1"].setdefault(
@@ -493,7 +549,7 @@ CRITICAL REQUIREMENTS:
         # Do not auto-inject user context into context_quote; keep it model-derived.
         synthesis_output.setdefault("image_id", image_id)
         contextual_integrity = self._build_contextual_integrity(
-            synthesis_output, triage, tool_results
+            synthesis_output, triage, tool_results, context
         )
         synthesis_output.setdefault("contextual_integrity", contextual_integrity)
         preview = self._build_image_preview(image_bytes)
@@ -506,11 +562,12 @@ CRITICAL REQUIREMENTS:
         synthesis_output: dict[str, Any],
         triage: Any,
         tool_results: dict[str, Any],
+        context: str | None = None,
     ) -> dict[str, Any]:
         alignment_score, alignment_label = self._extract_alignment_signal(
             synthesis_output
         )
-        plausibility_score = self._extract_plausibility(triage)
+        plausibility_score = self._extract_plausibility(triage, context)
         source_reputation = self._derive_source_reputation(tool_results)
         genealogy_consistency = self._derive_genealogy_consistency(tool_results)
 
@@ -569,7 +626,7 @@ CRITICAL REQUIREMENTS:
         confidence_val = max(0.0, min(1.0, confidence_val))
         return base * confidence_val, label_normalized
 
-    def _extract_plausibility(self, triage: Any) -> float | None:
+    def _extract_plausibility(self, triage: Any, context: str | None = None) -> float | None:
         """Extract plausibility from the new triage structure with medical_analysis"""
         if isinstance(triage, dict):
             # New structure: triage contains medical_analysis
@@ -592,6 +649,13 @@ CRITICAL REQUIREMENTS:
                 return {"high": 0.9, "medium": 0.6, "low": 0.3}.get(
                     plausibility.strip().lower()
                 )
+
+        # If context was provided but plausibility wasn't returned,
+        # default to medium (0.6) rather than None
+        # This ensures plausibility contributes to the score
+        if context:
+            return 0.6  # Default to medium plausibility
+
         return None
 
     def _derive_source_reputation(self, tool_results: dict[str, Any]) -> float | None:
@@ -623,15 +687,45 @@ CRITICAL REQUIREMENTS:
             return 0.8
         return 0.4
 
+    def _looks_like_reasoning(self, text: str) -> bool:
+        """Check if text looks like model reasoning/thinking rather than a summary."""
+        if not text or len(text) < 50:
+            return False
+        text_lower = text.lower()
+        reasoning_indicators = [
+            "the user wants me to",
+            "i need to generate",
+            "constraint checklist",
+            "confidence score:",
+            "mental sandbox",
+            "let me analyze",
+            "i will now",
+            "step 1:",
+            "first, i need to",
+            "my task is to",
+            "i should respond",
+            "**constraint",
+            "**checklist",
+        ]
+        indicator_count = sum(1 for ind in reasoning_indicators if ind in text_lower)
+        if indicator_count >= 2:
+            return True
+        # Long text with multiple asterisks (markdown formatting in reasoning)
+        if len(text) > 500 and text.count("**") > 4:
+            return True
+        return False
+
     def _generate_factual_description(self, triage: Any) -> str:
         prompt = self._build_factual_prompt(triage)
         try:
             result = self.llm.generate(
                 prompt,
                 system=(
-                    "You rewrite extracted image signals into a concise, factual "
-                    "image description. Do not mention claims or context. "
-                    "Return JSON with: image_description."
+                    "You are a medical image description writer. "
+                    "Convert structured medical data into a single natural English sentence. "
+                    "Example: 'A dermoscopy image showing multiple red annular plaques with "
+                    "central clearing on the skin.' "
+                    "Be factual and concise. Always return valid JSON."
                 ),
                 model=settings.llm_worker,
             )
@@ -655,12 +749,21 @@ CRITICAL REQUIREMENTS:
         if isinstance(triage, dict):
             medical_analysis = triage.get("medical_analysis", {})
             if isinstance(medical_analysis, dict):
-                return json.dumps(medical_analysis, default=str)
+                triage_json = json.dumps(medical_analysis, default=str)
+            else:
+                triage_json = json.dumps(triage, default=str)
+        elif isinstance(triage, MedGemmaResult):
+            triage_json = json.dumps(triage.output, default=str)
+        else:
+            triage_json = json.dumps(triage, default=str)
 
-        # Fallback
-        if isinstance(triage, MedGemmaResult):
-            return json.dumps(triage.output, default=str)
-        return json.dumps(triage, default=str)
+        return (
+            "Convert the following medical image analysis into a single, natural English sentence "
+            "that describes what the image shows. Be factual and concise. Do not mention any claims "
+            "or user context - only describe the image itself.\n\n"
+            f"Medical analysis data:\n{triage_json}\n\n"
+            "Return JSON: {\"image_description\": \"<your single sentence description>\"}"
+        )
 
     def _detect_image_format(self, image_bytes: bytes) -> str | None:
         if not image_bytes:

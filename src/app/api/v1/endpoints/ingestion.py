@@ -8,12 +8,13 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from PIL import Image
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.models import ImageSubmission, MedGemmaAnalysis, SubmissionContext
 from app.db.session import get_db
-from app.orchestrator.agent import MedContextAgent
+from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
 from app.provenance.service import store_provenance_manifest
 from app.schemas.common import SubmissionResponse
 from app.schemas.orchestrator import AgentRunResponse
@@ -103,7 +104,7 @@ def ingest_and_run_agentic(
         image_format=image_format,
     )
 
-    agent = MedContextAgent()
+    agent = MedContextLangGraphAgent()
     try:
         with db.begin():
             # Check if image already exists by hash
@@ -133,7 +134,24 @@ def ingest_and_run_agentic(
                     orientation_corrected=False,
                     metadata_extracted=False,
                 )
-                db.add(submission)
+                try:
+                    db.add(submission)
+                    db.flush()
+                except IntegrityError:
+                    db.rollback()
+                    # Race condition: another request inserted the same hash
+                    existing_submission = (
+                        db.query(ImageSubmission)
+                        .filter(ImageSubmission.image_hash == image_hash)
+                        .first()
+                    )
+                    if existing_submission is None:
+                        raise HTTPException(
+                            status_code=500,
+                            detail="Failed to create or retrieve image submission.",
+                        )
+                    submission = existing_submission
+                    resolved_image_id = existing_submission.id
 
             submission_context = SubmissionContext(
                 image_id=resolved_image_id,

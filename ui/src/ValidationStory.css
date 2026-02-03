@@ -484,6 +484,10 @@
     font-size: 1.25rem;
   }
 
+  .timeline-step:not(:last-child)::after {
+    left: 19px;
+  }
+
   .chart-grid,
   .viz-row {
     grid-template-columns: 1fr;

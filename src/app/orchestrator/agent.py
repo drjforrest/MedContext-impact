@@ -201,16 +201,21 @@ class MedContextAgent:
                 type(synthesis_output).__name__,
             )
             synthesis_output = {"synthesis_output_original": synthesis_output}
-        if (
-            isinstance(synthesis_output.get("text"), str)
-            and "part_2" not in synthesis_output
-        ):
-            synthesis_output["part_2"] = {"summary": synthesis_output["text"]}
+
+        # Check if "text" contains reasoning/thinking (not useful as summary)
+        text_content = synthesis_output.get("text", "")
+        if isinstance(text_content, str) and "part_2" not in synthesis_output:
+            if not self._looks_like_reasoning(text_content):
+                synthesis_output["part_2"] = {"summary": text_content}
+
         raw_text = synthesis.raw_text if isinstance(synthesis, LlmResult) else None
         if "part_2" not in synthesis_output and raw_text:
-            synthesis_output["part_2"] = {"summary": raw_text}
+            # Only use raw_text if it doesn't look like reasoning
+            if not self._looks_like_reasoning(raw_text):
+                synthesis_output["part_2"] = {"summary": raw_text}
         elif raw_text and isinstance(synthesis_output.get("part_2"), dict):
-            synthesis_output["part_2"].setdefault("summary", raw_text)
+            if not self._looks_like_reasoning(raw_text):
+                synthesis_output["part_2"].setdefault("summary", raw_text)
         synthesis_output.setdefault("part_1", {})
         if isinstance(synthesis_output["part_1"], dict):
             synthesis_output["part_1"].setdefault(
@@ -337,6 +342,34 @@ class MedContextAgent:
         if status == "completed" and isinstance(blocks, list) and blocks:
             return 0.8
         return 0.4
+
+    def _looks_like_reasoning(self, text: str) -> bool:
+        """Check if text looks like model reasoning/thinking rather than a summary."""
+        if not text or len(text) < 50:
+            return False
+        text_lower = text.lower()
+        reasoning_indicators = [
+            "the user wants me to",
+            "i need to generate",
+            "constraint checklist",
+            "confidence score:",
+            "mental sandbox",
+            "let me analyze",
+            "i will now",
+            "step 1:",
+            "first, i need to",
+            "my task is to",
+            "i should respond",
+            "**constraint",
+            "**checklist",
+        ]
+        indicator_count = sum(1 for ind in reasoning_indicators if ind in text_lower)
+        if indicator_count >= 2:
+            return True
+        # Long text with multiple asterisks (markdown formatting in reasoning)
+        if len(text) > 500 and text.count("**") > 4:
+            return True
+        return False
 
     def _generate_factual_description(self, triage: MedGemmaResult) -> str:
         prompt = self._build_factual_prompt(triage)

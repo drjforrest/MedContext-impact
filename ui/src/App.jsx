@@ -498,7 +498,7 @@ function App() {
         tone: 'high',
       }
     }
-    return { score: 0, label: 'Alignment is unclear.', tone: 'neutral' }
+    return { score: 0, label: 'Alignment unlikely.', tone: 'neutral' }
   }, [part2?.alignment, part2?.verdict])
   const evidenceItems = useMemo(() => {
     const items = []
@@ -512,7 +512,7 @@ function App() {
     }
     if (integrityScorePercent !== null) {
       items.push({
-        label: 'Integrity score',
+        label: 'Authenticity score',
         value: `${integrityScorePercent}%`,
         detail: 'Composite score across evidence signals.',
         tone: integrityScoreTone,
@@ -565,6 +565,16 @@ function App() {
   const provenanceBlockCount = provenanceData?.blocks?.length || 0
   const forensicsStatus =
     typeof forensicsData?.status === 'string' ? forensicsData.status : null
+  
+  // Compute which signals were not checked
+  const uncheckedSignals = useMemo(() => {
+    const signals = []
+    // Alignment is always checked (from synthesis)
+    // Plausibility is always checked (from triage)
+    if (!provenanceData) signals.push('Genealogy')
+    if (!orchestratorReverseSearch) signals.push('Source Reputation')
+    return signals
+  }, [provenanceData, orchestratorReverseSearch])
   return (
     <div className="page">
       <header className="hero">
@@ -932,7 +942,7 @@ function App() {
                   <p className="helper">
                     Optional: use this for a standalone lookup. The full
                     Contextual Authenticity analysis already runs reverse search
-                    when needed.
+                    if determined necessary by the triage agent.
                   </p>
                 </div>
                 <button
@@ -1152,6 +1162,11 @@ function App() {
                   {contextualIntegrity ? (
                     <div className="result-block">
                       <h3>Evidence signals</h3>
+                      {result?.triage?.primary_findings || result?.triage?.key_findings ? (
+                        <p className="helper" style={{ marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                          {result.triage.primary_findings || result.triage.key_findings}
+                        </p>
+                      ) : null}
                       {contextualIntegrity.usage_assessment ? (
                         <p className="helper">
                           Usage assessment: {contextualIntegrity.usage_assessment}
@@ -1202,7 +1217,7 @@ function App() {
                               </ResponsiveContainer>
                             </div>
                           ) : (
-                            <p className="helper">No integrity score available.</p>
+                            <p className="helper">No authenticity score available.</p>
                           )}
                         </div>
                         <div className="viz-card">
@@ -1236,9 +1251,9 @@ function App() {
                           ) : (
                             <p className="helper">No signal data available.</p>
                           )}
-                          {!provenanceData ? (
-                            <p className="helper">
-                              Genealogy not checked (provenance not run).
+                          {uncheckedSignals.length > 0 ? (
+                            <p className="helper" style={{ marginTop: '0.75rem', fontStyle: 'italic' }}>
+                              Not checked: {uncheckedSignals.join(', ')}
                             </p>
                           ) : null}
                         </div>

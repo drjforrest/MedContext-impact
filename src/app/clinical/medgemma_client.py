@@ -450,9 +450,54 @@ class MedGemmaClient:
             # If it looks like JSON, use it
             if potential.startswith('{'):
                 return potential
-        
+
+        # If content has reasoning before JSON, extract just the JSON part
+        json_obj = self._extract_json_by_brackets(cleaned)
+        if json_obj:
+            return json_obj
+
         cleaned = re.sub(r"\s{3,}", "  ", cleaned)
         return cleaned.strip()
+
+    def _extract_json_by_brackets(self, content: str) -> Optional[str]:
+        """Extract JSON object using bracket counting for deeply nested structures."""
+        start_idx = content.find("{")
+        if start_idx == -1:
+            return None
+
+        depth = 0
+        in_string = False
+        escape_next = False
+        end_idx = start_idx
+
+        for i, char in enumerate(content[start_idx:], start=start_idx):
+            if escape_next:
+                escape_next = False
+                continue
+
+            if char == "\\":
+                escape_next = True
+                continue
+
+            if char == '"' and not escape_next:
+                in_string = not in_string
+                continue
+
+            if in_string:
+                continue
+
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    end_idx = i
+                    break
+
+        if depth == 0 and end_idx > start_idx:
+            return content[start_idx : end_idx + 1]
+
+        return None
 
     def _parse_json(self, content: str) -> Any:
         import codecs
@@ -496,7 +541,18 @@ class MedGemmaClient:
             if loaded is not None:
                 return loaded
 
-        # Try to find outermost JSON object
+        # Use bracket matching to extract JSON from reasoning-heavy responses
+        bracket_extracted = self._extract_json_by_brackets(content)
+        if bracket_extracted:
+            loaded = _try_load(bracket_extracted)
+            if loaded is not None:
+                return loaded
+            unescaped = _unescape_candidate(bracket_extracted)
+            loaded = _try_load(unescaped)
+            if loaded is not None:
+                return loaded
+
+        # Fallback: try greedy regex
         match = re.search(r"\{.*\}", content, flags=re.DOTALL)
         if match:
             candidate = match.group(0).strip()

@@ -146,40 +146,19 @@ medcontext/
 │   └── CLAUDE.md                  ← Developer documentation
 ├── src/                           ← Source code (4,100+ lines Python)
 ├── tests/                         ← 33 passing tests
-└── ui/                            ← React frontend (527 lines JS)
+└── ui/                            ← React frontend
 ```
 
 ---
 
-## ✅ Quick Verification Checklist
+## ✅ Verification Checklist
 
-**What judges typically care about:**
-
-- [ ] **Innovation?** ✅ First agentic system for contextual authenticity
+- [ ] **Innovation?** ✅ Agentic system for contextual authenticity
 - [ ] **Works?** ✅ 33/33 tests passing, full-stack implementation
 - [ ] **Evidence?** ✅ Empirical validation with confidence intervals
 - [ ] **Impact?** ✅ HERO Lab partnership for African deployment
 - [ ] **Documentation?** ✅ 5 comprehensive documents, white paper
 - [ ] **Reproducible?** ✅ Setup in 5 minutes, HuggingFace provider for judges
-
----
-
-## 🏆 Competition Categories
-
-**Primary:** Agentic AI System
-
-- ✅ Autonomous tool selection
-- ✅ Dynamic workflow adaptation
-- ✅ Context-aware reasoning
-- ✅ Explainable verdicts
-
-**Secondary:** Medical AI & Healthcare Innovation
-
-- ✅ Addresses critical medical misinformation problem
-- ✅ Field-deployable (Telegram bot integration)
-- ✅ Real deployment partner (HERO Lab, UBC)
-
----
 
 ## 📹 Demo Video
 
@@ -199,7 +178,7 @@ medcontext/
 ## 💬 Contact
 
 **Developer:** Jamie Forrest
-**Email:** forrest.jamie@gmail.com
+**Email:** forrest.jamie@gmail.com | james.forrest@ubc.ca
 **Affiliation:** Scientific Director, HERO Lab, School of Nursing, University of British Columbia
 
 **Questions?**

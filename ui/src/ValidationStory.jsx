@@ -633,9 +633,9 @@ function ValidationStory({ onNavigateBack }) {
         <div className="summary-content">
           <h2>The Bottom Line</h2>
           <p className="summary-lead">
-            Validation demonstrates that contextual signals significantly outperform pixel forensics
+            Validation demonstrates that contextual signals significantly outperform pixel forensics alone
             (<strong>65.8% vs 49.9%</strong>), proving that analyzing image-claim relationships
-            is superior to pixel-level manipulation detection alone.
+            is superior to pixel-level manipulation detection.
           </p>
           <div style={{ padding: '1.5rem', background: 'rgba(45, 184, 138, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #2db88a' }}>
             <h3 style={{ marginTop: 0, color: '#2db88a', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
