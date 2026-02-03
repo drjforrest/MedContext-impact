@@ -498,7 +498,7 @@ function App() {
         tone: 'high',
       }
     }
-    return { score: 0, label: 'Alignment unlikely.', tone: 'neutral' }
+    return { score: 0, label: 'Alignment undetermined.', tone: 'neutral' }
   }, [part2?.alignment, part2?.verdict])
   const evidenceItems = useMemo(() => {
     const items = []
