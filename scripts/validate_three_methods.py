@@ -33,8 +33,32 @@ class ThreeMethodValidator:
 
     def load_dataset(self) -> List[Dict]:
         """Load 3D validation dataset."""
-        with open(self.dataset_path) as f:
-            return json.load(f)
+        try:
+            with open(self.dataset_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Dataset file not found: {self.dataset_path}")
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"Invalid JSON in dataset file {self.dataset_path}: {str(e)}"
+            )
+        except ValueError as e:
+            raise ValueError(
+                f"Malformed dataset structure in {self.dataset_path}: {str(e)}"
+            )
+
+        # Validate that the result is a list of dictionaries
+        if not isinstance(data, list):
+            raise ValueError(
+                f"Dataset file {self.dataset_path} does not contain a list at the top level"
+            )
+
+        if not all(isinstance(item, dict) for item in data):
+            raise ValueError(
+                f"Dataset file {self.dataset_path} does not contain a list of dictionaries"
+            )
+
+        return data
 
     def simple_pixel_forensics(self, image_path: Path) -> Dict[str, Any]:
         """
@@ -63,8 +87,8 @@ class ThreeMethodValidator:
         except Exception as e:
             print(f"Pixel forensics error: {e}")
             return {
-                "pixel_authentic": True,
-                "confidence": 0.5,
+                "pixel_authentic": False,
+                "confidence": 0.0,
                 "method": "pixel_forensics",
                 "error": str(e),
             }
@@ -88,10 +112,25 @@ class ThreeMethodValidator:
             veracity_score = result.get("veracity_score", 0.5)
             alignment_score = result.get("alignment_score", 0.5)
 
+            # Check if analysis failed (indicated by default failure scores)
+            analysis_failed = veracity_score == 0.0 and alignment_score == 0.0
+
             # Simple combination: both need to be high to be legitimate
             # If either is low, it's misleading/misinformation
             overall_score = min(veracity_score, alignment_score)
             is_misleading = overall_score < 0.5
+
+            # If analysis failed, ensure conservative response
+            if analysis_failed:
+                return {
+                    "veracity_score": 0.0,
+                    "alignment_score": 0.0,
+                    "overall_score": 0.0,
+                    "is_misleading": True,
+                    "method": "contextual_analysis",
+                    "error": "Direct MedGemma analysis failed",
+                    "failed": True,
+                }
 
             return {
                 "veracity_score": veracity_score,
@@ -103,12 +142,13 @@ class ThreeMethodValidator:
         except Exception as e:
             print(f"Contextual analysis error: {e}")
             return {
-                "veracity_score": 0.5,
-                "alignment_score": 0.5,
-                "overall_score": 0.5,
-                "is_misleading": False,
+                "veracity_score": 0.0,
+                "alignment_score": 0.0,
+                "overall_score": 0.0,
+                "is_misleading": True,
                 "method": "contextual_analysis",
                 "error": str(e),
+                "failed": True,
             }
 
     def _direct_medgemma_analysis(
@@ -188,8 +228,8 @@ Return ONLY valid JSON with this exact structure:
         except Exception as e:
             print(f"Direct MedGemma analysis error: {e}")
             return {
-                "veracity_score": 0.5,
-                "alignment_score": 0.5,
+                "veracity_score": 0.0,
+                "alignment_score": 0.0,
                 "veracity_reasoning": "Analysis failed",
                 "alignment_reasoning": "Analysis failed",
             }
@@ -449,4 +489,8 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
+    main()
+    main()
+    main()
     main()

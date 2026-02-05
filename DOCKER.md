@@ -13,8 +13,6 @@ This guide explains how to run MedContext using Docker containers.
 
 For convenience, use the provided Makefile commands:
 
-# - Port 8000 already in usebash
-
 # View all available commands
 
 make help
@@ -36,8 +34,6 @@ make health
 
 make down
 
-````
-
 ### Manual Docker Compose Commands
 
 ### 1. Configure Environment
@@ -55,7 +51,7 @@ Build and start all services (database, backend, frontend):
 
 ```bash
 docker-compose up --build
-````
+```
 
 Or run in detached mode:
 
@@ -191,7 +187,6 @@ docker-compose exec frontend /bin/sh
 ### Security Considerations
 
 1. **Change default credentials** in `docker-compose.yml`:
-
    - Database password
    - Add secrets management
 
@@ -202,7 +197,6 @@ docker-compose exec frontend /bin/sh
    ```
 
 3. **Enable SSL/TLS**:
-
    - Add reverse proxy (nginx/traefik) with certificates
    - Update frontend nginx config
 
@@ -312,7 +306,6 @@ docker system prune -a --volumes
    ```
 
 2. **Cache dependencies**:
-
    - Python packages cached in Docker layers
    - Node modules cached in builder stage
 

@@ -135,6 +135,10 @@ def create_complete_3d_dataset():
         raise FileNotFoundError(f"Authentic dataset missing: {contextual_path}")
     if not tampered_labels_path.exists():
         raise FileNotFoundError(f"Tampered labels missing: {tampered_labels_path}")
+    if not tampered_base_path.exists():
+        raise FileNotFoundError(
+            f"Tampered images directory missing: {tampered_base_path}"
+        )
 
     # Create datasets
     authentic_data = augment_contextual_dataset(contextual_path)
@@ -192,6 +196,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    main()
     main()

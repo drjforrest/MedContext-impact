@@ -375,9 +375,8 @@ button.ghost {
   text-align: center;
   padding: 0.75rem 0.5rem;
   border-radius: 8px;
-  background: var(--surface-muted);
+  background: rgba(231, 240, 248, 0.6); /* 60% opacity of #e7f0f8 */
   border: 2px solid transparent;
-  opacity: 0.4;
   transition: all 0.3s ease;
 }
 
@@ -1167,9 +1166,8 @@ details summary:hover {
   text-align: center;
   padding: 0.5rem 0.35rem;
   border-radius: 6px;
-  background: var(--surface-muted);
+  background: rgba(231, 240, 248, 0.6); /* 60% opacity of #e7f0f8 */
   border: 2px solid transparent;
-  opacity: 0.35;
   transition: all 0.3s ease;
 }
 

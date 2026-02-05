@@ -2,11 +2,19 @@
 """Add misleading cases (authentic + true + misaligned) to dataset."""
 
 import json
+import shutil
 from collections import Counter
+from pathlib import Path
 
 
 def add_misleading_cases():
-    with open("data/three_dimensional_validation_v1.json") as f:
+    input_path = Path("data/three_dimensional_validation_v1.json")
+
+    # Create backup before modifying
+    backup_path = input_path.with_suffix(".json.bak")
+    shutil.copy(input_path, backup_path)
+
+    with open(input_path) as f:
         data = json.load(f)
 
     # Find "other_authentic" cases and reclassify some as "misleading"
@@ -24,7 +32,7 @@ def add_misleading_cases():
             misleading_count += 1
 
     # Save updated dataset
-    with open("data/three_dimensional_validation_v1.json", "w") as f:
+    with open(input_path, "w") as f:
         json.dump(data, f, indent=2)
 
     print(f"✓ Reclassified {misleading_count} cases as 'misleading'")
@@ -35,6 +43,4 @@ def add_misleading_cases():
 
 
 if __name__ == "__main__":
-    add_misleading_cases()
-    add_misleading_cases()
     add_misleading_cases()

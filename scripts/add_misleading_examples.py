@@ -28,11 +28,23 @@ def add_misleading_examples():
         item for item in data if item["ground_truth"]["label"] == "legitimate"
     ]
 
+    # Get existing misleading image IDs to avoid duplicates
+    existing_misleading_ids = {
+        item["image_id"]
+        for item in data
+        if item["ground_truth"]["label"] == "misleading"
+    }
+
     new_misleading = []
     for i, item in enumerate(legitimate_cases[:30]):
+        # Check if misleading variant already exists
+        misleading_image_id = f"{item['image_id']}_misleading"
+        if misleading_image_id in existing_misleading_ids:
+            continue  # Skip if already exists
+
         # Create misleading variant
         misleading_item = {
-            "image_id": f"{item['image_id']}_misleading",
+            "image_id": misleading_image_id,
             "image_path": item["image_path"],
             "claim": misleading_claims[i % len(misleading_claims)],
             "ground_truth": {

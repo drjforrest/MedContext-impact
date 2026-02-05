@@ -17,11 +17,17 @@ def test_direct_medgemma_analysis():
     # Test with a simple image and claim
     try:
         # Verify the client can be instantiated
-        MedGemmaClient()
+        client = MedGemmaClient()
         print("✓ MedGemma client initialized successfully")
 
-        # We need an actual image for testing, but for now we'll just verify the method structure
-        print("✓ Pipeline structure is correct - no reverse search dependencies")
+        # Verify client has expected methods and no reverse search methods
+        assert hasattr(client, "analyze_image"), (
+            "Missing analyze_image method"
+        )
+        assert not hasattr(client, "reverse_image_search"), (
+            "Unexpected reverse_image_search method"
+        )
+        print("✓ Client has expected methods without reverse search")
 
         return True
 
@@ -35,30 +41,42 @@ def test_validation_script():
     print("\nTesting validation script import...")
 
     try:
-        # Import the validator class
+        import tempfile
         from scripts.validate_three_methods import ThreeMethodValidator
 
-        # Test instantiation
-        validator = ThreeMethodValidator(
-            dataset_path=Path("data/three_dimensional_validation_v1.json"),
-            output_dir=Path("validation_results/test"),
-        )
+        # Create temporary paths for testing
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_dataset:
+            # Write minimal valid JSON to the temp file
+            import json
+            json.dump([], temp_dataset)  # Empty list as minimal valid dataset
+            temp_dataset.flush()
+            temp_dataset_path = Path(temp_dataset.name)
 
-        print("✓ ThreeMethodValidator imported and instantiated successfully")
+        # Create temporary output directory
+        with tempfile.TemporaryDirectory() as temp_output_dir:
+            temp_output_path = Path(temp_output_dir)
 
-        # Check that the contextual_analysis method exists and has the right signature
-        import inspect
+            # Test instantiation with temporary paths
+            validator = ThreeMethodValidator(
+                dataset_path=temp_dataset_path,
+                output_dir=temp_output_path,
+            )
 
-        # For bound methods, 'self' is already bound so it doesn't appear in signature
-        sig = inspect.signature(validator.contextual_analysis)
-        params = list(sig.parameters.keys())
+            print("✓ ThreeMethodValidator imported and instantiated successfully")
 
-        if params == ["image_bytes", "claim"]:
-            print("✓ contextual_analysis method has correct signature")
-        else:
-            print(f"✗ Unexpected signature: {params}")
-            print("Expected: ['image_bytes', 'claim'] for bound method")
-            return False
+            # Check that the contextual_analysis method exists and has the right signature
+            import inspect
+
+            # For bound methods, 'self' is already bound so it doesn't appear in signature
+            sig = inspect.signature(validator.contextual_analysis)
+            params = list(sig.parameters.keys())
+
+            if params == ["image_bytes", "claim"]:
+                print("✓ contextual_analysis method has correct signature")
+            else:
+                print(f"✗ Unexpected signature: {params}")
+                print("Expected: ['image_bytes', 'claim'] for bound method")
+                return False
 
         return True
 
@@ -86,7 +104,7 @@ def main():
         print("The pipeline now excludes reverse image search functionality.")
     else:
         print("\n❌ SOME TESTS FAILED - Please check the implementation.")
-
+        sys.exit(1)
     print("=" * 60)
 
 

@@ -2176,16 +2176,25 @@ SENTRY_DSN=xxx
 
 ### Environment Variable to Settings Mapping
 
-| Environment Variable      | Settings Attribute                 | Description                                  |
-| ------------------------- | ---------------------------------- | -------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN`      | `settings.telegram_bot_token`      | Bot authentication token from @BotFather     |
-| `TELEGRAM_WEBHOOK_SECRET` | `settings.telegram_webhook_secret` | Webhook verification secret for Telegram API |
-| `DATABASE_URL`            | `settings.database_url`            | PostgreSQL database connection string        |
-| `MEDGEMMA_HF_TOKEN`       | `settings.medgemma_hf_token`       | HuggingFace token for MedGemma access        |
-| `LLM_API_KEY`             | `settings.llm_api_key`             | API key for LLM provider (OpenRouter/Google) |
-| `SERP_API_KEY`            | `settings.serp_api_key`            | API key for search engine results            |
-| `JWT_SECRET`              | `settings.jwt_secret`              | Secret for JWT token generation              |
-| `ENCRYPTION_KEY`          | `settings.encryption_key`          | Key for data encryption                      |
+| Environment Variable      | Settings Attribute                 | Description                                  | Used In |
+| ------------------------- | ---------------------------------- | -------------------------------------------- | ------- |
+| `TELEGRAM_BOT_TOKEN`      | `settings.telegram_bot_token`      | Bot authentication token from @BotFather     | Telegram ingestion |
+| `TELEGRAM_WEBHOOK_SECRET` | `settings.telegram_webhook_secret` | Webhook verification secret for Telegram API | Telegram ingestion |
+| `DATABASE_URL`            | `settings.database_url`            | PostgreSQL database connection string        | Database connections |
+| `MEDGEMMA_HF_TOKEN`       | `settings.medgemma_hf_token`       | HuggingFace token for MedGemma access        | MedGemma client |
+| `LLM_API_KEY`             | `settings.llm_api_key`             | API key for LLM provider (OpenRouter/Google) | LLM orchestrator |
+| `SERP_API_KEY`            | `settings.serp_api_key`            | API key for search engine results            | Search services |
+| `JWT_SECRET`              | `settings.jwt_secret`              | Secret for JWT token generation              | Authentication |
+| `ENCRYPTION_KEY`          | `settings.encryption_key`          | Key for data encryption                      | Data protection |
+| `MEDGEMMA_URL`            | `settings.medgemma_url`            | URL for MedGemma service endpoint            | MedGemma client |
+| `REDIS_URL`               | `settings.redis_url`               | Redis connection URL for caching             | Caching layer |
+| `LOG_LEVEL`               | `settings.log_level`               | Logging level (DEBUG, INFO, WARNING, ERROR)  | Logging system |
+| `VERTEX_API_KEY`          | `settings.vertexai_api_key`        | API key for Google Vertex AI services (aliases: VERTEXAI_API_KEY, VERTEX_AI_API_KEY) | Vertex AI integration |
+| `APPWRITE_PROJECT_ID`     | `settings.appwrite_project_id`     | Project ID for Appwrite backend services     | Backend services |
+| `APPWRITE_ENDPOINT`       | `settings.appwrite_endpoint`       | Endpoint URL for Appwrite backend services   | Backend services |
+| `DEMO_ACCESS_CODE`        | `settings.demo_access_code`        | Access code for demo environment             | Demo access control |
+
+*Note: This table shows core settings mappings; see settings.py for complete list. Additional environment variables referenced in documentation include: TINEYE_API_KEY, IPFS_GATEWAY, S3_BUCKET, SENTRY_DSN.*
 
 ---
 

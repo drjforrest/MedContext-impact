@@ -566,7 +566,9 @@ class ContextualSignalsValidator:
             print(f"  roc_auc:          {pf_roc:.3f}")
         print()
 
-        print("--- CONTEXTUAL SIGNALS (LangGraph agent) ---")
+        print(
+            f"--- CONTEXTUAL SIGNALS ({self.agent_type} / {type(self.agent).__name__}) ---"
+        )
         print("Overall Performance (with 95% CI):")
         for metric, values in metrics["metrics_with_ci"].items():
             if values["mean"] is not None:
@@ -581,7 +583,7 @@ class ContextualSignalsValidator:
         print(f"  Pixel forensics accuracy:     {pf_acc:.3f}")
         print(f"  Contextual signals accuracy:  {ctx_acc:.3f}")
         print(
-            f"  Improvement:                  {improvement:+.3f} ({improvement/max(pf_acc, 0.001)*100:+.1f}% relative)"
+            f"  Improvement:                  {improvement:+.3f} ({improvement / max(pf_acc, 0.001) * 100:+.1f}% relative)"
         )
 
         print("\nSignal Analysis (Individual ROC AUC):")

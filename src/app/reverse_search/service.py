@@ -222,7 +222,7 @@ def get_reverse_search_results(image_id: UUID | str) -> ReverseSearchResult:
     if cached is not None:
         return cached
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     fallback_hash = _hash_text(str(resolved_image_id))
     matches = _build_matches(fallback_hash, now)
 
