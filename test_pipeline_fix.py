@@ -45,38 +45,44 @@ def test_validation_script():
         from scripts.validate_three_methods import ThreeMethodValidator
 
         # Create temporary paths for testing
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_dataset:
+        temp_dataset = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+        try:
             # Write minimal valid JSON to the temp file
             import json
             json.dump([], temp_dataset)  # Empty list as minimal valid dataset
             temp_dataset.flush()
             temp_dataset_path = Path(temp_dataset.name)
 
-        # Create temporary output directory
-        with tempfile.TemporaryDirectory() as temp_output_dir:
-            temp_output_path = Path(temp_output_dir)
+            # Create temporary output directory
+            with tempfile.TemporaryDirectory() as temp_output_dir:
+                temp_output_path = Path(temp_output_dir)
 
-            # Test instantiation with temporary paths
-            validator = ThreeMethodValidator(
-                dataset_path=temp_dataset_path,
-                output_dir=temp_output_path,
-            )
+                # Test instantiation with temporary paths
+                validator = ThreeMethodValidator(
+                    dataset_path=temp_dataset_path,
+                    output_dir=temp_output_path,
+                )
 
-            print("✓ ThreeMethodValidator imported and instantiated successfully")
+                print("✓ ThreeMethodValidator imported and instantiated successfully")
 
-            # Check that the contextual_analysis method exists and has the right signature
-            import inspect
+                # Check that the contextual_analysis method exists and has the right signature
+                import inspect
 
-            # For bound methods, 'self' is already bound so it doesn't appear in signature
-            sig = inspect.signature(validator.contextual_analysis)
-            params = list(sig.parameters.keys())
+                # For bound methods, 'self' is already bound so it doesn't appear in signature
+                sig = inspect.signature(validator.contextual_analysis)
+                params = list(sig.parameters.keys())
 
-            if params == ["image_bytes", "claim"]:
-                print("✓ contextual_analysis method has correct signature")
-            else:
-                print(f"✗ Unexpected signature: {params}")
-                print("Expected: ['image_bytes', 'claim'] for bound method")
-                return False
+                if params == ["image_bytes", "claim"]:
+                    print("✓ contextual_analysis method has correct signature")
+                else:
+                    print(f"✗ Unexpected signature: {params}")
+                    print("Expected: ['image_bytes', 'claim'] for bound method")
+                    return False
+
+        finally:
+            # Clean up the temporary file
+            temp_dataset.close()
+            Path(temp_dataset.name).unlink(missing_ok=True)
 
         return True
 
