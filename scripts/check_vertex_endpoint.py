@@ -27,7 +27,7 @@ def main():
         # Get the endpoint
         endpoint = aiplatform.Endpoint(endpoint_name)
 
-        print(f"\nTarget endpoint found!")
+        print("\nTarget endpoint found!")
         print(f"Display name: {endpoint.display_name}")
         print(f"Resource name: {endpoint.resource_name}")
 
@@ -43,9 +43,9 @@ def main():
         # Ask for confirmation to undeploy
         response = input("\nDo you want to undeploy this endpoint? (y/N): ")
         if response.lower() == "y":
-            print("Undeploying endpoint...")
+            print("Undeploying all models from endpoint...")
             endpoint.undeploy_all()
-            print("Undeployment initiated. The endpoint will be deleted.")
+            print("Undeployment initiated. Models will be removed from the endpoint.")
         else:
             print("Undeployment cancelled.")
 

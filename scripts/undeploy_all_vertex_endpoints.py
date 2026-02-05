@@ -29,6 +29,13 @@ def main():
 
     print("\nUndeploying all endpoints...")
 
+    confirm = input(
+        f"Are you sure you want to undeploy all {len(endpoints_list)} endpoint(s)? (yes/no): "
+    )
+    if confirm.lower() != "yes":
+        print("Operation cancelled.")
+        return
+
     for endpoint in endpoints_list:
         print(f"\nUndeploying endpoint: {endpoint.display_name}")
         print(f"Resource name: {endpoint.resource_name}")
@@ -42,7 +49,6 @@ def main():
         else:
             print("No deployed models found")
 
-        # Undeploy the endpoint
         try:
             endpoint.undeploy_all()
             print("Undeployment initiated.")

@@ -114,11 +114,13 @@ docker-compose logs -f frontend
 The Docker setup includes:
 
 1. **PostgreSQL Database (port 5432)**
+
    - Persistent storage with named volume
    - Automatic health checks
    - Pre-configured with migrations
 
 2. **FastAPI Backend (port 8000)**
+
    - Runs database migrations automatically on startup
    - Hot-reload enabled for development
    - Health check endpoint at `/health`

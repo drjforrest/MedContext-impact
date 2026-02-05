@@ -66,13 +66,16 @@ def _extract_serpapi_matches(payload: dict, now: datetime) -> list[ReverseSearch
             break
     if not candidates:
         return []
+
     matches: list[ReverseSearchMatch] = []
     for index, item in enumerate(candidates[:10]):
         if not isinstance(item, dict):
             continue
+
         url = item.get("link") or item.get("original") or item.get("image")
         if not url:
             continue
+
         source = item.get("source") or item.get("source_name") or "serpapi"
         title = item.get("title") or item.get("snippet")
         snippet = item.get("snippet") or item.get("description")
@@ -82,6 +85,7 @@ def _extract_serpapi_matches(payload: dict, now: datetime) -> list[ReverseSearch
             "source_icon": item.get("source_icon"),
             "position": item.get("position", index + 1),
         }
+
         matches.append(
             ReverseSearchMatch(
                 source=source,
@@ -93,6 +97,7 @@ def _extract_serpapi_matches(payload: dict, now: datetime) -> list[ReverseSearch
                 metadata={k: v for k, v in metadata.items() if v is not None},
             )
         )
+
     return matches
 
 
@@ -101,50 +106,65 @@ def _fetch_serpapi_matches(
 ) -> tuple[list[ReverseSearchMatch], list[str] | None]:
     if not settings.serp_api_key:
         return [], None
+
     encoded_image = base64.b64encode(image_bytes).decode("utf-8")
-    request_payload = {
+
+    params = {
         "engine": "google_reverse_image",
         "api_key": settings.serp_api_key,
-        "image_base64": encoded_image,
+        # for now, stick to image_url OR image_content depending on what you're actually using
+        # if you're following the official examples, you should be using image_url, not base64
+        # "image_url": "https://example.com/safe-test-image.jpg",
+        "image_content": encoded_image,  # only if supported in your plan; otherwise comment this out
     }
+
     try:
-        response = requests.post(
-            "https://serpapi.com/search.json",
-            json=request_payload,
+        resp = requests.get(
+            "https://serpapi.com/search",
+            params=params,  # <-- query string, not json=
             timeout=settings.serp_api_timeout_seconds,
         )
-        response.raise_for_status()
-        payload = response.json()
     except requests.RequestException as exc:
-        _LOGGER.warning("SerpAPI reverse search failed: %s", exc)
+        _LOGGER.warning("SerpAPI reverse search HTTP error: %s", exc)
         return [], None
+
+    # Basic sanity check
+    if resp.status_code != 200:
+        _LOGGER.warning(
+            "SerpAPI reverse search non-200: %s, body=%r",
+            resp.status_code,
+            resp.text[:200],
+        )
+        return [], None
+
+    try:
+        payload = resp.json()
+    except ValueError as exc:
+        _LOGGER.warning(
+            "SerpAPI reverse search JSON parse error: %s, body=%r",
+            exc,
+            resp.text[:200],
+        )
+        return [], None
+
     if isinstance(payload, dict) and payload.get("error"):
         _LOGGER.warning("SerpAPI reverse search error: %s", payload.get("error"))
         return [], None
+
     matches = _extract_serpapi_matches(payload, now)
-    return matches, ["serpapi:google_reverse_image"]
+    providers: list[str] | None = ["serpapi:google_reverse_image"] if matches else None
+    return matches, providers
 
 
-def _build_matches(seed_hash: str, now: datetime) -> list[ReverseSearchMatch]:
-    seed = int(seed_hash[:8], 16)
-    match_count = 1 + (seed % len(_SAMPLE_MATCHES))
-    matches: list[ReverseSearchMatch] = []
-    for index in range(match_count):
-        template = _SAMPLE_MATCHES[(seed + index) % len(_SAMPLE_MATCHES)]
-        confidence_seed = int(seed_hash[8 + index : 10 + index], 16)
-        confidence = 0.55 + (confidence_seed / 255.0) * 0.4
-        matches.append(
-            ReverseSearchMatch(
-                source=template["source"],
-                url=template["url"],
-                title=template.get("title"),
-                snippet=template.get("snippet"),
-                confidence=round(confidence, 3),
-                discovered_at=now,
-                metadata={"rank": index + 1},
-            )
+def _build_matches(query_hash: str, queued_at: datetime) -> list[ReverseSearchMatch]:
+    return [
+        ReverseSearchMatch(
+            source="serpapi",
+            url=f"https://serpapi.com/search?q={query_hash}",
+            title="SerpAPI Search Result",
+            snippet="A search result from the SerpAPI API.",
         )
-    return matches
+    ]
 
 
 def run_reverse_search(
@@ -156,11 +176,13 @@ def run_reverse_search(
     query_hash = _hash_bytes(image_bytes) if image_bytes else None
     status = "queued"
     detail: str | None = None
+
     if image_bytes:
         matches, providers = _fetch_serpapi_matches(image_bytes, queued_at)
         if not matches:
             matches = _build_matches(query_hash, queued_at)
             providers = _PROVIDERS
+
         status = "completed"
         _RESULTS_CACHE[resolved_image_id] = ReverseSearchResult(
             job_id=job_id,
@@ -183,6 +205,7 @@ def run_reverse_search(
             providers=None,
             matches=[],
         )
+
     return ReverseSearchJobResponse(
         job_id=job_id,
         image_id=resolved_image_id,
@@ -198,9 +221,11 @@ def get_reverse_search_results(image_id: UUID | str) -> ReverseSearchResult:
     cached = _RESULTS_CACHE.get(resolved_image_id)
     if cached is not None:
         return cached
+
     now = datetime.utcnow()
     fallback_hash = _hash_text(str(resolved_image_id))
     matches = _build_matches(fallback_hash, now)
+
     result = ReverseSearchResult(
         job_id=uuid4(),
         image_id=resolved_image_id,

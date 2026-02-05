@@ -142,6 +142,11 @@ class SubmissionContext(Base):
     created_at: DateTime = Column(DateTime, default=datetime.utcnow)
 
     image = relationship("ImageSubmission", back_populates="submissions_context")
+
+# Schema Evolution Note:
+# - Pre-migration: source_whatsapp_group column existed
+# - Transition period: Both source_whatsapp_group and source_telegram_chat columns exist
+# - Final state: Only source_telegram_chat column remains (source_whatsapp_group dropped)
 ```
 
 ### Migration Guide: WhatsApp to Telegram
@@ -212,6 +217,9 @@ def upgrade():
     # COMMENTED OUT FOR COMPATIBILITY PERIOD - Uncomment after 30 days
     # op.drop_column('submission_contexts', 'source_whatsapp_group')
 
+    # Follow-up migration: After 30-day compatibility window, run:
+    # alembic/versions/xxxx_drop_whatsapp_column.py to complete the migration
+
 def downgrade():
     # Reverse migration: restore WhatsApp column
     op.add_column('submission_contexts',
@@ -250,6 +258,9 @@ FROM submission_contexts;
 
 -- Phase 4: Drop old column (WAIT 30 DAYS - see compatibility period)
 -- ALTER TABLE submission_contexts DROP COLUMN source_whatsapp_group;
+
+-- Follow-up migration: After 30-day compatibility window, run the automated
+-- Alembic migration to drop the source_whatsapp_group column
 ```
 
 **Column Handling Notes:**
@@ -593,7 +604,7 @@ async def handle_telegram_webhook(request: TelegramWebhookRequest, db: Session =
     **Authentication & Webhook Setup:**
 
     1. **Bot Token:** Obtain from @BotFather on Telegram
-       - Set as `TELEGRAM_BOT_TOKEN` environment variable
+       - Set as `TELEGRAM_BOT_TOKEN` environment variable (maps to `settings.telegram_bot_token`)
        - Used for all API calls: `https://api.telegram.org/bot<TOKEN>/method`
 
     2. **Webhook Registration:**
@@ -609,6 +620,7 @@ async def handle_telegram_webhook(request: TelegramWebhookRequest, db: Session =
 
     3. **Secret Token Verification (RECOMMENDED):**
        - Generate a random secret token (32+ chars)
+       - Set as `TELEGRAM_WEBHOOK_SECRET` environment variable (maps to `settings.telegram_webhook_secret`)
        - Telegram includes it in `X-Telegram-Bot-Api-Secret-Token` header
        - Verify on every webhook request:
        ```python
@@ -2139,7 +2151,8 @@ DATABASE_URL=postgresql://user:password@localhost:5432/medcontext
 # APIs
 TINEYE_API_KEY=xxx
 GOOGLE_VISION_API_KEY=xxx
-TELEGRAM_BOT_API_KEY=xxx
+TELEGRAM_BOT_TOKEN=xxx
+TELEGRAM_WEBHOOK_SECRET=xxx
 
 # MedGemma
 MEDGEMMA_URL=http://localhost:8001
@@ -2160,6 +2173,19 @@ ENCRYPTION_KEY=xxx
 LOG_LEVEL=INFO
 SENTRY_DSN=xxx
 ```
+
+### Environment Variable to Settings Mapping
+
+| Environment Variable      | Settings Attribute                 | Description                                  |
+| ------------------------- | ---------------------------------- | -------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN`      | `settings.telegram_bot_token`      | Bot authentication token from @BotFather     |
+| `TELEGRAM_WEBHOOK_SECRET` | `settings.telegram_webhook_secret` | Webhook verification secret for Telegram API |
+| `DATABASE_URL`            | `settings.database_url`            | PostgreSQL database connection string        |
+| `MEDGEMMA_HF_TOKEN`       | `settings.medgemma_hf_token`       | HuggingFace token for MedGemma access        |
+| `LLM_API_KEY`             | `settings.llm_api_key`             | API key for LLM provider (OpenRouter/Google) |
+| `SERP_API_KEY`            | `settings.serp_api_key`            | API key for search engine results            |
+| `JWT_SECRET`              | `settings.jwt_secret`              | Secret for JWT token generation              |
+| `ENCRYPTION_KEY`          | `settings.encryption_key`          | Key for data encryption                      |
 
 ---
 

@@ -21,7 +21,7 @@
 
    ```bash
    # Create your dataset CSV in data/
-   # Columns: image_filename, claim, alignment, plausibility, is_misinformation, notes
+   # Columns: image_filename, claim, alignment, plausibility, is_misinformation, notes (optional metadata)
    # See scripts/prepare_contextual_validation_dataset.py for format details
    ```
 
@@ -86,7 +86,19 @@ MEDGEMMA_PROVIDER=vertex
 MEDGEMMA_VERTEX_PROJECT=your-gcp-project
 MEDGEMMA_VERTEX_LOCATION=us-central1
 MEDGEMMA_VERTEX_ENDPOINT=your-endpoint-id
+
+# Optional: Fallback provider for automatic failover
+MEDGEMMA_FALLBACK_PROVIDER=local
 ```
+
+**MEDGEMMA_FALLBACK_PROVIDER Configuration:**
+
+- **Purpose**: Automatically switches to a backup provider when the primary provider fails
+- **Allowed values**: `huggingface`, `local`, `vllm`, `vertex` (must be different from primary provider)
+- **Default**: `local` (runs MedGemma locally if available)
+- **Example**: `export MEDGEMMA_FALLBACK_PROVIDER=local` or add to `.env` file
+
+When the primary provider (MEDGEMMA_PROVIDER) encounters an error, the system will automatically retry using the fallback provider, ensuring validation continues even if one provider is unavailable.
 
 ---
 
@@ -203,9 +215,9 @@ validation_results/my_dataset_v1/
    - Consider adjusting weights based on available signals.
 
 3. **Refine Prompts:**
-   - Triage prompt in `src/app/orchestrator/agent.py` (line 76)
-   - Synthesis prompt (line 135)
-   - Alignment system message (line 110)
+   - Triage prompt in `src/app/orchestrator/agent.py` (search for "triage" in agent initialization)
+   - Synthesis prompt
+   - Alignment system message
 
 ### If Performance Exceeds Target (>85% accuracy):
 
@@ -232,12 +244,12 @@ Congratulations! Your contextual signals are working well. Consider:
 
 ## Comparison to Pixel Forensics
 
-| Approach                        | Accuracy | ROC AUC   | Threat Coverage                           |
-| ------------------------------- | -------- | --------- | ----------------------------------------- |
-| Pixel Forensics (UCI Tamper)    | 49.9%    | 0.533     | 20% (manipulated images)                  |
-| **Contextual Signals** (target) | **75%+** | **0.80+** | 87% (authentic images with false context) |
+| Approach                        | Accuracy | ROC AUC   | Threat Coverage                                       |
+| ------------------------------- | -------- | --------- | ----------------------------------------------------- |
+| Pixel Forensics (UCI Tamper)    | 49.9%    | 0.533     | 20% (manipulated images)                              |
+| **Contextual Signals** (target) | **75%+** | **0.80+** | Dominant threat (authentic images with false context) |
 
-Contextual signals address the dominant threat in medical misinformation.
+Contextual signals address the dominant threat in medical misinformation: authentic images weaponized through false contextual claims (Brennen et al., 2020).
 
 ---
 
@@ -331,8 +343,8 @@ df.to_csv("validation_results/my_dataset_v1/predictions.csv", index=False)
 For questions or issues:
 
 1. Check `docs/CONTEXTUAL_SIGNALS_VALIDATION.md` for detailed methodology
-2. Review validator code: `scripts/validate_contextual_signals.py` for dataset format details
-3. See `scripts/prepare_contextual_validation_dataset.py` for sample dataset format
+2. See `scripts/prepare_contextual_validation_dataset.py` for dataset format details and sample templates
+3. Review validator code: `scripts/validate_contextual_signals.py` for validation logic and requirements
 
 ---
 

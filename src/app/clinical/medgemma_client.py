@@ -428,27 +428,35 @@ class MedGemmaClient:
 
         cleaned = content.strip()
         cleaned = cleaned.lstrip("|").strip()
-        
+
         # Remove leading "JSON" markers that models sometimes add
         cleaned = re.sub(r"^JSON\s*\n+", "", cleaned, flags=re.IGNORECASE)
-        
+
         # Remove <unused*> tags and thought markers
         cleaned = re.sub(r"<unused\d+>", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(r"^thought\s*:?\s*", "", cleaned, flags=re.IGNORECASE | re.MULTILINE)
-        cleaned = re.sub(r"^tool_name\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE)
-        cleaned = re.sub(r"^tool_code\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE)
-        
+        cleaned = re.sub(
+            r"^thought\s*:?\s*", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
+        )
+        cleaned = re.sub(
+            r"^tool_name\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
+        )
+        cleaned = re.sub(
+            r"^tool_code\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
+        )
+
         # Try to extract JSON from markdown code fences - this is critical
-        json_fence = re.search(r'```json\s*(.*?)```', cleaned, flags=re.DOTALL | re.IGNORECASE)
+        json_fence = re.search(
+            r"```json\s*(.*?)```", cleaned, flags=re.DOTALL | re.IGNORECASE
+        )
         if json_fence:
             return json_fence.group(1).strip()
-        
+
         # Try any code fence
-        any_fence = re.search(r'```\s*(.*?)```', cleaned, flags=re.DOTALL)
+        any_fence = re.search(r"```\s*(.*?)```", cleaned, flags=re.DOTALL)
         if any_fence:
             potential = any_fence.group(1).strip()
             # If it looks like JSON, use it
-            if potential.startswith('{'):
+            if potential.startswith("{"):
                 return potential
 
         # If content has reasoning before JSON, extract just the JSON part
@@ -522,7 +530,9 @@ class MedGemmaClient:
             return direct
 
         # Try to extract from markdown code fences (```json...```)
-        fenced = re.search(r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE)
+        fenced = re.search(
+            r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE
+        )
         if fenced:
             candidate = fenced.group(1).strip()
             loaded = _try_load(candidate)

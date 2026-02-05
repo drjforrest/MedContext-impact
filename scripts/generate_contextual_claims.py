@@ -49,10 +49,10 @@ def generate_claims_for_image(
 ) -> list[dict[str, Any]]:
     """Generate truthful and false claims for an image.
 
-    Returns 3 variants:
-    - 1 aligned (truthful)
-    - 1 misaligned (false/exaggerated)
-    - 1 partially aligned (vague/misleading)
+    Returns 3 variants per image type:
+    - 1 aligned (truthful description)
+    - 1 misaligned (false/exaggerated claim)
+    - 1 partially_aligned (vague or unverifiable claim)
     """
 
     claims = []
@@ -100,11 +100,11 @@ def generate_claims_for_image(
                 "notes": "Debunked anti-vaccine claim on real MRI",
             },
             {
-                "claim": "Evidence of neurological damage from 5G radiation",
-                "alignment": "misaligned",
-                "plausibility": "low",
-                "is_misinformation": True,
-                "notes": "False conspiracy theory applied to authentic scan",
+                "claim": "Possible white matter changes visible on scan",
+                "alignment": "partially_aligned",
+                "plausibility": "medium",
+                "is_misinformation": False,
+                "notes": "Vague finding that may or may not be present",
             },
         ]
 
@@ -149,6 +149,13 @@ def generate_claims_for_image(
                 "is_misinformation": True,
                 "notes": "Exaggerated extraordinary claim",
             },
+            {
+                "claim": "Possible abnormality detected in soft tissue",
+                "alignment": "partially_aligned",
+                "plausibility": "medium",
+                "is_misinformation": False,
+                "notes": "Vague finding without specific diagnosis",
+            },
         ]
 
     else:  # Generic medical
@@ -166,6 +173,13 @@ def generate_claims_for_image(
                 "plausibility": "low",
                 "is_misinformation": True,
                 "notes": "Conspiracy theory misapplied to medical image",
+            },
+            {
+                "claim": "Scan may show signs of chronic condition",
+                "alignment": "partially_aligned",
+                "plausibility": "medium",
+                "is_misinformation": False,
+                "notes": "Vague claim that could apply to many images",
             },
         ]
 

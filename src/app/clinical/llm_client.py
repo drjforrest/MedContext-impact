@@ -329,11 +329,17 @@ class LlmClient:
             return json_fence.group(1).strip()
 
         # Try any code fence
-        any_fence = re.search(r"```\s*(.*?)```", cleaned, flags=re.DOTALL)
+        any_fence = re.search(r"```\s*(.*?)```", content, flags=re.DOTALL)
         if any_fence:
-            potential = any_fence.group(1).strip()
-            if potential.startswith("{"):
-                return potential
+            candidate = any_fence.group(1).strip()
+            # Try to parse the candidate as JSON
+            try:
+                import json
+
+                json.loads(candidate)
+                return candidate
+            except json.JSONDecodeError:
+                pass
 
         # If content has reasoning before JSON, try to extract just the JSON part
         # by finding the first { and using bracket matching
@@ -421,15 +427,6 @@ class LlmClient:
         bracket_extracted = self._extract_json_by_brackets(content)
         if bracket_extracted:
             loaded = _try_load(bracket_extracted)
-            if loaded is not None:
-                return loaded
-
-        # Try to find outermost JSON object with simple regex as fallback
-        for match in re.finditer(
-            r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", content, flags=re.DOTALL
-        ):
-            candidate = match.group(0).strip()
-            loaded = _try_load(candidate)
             if loaded is not None:
                 return loaded
 

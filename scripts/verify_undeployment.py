@@ -26,7 +26,7 @@ def main():
     try:
         # Try to get the endpoint
         endpoint = aiplatform.Endpoint(endpoint_name)
-        print(f"Endpoint still exists!")
+        print("Endpoint still exists!")
         print(f"Display name: {endpoint.display_name}")
         print(f"Resource name: {endpoint.resource_name}")
 
@@ -42,17 +42,6 @@ def main():
     except Exception as e:
         print(f"Endpoint not found: {e}")
         print("This indicates the endpoint has been successfully undeployed.")
-
-    print("\nListing all available endpoints in this project:")
-
-    # List all endpoints
-    endpoints_list = aiplatform.Endpoint.list()
-    if endpoints_list:
-        print("Remaining endpoints:")
-        for ep in endpoints_list:
-            print(f"- {ep.display_name}: {ep.resource_name}")
-    else:
-        print("No endpoints found in this project.")
 
 
 if __name__ == "__main__":

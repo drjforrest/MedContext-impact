@@ -45,7 +45,7 @@ for ep in all_endpoints:
         # Undeploy the endpoint
         print("Undeploying endpoint...")
         ep.undeploy_all()
-        print("Undeployment initiated. The endpoint will be deleted.")
+        print("Undeployment initiated. Models removed from endpoint (endpoint resource still exists).")
         break
 
 if not endpoint_found:

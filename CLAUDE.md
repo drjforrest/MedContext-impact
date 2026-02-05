@@ -289,27 +289,27 @@ Validated on UCI Tamper Detection dataset. Result: 49.9% accuracy (chance perfor
 
 See `docs/VALIDATION.md` for full results.
 
-**Contextual Signals Validation (✅ Complete - Feb 2, 2026):**
+**Contextual Signals Validation (⏳ Pending Re-run):**
 
-Validated on 90 image-claim pairs from BTD medical imaging dataset using corrected 60/15/15/10 weight distribution.
+Previous v1 results (65.8% accuracy) had two methodology issues:
+1. **Wrong agent:** Used deterministic `MedContextAgent` instead of `MedContextLangGraphAgent`
+2. **Invalid baseline comparison:** Compared against pixel forensics on a different dataset (UCI vs BTD)
 
-**Results:**
+**v2.0 Methodology Fix (Feb 4, 2026):**
+- Script now includes inline pixel forensics baseline (ELA) on the same 90 image-claim pairs
+- Both methods evaluated on identical BTD dataset for valid head-to-head comparison
+- Switched to LangGraph agent for contextual signals evaluation
 
-- **Accuracy: 65.8%** [95% CI: 55.6% - 75.6%] - Significantly above random (50%)
-- **ROC AUC: 0.728** - Good discrimination between aligned and misaligned claims
-- **Recall: 93.3%** - Catches vast majority of aligned cases
-- **Precision: 49.1%** - Room for improvement in reducing false positives
+**Preliminary Finding:** ELA predicts MANIPULATED for all 30 unique BTD MRI images (ELA std 24-33, far above 0.74 threshold). Medical imaging naturally has high ELA variance, making pixel forensics a degenerate predictor for this domain.
 
-**Signal Performance:**
+**To re-run validation:**
+```bash
+uv run python scripts/validate_contextual_signals.py \
+  --dataset data/contextual_validation_v1.json \
+  --output-dir validation_results/contextual_signals_v2_langgraph
+```
 
-- ✅ Alignment: ROC AUC 0.740, 100% coverage (60% weight)
-- ✅ Plausibility: ROC AUC 0.613, 83.3% coverage (15% weight)
-- ⚠️ Genealogy: 0% coverage, contributes 0.0 (15% weight)
-- ⚠️ Source Reputation: 0% coverage, contributes 0.0 (10% weight)
-
-**Key Finding:** Contextual signals (65.8%) beat pixel forensics (49.9%) by +15.9 percentage points (+31.9% relative improvement).
-
-See `docs/VALIDATION.md` for detailed methodology and `validation_results/contextual_pilot_v1_corrected/` for full report.
+See `docs/VALIDATION.md` for detailed methodology.
 
 **Test Structure:**
 

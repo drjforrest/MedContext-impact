@@ -27,7 +27,7 @@ def main():
         # Get the endpoint
         endpoint = aiplatform.Endpoint(endpoint_name)
 
-        print(f"\nTarget endpoint found!")
+        print("\nTarget endpoint found!")
         print(f"Display name: {endpoint.display_name}")
         print(f"Resource name: {endpoint.resource_name}")
 
@@ -43,7 +43,9 @@ def main():
         # Automatically undeploy the endpoint
         print("\nUndeploying endpoint...")
         endpoint.undeploy_all()
-        print("Undeployment initiated. The endpoint will be deleted.")
+        print(
+            "Undeployment initiated. All models will be undeployed from the endpoint."
+        )
 
     except Exception as e:
         print(f"Error accessing endpoint: {e}")

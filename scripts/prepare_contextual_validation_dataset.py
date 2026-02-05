@@ -19,6 +19,46 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
+VALID_ALIGNMENTS = {"aligned", "misaligned", "partially_aligned", "unclear"}
+VALID_PLAUSIBILITIES = {"high", "medium", "low"}
+
+
+def _normalize_ground_truth(
+    ground_truth: Dict[str, Any], source_label: str
+) -> Dict[str, Any]:
+    """Normalize and validate ground_truth fields.
+
+    Ensures alignment and plausibility have valid values, logging warnings
+    and defaulting when invalid.
+    """
+    alignment = ground_truth.get("alignment", "unclear")
+    if isinstance(alignment, str):
+        alignment = alignment.strip().lower()
+    if alignment not in VALID_ALIGNMENTS:
+        print(
+            f"Warning: Invalid alignment label '{alignment}' "
+            f"for {source_label}. Setting to 'unclear'."
+        )
+        alignment = "unclear"
+    ground_truth["alignment"] = alignment
+
+    plausibility = ground_truth.get("plausibility", "medium")
+    if isinstance(plausibility, str):
+        plausibility = plausibility.strip().lower()
+    if plausibility not in VALID_PLAUSIBILITIES:
+        print(
+            f"Warning: Invalid plausibility label '{plausibility}' "
+            f"for {source_label}. Setting to 'medium'."
+        )
+        plausibility = "medium"
+    ground_truth["plausibility"] = plausibility
+
+    if "is_misinformation" not in ground_truth:
+        ground_truth["is_misinformation"] = False
+
+    return ground_truth
+
+
 def load_csv_dataset(csv_path: Path, image_dir: Path) -> List[Dict[str, Any]]:
     """Load dataset from CSV file.
 
@@ -63,31 +103,9 @@ def load_csv_dataset(csv_path: Path, image_dir: Path) -> List[Dict[str, Any]]:
                 },
             }
 
-            # Validate alignment label
-            if item["ground_truth"]["alignment"] not in [
-                "aligned",
-                "misaligned",
-                "partially_aligned",
-                "unclear",
-            ]:
-                print(
-                    f"Warning: Invalid alignment label '{item['ground_truth']['alignment']}' "
-                    f"for {image_filename}. Setting to 'unclear'."
-                )
-                item["ground_truth"]["alignment"] = "unclear"
-
-            # Validate plausibility label
-            if item["ground_truth"]["plausibility"] not in [
-                "high",
-                "medium",
-                "low",
-            ]:
-                print(
-                    f"Warning: Invalid plausibility label '{item['ground_truth']['plausibility']}' "
-                    f"for {image_filename}. Setting to 'medium'."
-                )
-                item["ground_truth"]["plausibility"] = "medium"
-
+            item["ground_truth"] = _normalize_ground_truth(
+                item["ground_truth"], image_filename
+            )
             dataset.append(item)
 
     return dataset
@@ -133,6 +151,10 @@ def load_jsonl_dataset(jsonl_path: Path) -> List[Dict[str, Any]]:
                     "is_misinformation": False,
                 }
 
+            source_label = item.get("image_path", f"line {line_num}")
+            item["ground_truth"] = _normalize_ground_truth(
+                item["ground_truth"], source_label
+            )
             dataset.append(item)
 
     return dataset

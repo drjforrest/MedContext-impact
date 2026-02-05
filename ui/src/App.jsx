@@ -13,6 +13,39 @@ import {
 import './App.css'
 import ValidationStory from './ValidationStory'
 
+function renderTriIcon(status, cx, cy) {
+  if (status === 'pass') {
+    return (
+      <path
+        d={`M${cx - 12},${cy + 1} L${cx - 3},${cy + 10} L${cx + 14},${cy - 9}`}
+        stroke="#fff"
+        strokeWidth="5"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    )
+  }
+  if (status === 'fail') {
+    return (
+      <g>
+        <line x1={cx - 10} y1={cy - 10} x2={cx + 10} y2={cy + 10} stroke="#fff" strokeWidth="5" strokeLinecap="round" />
+        <line x1={cx + 10} y1={cy - 10} x2={cx - 10} y2={cy + 10} stroke="#fff" strokeWidth="5" strokeLinecap="round" />
+      </g>
+    )
+  }
+  if (status === 'partial') {
+    return (
+      <g>
+        <line x1={cx - 10} y1={cy} x2={cx + 10} y2={cy} stroke="#fff" strokeWidth="5" strokeLinecap="round" />
+      </g>
+    )
+  }
+  return (
+    <text x={cx} y={cy + 7} textAnchor="middle" fill="#fff" fontSize="24" fontWeight="700">?</text>
+  )
+}
+
 const defaultApiBase =
   import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 const defaultReversePollIntervalMs = 1500
@@ -360,15 +393,6 @@ function App() {
     }),
     [forensicsData, orchestratorReverseSearch, provenanceData],
   )
-  const moduleActivity = useMemo(
-    () => ({
-      triage: Boolean(result?.triage) || status === 'loading',
-      reverse_search: toolActivity.reverse_search,
-      forensics: toolActivity.forensics,
-      provenance: toolActivity.provenance,
-    }),
-    [result?.triage, status, toolActivity],
-  )
   const agentStepStates = useMemo(() => {
     const hasAnyToolActivity = Object.values(toolActivity).some(Boolean)
     return agentSteps.map((step, index) => {
@@ -445,6 +469,35 @@ function App() {
         fill: palette[key] || '#5b8def',
       }))
   }, [integritySignals])
+  const claimVeracity = useMemo(() => {
+    const veracity =
+      part2?.claim_veracity || contextualIntegrity?.claim_veracity || null
+    if (!veracity || typeof veracity !== 'object') {
+      return null
+    }
+    const accuracy = typeof veracity.factual_accuracy === 'string'
+      ? veracity.factual_accuracy.toLowerCase()
+      : null
+    const toneMap = {
+      accurate: 'high',
+      partially_accurate: 'medium',
+      inaccurate: 'low',
+      unverifiable: 'neutral',
+    }
+    const labelMap = {
+      accurate: 'Claim is factually accurate',
+      partially_accurate: 'Claim is partially accurate',
+      inaccurate: 'Claim is factually inaccurate',
+      unverifiable: 'Claim veracity could not be determined',
+    }
+    return {
+      accuracy,
+      tone: toneMap[accuracy] || 'neutral',
+      label: labelMap[accuracy] || 'Claim veracity unknown',
+      evidenceBasis: veracity.evidence_basis || null,
+      publicHealthContext: veracity.public_health_context || null,
+    }
+  }, [part2?.claim_veracity, contextualIntegrity?.claim_veracity])
   const alignmentScore = useMemo(() => {
     const alignment =
       typeof part2?.alignment === 'string' ? part2.alignment : ''
@@ -452,38 +505,37 @@ function App() {
     if (alignmentKey === 'aligned') {
       return {
         score: 3,
-        label: 'The claim matches the image provided.',
+        label: 'The image-claim pair is contextually appropriate.',
         tone: 'high',
       }
     }
     if (alignmentKey === 'partially_aligned') {
       return {
         score: 2,
-        label: 'Some parts of the claim may relate to the image provided.',
+        label: 'The image is consistent with the claim, but specific causation is unverifiable.',
         tone: 'medium',
       }
     }
     if (alignmentKey === 'misaligned') {
       return {
         score: 1,
-        label: 'The claim has little to no relation to the image provided.',
+        label: 'The claim contradicts or is unrelated to the image.',
         tone: 'low',
       }
     }
     const verdict = typeof part2?.verdict === 'string' ? part2.verdict : ''
     const verdictLower = verdict.toLowerCase()
-    // Check partial/mixed first to avoid "partially false" matching "false"
     if (verdictLower.includes('partial') || verdictLower.includes('mixed')) {
       return {
         score: 2,
-        label: 'Some parts of the claim may relate to the image provided.',
+        label: 'The image is consistent with the claim, but specific causation is unverifiable.',
         tone: 'medium',
       }
     }
     if (verdictLower.includes('misinformation') || verdictLower.includes('false')) {
       return {
         score: 1,
-        label: 'The claim has little to no relation to the image provided.',
+        label: 'The claim contradicts or is unrelated to the image.',
         tone: 'low',
       }
     }
@@ -494,7 +546,7 @@ function App() {
     ) {
       return {
         score: 3,
-        label: 'The claim matches the image provided.',
+        label: 'The image-claim pair is contextually appropriate.',
         tone: 'high',
       }
     }
@@ -504,10 +556,18 @@ function App() {
     const items = []
     if (part2?.alignment) {
       items.push({
-        label: 'Alignment signal',
+        label: 'Image-claim alignment',
         value: part2.alignment,
         detail: alignmentScore.label,
         tone: alignmentScore.tone,
+      })
+    }
+    if (claimVeracity?.accuracy) {
+      items.push({
+        label: 'Claim veracity',
+        value: claimVeracity.accuracy.replace('_', ' '),
+        detail: claimVeracity.evidenceBasis || claimVeracity.label,
+        tone: claimVeracity.tone,
       })
     }
     if (integrityScorePercent !== null) {
@@ -550,6 +610,7 @@ function App() {
   }, [
     alignmentScore.label,
     alignmentScore.tone,
+    claimVeracity,
     forensicsData,
     integrityScorePercent,
     integrityScoreTone,
@@ -557,14 +618,135 @@ function App() {
     part2?.alignment,
     provenanceData,
   ])
+  const assessmentQuadrant = useMemo(() => {
+    if (!part2?.alignment && !claimVeracity) return null
+    const alignmentKey = (part2?.alignment || '').toLowerCase().replace(/[\s-]+/g, '_')
+    const isAligned = alignmentKey === 'aligned' || alignmentKey === 'partially_aligned'
+    const accuracy = claimVeracity?.accuracy || ''
+    const isAccurate = accuracy === 'accurate' || accuracy === 'partially_accurate'
+    const hasVeracity = Boolean(accuracy)
+    if (isAligned && isAccurate) {
+      return {
+        quadrant: 'aligned-accurate',
+        title: 'Verified context',
+        description: 'The claim is factually sound and the image supports it.',
+        tone: 'high',
+      }
+    }
+    if (isAligned && !isAccurate) {
+      return {
+        quadrant: 'aligned-inaccurate',
+        title: hasVeracity ? 'Image supports false claim' : 'Alignment only',
+        description: hasVeracity
+          ? 'The image matches the claim, but the claim itself is factually wrong. This is potentially dangerous misinformation.'
+          : 'Image aligns with the claim. Claim veracity was not assessed.',
+        tone: hasVeracity ? 'danger' : 'medium',
+      }
+    }
+    if (!isAligned && isAccurate) {
+      return {
+        quadrant: 'misaligned-accurate',
+        title: 'True claim, wrong image',
+        description: 'The claim is factually accurate, but this image does not support or illustrate it.',
+        tone: 'medium',
+      }
+    }
+    if (!isAligned && !isAccurate && hasVeracity) {
+      return {
+        quadrant: 'misaligned-inaccurate',
+        title: 'False claim, wrong image',
+        description: 'The claim is factually wrong and the image does not support it.',
+        tone: 'low',
+      }
+    }
+    return {
+      quadrant: 'unknown',
+      title: 'Assessment incomplete',
+      description: 'Alignment or veracity could not be fully determined.',
+      tone: 'neutral',
+    }
+  }, [claimVeracity, part2?.alignment])
+  const triangleSignals = useMemo(() => {
+    const getForensicsStatus = () => {
+      if (!forensicsData) return 'unchecked'
+      if (forensicsData.results) {
+        const layers = Object.values(forensicsData.results)
+        if (layers.some(l => l.verdict === 'MANIPULATED')) return 'fail'
+        if (layers.some(l => l.verdict === 'AUTHENTIC')) return 'pass'
+      }
+      return 'unchecked'
+    }
+
+    const getVeracityStatus = () => {
+      if (!claimVeracity) return 'unchecked'
+      if (claimVeracity.tone === 'high') return 'pass'
+      if (claimVeracity.tone === 'medium') return 'partial'
+      if (claimVeracity.tone === 'low') return 'fail'
+      return 'unchecked'
+    }
+
+    const getAlignmentStatus = () => {
+      if (!alignmentScore || alignmentScore.score === 0) return 'unchecked'
+      if (alignmentScore.tone === 'high') return 'pass'
+      if (alignmentScore.tone === 'medium') return 'partial'
+      if (alignmentScore.tone === 'low') return 'fail'
+      return 'unchecked'
+    }
+
+    const integrity = getForensicsStatus()
+    const veracity = getVeracityStatus()
+    const alignment = getAlignmentStatus()
+
+    const checked = [integrity, veracity, alignment].filter(s => s !== 'unchecked')
+    let overall = 'unchecked'
+    if (checked.length > 0) {
+      if (checked.every(s => s === 'pass')) overall = 'pass'
+      else if (checked.some(s => s === 'fail')) overall = 'fail'
+      else overall = 'partial'
+    }
+
+    return { integrity, veracity, alignment, overall }
+  }, [forensicsData, claimVeracity, alignmentScore])
+
+  // 2x2x2 matrix: which of the 8 cells is active
+  const cubeMatrix = useMemo(() => {
+    if (!triangleSignals) return null
+    const { integrity, veracity, alignment } = triangleSignals
+    // Only show matrix if at least veracity and alignment are checked
+    if (veracity === 'unchecked' && alignment === 'unchecked') return null
+
+    const intFail = integrity === 'fail'
+    const verFail = veracity === 'fail'
+    const aliFail = alignment === 'fail'
+
+    // Determine active cell key: integrity-veracity-alignment
+    // Each can be P(ass) or F(ail)
+    const iKey = intFail ? 'F' : 'P'
+    const vKey = verFail ? 'F' : 'P'
+    const aKey = aliFail ? 'F' : 'P'
+    const activeKey = `${iKey}${vKey}${aKey}`
+
+    const cells = [
+      { key: 'PPP', integrity: true, veracity: true, alignment: true, label: 'Verified context', description: 'Image is authentic, claim is true, and they match.', tone: 'high' },
+      { key: 'PPF', integrity: true, veracity: true, alignment: false, label: 'True claim, wrong image', description: 'Authentic image with accurate claim, but they don\'t match.', tone: 'medium' },
+      { key: 'PFP', integrity: true, veracity: false, alignment: true, label: 'Image supports false claim', description: 'Authentic image aligned with a false claim. Potentially dangerous.', tone: 'danger' },
+      { key: 'PFF', integrity: true, veracity: false, alignment: false, label: 'False claim, wrong image', description: 'Authentic image, but claim is false and doesn\'t match.', tone: 'low' },
+      { key: 'FPP', integrity: false, veracity: true, alignment: true, label: 'Tampered but aligned', description: 'Modified image supporting a true claim.', tone: 'medium' },
+      { key: 'FPF', integrity: false, veracity: true, alignment: false, label: 'Tampered, true claim, mismatched', description: 'Modified image with a true claim that doesn\'t match.', tone: 'low' },
+      { key: 'FFP', integrity: false, veracity: false, alignment: true, label: 'Tampered image supports false claim', description: 'Modified image aligned with a false claim. Most dangerous.', tone: 'danger' },
+      { key: 'FFF', integrity: false, veracity: false, alignment: false, label: 'All signals fail', description: 'Tampered image, false claim, and they don\'t match.', tone: 'low' },
+    ]
+
+    return {
+      activeKey,
+      cells,
+      activeCell: cells.find(c => c.key === activeKey),
+      integrityUnchecked: integrity === 'unchecked',
+    }
+  }, [triangleSignals])
+
   const showResultsOverview = Boolean(result)
   const showProgressCard = status !== 'success'
-  const triageSummary =
-    part2?.alignment || alignmentScore.label || 'Alignment pending'
-  const reverseMatchCount = orchestratorReverseSearch?.matches?.length || 0
-  const provenanceBlockCount = provenanceData?.blocks?.length || 0
-  const forensicsStatus =
-    typeof forensicsData?.status === 'string' ? forensicsData.status : null
   
   // Compute which signals were not checked
   const uncheckedSignals = useMemo(() => {
@@ -855,82 +1037,92 @@ function App() {
                 </section>
               ) : null}
               {showResultsOverview ? (
-                <section className="card module-card">
-                  <h2>Module activity</h2>
+                <section className="card triangle-card">
+                  <h2>Assessment</h2>
                   <p className="helper">
-                    Modules light up when activated during analysis. Grayed modules marked "Dev" are in development and not yet in production.
+                    Three-dimensional evaluation: image integrity, claim veracity, and contextual alignment.
                   </p>
-                  <div className="module-grid">
-                    <div
-                      className={`module-tile ${
-                        moduleActivity.triage ? 'module-active' : 'module-inactive'
-                      }`}
-                      aria-label={`MedGemma triage ${
-                        moduleActivity.triage ? 'active' : 'inactive'
-                      }`}
-                    >
-                      <span className="module-label">MedGemma triage</span>
-                      <span className="module-detail">Plausibility & alignment</span>
-                      {moduleActivity.triage ? (
-                        <span className="module-metric">
-                          Alignment: {triageSummary}
-                        </span>
-                      ) : null}
-                      {moduleActivity.triage && integrityScorePercent !== null ? (
-                        <span className="module-metric">
-                          Integrity: {integrityScorePercent}%
-                        </span>
+                  <svg
+                    className="triangle-svg"
+                    viewBox="0 0 440 470"
+                    role="img"
+                    aria-label={`Assessment: integrity ${triangleSignals.integrity}, veracity ${triangleSignals.veracity}, alignment ${triangleSignals.alignment}`}
+                  >
+                    {/* Triangle edge lines */}
+                    <line x1="220" y1="115" x2="75" y2="325" stroke="#c8d3de" strokeWidth="3" />
+                    <line x1="220" y1="115" x2="365" y2="325" stroke="#c8d3de" strokeWidth="3" />
+                    <line x1="75" y1="325" x2="365" y2="325" stroke="#c8d3de" strokeWidth="3" />
+
+                    {/* Top vertex: Image Integrity */}
+                    <text x="220" y="45" textAnchor="middle" className="tri-label-primary">Image Integrity</text>
+                    <text x="220" y="62" textAnchor="middle" className="tri-label-secondary">(Forensics)</text>
+                    <circle cx="220" cy="115" r="38" className={`tri-node tri-node-${triangleSignals.integrity}`} />
+                    {renderTriIcon(triangleSignals.integrity, 220, 115)}
+
+                    {/* Bottom-left vertex: Context Veracity */}
+                    <circle cx="75" cy="325" r="38" className={`tri-node tri-node-${triangleSignals.veracity}`} />
+                    {renderTriIcon(triangleSignals.veracity, 75, 325)}
+                    <text x="75" y="380" textAnchor="middle" className="tri-label-primary">Context</text>
+                    <text x="75" y="397" textAnchor="middle" className="tri-label-primary">Veracity</text>
+
+                    {/* Bottom-right vertex: Context-Image Alignment */}
+                    <circle cx="365" cy="325" r="38" className={`tri-node tri-node-${triangleSignals.alignment}`} />
+                    {renderTriIcon(triangleSignals.alignment, 365, 325)}
+                    <text x="365" y="380" textAnchor="middle" className="tri-label-primary">Context-Image</text>
+                    <text x="365" y="397" textAnchor="middle" className="tri-label-primary">Alignment</text>
+
+                    {/* Overall verdict pill */}
+                    <rect x="120" y="425" width="200" height="34" rx="17" className={`tri-pill tri-pill-${triangleSignals.overall}`} />
+                    <text x="220" y="447" textAnchor="middle" className="tri-pill-text">Contextual Authenticity</text>
+                  </svg>
+
+                  {/* 2x2x2 Matrix */}
+                  {cubeMatrix ? (
+                    <div className="cube-matrix">
+                      <p className="cube-matrix-title">
+                        {cubeMatrix.integrityUnchecked
+                          ? '2x2 matrix (forensics not checked)'
+                          : '2x2x2 assessment matrix'}
+                      </p>
+                      <div className="cube-layers">
+                        {(cubeMatrix.integrityUnchecked ? [true] : [true, false]).map((intLayer) => (
+                          <div key={intLayer ? 'intact' : 'tampered'} className="cube-layer">
+                            {!cubeMatrix.integrityUnchecked ? (
+                              <span className="cube-layer-label">
+                                {intLayer ? 'Image intact' : 'Image tampered'}
+                              </span>
+                            ) : null}
+                            <div className="cube-grid">
+                              {cubeMatrix.cells
+                                .filter(c => cubeMatrix.integrityUnchecked ? c.integrity : c.integrity === intLayer)
+                                .map(cell => (
+                                  <div
+                                    key={cell.key}
+                                    className={[
+                                      'cube-cell',
+                                      cubeMatrix.activeKey === cell.key ? `cube-active cube-${cell.tone}` : '',
+                                    ].join(' ')}
+                                  >
+                                    <span className="cube-cell-label">{cell.label}</span>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {cubeMatrix.activeCell ? (
+                        <div className={`quadrant-verdict quadrant-verdict-${cubeMatrix.activeCell.tone}`}>
+                          <strong>{cubeMatrix.activeCell.label}</strong>
+                          <p>{cubeMatrix.activeCell.description}</p>
+                        </div>
                       ) : null}
                     </div>
-                    <div
-                      className={`module-tile ${
-                        moduleActivity.reverse_search
-                          ? 'module-active'
-                          : 'module-inactive'
-                      }`}
-                      aria-label={`Reverse search ${
-                        moduleActivity.reverse_search ? 'active' : 'inactive'
-                      }`}
-                    >
-                      <span className="module-label">Reverse search</span>
-                      <span className="module-detail">Source reputation</span>
-                      {moduleActivity.reverse_search ? (
-                        <span className="module-metric">
-                          Matches: {reverseMatchCount}
-                        </span>
-                      ) : null}
+                  ) : assessmentQuadrant ? (
+                    <div className={`quadrant-verdict quadrant-verdict-${assessmentQuadrant.tone}`}>
+                      <strong>{assessmentQuadrant.title}</strong>
+                      <p>{assessmentQuadrant.description}</p>
                     </div>
-                    <div
-                      className={`module-tile module-inactive module-dev`}
-                      aria-label="Forensics (not in production)"
-                      style={{ opacity: 0.5 }}
-                    >
-                      <span className="module-label">
-                        Forensics
-                        <span className="badge badge-dev">Dev</span>
-                      </span>
-                      <span className="module-detail">Integrity signals</span>
-                      <span className="module-metric" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
-                        Not in production
-                      </span>
-                    </div>
-                    <div
-                      className={`module-tile ${
-                        moduleActivity.provenance ? 'module-active' : 'module-inactive'
-                      }`}
-                      aria-label={`Provenance ${
-                        moduleActivity.provenance ? 'active' : 'inactive'
-                      }`}
-                    >
-                      <span className="module-label">Provenance</span>
-                      <span className="module-detail">Genealogy</span>
-                      {moduleActivity.provenance ? (
-                        <span className="module-metric">
-                          Blocks: {provenanceBlockCount}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
+                  ) : null}
                 </section>
               ) : null}
             </div>
@@ -1121,14 +1313,35 @@ function App() {
                           {part2 ? (
                             <div className="analysis-body">
                               <p className="eyebrow">Model analysis</p>
-                              {alignmentScore ? (
-                                <div className={`score-pill score-${alignmentScore.tone}`}>
-                                  <span className="score-value">
-                                    {alignmentScore.score}/3
-                                  </span>
-                                  <span>{alignmentScore.label}</span>
-                                </div>
-                              ) : null}
+                              <div className="assessment-duo">
+                                {alignmentScore ? (
+                                  <div className={`score-pill score-${alignmentScore.tone}`}>
+                                    <span className="score-label">Image-claim alignment</span>
+                                    <span className="score-value">
+                                      {alignmentScore.score}/3
+                                    </span>
+                                    <span>{alignmentScore.label}</span>
+                                  </div>
+                                ) : null}
+                                {claimVeracity ? (
+                                  <div className={`score-pill score-${claimVeracity.tone}`}>
+                                    <span className="score-label">Claim veracity</span>
+                                    <span className="score-value-text">
+                                      {claimVeracity.label}
+                                    </span>
+                                    {claimVeracity.evidenceBasis ? (
+                                      <span className="veracity-detail">
+                                        {claimVeracity.evidenceBasis}
+                                      </span>
+                                    ) : null}
+                                    {claimVeracity.publicHealthContext ? (
+                                      <span className="veracity-detail veracity-phc">
+                                        {claimVeracity.publicHealthContext}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+                              </div>
                               {part2.summary ? (
                                 <p className="summary-text">{part2.summary}</p>
                               ) : null}

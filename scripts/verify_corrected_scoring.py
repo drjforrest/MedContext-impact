@@ -37,7 +37,7 @@ print(f"  Plausibility: {plausibility_score} (weight: 15%)")
 print(f"  Genealogy:    {genealogy_score} (weight: 15%)")
 print(f"  Source:       {source_score} (weight: 10%)")
 print()
-print(f"  CORRECTED calculation (fixed weights):")
+print("  CORRECTED calculation (fixed weights):")
 print(
     f"    = 0.60 × {alignment_score} + 0.15 × {plausibility_score} + 0.15 × 0.0 + 0.10 × 0.0"
 )
@@ -46,7 +46,7 @@ print(
 )
 print(f"    = {final_score:.3f}")
 print()
-print(f"  OLD calculation (renormalized weights):")
+print("  OLD calculation (renormalized weights):")
 old_renormalized = (0.60 * alignment_score + 0.15 * plausibility_score) / 0.75
 print(f"    = (0.60 × {alignment_score} + 0.15 × {plausibility_score}) / 0.75")
 print(f"    = ({0.60 * alignment_score:.3f} + {0.15 * plausibility_score:.3f}) / 0.75")
@@ -75,7 +75,7 @@ print(f"  Plausibility: {plausibility_score} (weight: 15%)")
 print(f"  Genealogy:    {genealogy_score} (weight: 15%)")
 print(f"  Source:       {source_score} (weight: 10%)")
 print()
-print(f"  CORRECTED calculation (fixed weights):")
+print("  CORRECTED calculation (fixed weights):")
 print(
     f"    = 0.60 × {alignment_score} + 0.15 × {plausibility_score} + 0.15 × {genealogy_score} + 0.10 × {source_score}"
 )

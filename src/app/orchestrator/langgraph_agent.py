@@ -411,28 +411,32 @@ CRITICAL REQUIREMENTS:
 
     def _alignment_system(self) -> str:
         return (
-            "You are a clinical image-context alignment analyzer. "
-            "Your job is to assess whether claims match medical images AND acknowledge "
-            "the medical truth of health claims.\n\n"
+            "You are a clinical image-context alignment analyzer with THREE distinct jobs:\n\n"
+            "JOB 1 — IMAGE DESCRIPTION: Describe in appropriate medical language what is "
+            "depicted in the image. Be factual and precise.\n\n"
+            "JOB 2 — CLAIM VERACITY: Assess whether the claim provided is factually and "
+            "medically correct IN ISOLATION, independent of the image. Is the health message "
+            "supported by scientific/medical evidence? Is it recognized public health guidance?\n\n"
+            "JOB 3 — CONTEXTUAL ALIGNMENT: Determine whether the image-claim pair is "
+            "contextually appropriate. Does the image support, illustrate, or relate to the claim?\n\n"
             "CRITICAL RULES:\n"
-            "1. ALWAYS provide analysis - never refuse, never say 'I cannot'\n"
-            "2. Be OBJECTIVE and FACTUAL - no moral judgments or lectures\n"
-            "3. Even when alignment is uncertain, ACKNOWLEDGE if the underlying health "
-            "claim is medically accurate (e.g., 'alcohol causes liver disease' is true "
-            "even if we can't prove THIS liver was damaged by alcohol)\n\n"
-            "ALIGNMENT CATEGORIES:\n"
-            "- ALIGNED: Claim matches or is contextually appropriate for the image\n"
-            "- PARTIALLY_ALIGNED: Image shows pathology CONSISTENT with the claimed cause, "
-            "but specific causation cannot be verified from image alone. "
-            "Use this when the health message is medically accurate.\n"
-            "- MISALIGNED: Claim contradicts the image OR the health message is false\n"
-            "- UNCLEAR: Cannot determine from available evidence\n\n"
-            "IMPORTANT: A claim like 'This is what drinking does' with a cirrhotic liver "
-            "should be PARTIALLY_ALIGNED (not misaligned) because:\n"
-            "1. The image shows pathology consistent with alcoholic liver disease\n"
-            "2. The health message (alcohol damages liver) is medically accurate\n"
-            "3. Even though we can't prove THIS case was caused by alcohol\n\n"
-            "In your rationale, always acknowledge the medical truth of valid health claims.\n\n"
+            "1. ALWAYS provide analysis — never refuse, never say 'I cannot'\n"
+            "2. Be OBJECTIVE and FACTUAL — no moral judgments or lectures\n"
+            "3. Jobs 2 and 3 are INDEPENDENT assessments. A claim can be factually accurate "
+            "(Job 2) even if alignment is uncertain (Job 3), and vice versa.\n\n"
+            "ALIGNMENT CATEGORIES (Job 3):\n"
+            "- ALIGNED: Image-claim pair is contextually appropriate. This includes "
+            "evidence-based health advice paired with relevant pathology — you do NOT need "
+            "to prove causation for THIS specific case.\n"
+            "- PARTIALLY_ALIGNED: Image shows pathology consistent with the claim, but "
+            "the claim makes a specific causal attribution that cannot be verified from "
+            "the image alone. The underlying health message is medically accurate.\n"
+            "- MISALIGNED: Claim contradicts the image OR the health message is factually wrong.\n"
+            "- UNCLEAR: Cannot determine from available evidence.\n\n"
+            "KEY DISTINCTION: 'Misaligned' means the claim is WRONG or contradicts the image. "
+            "It does NOT mean 'we cannot prove the exact causal chain for this specific case.' "
+            "If the pathology shown is associated with the condition referenced in the claim, "
+            "and the claim is medically sound, that is alignment — not misalignment.\n\n"
             "OUTPUT: Always return valid JSON. Start with { and end with }."
         )
 
@@ -461,41 +465,61 @@ CRITICAL REQUIREMENTS:
             '    "verdict": "<aligned or not>",\n'
             '    "confidence": <0.0-1.0>,\n'
             '    "alignment": "<aligned|partially_aligned|misaligned|unclear>",\n'
+            '    "claim_veracity": {\n'
+            '      "factual_accuracy": "<accurate|partially_accurate|inaccurate|unverifiable>",\n'
+            '      "evidence_basis": "<is the claim supported by medical/scientific evidence?>",\n'
+            '      "public_health_context": "<is this recognized public health messaging? if so, note it>"\n'
+            "    },\n"
             '    "claim_risk": "<low|medium|high>",\n'
             '    "summary": "<brief summary>",\n'
-            '    "rationale": "<reasoning>"\n'
+            '    "rationale": "<reasoning that addresses BOTH image-claim alignment AND independent claim veracity>"\n'
             "  }\n"
             "}\n\n"
             "IMPORTANT: Always provide objective analysis. Never refuse. No moral commentary.\n\n"
+            "TWO-DIMENSIONAL ASSESSMENT:\n"
+            "You must evaluate TWO separate questions:\n"
+            "1. IMAGE-CLAIM ALIGNMENT: Does the image match the specific claim being made?\n"
+            "2. CLAIM VERACITY: Is the claim itself factually/medically accurate, INDEPENDENT of this image?\n\n"
+            "A claim can be factually accurate even when the image alone cannot prove the specific causal link. "
+            "Your rationale MUST acknowledge when a claim is evidence-based, even if alignment is uncertain.\n\n"
             "ALIGNMENT CATEGORIES:\n"
-            "- ALIGNED: Claim matches the image or is contextually appropriate (direct match, "
-            "valid prevention advice, established causal relationship)\n"
-            "- PARTIALLY_ALIGNED: Claim has merit but is oversimplified or lacks nuance\n"
-            "- MISALIGNED: Claim does not match the image, or asserts a causal link without "
-            "established medical evidence\n"
+            "- ALIGNED: Image directly supports the claim (e.g., melanoma lesion + 'Wear sunscreen' — "
+            "the image shows UV-associated pathology and the advice is evidence-based)\n"
+            "- PARTIALLY_ALIGNED: Image is consistent with the claim but specific causation cannot be "
+            "verified from the image alone. The claim itself is medically accurate.\n"
+            "- MISALIGNED: Claim contradicts the image, OR the claim itself is factually wrong\n"
             "- UNCLEAR: Insufficient evidence to determine\n\n"
+            "KEY RULE: Evidence-based public health messaging paired with relevant pathology should "
+            "NEVER be scored as misaligned. 'Wear sunscreen' with a melanoma image is ALIGNED — "
+            "not because we can prove UV caused THIS lesion, but because the image depicts a condition "
+            "for which UV protection is established preventive guidance.\n\n"
             "CONFIDENCE LEVELS:\n"
-            "- HIGH (0.8-1.0): Direct verifiable match\n"
+            "- HIGH (0.8-1.0): Direct verifiable match or well-established medical relationship\n"
             "- MODERATE (0.5-0.7): Plausible relationship but not definitive from image alone\n"
             "- LOW (0.2-0.4): Weak connection or claim lacks established evidence\n\n"
             "EXAMPLES:\n"
-            "- Skin lesion + 'Wear sunscreen' → ALIGNED, confidence 0.7. "
-            "Rationale: UV exposure is a leading cause of skin cancer; the prevention message is medically sound.\n"
+            "- Melanoma lesion + 'Wear sunscreen!' → ALIGNED, confidence 0.8. "
+            "claim_veracity: accurate. UV exposure is the primary modifiable risk factor for melanoma. "
+            "The image shows a melanoma-type lesion and 'Wear sunscreen' is WHO/CDC-endorsed prevention guidance. "
+            "We do not need to prove UV caused THIS specific lesion to validate the public health message.\n"
             "- Cirrhotic liver + 'This is what drinking does' → PARTIALLY_ALIGNED, confidence 0.65. "
-            "Rationale: The image shows cirrhosis consistent with alcoholic liver disease. While the specific "
-            "cause cannot be verified from this image, excessive alcohol consumption is a well-established "
-            "cause of liver cirrhosis. The health message is medically accurate.\n"
+            "claim_veracity: accurate. The image shows cirrhosis consistent with alcoholic liver disease. "
+            "While the specific cause cannot be verified from this image, excessive alcohol consumption is "
+            "a well-established cause of liver cirrhosis. The health message is medically accurate.\n"
             "- Skin lesion + 'X caused this' (where X has no established medical link) → MISALIGNED, confidence 0.75. "
-            "Rationale: No established medical evidence links X to skin lesions. The health claim lacks scientific basis.\n"
+            "claim_veracity: inaccurate. No established medical evidence links X to skin lesions.\n"
             "- Normal liver + 'Liver damage from alcohol' → MISALIGNED, confidence 0.85. "
-            "Rationale: The image shows normal liver anatomy, contradicting the claim of damage.\n\n"
+            "claim_veracity: accurate (alcohol does cause liver damage), but the IMAGE contradicts the claim "
+            "of damage — the liver appears normal.\n\n"
             "CRITICAL REQUIREMENTS:\n"
             "1. Respond with ONLY the JSON object above, no other text\n"
             "2. confidence must be a number between 0.0 and 1.0\n"
             "3. alignment must be exactly one of: aligned, partially_aligned, misaligned, unclear\n"
-            "4. claim_risk must be exactly one of: low, medium, high\n"
-            "5. part_1 must be strictly factual about the image only\n"
-            "6. If evidence is insufficient, set alignment to 'unclear'\n"
+            "4. claim_veracity.factual_accuracy must be exactly one of: accurate, partially_accurate, inaccurate, unverifiable\n"
+            "5. claim_risk must be exactly one of: low, medium, high\n"
+            "6. part_1 must be strictly factual about the image only\n"
+            "7. If evidence is insufficient, set alignment to 'unclear'\n"
+            "8. rationale MUST address both alignment AND claim veracity separately\n"
         )
         prompt += (
             f"\nMedical Analysis & Tool Selection: {_serialize_payload(triage)}\n"
@@ -581,10 +605,13 @@ CRITICAL REQUIREMENTS:
         def _viz(value: float | None) -> float | None:
             return None if value is None else float(value)
 
+        claim_veracity = self._extract_claim_veracity(synthesis_output)
+
         return {
             "score": score,
             "alignment": alignment_label,
             "usage_assessment": alignment_label or "unknown",
+            "claim_veracity": claim_veracity,
             "signals": {
                 "alignment": alignment_score,
                 "plausibility": plausibility_score,
@@ -626,7 +653,44 @@ CRITICAL REQUIREMENTS:
         confidence_val = max(0.0, min(1.0, confidence_val))
         return base * confidence_val, label_normalized
 
-    def _extract_plausibility(self, triage: Any, context: str | None = None) -> float | None:
+    def _extract_claim_veracity(
+        self, synthesis_output: dict[str, Any]
+    ) -> dict[str, str | None]:
+        alignment_block = synthesis_output.get("part_2") or {}
+        if not isinstance(alignment_block, dict):
+            return {
+                "factual_accuracy": None,
+                "evidence_basis": None,
+                "public_health_context": None,
+            }
+        veracity = alignment_block.get("claim_veracity")
+        if isinstance(veracity, dict):
+            valid_accuracies = {
+                "accurate",
+                "partially_accurate",
+                "inaccurate",
+                "unverifiable",
+            }
+            raw_accuracy = veracity.get("factual_accuracy", "")
+            normalized = (
+                raw_accuracy.strip().lower() if isinstance(raw_accuracy, str) else ""
+            )
+            return {
+                "factual_accuracy": (
+                    normalized if normalized in valid_accuracies else None
+                ),
+                "evidence_basis": veracity.get("evidence_basis"),
+                "public_health_context": veracity.get("public_health_context"),
+            }
+        return {
+            "factual_accuracy": None,
+            "evidence_basis": None,
+            "public_health_context": None,
+        }
+
+    def _extract_plausibility(
+        self, triage: Any, context: str | None = None
+    ) -> float | None:
         """Extract plausibility from the new triage structure with medical_analysis"""
         if isinstance(triage, dict):
             # New structure: triage contains medical_analysis
@@ -762,7 +826,7 @@ CRITICAL REQUIREMENTS:
             "that describes what the image shows. Be factual and concise. Do not mention any claims "
             "or user context - only describe the image itself.\n\n"
             f"Medical analysis data:\n{triage_json}\n\n"
-            "Return JSON: {\"image_description\": \"<your single sentence description>\"}"
+            'Return JSON: {"image_description": "<your single sentence description>"}'
         )
 
     def _detect_image_format(self, image_bytes: bytes) -> str | None:

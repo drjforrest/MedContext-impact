@@ -489,7 +489,7 @@ contribution = {
 **Method:** Grid search or Bayesian optimization over weight space
 
 ```python
-from scipy.optimize import differential_evolution
+from scipy.optimize import differential_evolution, LinearConstraint
 
 def objective(weights):
     """Maximize F1 score on validation set."""
@@ -516,12 +516,12 @@ def objective(weights):
 
 # Constraint: weights sum to 1.0
 bounds = [(0.0, 1.0)] * 4
-constraints = {"type": "eq", "fun": lambda w: sum(w) - 1.0}
+linear_constr = LinearConstraint([1, 1, 1, 1], 1.0, 1.0)
 
 result = differential_evolution(
     objective,
     bounds=bounds,
-    constraints=constraints,
+    constraints=[linear_constr],
     seed=42
 )
 
@@ -596,8 +596,8 @@ def compare_classifiers(y_true, y_pred1, y_pred2):
     only2_correct = sum(~correct1 & correct2)
     both_wrong = sum(~correct1 & ~correct2)
 
-    table = [[both_correct, only2_correct],
-             [only1_correct, both_wrong]]
+    table = [[both_correct, only1_correct],
+             [only2_correct, both_wrong]]
 
     result = mcnemar(table, exact=True)
     return result.pvalue
@@ -727,44 +727,55 @@ class ContextualSignalsValidator:
         dataset = self.load_dataset()
 
         print(f"Validating {len(dataset)} image-claim pairs...")
-
         for i, item in enumerate(dataset):
             if i % 10 == 0:
                 print(f"Progress: {i}/{len(dataset)}")
 
-            # Load image
-            image_bytes = Path(item["image_path"]).read_bytes()
+            try:
+                # Load image
+                image_bytes = Path(item["image_path"]).read_bytes()
 
-            # Run MedContext agent
-            result = self.agent.run(
-                image_bytes=image_bytes,
-                context=item["claim"]
-            )
+                # Run MedContext agent
+                result = self.agent.run(
+                    image_bytes=image_bytes,
+                    context=item["claim"]
+                )
 
-            # Extract signals and scores
-            ci = result.synthesis.get("contextual_integrity", {})
-            signals = ci.get("signals", {})
+                # Extract signals and scores
+                ci = result.synthesis.get("contextual_integrity", {})
+                signals = ci.get("signals", {})
 
-            # Record prediction
-            self.results.append({
-                "image_id": item.get("image_id", item["image_path"]),
-                "claim": item["claim"],
-                "ground_truth": item["ground_truth"],
-                "predicted": {
-                    "alignment": ci.get("alignment"),
-                    "alignment_score": signals.get("alignment"),
-                    "plausibility_score": signals.get("plausibility"),
-                    "genealogy_score": signals.get("genealogy_consistency"),
-                    "source_score": signals.get("source_reputation"),
-                    "overall_score": ci.get("score"),
-                },
-                "synthesis": result.synthesis,
-            })
+                # Record prediction
+                self.results.append({
+                    "image_id": item.get("image_id", item["image_path"]),
+                    "claim": item["claim"],
+                    "ground_truth": item["ground_truth"],
+                    "predicted": {
+                        "alignment": ci.get("alignment"),
+                        "alignment_score": signals.get("alignment"),
+                        "plausibility_score": signals.get("plausibility"),
+                        "genealogy_score": signals.get("genealogy_consistency"),
+                        "source_score": signals.get("source_reputation"),
+                        "overall_score": ci.get("score"),
+                    },
+                    "synthesis": result.synthesis,
+                })
+            except FileNotFoundError:
+                print(f"  WARNING: Image not found: {item['image_path']}")
+                continue
+            except Exception as e:
+                print(f"  ERROR: Failed to process {item.get('image_id', item['image_path'])}: {e}")
+                continue
+
 
         print("Validation complete!")
 
     def compute_metrics(self) -> Dict[str, Any]:
-        """Compute evaluation metrics."""
+        """Compute evaluation metrics, handling missing scores explicitly.
+
+        Missing scores (None) are excluded from score-based metrics (ROC AUC),
+        and coverage is reported to indicate data completeness.
+        """
         # Extract ground truth and predictions
         y_true = []
         y_pred = []
@@ -778,7 +789,13 @@ class ContextualSignalsValidator:
             # Binary mapping: aligned vs. not aligned
             y_true.append(1 if gt == "aligned" else 0)
             y_pred.append(1 if pred == "aligned" else 0)
-            scores.append(score if score is not None else 0.5)
+            scores.append(score)  # Keep None values for explicit handling
+
+        # Handle missing scores: create valid pairs for score-based metrics
+        valid_results = [(s, t) for s, t in zip(scores, y_true) if s is not None]
+        valid_scores = [s for s, t in valid_results]
+        valid_y_true = [t for s, t in valid_results]
+        coverage = len(valid_results) / len(y_true)
 
         # Compute metrics
         metrics = {
@@ -786,7 +803,8 @@ class ContextualSignalsValidator:
             "precision": precision_score(y_true, y_pred, zero_division=0),
             "recall": recall_score(y_true, y_pred, zero_division=0),
             "f1_score": f1_score(y_true, y_pred, zero_division=0),
-            "roc_auc": roc_auc_score(y_true, scores),
+            "roc_auc": roc_auc_score(valid_y_true, valid_scores) if valid_scores else None,
+            "coverage": coverage,
         }
 
         # Bootstrap confidence intervals
@@ -800,12 +818,15 @@ class ContextualSignalsValidator:
             ci = self.bootstrap_metric(y_true, y_pred, metric_fn)
             metrics_with_ci[metric_name] = ci
 
-        # ROC AUC bootstrap
-        roc_ci = self.bootstrap_metric(
-            y_true, scores,
-            lambda y, s: roc_auc_score(y, s)
-        )
-        metrics_with_ci["roc_auc"] = roc_ci
+        # ROC AUC bootstrap (only on valid samples)
+        if valid_scores:
+            roc_ci = self.bootstrap_metric(
+                valid_y_true, valid_scores,
+                lambda y, s: roc_auc_score(y, s)
+            )
+            metrics_with_ci["roc_auc"] = roc_ci
+        else:
+            metrics_with_ci["roc_auc"] = {"mean": None, "lower_ci": None, "upper_ci": None}
 
         return {
             "metrics": metrics,
@@ -973,15 +994,22 @@ class ContextualSignalsValidator:
         plt.close()
 
     def plot_roc_curve(self):
-        """Plot ROC curve."""
+        """Plot ROC curve using only samples with valid scores."""
         from sklearn.metrics import roc_curve
 
-        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0
-                  for r in self.results]
-        scores = [r["predicted"]["overall_score"] or 0.5 for r in self.results]
+        # Extract valid samples (scores not None)
+        valid_results = [(r["predicted"]["overall_score"], r["ground_truth"]["alignment"])
+                        for r in self.results if r["predicted"]["overall_score"] is not None]
 
-        fpr, tpr, thresholds = roc_curve(y_true, scores)
-        roc_auc = roc_auc_score(y_true, scores)
+        if not valid_results:
+            print("WARNING: No valid scores available for ROC curve")
+            return
+
+        valid_scores = [s for s, gt in valid_results]
+        valid_y_true = [1 if gt == "aligned" else 0 for s, gt in valid_results]
+
+        fpr, tpr, thresholds = roc_curve(valid_y_true, valid_scores)
+        roc_auc = roc_auc_score(valid_y_true, valid_scores)
 
         plt.figure(figsize=(8, 6))
         plt.plot(fpr, tpr, label=f'Contextual Signals (AUC = {roc_auc:.3f})', linewidth=2)
@@ -1039,14 +1067,21 @@ class ContextualSignalsValidator:
         plt.close()
 
     def plot_calibration(self):
-        """Plot calibration curve."""
+        """Plot calibration curve using only samples with valid scores."""
         from sklearn.calibration import calibration_curve
 
-        y_true = [1 if r["ground_truth"]["alignment"] == "aligned" else 0
-                  for r in self.results]
-        scores = [r["predicted"]["overall_score"] or 0.5 for r in self.results]
+        # Extract valid samples (scores not None)
+        valid_results = [(r["predicted"]["overall_score"], r["ground_truth"]["alignment"])
+                        for r in self.results if r["predicted"]["overall_score"] is not None]
 
-        prob_true, prob_pred = calibration_curve(y_true, scores, n_bins=10)
+        if not valid_results:
+            print("WARNING: No valid scores available for calibration plot")
+            return
+
+        valid_scores = [s for s, gt in valid_results]
+        valid_y_true = [1 if gt == "aligned" else 0 for s, gt in valid_results]
+
+        prob_true, prob_pred = calibration_curve(valid_y_true, valid_scores, n_bins=10)
 
         plt.figure(figsize=(8, 6))
         plt.plot(prob_pred, prob_true, marker='o', linewidth=2, label="Contextual Signals")
@@ -1210,9 +1245,9 @@ echo "dataset_sha256: $(cat dataset_hash.txt)" >> validation_results/metadata.tx
 
 ### 9.3 Random Seeding
 
-All random operations use fixed seeds:
+All random operations use deterministic seeding for reproducibility:
 
-- Bootstrap resampling: `seed=42`
+- Bootstrap resampling: Sequential per-iteration seeds (`random_state=i` in bootstrap loop) for independent, reproducible resamples across n_iterations
 - Dataset splitting: `seed=42`
 - Model inference: Deterministic (no sampling)
 

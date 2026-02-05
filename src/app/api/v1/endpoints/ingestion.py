@@ -119,7 +119,7 @@ def ingest_and_run_agentic(
                 submission = existing_submission
                 resolved_image_id = existing_submission.id
             else:
-                # Create new submission
+                # Create new submission using nested transaction for race condition handling
                 submission = ImageSubmission(
                     id=resolved_image_id,
                     source_channel=source_channel,
@@ -134,12 +134,15 @@ def ingest_and_run_agentic(
                     orientation_corrected=False,
                     metadata_extracted=False,
                 )
+
+                # Use nested transaction/savepoint for the ImageSubmission insertion
                 try:
-                    db.add(submission)
-                    db.flush()
+                    with db.begin_nested():
+                        db.add(submission)
+                        db.flush()
                 except IntegrityError:
-                    db.rollback()
                     # Race condition: another request inserted the same hash
+                    # The nested transaction is automatically rolled back, outer transaction remains valid
                     existing_submission = (
                         db.query(ImageSubmission)
                         .filter(ImageSubmission.image_hash == image_hash)

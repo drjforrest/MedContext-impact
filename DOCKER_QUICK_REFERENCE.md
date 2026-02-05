@@ -167,7 +167,7 @@ make build
 
 ## 🧹 Cleanup
 
-```bash
+````bash
 # Stop and remove containers
 make down
 
@@ -178,17 +178,9 @@ make clean
 make docker-prune
 
 # Docker system cleanup commands
-
-## Remove containers
-docker container prune -f
-
-## Remove dangling images
-docker image prune -f
-
-## Remove unused volumes
-docker volume prune -f
-# Limit resources (edit docker-compose.prod.yml)
-```
+docker container prune -f    # Remove stopped containers
+docker image prune -f        # Remove dangling images
+docker volume prune -f       # Remove unused volumes
 
 ## 📊 Resource Management
 
@@ -202,7 +194,7 @@ deploy:
     limits:
       cpus: '2'
       memory: 4G
-```
+````
 
 ## 🔒 Security
 
