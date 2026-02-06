@@ -42,6 +42,10 @@ def main():
 
         # Automatically undeploy the endpoint
         print("\nUndeploying endpoint...")
+        confirm = input("Are you sure you want to undeploy all models? (yes/no): ")
+        if confirm.lower() != "yes":
+            print("Undeployment cancelled.")
+            return
         endpoint.undeploy_all()
         print(
             "Undeployment initiated. All models will be undeployed from the endpoint."

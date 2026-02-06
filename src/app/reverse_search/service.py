@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import base64
 import hashlib
 import logging
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 import cachetools
-import requests
 
 from app.core.config import settings
 from app.schemas.reverse_search import (
@@ -107,53 +105,27 @@ def _fetch_serpapi_matches(
     if not settings.serp_api_key:
         return [], None
 
-    encoded_image = base64.b64encode(image_bytes).decode("utf-8")
-
-    params = {
-        "engine": "google_reverse_image",
-        "api_key": settings.serp_api_key,
-        # for now, stick to image_url OR image_content depending on what you're actually using
-        # if you're following the official examples, you should be using image_url, not base64
-        # "image_url": "https://example.com/safe-test-image.jpg",
-        "image_content": encoded_image,  # only if supported in your plan; otherwise comment this out
-    }
-
-    try:
-        resp = requests.get(
-            "https://serpapi.com/search",
-            params=params,  # <-- query string, not json=
-            timeout=settings.serp_api_timeout_seconds,
-        )
-    except requests.RequestException as exc:
-        _LOGGER.warning("SerpAPI reverse search HTTP error: %s", exc)
-        return [], None
-
-    # Basic sanity check
-    if resp.status_code != 200:
+    # Size check: Base64 encoding increases size by ~33%, so we check the original bytes
+    # Typical URL length limits are around 8KB-2KB, so we'll use a conservative limit
+    MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+    if len(image_bytes) > MAX_IMAGE_SIZE_BYTES:
         _LOGGER.warning(
-            "SerpAPI reverse search non-200: %s, body=%r",
-            resp.status_code,
-            resp.text[:200],
+            "Image too large for SerpAPI reverse search: %d bytes > %d bytes",
+            len(image_bytes),
+            MAX_IMAGE_SIZE_BYTES,
         )
         return [], None
 
-    try:
-        payload = resp.json()
-    except ValueError as exc:
-        _LOGGER.warning(
-            "SerpAPI reverse search JSON parse error: %s, body=%r",
-            exc,
-            resp.text[:200],
-        )
-        return [], None
+    # SerpAPI does not support sending base64 image content directly in GET request parameters.
+    # According to SerpAPI documentation, the recommended approach is to provide an image URL.
+    # Since we have local image bytes, we cannot use the image_content parameter with GET requests.
+    # We would need to host the image at a public URL to use SerpAPI's reverse image search.
+    # Therefore, we skip SerpAPI for local image bytes.
 
-    if isinstance(payload, dict) and payload.get("error"):
-        _LOGGER.warning("SerpAPI reverse search error: %s", payload.get("error"))
-        return [], None
-
-    matches = _extract_serpapi_matches(payload, now)
-    providers: list[str] | None = ["serpapi:google_reverse_image"] if matches else None
-    return matches, providers
+    _LOGGER.info(
+        "Skipping SerpAPI reverse search - requires public image URL, not local bytes"
+    )
+    return [], None
 
 
 def _build_matches(query_hash: str, queued_at: datetime) -> list[ReverseSearchMatch]:
@@ -163,6 +135,8 @@ def _build_matches(query_hash: str, queued_at: datetime) -> list[ReverseSearchMa
             url=f"https://serpapi.com/search?q={query_hash}",
             title="SerpAPI Search Result",
             snippet="A search result from the SerpAPI API.",
+            confidence=0.5,
+            discovered_at=queued_at,
         )
     ]
 

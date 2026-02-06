@@ -12,7 +12,7 @@ We empirically validated that **pixel-level forensics achieve ~50% accuracy** (c
 
 > Pixel-level forensics achieved 49.9% accuracy [95% CI: 44.5%, 55.5%], statistically indistinguishable from random guessing.
 
-This validates our core thesis from literature review: over half of medical misinformation includes visuals, predominantly authentic images used in misleading contexts (Brennen et al., 2020), making pixel-based detection insufficient.
+This validates our core thesis from literature review: over half of medical misinformation includes visuals, predominantly authentic images used in misleading contexts (Brennen et al., 2021), making pixel-based detection insufficient.
 
 ---
 
@@ -229,18 +229,15 @@ The **UNCERTAIN** label communicates model uncertainty directly to users who req
 In this validation run, **88% of predictions (287 out of 326 images) fell into the UNCERTAIN category** because integrity scores clustered tightly at the 0.50 decision threshold. This high uncertainty rate indicates the underlying pixel forensics features (ELA) lack discriminative power on this dataset. When deploying user-initiated verification systems with elevated UNCERTAIN rates, consider the following strategies:
 
 1. **Threshold Recalibration**:
-
    - If user-submitted images show similar clustering at 0.50, conduct calibration studies to determine if alternative thresholds (e.g., 0.45 or 0.55) provide better separation while maintaining transparent uncertainty communication.
    - Use precision-recall curves and domain-specific risk assessments to select optimal operating points that balance false positive and false negative rates.
    - Monitor threshold stability across different image sources and manipulation types submitted by users.
 
 2. **Model Improvement**:
-
    - High UNCERTAIN rates (>50%) suggest the feature set cannot reliably discriminate between classes. For pixel forensics, this validation confirms that **contextual signals** (alignment, plausibility, genealogy, source reputation) should replace or augment pixel-level features.
    - Investigate whether adding multimodal signals (metadata, reverse search, provenance) improves confidence distribution and provides more definitive verdicts to users requesting verification.
 
 3. **Enhanced User Guidance**:
-
    - When returning UNCERTAIN verdicts, provide users with actionable guidance: which signals contributed to uncertainty, what additional context might help (higher resolution images, original sources, publication metadata), and alternative verification methods.
    - Surface detailed signal breakdowns so users understand the reasoning behind uncertain verdicts rather than receiving opaque classifications.
    - Consider collecting user feedback on UNCERTAIN cases ("Was this image actually misleading?") to improve model calibration and understand real-world uncertainty patterns.
@@ -310,9 +307,9 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 **Overall Performance (Corrected 60/15/15/10 weights):**
 
-- **Accuracy: 65.8%** [95% CI: 55.6% - 75.6%] ✅ Significantly above random (50%)
+- **Accuracy: 65.6%** [95% CI: 55.6% - 75.6%] ✅ Significantly above random (50%)
   - Uses fixed weight distribution; missing signals (Genealogy, Source) contribute 0.0
-- **ROC AUC: 0.728** [95% CI: 0.627 - 0.820] - Good discrimination between truthful and misleading claims
+- **ROC AUC: 0.726** [95% CI: 0.627 - 0.820] - Good discrimination between truthful and misleading claims
 - **Precision: 49.1%** [95% CI: 36.4% - 62.5%] - Room for improvement in reducing false positives
 - **Recall: 93.3%** [95% CI: 83.3% - 100%] - Catches vast majority of aligned cases
 - **F1 Score: 64.4%** [95% CI: 52.3% - 75.3%]
@@ -330,16 +327,16 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 **Ablation Study:**
 
-- Baseline accuracy: 65.8%
-- Without Alignment: 66.7% (contribution: -0.9%)\*
-- Without Plausibility/Genealogy/Source: 65.8% (contribution: 0.0%)
+- Baseline accuracy: 65.6%
+- Without Alignment: 66.7% (contribution: -1.1%)\*
+- Without Plausibility/Genealogy/Source: 65.6% (contribution: 0.0%)
 
-\*Note: The small negative contribution from Alignment (-0.9%) is a statistical fluctuation within the margin of error; removing a signal can occasionally improve accuracy on a small test set due to sampling variance. The 95% CI [55.6%, 75.6%] spans ±10 percentage points, so differences <1% are not statistically meaningful.
+\*Note: The small negative contribution from Alignment (-1.1%) is a statistical fluctuation within the margin of error; removing a signal can occasionally improve accuracy on a small test set due to sampling variance. The 95% CI [55.6%, 75.6%] spans ±10 percentage points, so differences <1% are not statistically meaningful.
 
 **Key Findings:**
 
-1. ✅ **Validation complete:** Contextual signals achieve **65.8% accuracy** with 2-of-4 signals active
-2. ✅ **Beats pixel forensics:** 65.8% vs 49.9% (+15.9 percentage points, +31.9% relative improvement)
+1. ✅ **Validation complete:** Contextual signals achieve **65.6% accuracy** with 2-of-4 signals active
+2. ✅ **Beats pixel forensics:** 65.6% vs 49.9% (+15.7 percentage points, +31.5% relative improvement)
 3. ✅ **Alignment signal is strongest:** ROC AUC 0.740 with strong separation (0.44) between aligned/misaligned
 4. ✅ **High recall:** 93.3% ensures most truly aligned cases are correctly identified
 5. ✅ **Statistically significant:** 95% CI [55.6%, 75.6%] excludes random chance (50%)
@@ -529,11 +526,9 @@ python scripts/validate_contextual_signals.py \
 ### Supporting Literature
 
 1. **Brennen, J.S., Simon, F.M., Howard, P.N., & Nielsen, R.K. (2021).** _Beyond (mis)representation: Visuals in COVID-19 misinformation._ International Journal of Press/Politics, 26(1), 277-299.
-
    - Finding: Visuals appeared in over half (52%) of misinformation cases, predominantly mislabeled authentic content rather than manipulated imagery
 
 2. **Memon, S.A., & Rasool, A. (2023).** _Image forensics in the age of deep learning._ Digital Investigation.
-
    - Finding: Modern ML-based manipulations evade traditional forensics
 
 3. **Farid, H. (2016).** _Photo Forensics._ MIT Press.
@@ -564,13 +559,11 @@ Our empirical study demonstrates that pixel-level forensics achieve ~50% accurac
 A comprehensive validation framework for the four contextual signals has been designed and is ready for implementation:
 
 1. **Dataset Curation** (in progress):
-
    - Collect 500-1,000 medical image-claim pairs with expert annotations
    - Include real misinformation cases from fact-checking organizations
    - Stratify by modality, claim type, and alignment labels
 
 2. **Validation Execution** (pending datasets):
-
    - Individual signal performance analysis
    - Integrated score evaluation
    - Ablation studies to measure signal contributions

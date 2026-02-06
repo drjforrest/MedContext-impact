@@ -3,15 +3,51 @@
 Script to check and undeploy Vertex AI endpoint
 """
 
+import argparse
+import os
+import sys
+
 import vertexai
 from google.cloud import aiplatform
 
-PROJECT_ID = "medcontext"
-LOCATION = "us-central1"
-ENDPOINT_ID = "PLACEHOLDER_ENDPOINT_ID"
+
+def get_config():
+    """Get configuration from CLI arguments or environment variables."""
+    parser = argparse.ArgumentParser(
+        description="Check and undeploy Vertex AI endpoint"
+    )
+    parser.add_argument("--project-id", help="Google Cloud Project ID")
+    parser.add_argument(
+        "--location", help="Google Cloud Location", default="us-central1"
+    )
+    parser.add_argument("--endpoint-id", help="Vertex AI Endpoint ID")
+
+    args = parser.parse_args()
+
+    # Try to get values from CLI arguments first, then from environment variables
+    project_id = args.project_id or os.environ.get("PROJECT_ID")
+    location = args.location or os.environ.get("LOCATION", "us-central1")
+    endpoint_id = args.endpoint_id or os.environ.get("ENDPOINT_ID")
+
+    # Validate that required values are present
+    if not project_id:
+        print(
+            "Error: Project ID is required. Supply via --project-id argument or PROJECT_ID environment variable."
+        )
+        sys.exit(1)
+
+    if not endpoint_id:
+        print(
+            "Error: Endpoint ID is required. Supply via --endpoint-id argument or ENDPOINT_ID environment variable."
+        )
+        sys.exit(1)
+
+    return project_id, location, endpoint_id
 
 
 def main():
+    PROJECT_ID, LOCATION, ENDPOINT_ID = get_config()
+
     print("Initializing Vertex AI...")
     vertexai.init(project=PROJECT_ID, location=LOCATION)
     aiplatform.init(project=PROJECT_ID, location=LOCATION)
@@ -44,8 +80,19 @@ def main():
         response = input("\nDo you want to undeploy this endpoint? (y/N): ")
         if response.lower() == "y":
             print("Undeploying all models from endpoint...")
-            endpoint.undeploy_all()
-            print("Undeployment initiated. Models will be removed from the endpoint.")
+            try:
+                # Call endpoint.undeploy_all() inside new try/except to handle failures
+                # and report without falling through to the outer handler that lists endpoints
+                endpoint.undeploy_all()
+                print(
+                    "Undeployment initiated. Models will be removed from the endpoint."
+                )
+            except Exception as e:
+                print(f"Error during undeployment: {e}")
+                print(
+                    "Undeployment failed. Please check the error details above and retry if needed."
+                )
+                return  # Exit to avoid executing the outer error path
         else:
             print("Undeployment cancelled.")
 

@@ -20,7 +20,6 @@ A complete empirical validation framework for MedContext's four contextual signa
 ### 📄 Documentation
 
 1. **`docs/CONTEXTUAL_SIGNALS_VALIDATION.md`** (11,500+ words)
-
    - Complete validation methodology
    - Dataset requirements and specifications
    - Evaluation metrics (ROC AUC, precision, recall, F1, calibration)
@@ -39,7 +38,6 @@ A complete empirical validation framework for MedContext's four contextual signa
 ### 🔧 Implementation Scripts
 
 3. **`scripts/validate_contextual_signals.py`** (500+ lines)
-
    - Main validation script
    - Runs MedContext agent on full dataset
    - Computes metrics with bootstrap confidence intervals
@@ -64,7 +62,6 @@ A complete empirical validation framework for MedContext's four contextual signa
 ### 📝 Updated Files
 
 6. **`docs/VALIDATION.md`** (updated)
-
    - Added Part 8: Contextual Signals Validation section
    - References to new validation framework
    - Next steps roadmap
@@ -200,14 +197,14 @@ Ablation Study (Signal Contribution):
 
 **Comparison to Pixel Forensics:**
 
-| Approach               | Dataset           | Accuracy | ROC AUC   | Threat Coverage                  |
-| ---------------------- | ----------------- | -------- | --------- | -------------------------------- |
-| Pixel forensics        | UCI Tamper        | 49.9%    | 0.533     | 20% (manipulated)                |
-| **Contextual signals** | Image-claim pairs | **75%+** | **0.80+** | dominant threat (context misuse) |
+| Approach               | Dataset           | Accuracy   | ROC AUC     | Threat Coverage                  |
+| ---------------------- | ----------------- | ---------- | ----------- | -------------------------------- |
+| Approach               | Dataset           | Accuracy   | ROC AUC     | Threat Coverage                  |
+| ---------------------- | ----------------- | --------   | ---------   | -------------------------------- |
+| Pixel forensics        | UCI Tamper        | 49.9%      | 0.533       | 20% (manipulated)                |
+| **Contextual signals** | Image-claim pairs | **75%+\*** | **0.80+\*** | dominant threat (context misuse) |
 
----
-
-## Dataset Requirements
+\*Target performance pending validation execution (see line 452-454).
 
 ### Minimum Dataset Size
 
@@ -218,14 +215,12 @@ Ablation Study (Signal Contribution):
 ### Required Components
 
 1. **Medical Images**
-
    - Authentic (not manipulated)
    - Diverse modalities (X-ray, CT, MRI, ultrasound, etc.)
    - Various anatomical regions
    - Clear, diagnostic-quality
 
 2. **Claims/Context**
-
    - Medical diagnoses
    - Treatment claims
    - Health advice
@@ -241,13 +236,11 @@ Ablation Study (Signal Contribution):
 ### Recommended Sources
 
 1. **Dataset A: Medical Literature** (ground truth)
-
    - PubMed Central image database
    - Medical education repositories (MedPix, Radiopaedia)
    - Verified health authority posts
 
 2. **Dataset B: Social Media Misinformation**
-
    - HealthFeedback.org verified claims
    - Snopes medical fact-checks
    - WHO infodemic reports
@@ -326,13 +319,11 @@ Ablation Study (Signal Contribution):
 ### Short-Term (Pending Dataset Curation)
 
 4. **Curate Dataset A** (Medical literature with verified captions)
-
    - Target: 300-500 image-claim pairs
    - Expert annotations needed
    - Stratify by modality and claim type
 
 5. **Curate Dataset B** (Social media misinformation)
-
    - Source from fact-checking organizations
    - Real-world misinformation cases
    - Target: 200-300 flagged posts
@@ -345,13 +336,11 @@ Ablation Study (Signal Contribution):
 ### Medium-Term (After Initial Results)
 
 7. **Weight Optimization**
-
    - Use ablation results to refine signal weights
    - Current: 60/15/15/10 (alignment/plausibility/genealogy/source)
    - Optimize via grid search or Bayesian optimization
 
 8. **Cross-Validation**
-
    - Split data into train/validation/test
    - Optimize on validation set
    - Final evaluation on held-out test set
@@ -456,5 +445,5 @@ A **complete, production-ready validation framework** for MedContext's contextua
 ---
 
 **Created:** January 31, 2026  
-**Last Updated:** January 31, 2026  
+**Last Updated:** February 4, 2026  
 **Version:** 1.0

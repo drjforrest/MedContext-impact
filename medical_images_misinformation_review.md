@@ -275,7 +275,7 @@ The stakes are substantial: misinformation has been estimated to cause hundreds 
 
 11. Griffin A. Investigation reveals AI deepfake doctors spreading misinformation and endorsing supplements [Internet]. London: The Independent; 2024 Dec 4 [cited 2026 Feb]. Available from: https://www.the-independent.com/news/uk/home-news/deepfake-ai-doctor-expert-tiktok-google-b2879189.html
 
-12. Misbar. Investigation reveals deepfakes of health professionals pushing supplements [Internet]. Cairo: Misbar; 2024 Dec 7 [cited 2026 Feb]. Available from: https://www.misbar.com/amp/en/editorial/2025/12/07/investigation-reveals-deepfakes-health-professionals-pushing-supplements
+12. Misbar. Investigation reveals deepfakes of health professionals pushing supplements [Internet]. Cairo: Misbar; 2024 Dec 7 [cited 2026 Feb]. Available from: https://www.misbar.com/amp/en/editorial/2024/12/07/investigation-reveals-deepfakes-health-professionals-pushing-supplements
 
 ---
 

@@ -95,11 +95,12 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 **Our Validation Proves the Thesis:**
 
-We tested pixel-level forensics on real medical images:
+We tested both pixel forensics and contextual analysis on real medical images:
 
-- **Accuracy:** 49.9% [95% CI: 44.5%, 55.5%]
-- **Interpretation:** Chance performance
-- **Conclusion:** Pixel forensics cannot detect real-world medical misinformation
+- **Pixel Forensics:** 49.9% accuracy [95% CI: 44.5%, 55.5%] → Chance performance
+- **Contextual Analysis:** 65.6% accuracy [95% CI: 55.6%, 75.6%] → Statistically significant improvement
+- **Interpretation:** Pixel forensics cannot detect real-world medical misinformation
+- **Conclusion:** Contextual analysis significantly outperforms pixel forensics on real-world data
 
 This validates our literature review finding that over half of misinformation includes visuals, predominantly **authentic images used in misleading contexts** (Brennen et al., 2021).
 

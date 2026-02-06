@@ -219,7 +219,8 @@ def sample_images(data_dir: Path, num_images: int) -> list[Path]:
     if len(all_images) > num_images:
         sampled = random.sample(all_images, num_images)
     else:
-        sampled = all_images[:num_images]
+        sampled = all_images.copy()
+        random.shuffle(sampled)
 
     print(f"Found {len(all_images)} total authentic images")
     print(f"Sampled {len(sampled)} images for claim generation")

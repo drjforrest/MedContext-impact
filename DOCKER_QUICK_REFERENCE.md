@@ -167,20 +167,25 @@ make build
 
 ## 🧹 Cleanup
 
-````bash
+bash
+
 # Stop and remove containers
+
 make down
 
 # Remove containers + volumes
+
 make clean
 
 # Nuclear option (removes images too)
+
 make docker-prune
 
 # Docker system cleanup commands
-docker container prune -f    # Remove stopped containers
-docker image prune -f        # Remove dangling images
-docker volume prune -f       # Remove unused volumes
+
+docker container prune -f # Remove stopped containers
+docker image prune -f # Remove dangling images
+docker volume prune -f # Remove unused volumes
 
 ## 📊 Resource Management
 
@@ -194,7 +199,7 @@ deploy:
     limits:
       cpus: '2'
       memory: 4G
-````
+```
 
 ## 🔒 Security
 

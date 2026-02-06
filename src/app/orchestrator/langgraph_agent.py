@@ -236,34 +236,43 @@ class MedContextLangGraphAgent:
         LLM orchestrator decides which investigative tools to deploy.
 
         Uses MedGemma's medical analysis as authoritative input but makes
-        strategic decisions about tool selection.
+        strategic decisions about tool selection.  When no add-on modules are
+        enabled, skips the LLM call entirely.
         """
-        system_prompt = """You are an investigative orchestration agent. Your role is to decide which investigative tools to deploy based on medical image analysis and user claims.
+        enabled = settings.get_enabled_addons()
+        if not enabled:
+            return {"tools": [], "reasoning": "No add-on modules enabled"}
 
-CRITICAL: You are NOT a medical expert. Medical analysis is provided by MedGemma, a specialized medical AI. Your job is ONLY to decide which investigative tools to use.
+        tool_descriptions = self._build_tool_descriptions(enabled)
 
-Available investigative tools:
-- reverse_search: Check if this image has been used in other contexts online (useful for detecting image misuse or repurposing)
-- forensics: Analyze pixel-level evidence of manipulation, EXIF metadata, error level analysis (useful when image authenticity is questionable)
-- provenance: Verify source chain and blockchain-style genealogy (useful for establishing image history)
-
-Your strategic considerations:
-1. If the medical analysis indicates the claim is medically plausible, focus on verifying the image hasn't been misused (reverse_search, provenance)
-2. If the medical analysis indicates inconsistencies or the claim seems implausible, consider forensics to check for manipulation
-3. If the image appears in a high-stakes context (medical advice, clinical claims), verify provenance
-4. Consider computational cost - don't run all tools unless necessary
-
-Return ONLY valid JSON (no other text) with this exact structure:
-{
-  "tools": ["tool1", "tool2"],
-  "reasoning": "Brief explanation of why these tools were selected based on the medical analysis"
-}
-
-CRITICAL REQUIREMENTS:
-- Respond with ONLY the JSON object above, no other text
-- tools must be an array of strings (can be empty array)
-- Only use tool names from the available tools list above
-- Start your response with { and end with }"""
+        system_prompt = (
+            "You are an investigative orchestration agent. Your role is to decide "
+            "which investigative tools to deploy based on medical image analysis "
+            "and user claims.\n\n"
+            "CRITICAL: You are NOT a medical expert. Medical analysis is provided "
+            "by MedGemma, a specialized medical AI. Your job is ONLY to decide "
+            "which investigative tools to use.\n\n"
+            f"Available investigative tools:\n{tool_descriptions}\n\n"
+            "Your strategic considerations:\n"
+            "1. If the medical analysis indicates the claim is medically plausible, "
+            "focus on verifying the image hasn't been misused (reverse_search, provenance)\n"
+            "2. If the medical analysis indicates inconsistencies or the claim seems "
+            "implausible, consider forensics to check for manipulation\n"
+            "3. If the image appears in a high-stakes context (medical advice, clinical "
+            "claims), verify provenance\n"
+            "4. Consider computational cost - don't run all tools unless necessary\n\n"
+            "Return ONLY valid JSON (no other text) with this exact structure:\n"
+            "{\n"
+            '  "tools": ["tool1", "tool2"],\n'
+            '  "reasoning": "Brief explanation of why these tools were selected '
+            'based on the medical analysis"\n'
+            "}\n\n"
+            "CRITICAL REQUIREMENTS:\n"
+            "- Respond with ONLY the JSON object above, no other text\n"
+            "- tools must be an array of strings (can be empty array)\n"
+            "- Only use tool names from the available tools list above\n"
+            "- Start your response with { and end with }"
+        )
 
         # Build user prompt with medical analysis
         user_prompt = "Medical Analysis from MedGemma:\n"
@@ -308,14 +317,35 @@ CRITICAL REQUIREMENTS:
             # Fallback: infer tools from medical analysis
             return self._fallback_tool_selection(medical_analysis, context)
 
+    def _build_tool_descriptions(self, enabled: frozenset[str]) -> str:
+        """Build the tool descriptions section for the tool selection prompt."""
+        descriptions = {
+            "reverse_search": (
+                "- reverse_search: Check if this image has been used in other "
+                "contexts online (useful for detecting image misuse or repurposing)"
+            ),
+            "forensics": (
+                "- forensics: Analyze pixel-level evidence of manipulation, "
+                "EXIF metadata, error level analysis (useful when image "
+                "authenticity is questionable)"
+            ),
+            "provenance": (
+                "- provenance: Verify source chain and blockchain-style "
+                "genealogy (useful for establishing image history)"
+            ),
+        }
+        return "\n".join(
+            descriptions[name] for name in sorted(enabled) if name in descriptions
+        )
+
     def _fallback_tool_selection(
         self, medical_analysis: MedGemmaResult, context: str | None
     ) -> dict[str, Any]:
         """
         Fallback tool selection if LLM orchestrator fails.
-        Uses simple heuristics based on medical analysis.
+        Uses simple heuristics based on medical analysis, filtered by enabled add-ons.
         """
-        tools = []
+        candidates = []
         reasoning = "Fallback heuristic selection (LLM orchestrator unavailable)"
 
         medical_output = medical_analysis.output
@@ -329,21 +359,21 @@ CRITICAL REQUIREMENTS:
 
             # If claim exists, always check reverse search
             if context:
-                tools.append("reverse_search")
+                candidates.append("reverse_search")
 
             # If plausibility is low, check forensics
             if plausibility == "low":
-                tools.append("forensics")
+                candidates.append("forensics")
                 reasoning = "Low plausibility - checking for manipulation"
 
             # Always check provenance for medical images
-            tools.append("provenance")
+            candidates.append("provenance")
         else:
             # Minimal fallback: just reverse search
-            tools = ["reverse_search"]
+            candidates = ["reverse_search"]
             reasoning = "Minimal fallback selection"
 
-        return {"tools": self._sanitize_tools(tools), "reasoning": reasoning}
+        return {"tools": self._sanitize_tools(candidates), "reasoning": reasoning}
 
     def _dispatch_node(self, state: AgentState) -> AgentState:
         start = perf_counter()
@@ -855,7 +885,7 @@ CRITICAL REQUIREMENTS:
         return f"data:image/{image_format};base64,{encoded}"
 
     def _sanitize_tools(self, tools: list[str]) -> list[str]:
-        allowed = {"reverse_search", "forensics", "provenance"}
+        allowed = settings.get_enabled_addons()
         normalized = []
         for tool in tools:
             if not isinstance(tool, str):

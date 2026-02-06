@@ -4,6 +4,7 @@
 import csv
 import json
 import random
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List
@@ -13,7 +14,7 @@ def augment_contextual_dataset(contextual_path: Path) -> List[Dict[Any, Any]]:
     """Add pixel_authentic dimension to existing contextual dataset."""
 
     print(f"Loading authentic contextual dataset: {contextual_path}")
-    with open(contextual_path) as f:
+    with open(contextual_path, encoding="utf-8") as f:
         data = json.load(f)
 
     # Add pixel authenticity (all BTD images are authentic)
@@ -49,7 +50,7 @@ def create_tampered_entries(
     """Create tampered image entries with claims."""
 
     print(f"Loading tampered image labels: {tampered_labels_path}")
-    with open(tampered_labels_path) as f:
+    with open(tampered_labels_path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         tampered_images = list(reader)
 
@@ -149,7 +150,7 @@ def create_complete_3d_dataset():
 
     # Save
     output_path = Path("data/three_dimensional_validation_v1.json")
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(complete_dataset, f, indent=2)
 
     # Analyze distribution
@@ -193,7 +194,10 @@ def main():
         print(
             "  data/deepfakes+medical+image+tamper+detection/data/Tampered Scans/labels_exp1.csv"
         )
+        sys.exit(1)
 
 
 if __name__ == "__main__":
+    main()
+    main()
     main()

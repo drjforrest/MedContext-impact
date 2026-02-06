@@ -54,10 +54,24 @@ def quick_test():
                     self.results.append(result)
 
                     print(f"✓ Sample {i + 1} processed successfully")
-                    print(f"  Pixel authentic: {pixel_pred['pixel_authentic']}")
-                    print(f"  Veracity score: {context_pred['veracity_score']:.3f}")
-                    print(f"  Alignment score: {context_pred['alignment_score']:.3f}")
-                    print(f"  Is misleading: {context_pred['is_misleading']}")
+                    print(
+                        f"  Pixel authentic: {pixel_pred.get('pixel_authentic', 'N/A')}"
+                    )
+                    veracity = context_pred.get("veracity_score")
+                    alignment = context_pred.get("alignment_score")
+                    print(
+                        f"  Veracity score: {veracity:.3f}"
+                        if veracity is not None
+                        else "  Veracity score: N/A"
+                    )
+                    print(
+                        f"  Alignment score: {alignment:.3f}"
+                        if alignment is not None
+                        else "  Alignment score: N/A"
+                    )
+                    print(
+                        f"  Is misleading: {context_pred.get('is_misleading', 'N/A')}"
+                    )
 
                 except Exception as e:
                     print(f"✗ Error processing sample {i + 1}: {e}")

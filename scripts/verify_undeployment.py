@@ -3,7 +3,10 @@
 Script to verify that the Vertex AI endpoint has been undeployed
 """
 
+import sys
+
 import vertexai
+from google.api_core.exceptions import NotFound
 from google.cloud import aiplatform
 
 PROJECT_ID = "medcontext"
@@ -36,13 +39,22 @@ def main():
             print(
                 "Endpoint still has deployed models. Undeployment may still be in progress."
             )
+            sys.exit(1)  # Exit with non-zero status to indicate failure
         else:
             print("Endpoint has no deployed models.")
+            sys.exit(1)  # Exit with non-zero status to indicate failure
 
-    except Exception as e:
+    except NotFound as e:
         print(f"Endpoint not found: {e}")
         print("This indicates the endpoint has been successfully undeployed.")
+        sys.exit(0)  # Exit with zero status to indicate success
+
+    except Exception as e:
+        print(f"Unexpected error occurred: {e}")
+        sys.exit(1)  # Exit with non-zero status to indicate failure
 
 
 if __name__ == "__main__":
+    main()
+    main()
     main()

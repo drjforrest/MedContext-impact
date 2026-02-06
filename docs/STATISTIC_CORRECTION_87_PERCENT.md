@@ -89,43 +89,33 @@ The corrected statistic **actually strengthens** our argument:
 ### Documentation Files (19 instances)
 
 1. **docs/VALIDATION.md** (4 instances)
-
    - Line 15, 270, 508, 567
 
 2. **docs/CONTEXTUAL_SIGNALS_VALIDATION.md** (3 instances)
-
    - Lines 9, 665, 1238
 
 3. **docs/CONTEXTUAL_SIGNALS_VALIDATION_QUICKSTART.md** (1 instance)
-
    - Line 238
 
 4. **docs/CONTEXTUAL_VALIDATION_SUMMARY.md** (2 instances)
-
    - Lines 386, 407
 
 5. **docs/VALIDATION_RESULTS.md** (5 instances)
-
    - Lines 20, 164, 183, 250, 259
 
 6. **docs/VALIDATION_STORY.md** (1 instance)
-
    - Line 7
 
 7. **docs/VIDEO_SCRIPT.md** (2 instances)
-
    - Lines 51, 57
 
 8. **docs/EXECUTIVE_SUMMARY.md** (1 instance)
-
    - Line 13 (This is CORRECT - about benefits/harms)
 
 9. **docs/SUBMISSION.md** (1 instance)
-
    - Line 33 (This is CORRECT - about benefits/harms)
 
 10. **START_HERE.md** (2 instances)
-
     - Lines 17, 104
 
 11. **README.md** (1 instance)
@@ -195,7 +185,7 @@ Since approximately 87% of medical misinformation involves contextual misuse rat
 **Corrected:**
 
 ```
-Since over half of medical misinformation includes visuals, with the vast majority being authentic images in misleading contexts rather than pixel manipulations (Brennen et al., 2020)...
+Since over half of medical misinformation includes visuals, with the vast majority being authentic images in misleading contexts rather than pixel manipulations (Brennen et al., 2021)...
 ```
 
 ---

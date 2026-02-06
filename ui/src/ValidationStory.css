@@ -22,6 +22,12 @@
   color: #5b8def;
 }
 
+.validation-back-button:focus-visible {
+  outline: 2px solid #5b8def;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.3);
+}
+
 /* Hero Section */
 .validation-hero {
   background: linear-gradient(135deg, #1c1e26 0%, #2d3142 100%);

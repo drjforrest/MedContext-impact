@@ -23,37 +23,16 @@ def _clamp(value: float) -> float:
 
 
 def _compute_weighted_score(values: list[tuple[float, float | None]]) -> float:
-    """Compute weighted score with dynamic weight redistribution.
+    """Compute weighted score treating None values as 0.0.
 
-    Missing signals (None) have their weights redistributed proportionally
-    to available signals. This ensures the score reflects the quality of
-    available evidence rather than penalizing for missing data.
-
-    Example: With weights 60/15/15/10, if Genealogy and Source are None:
-    - Total available weight = 60 + 15 = 75%
-    - Alignment gets: 60/75 = 80% of final score
-    - Plausibility gets: 15/75 = 20% of final score
-    - Result: Final score = (0.6/0.75)×alignment + (0.15/0.75)×plausibility
+    Missing signals (None) are treated as 0.0 without redistributing weights.
+    Each signal contributes its weight multiplied by its clamped value.
     """
-    # Separate available and missing signals
-    available = [(w, v) for w, v in values if v is not None]
-
-    if not available:
-        return 0.0
-
-    # Calculate total weight of available signals
-    total_available_weight = sum(w for w, _ in available)
-
-    if total_available_weight <= 0:
-        return 0.0
-
-    # Compute score with redistributed weights
+    # Iterate over the original values list, treating None as 0.0
     score = 0.0
-    for weight, value in available:
-        # Redistribute: this signal's share of available weight
-        redistributed_weight = weight / total_available_weight
-        signal_value = _clamp(float(value))
-        score += redistributed_weight * signal_value
+    for weight, value in values:
+        signal_value = 0.0 if value is None else _clamp(float(value))
+        score += weight * signal_value
 
     return _clamp(score)
 

@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.modules import require_module
 from app.db.models import ImageSubmission
 from app.db.session import get_db
 from app.provenance.service import build_provenance, get_provenance_manifest
@@ -14,7 +15,7 @@ from app.schemas.provenance import (
     ProvenanceManifestResponse,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_module("provenance"))])
 
 
 def _build_manifest_response(record) -> ProvenanceManifestResponse:

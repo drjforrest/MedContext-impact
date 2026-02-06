@@ -4,16 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MedContext is a modular system to verify medical image context and detect misinformation. It leverages MedGemma (Google's medical AI model) to assess context integrity in medical imaging and uses provenance tracking to combat medical misinformation.
+MedContext is a modular system to verify medical image context and detect misinformation. It leverages MedGemma (Google's medical AI model) to assess context integrity in medical imaging.
 
-**Core Capabilities:**
+**Core Modules (always enabled, zero config):**
 
-- Medical image context alignment using MedGemma
-- Integrity signals (reverse search, provenance, semantic checks)
-- Blockchain-like provenance tracking with immutable genealogy
+- **Medical Image Analysis** — MedGemma-powered image triage and medical assessment
+- **Contextual Authenticity** — LLM alignment analysis and claim veracity assessment
+
+**Add-on Modules (disabled by default, opt-in via environment variables):**
+
+- **Reverse Image Search** — Source verification via SerpAPI (`ENABLE_REVERSE_SEARCH=true`)
+- **Provenance Tracking** — Blockchain-style hash chain genealogy (`ENABLE_PROVENANCE=true`)
+- **Forensics Analysis** — Pixel-level ELA, EXIF analysis (`ENABLE_FORENSICS=true`)
+
+**Additional Features:**
+
+- Agentic orchestration with deterministic and LangGraph workflows
 - Real-time Telegram bot for image verification
-- Agentic orchestration with deterministic tool dispatch
-- Contextual authenticity scoring
+- Contextual authenticity scoring with dynamic weight redistribution
 
 ## Development Setup
 
@@ -112,10 +120,17 @@ LLM_API_KEY=<your-openrouter-key>
 LLM_ORCHESTRATOR=openai/gpt-4o-mini
 ```
 
+**Add-on Module Flags:**
+
+- `ENABLE_REVERSE_SEARCH`: Enable reverse image search add-on (default: `false`, requires `SERP_API_KEY`)
+- `ENABLE_PROVENANCE`: Enable provenance tracking add-on (default: `false`, requires `DATABASE_URL`)
+- `ENABLE_FORENSICS`: Enable pixel forensics add-on (default: `false`)
+- `ENABLE_FORENSICS_MEDGEMMA`: Enable MedGemma semantic layer in forensics (default: `false`)
+
 **Optional Services:**
 
 - `REDIS_URL`: Redis connection string
-- `SERP_API_KEY`: For reverse image search via SerpAPI
+- `SERP_API_KEY`: For reverse image search via SerpAPI (required when `ENABLE_REVERSE_SEARCH=true`)
 - `DEMO_ACCESS_CODE`: Access code for public demo (leave empty for local dev)
 
 **Optional Services - Telegram:**
@@ -142,25 +157,26 @@ Note: `TELEGRAM_BOT_TOKEN` must be set to run `scripts/run_telegram_bot.py`.
 
 ```
 src/app/
-├── main.py                    # FastAPI app entry point
+├── main.py                    # FastAPI app entry point + /api/v1/modules endpoint
 ├── api/v1/endpoints/          # REST API endpoints
 │   ├── ingestion.py          # Image submission
 │   ├── orchestrator.py       # Agentic workflow execution
-│   ├── forensics.py          # Legacy integrity signals (stubbed)
-│   ├── reverse_search.py     # Reverse image search
+│   ├── forensics.py          # Forensics analysis (add-on, guarded)
+│   ├── reverse_search.py     # Reverse image search (add-on, guarded)
+│   ├── provenance.py         # Provenance tracking (add-on, guarded)
 │   └── ...
 ├── orchestrator/              # Agentic orchestration
 │   ├── agent.py              # Deterministic agent (triage → tools → synthesis)
 │   ├── langgraph_agent.py    # LangGraph implementation
 │   └── image_scrape.py       # Image extraction utilities
-├── clinical/                  # MedGemma integration
+├── clinical/                  # MedGemma integration (CORE)
 │   ├── medgemma_client.py    # Multi-provider MedGemma client
 │   └── llm_client.py         # LLM client for orchestration
-├── forensics/                 # Legacy integrity signals
-│   └── service.py            # Stubbed (signals removed)
-├── provenance/                # Blockchain-like provenance
+├── forensics/                 # Pixel forensics (ADD-ON)
+│   └── service.py            # ELA, EXIF analysis
+├── provenance/                # Provenance tracking (ADD-ON)
 │   └── service.py            # Hash-chained immutable records
-├── reverse_search/            # Image reverse search
+├── reverse_search/            # Image reverse search (ADD-ON)
 │   └── service.py            # Multi-provider search (SerpAPI)
 ├── telegram_bot/              # Telegram bot implementation
 │   └── bot.py                # Full bot with image verification
@@ -171,16 +187,26 @@ src/app/
 │   └── session.py            # DB session management
 ├── schemas/                   # Pydantic schemas
 └── core/
-    └── config.py             # Settings (loads from .env)
+    ├── config.py             # Settings (loads from .env)
+    └── modules.py            # Module registry + API route guards
 ```
+
+### Core vs Add-on Architecture
+
+The system is designed around **core modules** that work out-of-the-box and **add-on modules** that can be enabled via environment variables:
+
+- **Core** (always on): MedGemma medical image analysis + LLM contextual authenticity (alignment + claim veracity). These require only `MEDGEMMA_*` and `LLM_*` configuration.
+- **Add-ons** (opt-in): Reverse search, provenance, and forensics. Each has an `ENABLE_*` flag. When disabled, their API endpoints return 423, their agent tool dispatch is skipped, and the scoring system redistributes weights to core signals.
+
+The module registry (`src/app/core/modules.py`) provides `get_all_modules()` for introspection and `require_module()` as a FastAPI dependency guard. The `GET /api/v1/modules` endpoint exposes module status to the UI.
 
 ### Agentic Orchestration Flow
 
 The `MedContextAgent` (`src/app/orchestrator/agent.py`) implements a deterministic 3-step workflow:
 
-1. **Triage:** MedGemma analyzes the image and determines required tools (`reverse_search`, `forensics`, `provenance`)
-2. **Tool Dispatch:** Only allowed tools are executed based on triage output
-3. **Synthesis:** MedGemma combines tool results into final assessment with alignment verdict
+1. **Triage:** MedGemma analyzes the image and determines required tools
+2. **Tool Dispatch:** Only enabled add-on tools are executed (controlled by `settings.get_enabled_addons()`)
+3. **Synthesis:** LLM combines tool results into final assessment with alignment verdict
 
 **API Endpoints:**
 

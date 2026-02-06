@@ -15,11 +15,9 @@ from app.metrics.integrity import compute_contextual_integrity_score
 from app.provenance.service import build_provenance
 from app.reverse_search.service import get_reverse_search_results, run_reverse_search
 
-ALLOWED_TOOLS = {
-    "reverse_search",
-    "forensics",
-    "provenance",
-}
+def _get_allowed_tools() -> frozenset[str]:
+    """Return the set of enabled add-on tool names from config."""
+    return settings.get_enabled_addons()
 MAX_PREVIEW_BYTES = 1024 * 1024
 
 
@@ -492,7 +490,7 @@ class MedContextAgent:
             if not isinstance(tool, str):
                 continue
             tool_name = tool.strip().lower()
-            if tool_name in ALLOWED_TOOLS:
+            if tool_name in _get_allowed_tools():
                 normalized.append(tool_name)
         return normalized
 

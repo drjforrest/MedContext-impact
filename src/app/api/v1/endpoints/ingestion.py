@@ -140,21 +140,37 @@ def ingest_and_run_agentic(
                     with db.begin_nested():
                         db.add(submission)
                         db.flush()
-                except IntegrityError:
-                    # Race condition: another request inserted the same hash
-                    # The nested transaction is automatically rolled back, outer transaction remains valid
-                    existing_submission = (
-                        db.query(ImageSubmission)
-                        .filter(ImageSubmission.image_hash == image_hash)
-                        .first()
-                    )
-                    if existing_submission is None:
-                        raise HTTPException(
-                            status_code=500,
-                            detail="Failed to create or retrieve image submission.",
+                except IntegrityError as e:
+                    # Check if this is specifically the unique constraint violation on image_hash
+                    orig_error = e.orig
+                    constraint_name = getattr(orig_error, "constraint_name", None)
+
+                    # For PostgreSQL, check if it's the unique constraint on image_hash
+                    if (
+                        (hasattr(orig_error, "pgcode") and orig_error.pgcode == "23505")
+                        or (constraint_name and "image_hash" in constraint_name)
+                        or (
+                            "image_hash" in str(e)
+                            or "image_submissions_image_hash_key" in str(e)
                         )
-                    submission = existing_submission
-                    resolved_image_id = existing_submission.id
+                    ):
+                        # This is the duplicate image_hash constraint violation
+                        # The nested transaction is automatically rolled back, outer transaction remains valid
+                        existing_submission = (
+                            db.query(ImageSubmission)
+                            .filter(ImageSubmission.image_hash == image_hash)
+                            .first()
+                        )
+                        if existing_submission is None:
+                            raise HTTPException(
+                                status_code=500,
+                                detail="Failed to create or retrieve image submission.",
+                            )
+                        submission = existing_submission
+                        resolved_image_id = existing_submission.id
+                    else:
+                        # This is a different integrity constraint violation, re-raise
+                        raise
 
             submission_context = SubmissionContext(
                 image_id=resolved_image_id,
@@ -166,12 +182,13 @@ def ingest_and_run_agentic(
                 language_code="en",
             )
             db.add(submission_context)
-            store_provenance_manifest(
-                db,
-                image_hash=image_hash,
-                image_id=resolved_image_id,
-                source_url=source_url,
-            )
+            if settings.enable_provenance:
+                store_provenance_manifest(
+                    db,
+                    image_hash=image_hash,
+                    image_id=resolved_image_id,
+                    source_url=source_url,
+                )
             result = agent.run(
                 image_bytes=image_bytes,
                 image_id=str(resolved_image_id),

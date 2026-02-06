@@ -403,7 +403,6 @@ All metrics reported with:
 ### 5.1 End-to-End Validation Protocol
 
 1. **Dataset:** Combined test set (stratified sample from all datasets)
-
    - 300 aligned pairs (positive class)
    - 300 misaligned pairs (negative class)
    - 100 unclear/ambiguous pairs (excluded from binary metrics)
@@ -596,8 +595,8 @@ def compare_classifiers(y_true, y_pred1, y_pred2):
     only2_correct = sum(~correct1 & correct2)
     both_wrong = sum(~correct1 & ~correct2)
 
-    table = [[both_correct, only1_correct],
-             [only2_correct, both_wrong]]
+    table = [[both_correct, only2_correct],
+             [only1_correct, both_wrong]]
 
     result = mcnemar(table, exact=True)
     return result.pvalue
@@ -1131,6 +1130,8 @@ class ContextualSignalsValidator:
         for signal, analysis in signal_analysis.items():
             if analysis["roc_auc"] is not None:
                 print(f"  {signal:25s}: {analysis['roc_auc']:.3f} (coverage: {analysis['coverage']:.1%})")
+            else:
+                print(f"  {signal:25s}: {'N/A':>6s} (coverage: {analysis['coverage']:.1%})")
 
         print("\nAblation Study (Signal Contribution):")
         for key, value in ablation.items():

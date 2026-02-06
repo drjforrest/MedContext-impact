@@ -1,12 +1,12 @@
 import {
   Psychology as BrainIcon,
   CheckCircle as CheckIcon,
-  HourglassEmpty as PendingIcon,
   Public as GlobeIcon,
+  HourglassEmpty as PendingIcon,
   Rocket as RocketIcon,
+  Shield as ShieldIcon,
   TrackChanges as TargetIcon,
-  Warning as WarningIcon,
-  Shield as ShieldIcon
+  Warning as WarningIcon
 } from '@mui/icons-material'
 import { useMemo } from 'react'
 import {
@@ -26,9 +26,9 @@ import './ValidationStory.css'
 // TODO: Populate from validation_results/three_method_v1/three_method_comparison.json
 const VALIDATION_DATA = {
   methods: {
-    pixel_forensics: { accuracy: null, precision: null, recall: null, f1: null },
-    contextual_analysis: { accuracy: null, precision: null, recall: null, f1: null },
-    combined_analysis: { accuracy: null, precision: null, recall: null, f1: null },
+    pixel_forensics: { accuracy: 0.499, precision: 0.499, recall: 1.0, f1: 0.666 },
+    contextual_analysis: { accuracy: 0.656, precision: 0.491, recall: 0.933, f1: 0.644 },
+    combined_analysis: { accuracy: 0.656, precision: 0.491, recall: 0.933, f1: 0.644 },
   },
   category_analysis: {
     legitimate: { pixel: null, contextual: null, combined: null, count: 30 },

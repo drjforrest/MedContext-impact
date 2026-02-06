@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import AliasChoices, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
@@ -61,8 +63,22 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN"),
     )
+    # Add-on modules (disabled by default; core works without them)
+    enable_reverse_search: bool = False
+    enable_provenance: bool = False
     enable_forensics: bool = False
     enable_forensics_medgemma: bool = False
+
+    def get_enabled_addons(self) -> frozenset[str]:
+        """Return the set of enabled add-on tool names."""
+        addons: set[str] = set()
+        if self.enable_reverse_search:
+            addons.add("reverse_search")
+        if self.enable_provenance:
+            addons.add("provenance")
+        if self.enable_forensics:
+            addons.add("forensics")
+        return frozenset(addons)
     jwt_secret: str = ""
     encryption_key: str = ""
     log_level: str = "INFO"

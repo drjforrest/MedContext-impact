@@ -108,9 +108,49 @@ function App() {
   )
   const [agentStepIndex, setAgentStepIndex] = useState(0)
   const agentStartRef = useRef(null)
+  const [modules, setModules] = useState(null)
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
+
+  // Fetch module status on mount and when API base changes
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const headers = {}
+        if (accessCode.trim()) {
+          headers['X-Demo-Access-Code'] = accessCode.trim()
+        }
+        const res = await fetch(
+          `${apiBase.replace(/\/$/, '')}/api/v1/modules`,
+          { headers },
+        )
+        if (res.ok) {
+          const data = await res.json()
+          const moduleMap = {}
+          for (const m of data.modules || []) {
+            moduleMap[m.name] = m
+          }
+          setModules(moduleMap)
+        }
+      } catch {
+        // Module endpoint unavailable — assume all enabled for backwards compat
+      }
+    }
+    fetchModules()
+  }, [apiBase, accessCode])
+
+  const isAddonEnabled = (name) => {
+    if (!modules) return true // backwards compat: if endpoint unavailable, show all
+    return modules[name]?.enabled ?? false
+  }
+
+  const disabledAddons = useMemo(() => {
+    if (!modules) return []
+    return Object.values(modules).filter(
+      (m) => m.category === 'addon' && !m.enabled,
+    )
+  }, [modules])
 
   const statusLabel = useMemo(() => {
     if (status === 'loading') return 'Running analysis...'
@@ -127,8 +167,8 @@ function App() {
     return 'Ready'
   }, [reverseStatus])
 
-  const agentSteps = useMemo(
-    () => [
+  const agentSteps = useMemo(() => {
+    const steps = [
       {
         key: 'database',
         label: 'Checking database',
@@ -139,24 +179,29 @@ function App() {
         label: 'Medical analysis',
         detail: 'MedGemma evaluates medical plausibility and context alignment.',
       },
-      {
+    ]
+    if (isAddonEnabled('reverse_search')) {
+      steps.push({
         key: 'reverse_search',
         label: 'Source verification',
         detail: 'Searching for where this image appears online.',
-      },
-      {
+      })
+    }
+    if (isAddonEnabled('provenance')) {
+      steps.push({
         key: 'provenance',
         label: 'Tracking genealogy',
         detail: 'Building usage history and provenance chain.',
-      },
-      {
-        key: 'synthesis',
-        label: 'Generating report',
-        detail: 'Combining findings into final authenticity assessment.',
-      },
-    ],
-    [],
-  )
+      })
+    }
+    steps.push({
+      key: 'synthesis',
+      label: 'Generating report',
+      detail: 'Combining findings into final authenticity assessment.',
+    })
+    return steps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modules])
 
   useEffect(() => {
     if (status !== 'loading') {
@@ -1132,18 +1177,22 @@ function App() {
                 <div>
                   <h2>Reverse image search only</h2>
                   <p className="helper">
-                    Optional: use this for a standalone lookup. The full
-                    Contextual Authenticity analysis already runs reverse search
-                    if determined necessary by the triage agent.
+                    {isAddonEnabled('reverse_search')
+                      ? 'Optional: use this for a standalone lookup. The full Contextual Authenticity analysis already runs reverse search if determined necessary by the triage agent.'
+                      : 'Add-on module not enabled. Set ENABLE_REVERSE_SEARCH=true to activate.'}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className="ghost"
-                  onClick={() => setShowReverseSearch((current) => !current)}
-                >
-                  {showReverseSearch ? 'Hide' : 'Show'}
-                </button>
+                {isAddonEnabled('reverse_search') ? (
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => setShowReverseSearch((current) => !current)}
+                  >
+                    {showReverseSearch ? 'Hide' : 'Show'}
+                  </button>
+                ) : (
+                  <span className="badge badge-addon">Add-on</span>
+                )}
               </div>
               {showReverseSearch ? (
                 <>
@@ -1467,6 +1516,11 @@ function App() {
                           {uncheckedSignals.length > 0 ? (
                             <p className="helper" style={{ marginTop: '0.75rem', fontStyle: 'italic' }}>
                               Not checked: {uncheckedSignals.join(', ')}
+                            </p>
+                          ) : null}
+                          {disabledAddons.length > 0 ? (
+                            <p className="helper" style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.7 }}>
+                              Available add-ons: {disabledAddons.map((m) => m.display_name).join(', ')}
                             </p>
                           ) : null}
                         </div>

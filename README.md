@@ -240,10 +240,11 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ### Empirical Validation
 
-- **Dataset:** UCI Tamper Detection (326 images)
+- **Pixel Forensics:** UCI Tamper Detection (326 images) → 49.9% accuracy [95% CI: 44.5%, 55.5%]
+- **Contextual Analysis:** 90 image-claim pairs → 65.6% accuracy [95% CI: 55.6%, 75.6%]
 - **Method:** Bootstrap resampling (1,000 iterations)
 - **Results:** 95% confidence intervals for all metrics
-- **Conclusion:** Pixel forensics achieves chance performance
+- **Conclusion:** Pixel forensics achieves chance performance; contextual analysis significantly outperforms
 
 ### Novel Contributions
 

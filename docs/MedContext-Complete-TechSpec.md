@@ -312,6 +312,12 @@ async def handle_telegram_webhook(
     **Replaces:** /api/v1/ingest/whatsapp (deprecated 2026-01-31)
 
     Stores source chat identifier in submission_contexts.source_telegram_chat.
+
+    **Security Notes:**
+    - Telegram uses cloud storage (not E2E encrypted by default)
+    - Consider PHI/PII handling implications
+    - Avoid storing identifiable medical data in bot messages
+    - Use explicit consent, data minimization, and anonymization practices
     """
     # Parse Telegram update
     message = request.message
@@ -356,7 +362,7 @@ async def handle_whatsapp_webhook_deprecated(
     """
     # Check if past cutover date
     from datetime import datetime
-    if datetime.utcnow().date() >= datetime.fromisoformat(WHATSAPP_ENDPOINT_CUTOFF_DATE).date():
+                    "message": f"The /whatsapp endpoint was removed on {WHATSAPP_ENDPOINT_CUTOFF_DATE}",
         if not COMPATIBILITY_MODE_ENABLED:
             raise HTTPException(
                 status_code=status.HTTP_410_GONE,
@@ -1877,7 +1883,6 @@ class TestMedContextEndToEnd:
         # 4. Run reverse image search (background task)
         time.sleep(10)
         instances = db.query(ImageInstance).filter_by(source_image_id=image_id).all()
-| Privacy concerns (Telegram data)            | Legal/ethical | Explicit consent, data minimization, anonymization, note: Telegram uses cloud storage (not E2E encrypted by default); consider PHI/PII handling implications; avoid storing identifiable medical data in bot messages |
 
         # 5. Semantic analysis (background task)
         time.sleep(5)
@@ -2018,14 +2023,14 @@ ANALYZE;
 
 ### Potential Risks & Mitigations
 
-| Risk                                        | Impact        | Mitigation                                                     |
-| ------------------------------------------- | ------------- | -------------------------------------------------------------- |
-| API rate limiting from TinEye/Google        | Search delays | Queue system, caching, fallback to local database              |
-| MedGemma hallucinations                     | False claims  | Post-processing validation, human review for critical analyses |
-| False positives in misinformation detection | User distrust | Conservative confidence thresholds, transparent scoring        |
-| Privacy concerns (Telegram data)            | Legal/ethical | Explicit consent, data minimization, anonymization             |
-| IPFS availability                           | Data loss     | Redundant pinning, backup storage layer                        |
-| Malicious image submissions                 | System abuse  | File type validation, size limits, rate limiting               |
+| Risk                                        | Impact        | Mitigation                                                                                                                                                                                                            |
+| ------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API rate limiting from TinEye/Google        | Search delays | Queue system, caching, fallback to local database                                                                                                                                                                     |
+| MedGemma hallucinations                     | False claims  | Post-processing validation, human review for critical analyses                                                                                                                                                        |
+| False positives in misinformation detection | User distrust | Conservative confidence thresholds, transparent scoring                                                                                                                                                               |
+| Privacy concerns (Telegram data)            | Legal/ethical | Explicit consent, data minimization, anonymization, note: Telegram uses cloud storage (not E2E encrypted by default); consider PHI/PII handling implications; avoid storing identifiable medical data in bot messages |
+| IPFS availability                           | Data loss     | Redundant pinning, backup storage layer                                                                                                                                                                               |
+| Malicious image submissions                 | System abuse  | File type validation, size limits, rate limiting                                                                                                                                                                      |
 
 ### Data Security
 
@@ -2176,25 +2181,27 @@ SENTRY_DSN=xxx
 
 ### Environment Variable to Settings Mapping
 
-| Environment Variable      | Settings Attribute                 | Description                                  | Used In |
-| ------------------------- | ---------------------------------- | -------------------------------------------- | ------- |
-| `TELEGRAM_BOT_TOKEN`      | `settings.telegram_bot_token`      | Bot authentication token from @BotFather     | Telegram ingestion |
-| `TELEGRAM_WEBHOOK_SECRET` | `settings.telegram_webhook_secret` | Webhook verification secret for Telegram API | Telegram ingestion |
-| `DATABASE_URL`            | `settings.database_url`            | PostgreSQL database connection string        | Database connections |
-| `MEDGEMMA_HF_TOKEN`       | `settings.medgemma_hf_token`       | HuggingFace token for MedGemma access        | MedGemma client |
-| `LLM_API_KEY`             | `settings.llm_api_key`             | API key for LLM provider (OpenRouter/Google) | LLM orchestrator |
-| `SERP_API_KEY`            | `settings.serp_api_key`            | API key for search engine results            | Search services |
-| `JWT_SECRET`              | `settings.jwt_secret`              | Secret for JWT token generation              | Authentication |
-| `ENCRYPTION_KEY`          | `settings.encryption_key`          | Key for data encryption                      | Data protection |
-| `MEDGEMMA_URL`            | `settings.medgemma_url`            | URL for MedGemma service endpoint            | MedGemma client |
-| `REDIS_URL`               | `settings.redis_url`               | Redis connection URL for caching             | Caching layer |
-| `LOG_LEVEL`               | `settings.log_level`               | Logging level (DEBUG, INFO, WARNING, ERROR)  | Logging system |
-| `VERTEX_API_KEY`          | `settings.vertexai_api_key`        | API key for Google Vertex AI services (aliases: VERTEXAI_API_KEY, VERTEX_AI_API_KEY) | Vertex AI integration |
-| `APPWRITE_PROJECT_ID`     | `settings.appwrite_project_id`     | Project ID for Appwrite backend services     | Backend services |
-| `APPWRITE_ENDPOINT`       | `settings.appwrite_endpoint`       | Endpoint URL for Appwrite backend services   | Backend services |
-| `DEMO_ACCESS_CODE`        | `settings.demo_access_code`        | Access code for demo environment             | Demo access control |
+| Environment Variable         | Settings Attribute                 | Description                                                                          | Used In               |
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ | --------------------- |
+| `TELEGRAM_BOT_TOKEN`         | `settings.telegram_bot_token`      | Bot authentication token from @BotFather                                             | Telegram ingestion    |
+| `TELEGRAM_WEBHOOK_SECRET`    | `settings.telegram_webhook_secret` | Webhook verification secret for Telegram API                                         | Telegram ingestion    |
+| `DATABASE_URL`               | `settings.database_url`            | PostgreSQL database connection string                                                | Database connections  |
+| `MEDGEMMA_HF_TOKEN`          | `settings.medgemma_hf_token`       | HuggingFace token for MedGemma access                                                | MedGemma client       |
+| `LLM_API_KEY`                | `settings.llm_api_key`             | API key for LLM provider (OpenRouter/Google)                                         | LLM orchestrator      |
+| `SERP_API_KEY`               | `settings.serp_api_key`            | API key for search engine results                                                    | Search services       |
+| `JWT_SECRET`                 | `settings.jwt_secret`              | Secret for JWT token generation                                                      | Authentication        |
+| `ENCRYPTION_KEY`             | `settings.encryption_key`          | Key for data encryption                                                              | Data protection       |
+| `MEDGEMMA_URL`               | `settings.medgemma_url`            | URL for MedGemma service endpoint                                                    | MedGemma client       |
+| `REDIS_URL`                  | `settings.redis_url`               | Redis connection URL for caching                                                     | Caching layer         |
+| `LOG_LEVEL`                  | `settings.log_level`               | Logging level (DEBUG, INFO, WARNING, ERROR)                                          | Logging system        |
+| `VERTEX_API_KEY`             | `settings.vertexai_api_key`        | API key for Google Vertex AI services (aliases: VERTEXAI_API_KEY, VERTEX_AI_API_KEY) | Vertex AI integration |
+| `APPWRITE_PROJECT_ID`        | `settings.appwrite_project_id`     | Project ID for Appwrite backend services                                             | Backend services      |
+| `APPWRITE_ENDPOINT`          | `settings.appwrite_endpoint`       | Endpoint URL for Appwrite backend services                                           | Backend services      |
+| `DEMO_ACCESS_CODE`           | `settings.demo_access_code`        | Access code for demo environment                                                     | Demo access control   |
+| `SENTRY_DSN`                 | `settings.sentry_dsn`              | Data Source Name for Sentry error tracking                                           | Error monitoring      |
+| `VITE_APPWRITE_PROJECT_NAME` | `settings.appwrite_project_name`   | Project name for Appwrite backend services                                           | Backend services      |
 
-*Note: This table shows core settings mappings; see settings.py for complete list. Additional environment variables referenced in documentation include: TINEYE_API_KEY, IPFS_GATEWAY, S3_BUCKET, SENTRY_DSN.*
+_Note: This table shows core settings mappings; see settings.py for complete list. Additional environment variables referenced in documentation can be found in Appendix C._
 
 ---
 

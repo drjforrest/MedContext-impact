@@ -10,10 +10,8 @@ I've successfully implemented cost-effective demo protection for your MedContext
 
 - **File:** `src/app/middleware/demo_protection.py`
 - **Features:**
-  - Access code validation (header or query param)
-  - Rate limiting (10 requests/hour per IP)
-  - In-memory tracking (no database required)
-  - Auto-disabled when no code configured (local dev friendly)
+  - Request validation, rate limiting, and request tracking
+  - Auto-disabled in local development
 
 ### 2. Configuration Updates ✅
 
@@ -82,34 +80,9 @@ Even if someone malicious gets the code and tries to abuse it:
 
 ## Quick Start
 
+## Quick Start
+
 ### Local Development (No Protection)
-
-```bash
-# No DEMO_ACCESS_CODE in .env
-docker-compose up -d
-```
-
-### Public Demo (With Protection)
-
-```bash
-# Add to .env:
-DEMO_ACCESS_CODE=MEDCONTEXT-DEMO-2026
-
-# Deploy:
-docker-compose up -d
-
-# Test:
-./scripts/test_demo_protection.sh
-```
-
-### For Judges/Users
-
-1. Open demo site
-2. Click "Settings"
-3. Enter: `MEDCONTEXT-DEMO-2026`
-4. Use normally
-
-## Files Created/Modified
 
 ### Created:
 
@@ -159,17 +132,17 @@ curl -X POST http://localhost:8000/api/v1/orchestrator/run \
 
 ## Deployment Checklist
 
+## Deployment Checklist
+
 Before deploying your public demo:
 
-- [ ] Set `DEMO_ACCESS_CODE=MEDCONTEXT-DEMO-2026` in `.env`
+- [ ] Set `DEMO_ACCESS_CODE=<your-secure-access-code>` in `.env`
 - [ ] Test locally: `./scripts/test_demo_protection.sh`
 - [ ] Verify all tests pass: `uv run pytest tests/ -v`
 - [ ] Set up GCP billing alerts ($10, $25, $50)
 - [ ] Deploy: `docker-compose up -d`
 - [ ] Verify protection on live site
-- [ ] Share access code with judges (buried in README)
-
-## Next Steps
+- [ ] Share access code with judges through secure channels
 
 You're ready to deploy! The implementation is:
 

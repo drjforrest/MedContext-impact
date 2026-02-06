@@ -79,12 +79,9 @@ class LlmClient:
         """Generate using OpenRouter API (OpenAI-compatible format)."""
         base_url = "https://openrouter.ai/api/v1"
 
-        # Use OPENROUTER_API_KEY if available, otherwise fall back to LLM_API_KEY
         api_key = settings.llm_api_key
         if not api_key:
-            raise LlmClientError(
-                "Missing OPENROUTER_API_KEY or LLM_API_KEY for OpenRouter."
-            )
+            raise LlmClientError("Missing LLM_API_KEY for OpenRouter.")
 
         headers = {
             "Content-Type": "application/json",
@@ -329,7 +326,7 @@ class LlmClient:
             return json_fence.group(1).strip()
 
         # Try any code fence
-        any_fence = re.search(r"```\s*(.*?)```", content, flags=re.DOTALL)
+        any_fence = re.search(r"```\s*(.*?)```", cleaned, flags=re.DOTALL)
         if any_fence:
             candidate = any_fence.group(1).strip()
             # Try to parse the candidate as JSON

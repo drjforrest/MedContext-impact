@@ -55,7 +55,9 @@ def main():
         except Exception as e:
             print(f"Error undeploying endpoint: {e}")
 
-    print("\nAll endpoints undeployment initiated. They will be deleted shortly.")
+    print(
+        "\nAll models have been undeployed from the endpoints. The endpoints themselves still exist."
+    )
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ set -euo pipefail
 
 PROJECT_ID="${PROJECT_ID:-medcontext}"
 LOCATION="${LOCATION:-us-central1}"
-ENDPOINT_ID="${ENDPOINT_ID:-PLACEHOLDER_ENDPOINT_ID}"
+ENDPOINT_ID="${ENDPOINT_ID:?ENDPOINT_ID environment variable must be set}"
 
 # Optional: login for ADC (interactive) if needed
 if ! gcloud auth application-default print-access-token >/dev/null 2>&1; then

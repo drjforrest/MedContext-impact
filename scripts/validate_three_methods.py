@@ -42,7 +42,7 @@ class ThreeMethodValidator:
             raise ValueError(
                 f"Invalid JSON in dataset file {self.dataset_path}: {str(e)}"
             )
-        except ValueError as e:
+        except (KeyError, TypeError) as e:
             raise ValueError(
                 f"Malformed dataset structure in {self.dataset_path}: {str(e)}"
             )
@@ -120,11 +120,37 @@ class ThreeMethodValidator:
             overall_score = min(veracity_score, alignment_score)
             is_misleading = overall_score < 0.5
 
+            # Get the 3-level semantic variables
+            veracity_category = result.get("veracity_category", "partially_true")
+            alignment_category = result.get("alignment_category", "partially_aligns")
+
+            # Prepare the return dictionary with updated metrics
+            return_data = {
+                "veracity_score": veracity_score,
+                "veracity_category": veracity_category,  # 3-level semantic: true/partially_true/false
+                "alignment_score": alignment_score,
+                "alignment_category": alignment_category,  # 3-level semantic: aligns_fully/partially_aligns/does_not_align
+                "overall_score": overall_score,
+                "is_misleading": is_misleading,
+                "method": "contextual_analysis",
+            }
+
+            # Add mock flag and error info if present in the result
+            if result.get("mocked"):
+                return_data["mocked"] = True
+                return_data["note"] = result.get(
+                    "note", "Placeholder values used due to failed MedGemma analysis"
+                )
+            if result.get("error"):
+                return_data["error"] = result["error"]
+
             # If analysis failed, ensure conservative response
             if analysis_failed:
                 return {
                     "veracity_score": 0.0,
+                    "veracity_category": "false",
                     "alignment_score": 0.0,
+                    "alignment_category": "does_not_align",
                     "overall_score": 0.0,
                     "is_misleading": True,
                     "method": "contextual_analysis",
@@ -132,13 +158,7 @@ class ThreeMethodValidator:
                     "failed": True,
                 }
 
-            return {
-                "veracity_score": veracity_score,
-                "alignment_score": alignment_score,
-                "overall_score": overall_score,
-                "is_misleading": is_misleading,
-                "method": "contextual_analysis",
-            }
+            return return_data
         except Exception as e:
             print(f"Contextual analysis error: {e}")
             return {
@@ -149,6 +169,8 @@ class ThreeMethodValidator:
                 "method": "contextual_analysis",
                 "error": str(e),
                 "failed": True,
+                "mocked": True,
+                "note": "Exception occurred during MedGemma analysis, returning default values",
             }
 
     def _direct_medgemma_analysis(
@@ -216,7 +238,15 @@ Return ONLY valid JSON with this exact structure:
             veracity_score = veracity_scores.get(veracity_cat, 0.5)
             alignment_score = alignment_scores.get(alignment_cat, 0.5)
 
-            return {
+            # Check if we got default values which may indicate failed analysis
+            is_mock = (
+                veracity_cat == "partially_true"
+                and alignment_cat == "partially_aligns"
+                and veracity_score == 0.5
+                and alignment_score == 0.5
+            )
+
+            result_data = {
                 "veracity_score": veracity_score,
                 "alignment_score": alignment_score,
                 "veracity_category": veracity_cat,
@@ -225,6 +255,15 @@ Return ONLY valid JSON with this exact structure:
                 "alignment_reasoning": output.get("alignment_reasoning", ""),
             }
 
+            # Add mock flag if the values appear to be default placeholders
+            if is_mock:
+                result_data["mocked"] = True
+                result_data["note"] = (
+                    "Placeholder values used due to failed MedGemma analysis"
+                )
+
+            return result_data
+
         except Exception as e:
             print(f"Direct MedGemma analysis error: {e}")
             return {
@@ -232,6 +271,8 @@ Return ONLY valid JSON with this exact structure:
                 "alignment_score": 0.0,
                 "veracity_reasoning": "Analysis failed",
                 "alignment_reasoning": "Analysis failed",
+                "mocked": True,
+                "note": "Exception occurred during MedGemma analysis, returning default values",
             }
 
     def combined_analysis(
@@ -247,12 +288,21 @@ Return ONLY valid JSON with this exact structure:
             not pixel_result["pixel_authentic"] or context_result["is_misleading"]
         )
 
-        return {
+        # Combine results from both analyses, avoiding key conflicts
+        combined_result = {
             **pixel_result,
             **context_result,
             "is_misinformation": is_misinformation,
             "method": "combined_analysis",
         }
+
+        # Preserve the semantic categories from contextual analysis
+        if "veracity_category" in context_result:
+            combined_result["veracity_category"] = context_result["veracity_category"]
+        if "alignment_category" in context_result:
+            combined_result["alignment_category"] = context_result["alignment_category"]
+
+        return combined_result
 
     def run_validation(self):
         """Run all three methods on full dataset."""
@@ -311,10 +361,12 @@ Return ONLY valid JSON with this exact structure:
                 pred = result["predictions"][method]
 
                 # Ground truth: any dimension failing = misinformation
+                # Using new metrics: veracity of claim, alignment with image, authenticity of image
                 is_misinfo_gt = not (
-                    gt["pixel_authentic"]
-                    and gt["plausibility"] == "high"
-                    and gt["alignment"] == "aligned"
+                    gt["pixel_authentic"]  # image authenticity
+                    and gt.get("veracity", "high")
+                    == "high"  # claim veracity (replacing plausibility)
+                    and gt["alignment"] == "aligned"  # image-claim alignment
                 )
                 y_true.append(is_misinfo_gt)
 
@@ -352,11 +404,12 @@ Return ONLY valid JSON with this exact structure:
             categories[category]["count"] += 1
             gt = result["ground_truth"]
 
-            # Ground truth misinformation status
+            # Ground truth misinformation status using new metrics
             gt_misinfo = not (
-                gt["pixel_authentic"]
-                and gt["plausibility"] == "high"
-                and gt["alignment"] == "aligned"
+                gt["pixel_authentic"]  # image authenticity
+                and gt.get("veracity", "high")
+                == "high"  # claim veracity (replacing plausibility)
+                and gt["alignment"] == "aligned"  # image-claim alignment
             )
 
             # Check each method
@@ -489,5 +542,15 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
+    main()
+    main()
+    main()
+    main()
+    main()
+    main()
+    main()
+    main()
+    main()
     main()
     main()
