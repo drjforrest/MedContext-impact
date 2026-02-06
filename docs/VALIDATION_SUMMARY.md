@@ -31,7 +31,7 @@ Fixed the `_compute_weighted_score()` function in `src/app/metrics/integrity.py`
 ## Impact
 
 1. **Scientific Integrity:** Corrected methodology now validates the intended 60/15/15/10 weight distribution
-2. **Performance:** Actually improved from 61.1% to 66.6%, showing the system is more robust than originally measured
+2. **Performance:** Actually improved from 61.1% to 65.6%, showing the system is more robust than originally measured
 3. **Thesis Validity:** Ensures accurate representation of system performance for academic submission
 
 ## Files Updated

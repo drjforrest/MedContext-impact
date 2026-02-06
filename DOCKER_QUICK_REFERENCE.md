@@ -167,7 +167,7 @@ make build
 
 ## 🧹 Cleanup
 
-bash
+````bash
 
 # Stop and remove containers
 
@@ -199,7 +199,7 @@ deploy:
     limits:
       cpus: '2'
       memory: 4G
-```
+````
 
 ## 🔒 Security
 

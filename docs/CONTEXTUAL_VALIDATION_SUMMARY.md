@@ -199,14 +199,12 @@ Ablation Study (Signal Contribution):
 
 | Approach               | Dataset           | Accuracy   | ROC AUC     | Threat Coverage                  |
 | ---------------------- | ----------------- | ---------- | ----------- | -------------------------------- |
-| Approach               | Dataset           | Accuracy   | ROC AUC     | Threat Coverage                  |
-| ---------------------- | ----------------- | --------   | ---------   | -------------------------------- |
 | Pixel forensics        | UCI Tamper        | 49.9%      | 0.533       | 20% (manipulated)                |
 | **Contextual signals** | Image-claim pairs | **75%+\*** | **0.80+\*** | dominant threat (context misuse) |
 
 \*Target performance pending validation execution (see line 452-454).
 
-### Minimum Dataset Size
+\*Target performance pending validation execution (see lines 319-335).
 
 - **Development/Testing:** 50-100 samples
 - **Validation:** 300-500 samples

@@ -1520,7 +1520,7 @@ function App() {
                           ) : null}
                           {disabledAddons.length > 0 ? (
                             <p className="helper" style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.7 }}>
-                              Available add-ons: {disabledAddons.map((m) => m.display_name).join(', ')}
+                              Available add-ons: {disabledAddons.map((m) => m.display_name || m.name).join(', ')}
                             </p>
                           ) : null}
                         </div>

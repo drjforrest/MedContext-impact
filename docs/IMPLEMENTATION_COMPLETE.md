@@ -80,8 +80,6 @@ Even if someone malicious gets the code and tries to abuse it:
 
 ## Quick Start
 
-## Quick Start
-
 ### Local Development (No Protection)
 
 ### Created:

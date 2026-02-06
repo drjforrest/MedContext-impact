@@ -79,6 +79,7 @@ class Settings(BaseSettings):
         if self.enable_forensics:
             addons.add("forensics")
         return frozenset(addons)
+
     jwt_secret: str = ""
     encryption_key: str = ""
     log_level: str = "INFO"

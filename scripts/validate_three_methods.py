@@ -282,25 +282,76 @@ Return ONLY valid JSON with this exact structure:
 
         Misinformation if:
         - Pixels are tampered OR
-        - Context is misleading (veracity/alignment fails)
+        - Context is misleading (veracity/alignment fails) OR
+        - Authentic images with false claims produce misinformation
         """
-        is_misinformation = (
-            not pixel_result["pixel_authentic"] or context_result["is_misleading"]
+        # Extract contextual signals
+        veracity_score = context_result.get("veracity_score", 0.5)
+        alignment_score = context_result.get("alignment_score", 0.5)
+        overall_score = context_result.get("overall_score", 0.5)
+        is_misleading = context_result.get("is_misleading", False)
+        veracity_category = context_result.get("veracity_category", "partially_true")
+        alignment_category = context_result.get(
+            "alignment_category", "partially_aligns"
         )
+
+        # Determine if there's contextual misinformation regardless of pixel authenticity
+        # Low veracity (false claims) constitutes misinformation even with authentic images
+        low_veracity = veracity_category == "false" or veracity_score < 0.5
+        low_alignment = alignment_category == "does_not_align" or alignment_score < 0.5
+        # Also consider "partially_true" and "partially_aligns" as potential indicators when scores are low
+        medium_veracity = veracity_category == "partially_true" and veracity_score < 0.6
+        medium_alignment = (
+            alignment_category == "partially_aligns" and alignment_score < 0.6
+        )
+
+        # Misinformation occurs if:
+        # 1. Image is tampered (original condition)
+        # 2. Claim is misleading regardless of image authenticity (new condition)
+        # 3. Claim has low veracity (false claims constitute misinformation)
+        # 4. Image-claim alignment is poor
+        # 5. Even partially true claims with low scores can be misleading
+        is_misinformation = (
+            not pixel_result["pixel_authentic"]  # Tampered image
+            or is_misleading  # Contextual analysis indicates misleading
+            or low_veracity  # False claim
+            or low_alignment  # Poor alignment
+            or medium_veracity  # Partially true but with low confidence
+            or medium_alignment  # Partially aligns but with low confidence
+        )
+
+        # Update is_misleading to reflect combined analysis
+        # Consider misleading if contextual indicators show low veracity or poor alignment
+        combined_is_misleading = (
+            is_misleading
+            or low_veracity
+            or low_alignment
+            or medium_veracity
+            or medium_alignment
+        )
+
+        # Adjust overall score based on combined analysis
+        # If there's contextual misinformation, lower the overall score
+        combined_overall_score = overall_score
+        if low_veracity or low_alignment or medium_veracity or medium_alignment:
+            # Reduce score if contextual analysis shows issues
+            combined_overall_score = min(
+                combined_overall_score, 0.3 if (low_veracity or low_alignment) else 0.5
+            )
 
         # Combine results from both analyses, avoiding key conflicts
         combined_result = {
             **pixel_result,
             **context_result,
             "is_misinformation": is_misinformation,
+            "is_misleading": combined_is_misleading,
+            "overall_score": combined_overall_score,
             "method": "combined_analysis",
         }
 
-        # Preserve the semantic categories from contextual analysis
-        if "veracity_category" in context_result:
-            combined_result["veracity_category"] = context_result["veracity_category"]
-        if "alignment_category" in context_result:
-            combined_result["alignment_category"] = context_result["alignment_category"]
+        # Preserve and potentially update the semantic categories from contextual analysis
+        combined_result["veracity_category"] = veracity_category
+        combined_result["alignment_category"] = alignment_category
 
         return combined_result
 
@@ -542,6 +593,8 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
+    main()
     main()
     main()
     main()

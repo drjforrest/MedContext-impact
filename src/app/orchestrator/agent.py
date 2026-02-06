@@ -15,9 +15,12 @@ from app.metrics.integrity import compute_contextual_integrity_score
 from app.provenance.service import build_provenance
 from app.reverse_search.service import get_reverse_search_results, run_reverse_search
 
+
 def _get_allowed_tools() -> frozenset[str]:
     """Return the set of enabled add-on tool names from config."""
     return settings.get_enabled_addons()
+
+
 MAX_PREVIEW_BYTES = 1024 * 1024
 
 

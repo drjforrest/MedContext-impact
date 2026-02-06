@@ -396,10 +396,18 @@ class MedContextTelegramBot:
         evidence_msg = "📊 *Evidence Breakdown:*\n\n"
 
         signals = [
-            ("Plausibility", "plausibility_confidence"),
-            ("Alignment", "alignment_confidence"),
-            ("Genealogy", "genealogy_confidence"),
-            ("Source Reputation", "source_confidence"),
+            (
+                "Image Integrity",
+                "genealogy_confidence",
+            ),  # Reflects authenticity/tampering detection
+            (
+                "Claim Veracity",
+                "plausibility_confidence",
+            ),  # Reflects factual accuracy of claim
+            (
+                "Claim-Image Alignment",
+                "alignment_confidence",
+            ),  # Reflects matching of text to picture
         ]
 
         for label, key in signals:

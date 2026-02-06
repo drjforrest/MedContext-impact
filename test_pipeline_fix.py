@@ -21,12 +21,10 @@ def test_direct_medgemma_analysis():
         print("✓ MedGemma client initialized successfully")
 
         # Verify client has expected methods and no reverse search methods
-        assert hasattr(client, "analyze_image"), (
-            "Missing analyze_image method"
-        )
-        assert not hasattr(client, "reverse_image_search"), (
-            "Unexpected reverse_image_search method"
-        )
+        assert hasattr(client, "analyze_image"), "Missing analyze_image method"
+        assert not hasattr(
+            client, "reverse_image_search"
+        ), "Unexpected reverse_image_search method"
         print("✓ Client has expected methods without reverse search")
 
         return True
@@ -45,10 +43,13 @@ def test_validation_script():
         from scripts.validate_three_methods import ThreeMethodValidator
 
         # Create temporary paths for testing
-        temp_dataset = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+        temp_dataset = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        )
         try:
             # Write minimal valid JSON to the temp file
             import json
+
             json.dump([], temp_dataset)  # Empty list as minimal valid dataset
             temp_dataset.flush()
             temp_dataset_path = Path(temp_dataset.name)

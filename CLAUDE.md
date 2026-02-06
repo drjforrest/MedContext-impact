@@ -196,7 +196,7 @@ src/app/
 The system is designed around **core modules** that work out-of-the-box and **add-on modules** that can be enabled via environment variables:
 
 - **Core** (always on): MedGemma medical image analysis + LLM contextual authenticity (alignment + claim veracity). These require only `MEDGEMMA_*` and `LLM_*` configuration.
-- **Add-ons** (opt-in): Reverse search, provenance, and forensics. Each has an `ENABLE_*` flag. When disabled, their API endpoints return 423, their agent tool dispatch is skipped, and the scoring system redistributes weights to core signals.
+- **Add-ons** (opt-in): Reverse search, provenance, and forensics. Each has an `ENABLE_*` flag. When disabled, their API endpoints return 501 (Not Implemented), their agent tool dispatch is skipped, and the scoring system redistributes weights to core signals.
 
 The module registry (`src/app/core/modules.py`) provides `get_all_modules()` for introspection and `require_module()` as a FastAPI dependency guard. The `GET /api/v1/modules` endpoint exposes module status to the UI.
 
@@ -318,10 +318,12 @@ See `docs/VALIDATION.md` for full results.
 **Contextual Signals Validation (⏳ Pending Re-run):**
 
 Previous v1 results (65.8% accuracy) had two methodology issues:
+
 1. **Wrong agent:** Used deterministic `MedContextAgent` instead of `MedContextLangGraphAgent`
 2. **Invalid baseline comparison:** Compared against pixel forensics on a different dataset (UCI vs BTD)
 
 **v2.0 Methodology Fix (Feb 4, 2026):**
+
 - Script now includes inline pixel forensics baseline (ELA) on the same 90 image-claim pairs
 - Both methods evaluated on identical BTD dataset for valid head-to-head comparison
 - Switched to LangGraph agent for contextual signals evaluation
@@ -329,6 +331,7 @@ Previous v1 results (65.8% accuracy) had two methodology issues:
 **Preliminary Finding:** ELA predicts MANIPULATED for all 30 unique BTD MRI images (ELA std 24-33, far above 0.74 threshold). Medical imaging naturally has high ELA variance, making pixel forensics a degenerate predictor for this domain.
 
 **To re-run validation:**
+
 ```bash
 uv run python scripts/validate_contextual_signals.py \
   --dataset data/contextual_validation_v1.json \

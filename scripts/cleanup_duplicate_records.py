@@ -78,15 +78,15 @@ def fix_file_size_consistency(
             for record in records:
                 # Update pixel_forensics file_size
                 if "pixel_forensics" in record["predictions"]:
-                    record["predictions"]["pixel_forensics"]["file_size"] = (
-                        most_common_size
-                    )
+                    record["predictions"]["pixel_forensics"][
+                        "file_size"
+                    ] = most_common_size
 
                 # Update combined_analysis file_size
                 if "combined_analysis" in record["predictions"]:
-                    record["predictions"]["combined_analysis"]["file_size"] = (
-                        most_common_size
-                    )
+                    record["predictions"]["combined_analysis"][
+                        "file_size"
+                    ] = most_common_size
 
                 fixed_predictions.append(record)
         else:

@@ -11,7 +11,7 @@ def add_misleading_cases():
     input_path = Path("data/three_dimensional_validation_v1.json")
 
     # Create backup before modifying
-    # Create backup before modifying
+    backup_path = input_path.with_suffix(".json.bak")
     backup_path = input_path.with_suffix(".json.bak")
     if not backup_path.exists():
         shutil.copy(input_path, backup_path)

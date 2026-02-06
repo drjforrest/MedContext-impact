@@ -17,9 +17,7 @@ def get_config():
         description="Check and undeploy Vertex AI endpoint"
     )
     parser.add_argument("--project-id", help="Google Cloud Project ID")
-    parser.add_argument(
-        "--location", help="Google Cloud Location", default="us-central1"
-    )
+    parser.add_argument("--location", help="Google Cloud Location")
     parser.add_argument("--endpoint-id", help="Vertex AI Endpoint ID")
 
     args = parser.parse_args()

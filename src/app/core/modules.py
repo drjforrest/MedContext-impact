@@ -86,11 +86,11 @@ def require_module(module_name: str):
         enabled = settings.get_enabled_addons()
         if module_name not in enabled:
             raise HTTPException(
-                status_code=423,
-                detail=(
-                    f"Module '{module_name}' is not enabled. "
-                    f"Set ENABLE_{module_name.upper()}=true to activate."
-                ),
+                status_code=501,
+                detail={
+                    "error": "feature_disabled",
+                    "message": f"{module_name} is disabled",
+                },
             )
 
     return dependency
