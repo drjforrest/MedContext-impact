@@ -85,15 +85,17 @@ This document catalogs public medical image tampering datasets suitable for **su
 
 **Access:**
 
-- **Source:** UCI Machine Learning Repository
-- **License:** Academic research use
-- **Format:** 3D CT volumes (.nii.gz) with tampering masks
+- **Source:** [UCI Machine Learning Repository #520](https://archive.ics.uci.edu/dataset/520/deepfakes+medical+image+tamper+detection)
+- **DOI:** [10.24432/C5J318](https://doi.org/10.24432/C5J318)
+- **Citation:** Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning. *USENIX Security Symposium*.
+- **License:** CC BY 4.0
+- **Format:** 3D CT volumes (DICOM) with tampering masks
 
 **Download Instructions:**
 
 ```bash
 # UCI ML Repository
-# https://archive.ics.uci.edu/dataset/.../medical+image+tamper+detection
+# https://archive.ics.uci.edu/dataset/520/deepfakes+medical+image+tamper+detection
 ```
 
 ---
@@ -123,17 +125,11 @@ This document catalogs public medical image tampering datasets suitable for **su
 
 **Access:**
 
-- **Source:** GitHub (BTD project repository)
-- **License:** Open source (MIT/Apache)
+- **Source:** [Kaggle](https://www.kaggle.com/datasets/freddiegraboski/btd-mri-and-ct-deepfake-test-sets)
+- **GitHub:** [FreddieMG/BTD--Unsupervised-Detection-of-Medical-Deepfakes](https://github.com/FreddieMG/BTD--Unsupervised-Detection-of-Medical-Deepfakes)
+- **Citation:** Graboski, F., Mirsky, Y. (2024). Back-in-Time Diffusion: Unsupervised Detection of Medical Deepfakes. *ACM Transactions on Intelligent Systems and Technology*. [arXiv:2407.15169](https://arxiv.org/abs/2407.15169)
+- **License:** AGPL-3.0
 - **Format:** 2D slices with labels (original/manipulated/type)
-
-**Download Instructions:**
-
-```bash
-# Clone BTD repository
-git clone https://github.com/drjforrest/medcontext.git
-# Follow dataset download instructions in repo
-```
 
 ---
 
@@ -293,8 +289,8 @@ Add to `AGENTIC_ARCHITECTURE.md`:
 ### License Compliance
 
 - ✅ **MedForensics:** Research use only, no redistribution
-- ✅ **UCI Dataset:** Academic use, cite properly
-- ✅ **BTD:** Open source, check GitHub license
+- ✅ **UCI Dataset:** CC BY 4.0 (derivative works allowed with attribution)
+- ✅ **BTD:** AGPL-3.0 (copyleft, derivative works must use compatible license)
 - ⚠️ **Commercial Use:** Verify each dataset's commercial restrictions
 
 ### Clinical Tampering Context
@@ -327,13 +323,15 @@ When using datasets with pathology manipulation:
    - Paper: "MedForensics: A Large-Scale Multi-Modal Medical Synthetic Manipulation Benchmark" (2024)
    - GitHub: [Link to repository]
 
-2. **UCI Tamper Detection:**
-   - Repository: https://archive.ics.uci.edu/dataset/.../medical+image+tamper+detection
-   - Paper: "Detecting Tampered Medical Images in 3D CT Scans" (2023)
+2. **UCI Deepfakes: Medical Image Tamper Detection:**
+   - Repository: https://archive.ics.uci.edu/dataset/520/deepfakes+medical+image+tamper+detection
+   - DOI: [10.24432/C5J318](https://doi.org/10.24432/C5J318)
+   - Paper: Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). "CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning." *USENIX Security Symposium*.
 
 3. **Back-in-Time Diffusion (BTD):**
-   - Paper: "Back in Time: Detection of Medical Image Manipulation Using Diffusion Models" (2023)
-   - GitHub: [BTD repository link]
+   - Paper: Graboski, F., Mirsky, Y. (2024). "Back-in-Time Diffusion: Unsupervised Detection of Medical Deepfakes." *ACM TIST*. [arXiv:2407.15169](https://arxiv.org/abs/2407.15169)
+   - Dataset: https://www.kaggle.com/datasets/freddiegraboski/btd-mri-and-ct-deepfake-test-sets
+   - GitHub: https://github.com/FreddieMG/BTD--Unsupervised-Detection-of-Medical-Deepfakes
 
 4. **Aneja Lab Adversarial Examples:**
    - Paper: "Adversarial Robustness in Medical Imaging Classifiers" (2022)

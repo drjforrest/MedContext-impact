@@ -363,13 +363,15 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 ## Part 5: Dataset & Methodology
 
-### UCI Tamper Detection Dataset
+### UCI Deepfakes: Medical Image Tamper Detection Dataset
 
-- **Source**: UCI Machine Learning Repository
+- **Source**: [UCI Machine Learning Repository #520](https://archive.ics.uci.edu/dataset/520/deepfakes+medical+image+tamper+detection)
+- **DOI**: [10.24432/C5J318](https://doi.org/10.24432/C5J318)
+- **Citation**: Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning. *USENIX Security Symposium*.
 - **Total Images**: 22,753 (22,590 authentic, 163 manipulated)
 - **Balanced Subset**: 326 images (163 authentic, 163 manipulated)
 - **Format**: Real-world medical and forensic imagery
-- **License**: Academic research use
+- **License**: CC BY 4.0
 
 ### Forensics Layers Tested
 

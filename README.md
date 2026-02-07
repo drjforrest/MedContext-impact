@@ -451,12 +451,30 @@ MIT License - See [LICENSE](LICENSE) file for details
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **HERO Lab** - Health Equity & Resilience Observatory, UBC
 - **Google** - MedGemma medical LLM
-- **UCI Machine Learning Repository** - Tamper Detection dataset
 - **Open Source Community** - FastAPI, React, LangGraph, and all dependencies
+
+### Dataset Citations
+
+Our validation dataset (160 image-claim pairs) was constructed from two publicly available medical image tampering datasets. We gratefully acknowledge the authors:
+
+**UCI Deepfakes: Medical Image Tamper Detection**
+> Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning. *USENIX Security Symposium*.
+> - Repository: https://archive.ics.uci.edu/dataset/520/deepfakes+medical+image+tamper+detection
+> - DOI: [10.24432/C5J318](https://doi.org/10.24432/C5J318)
+> - License: CC BY 4.0
+
+**BTD: Back-in-Time Diffusion MRI and CT Deepfake Test Sets**
+> Graboski, F., Mirsky, Y. (2024). Back-in-Time Diffusion: Unsupervised Detection of Medical Deepfakes. *ACM Transactions on Intelligent Systems and Technology*.
+> - Paper: [arXiv:2407.15169](https://arxiv.org/abs/2407.15169)
+> - Dataset: https://www.kaggle.com/datasets/freddiegraboski/btd-mri-and-ct-deepfake-test-sets
+> - Code: https://github.com/FreddieMG/BTD--Unsupervised-Detection-of-Medical-Deepfakes
+> - License: AGPL-3.0
+
+Our derived validation dataset uses 120 authentic MRI image-claim pairs from the BTD dataset and 40 tampered medical scans from the UCI dataset, with synthetically assigned contextual labels (veracity, alignment) across five clinical categories. Ground truth labels were programmatically generated and are not expert-annotated.
 
 ---
 
