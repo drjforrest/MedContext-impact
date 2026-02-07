@@ -3,12 +3,14 @@
 Script to undeploy Vertex AI endpoint automatically
 """
 
+import os
+
 import vertexai
 from google.cloud import aiplatform
 
-PROJECT_ID = "medcontext"
-LOCATION = "us-central1"
-ENDPOINT_ID = "PLACEHOLDER_ENDPOINT_ID"
+PROJECT_ID = os.environ.get("MEDGEMMA_VERTEX_PROJECT", "medcontext")
+LOCATION = os.environ.get("MEDGEMMA_VERTEX_LOCATION", "us-central1")
+ENDPOINT_ID = os.environ["VERTEX_ENDPOINT_ID"]
 
 
 def main():
