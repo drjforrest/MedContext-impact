@@ -1,50 +1,89 @@
 {
-  "overall_metrics": {
-    "pixel_forensics": {
-      "accuracy": 0.5833333333333334,
-      "precision": 0.75,
-      "recall": 0.6666666666666666,
-      "f1": 0.7058823529411765
+  "dimensional_metrics": {
+    "integrity": {
+      "exact_match": 0.25,
+      "binary_accuracy": 0.25,
+      "binary_precision": 0.0,
+      "binary_recall": 0.0,
+      "binary_f1": 0.0,
+      "n": 160
     },
-    "contextual_analysis": {
-      "accuracy": 0.25,
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0
+    "veracity": {
+      "exact_match": 0.59375,
+      "binary_accuracy": 0.61875,
+      "binary_precision": 0.6376811594202898,
+      "binary_recall": 0.55,
+      "binary_f1": 0.5906040268456376,
+      "n": 160
     },
-    "combined_analysis": {
-      "accuracy": 0.5833333333333334,
-      "precision": 0.75,
-      "recall": 0.6666666666666666,
-      "f1": 0.7058823529411765
+    "alignment": {
+      "exact_match": 0.55625,
+      "binary_accuracy": 0.60625,
+      "binary_precision": 0.5522388059701493,
+      "binary_recall": 0.5285714285714286,
+      "binary_f1": 0.5401459854014599,
+      "n": 160
+    },
+    "score_distribution": {
+      "0/3": 33,
+      "1/3": 39,
+      "2/3": 79,
+      "3/3": 9
     }
   },
   "category_analysis": {
     "legitimate": {
-      "pixel": 0.3333333333333333,
-      "contextual": 1.0,
-      "combined": 0.3333333333333333,
-      "count": 30
+      "count": 30,
+      "integrity": 0.0,
+      "veracity": 0.9333333333333333,
+      "alignment": 0.9333333333333333
     },
     "intentional_misinfo": {
-      "pixel": 0.6666666666666666,
-      "contextual": 0.0,
-      "combined": 0.6666666666666666,
-      "count": 30
+      "count": 30,
+      "integrity": 0.0,
+      "veracity": 0.9666666666666667,
+      "alignment": 0.9666666666666667
     },
     "other_authentic": {
-      "pixel": 0.6666666666666666,
-      "contextual": 0.0,
-      "combined": 0.6666666666666666,
-      "count": 30
+      "count": 30,
+      "integrity": 0.0,
+      "veracity": 0.1,
+      "alignment": 0.06666666666666667
+    },
+    "tampered_true_aligned": {
+      "count": 10,
+      "integrity": 1.0,
+      "veracity": 0.9,
+      "alignment": 0.9
+    },
+    "tampered_true_misaligned": {
+      "count": 10,
+      "integrity": 1.0,
+      "veracity": 0.0,
+      "alignment": 0.0
+    },
+    "tampered_false_aligned": {
+      "count": 10,
+      "integrity": 1.0,
+      "veracity": 0.9,
+      "alignment": 0.0
+    },
+    "tampered_false_misaligned": {
+      "count": 10,
+      "integrity": 1.0,
+      "veracity": 1.0,
+      "alignment": 0.0
     },
     "misleading": {
-      "pixel": 0.6666666666666666,
-      "contextual": 0.0,
-      "combined": 0.6666666666666666,
-      "count": 30
+      "count": 30,
+      "integrity": 0.0,
+      "veracity": 0.23333333333333334,
+      "alignment": 0.7
     }
   },
-  "sample_count": 120,
-  "timestamp": "2026-02-05T11:12:57.055006+00:00"
+  "sample_count": 160,
+  "skipped_missing_images": 0,
+  "skipped_errors": 0,
+  "total_dataset_items": 160,
+  "timestamp": "2026-02-07T01:42:13.898319+00:00"
 }

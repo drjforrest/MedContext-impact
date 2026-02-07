@@ -103,7 +103,7 @@ def create_tampered_entries(
                     tampered_base_path
                     / "Experiment 1 - Blind"
                     / img["uuid"]
-                    / f"{img['slice']}.png"
+                    / f"{img['slice']}.dcm"
                 ),
                 "claim": claim,
                 "ground_truth": {

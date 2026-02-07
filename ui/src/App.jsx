@@ -41,6 +41,11 @@ function renderTriIcon(status, cx, cy) {
       </g>
     )
   }
+  if (status === 'addon') {
+    return (
+      <text x={cx} y={cy + 7} textAnchor="middle" fill="#fff" fontSize="22" fontWeight="700">+</text>
+    )
+  }
   return (
     <text x={cx} y={cy + 7} textAnchor="middle" fill="#fff" fontSize="24" fontWeight="700">?</text>
   )
@@ -177,7 +182,7 @@ function App() {
       {
         key: 'triage',
         label: 'Medical analysis',
-        detail: 'MedGemma evaluates medical plausibility and context alignment.',
+        detail: 'MedGemma evaluates claim veracity and context alignment.',
       },
     ]
     if (isAddonEnabled('reverse_search')) {
@@ -497,11 +502,11 @@ function App() {
     if (!integritySignals) return []
     const palette = {
       alignment: '#4f7cff',
-      plausibility: '#2db88a',
+      veracity: '#2db88a',
       genealogy_consistency: '#f5a524',
       source_reputation: '#6d7d93',
       alignment_confidence: '#4f7cff',
-      plausibility_confidence: '#2db88a',
+      veracity_confidence: '#2db88a',
       genealogy_confidence: '#f5a524',
       source_confidence: '#6d7d93',
     }
@@ -713,6 +718,7 @@ function App() {
   }, [claimVeracity, part2?.alignment])
   const triangleSignals = useMemo(() => {
     const getForensicsStatus = () => {
+      if (!isAddonEnabled('forensics')) return 'addon'
       if (!forensicsData) return 'unchecked'
       if (forensicsData.results) {
         const layers = Object.values(forensicsData.results)
@@ -742,7 +748,7 @@ function App() {
     const veracity = getVeracityStatus()
     const alignment = getAlignmentStatus()
 
-    const checked = [integrity, veracity, alignment].filter(s => s !== 'unchecked')
+    const checked = [integrity, veracity, alignment].filter(s => s !== 'unchecked' && s !== 'addon')
     let overall = 'unchecked'
     if (checked.length > 0) {
       if (checked.every(s => s === 'pass')) overall = 'pass'
@@ -786,7 +792,7 @@ function App() {
       activeKey,
       cells,
       activeCell: cells.find(c => c.key === activeKey),
-      integrityUnchecked: integrity === 'unchecked',
+      integrityUnchecked: integrity === 'unchecked' || integrity === 'addon',
     }
   }, [triangleSignals])
 
@@ -797,7 +803,7 @@ function App() {
   const uncheckedSignals = useMemo(() => {
     const signals = []
     // Alignment is always checked (from synthesis)
-    // Plausibility is always checked (from triage)
+    // Veracity is always checked (from triage)
     if (!provenanceData) signals.push('Genealogy')
     if (!orchestratorReverseSearch) signals.push('Source Reputation')
     return signals
@@ -1100,7 +1106,9 @@ function App() {
 
                     {/* Top vertex: Image Integrity */}
                     <text x="220" y="45" textAnchor="middle" className="tri-label-primary">Image Integrity</text>
-                    <text x="220" y="62" textAnchor="middle" className="tri-label-secondary">(Forensics)</text>
+                    <text x="220" y="62" textAnchor="middle" className="tri-label-secondary">
+                      {triangleSignals.integrity === 'addon' ? '(Add-on)' : '(Forensics)'}
+                    </text>
                     <circle cx="220" cy="115" r="38" className={`tri-node tri-node-${triangleSignals.integrity}`} />
                     {renderTriIcon(triangleSignals.integrity, 220, 115)}
 
@@ -1126,7 +1134,7 @@ function App() {
                     <div className="cube-matrix">
                       <p className="cube-matrix-title">
                         {cubeMatrix.integrityUnchecked
-                          ? '2x2 matrix (forensics not checked)'
+                          ? '2x2 assessment matrix'
                           : '2x2x2 assessment matrix'}
                       </p>
                       <div className="cube-layers">
@@ -1437,7 +1445,7 @@ function App() {
                       <div className="viz-grid">
                         <div className={`viz-card viz-score viz-${integrityScoreTone}`}>
                           <div className="viz-metric">
-                            <span>Contextual authenticity score</span>
+                            <span>Context verification score</span>
                             <strong>
                               {integrityScorePercent === null
                                 ? '—'

@@ -1100,6 +1100,7 @@ details summary:hover {
 .tri-node-fail { fill: #B91C1C; }
 .tri-node-partial { fill: #D4860A; }
 .tri-node-unchecked { fill: #a0b0c0; }
+.tri-node-addon { fill: #c0c8d4; stroke: #a0b0c0; stroke-width: 2; stroke-dasharray: 6 3; }
 
 .tri-pill { transition: fill 0.3s ease; }
 .tri-pill-pass { fill: #2db88a; }

@@ -1,7 +1,6 @@
 import {
   Psychology as BrainIcon,
   CheckCircle as CheckIcon,
-  Public as GlobeIcon,
   HourglassEmpty as PendingIcon,
   Rocket as RocketIcon,
   Shield as ShieldIcon,
@@ -22,34 +21,28 @@ import {
 } from 'recharts'
 import './ValidationStory.css'
 
-// Three-method validation data — pixel forensics vs contextual vs combined
-// TODO: Populate from validation_results/three_method_v1/three_method_comparison.json
+// Three-dimensional validation data — per-dimension accuracy
+// Populated from validation_results/three_method_v1/three_method_comparison.json (Feb 7, 2026)
 const VALIDATION_DATA = {
-  methods: {
-    pixel_forensics: { accuracy: 0.499, precision: 0.499, recall: 1.0, f1: 0.666 },
-    contextual_analysis: { accuracy: 0.656, precision: 0.491, recall: 0.933, f1: 0.644 },
-    // NOTE: combined_analysis metrics reflect improved performance from fusion logic
-    // These values represent expected performance based on algorithmic improvements
-    // after updating combined_analysis to properly fuse contextual and pixel forensics signals
-    combined_analysis: { accuracy: 0.712, precision: 0.543, recall: 0.945, f1: 0.687 },
+  dimensions: {
+    integrity: { exact_match: 0.250, binary_accuracy: 0.250, binary_f1: 0.0, n: 160 },
+    veracity: { exact_match: 0.594, binary_accuracy: 0.619, binary_f1: 0.591, n: 160 },
+    alignment: { exact_match: 0.556, binary_accuracy: 0.606, binary_f1: 0.540, n: 160 },
   },
+  score_distribution: { '0/3': 33, '1/3': 39, '2/3': 79, '3/3': 9 },
   category_analysis: {
-    legitimate: { pixel: null, contextual: null, combined: null, count: 30 },
-    misleading: { pixel: null, contextual: null, combined: null, count: 30 },
-    intentional_misinfo: { pixel: null, contextual: null, combined: null, count: 30 },
-    other_authentic: { pixel: null, contextual: null, combined: null, count: 30 },
-    tampered_true_aligned: { pixel: null, contextual: null, combined: null, count: 10 },
-    tampered_true_misaligned: { pixel: null, contextual: null, combined: null, count: 10 },
-    tampered_false_aligned: { pixel: null, contextual: null, combined: null, count: 10 },
-    tampered_false_misaligned: { pixel: null, contextual: null, combined: null, count: 10 },
+    legitimate: { integrity: 0.0, veracity: 0.933, alignment: 0.933, count: 30 },
+    misleading: { integrity: 0.0, veracity: 0.233, alignment: 0.700, count: 30 },
+    intentional_misinfo: { integrity: 0.0, veracity: 0.967, alignment: 0.967, count: 30 },
+    other_authentic: { integrity: 0.0, veracity: 0.100, alignment: 0.067, count: 30 },
+    tampered: { integrity: 1.0, veracity: 0.675, alignment: 0.225, count: 40 },
   },
   dataset: {
     total: 160,
-    unique_images: 70,
+    available: 160,
+    unique_images: 110,
     pixel_authentic: 120,
     pixel_tampered: 40,
-    is_misinformation: 100,
-    not_misinformation: 60,
   },
 }
 
@@ -57,33 +50,33 @@ const fmt = (v, decimals = 1) =>
   v !== null && v !== undefined ? `${(v * 100).toFixed(decimals)}%` : '\u2014'
 
 function ValidationStory({ onNavigateBack }) {
-  const isPending = VALIDATION_DATA.methods.pixel_forensics.accuracy === null
+  const isPending = VALIDATION_DATA.dimensions.integrity.binary_accuracy === null
 
-  const performanceData = useMemo(
+  const dimensionData = useMemo(
     () => [
       {
-        name: 'Pixel\nForensics',
-        accuracy: VALIDATION_DATA.methods.pixel_forensics.accuracy !== null
-          ? VALIDATION_DATA.methods.pixel_forensics.accuracy * 100
+        name: 'Image\nIntegrity',
+        accuracy: VALIDATION_DATA.dimensions.integrity.binary_accuracy !== null
+          ? VALIDATION_DATA.dimensions.integrity.binary_accuracy * 100
           : 0,
-        fill: '#e5484d',
-        label: fmt(VALIDATION_DATA.methods.pixel_forensics.accuracy),
+        fill: '#4E9A34',
+        label: fmt(VALIDATION_DATA.dimensions.integrity.binary_accuracy),
       },
       {
-        name: 'Contextual\nAnalysis',
-        accuracy: VALIDATION_DATA.methods.contextual_analysis.accuracy !== null
-          ? VALIDATION_DATA.methods.contextual_analysis.accuracy * 100
+        name: 'Claim\nVeracity',
+        accuracy: VALIDATION_DATA.dimensions.veracity.binary_accuracy !== null
+          ? VALIDATION_DATA.dimensions.veracity.binary_accuracy * 100
           : 0,
         fill: '#2db88a',
-        label: fmt(VALIDATION_DATA.methods.contextual_analysis.accuracy),
+        label: fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy),
       },
       {
-        name: 'Combined\n(All Three)',
-        accuracy: VALIDATION_DATA.methods.combined_analysis.accuracy !== null
-          ? VALIDATION_DATA.methods.combined_analysis.accuracy * 100
+        name: 'Context\nAlignment',
+        accuracy: VALIDATION_DATA.dimensions.alignment.binary_accuracy !== null
+          ? VALIDATION_DATA.dimensions.alignment.binary_accuracy * 100
           : 0,
         fill: '#5b8def',
-        label: fmt(VALIDATION_DATA.methods.combined_analysis.accuracy),
+        label: fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy),
       },
     ],
     [],
@@ -95,7 +88,7 @@ function ValidationStory({ onNavigateBack }) {
       { name: 'Misleading context', value: 30, fill: '#f5a524' },
       { name: 'Intentional misinfo', value: 30, fill: '#e5484d' },
       { name: 'Other authentic', value: 30, fill: '#6d7d93' },
-      { name: 'Tampered (4 types)', value: 40, fill: '#9b59b6' },
+      { name: 'Tampered (DICOM)', value: 40, fill: '#a855f7' },
     ],
     [],
   )
@@ -103,12 +96,12 @@ function ValidationStory({ onNavigateBack }) {
   const categoryData = useMemo(() => {
     const categories = VALIDATION_DATA.category_analysis
     return Object.entries(categories)
-      .filter(([, v]) => v.contextual !== null)
+      .filter(([, v]) => v.veracity !== null)
       .map(([key, v]) => ({
         name: key.replace(/_/g, ' '),
-        pixel: v.pixel !== null ? v.pixel * 100 : 0,
-        contextual: v.contextual !== null ? v.contextual * 100 : 0,
-        combined: v.combined !== null ? v.combined * 100 : 0,
+        integrity: v.integrity !== null ? v.integrity * 100 : 0,
+        veracity: v.veracity !== null ? v.veracity * 100 : 0,
+        alignment: v.alignment !== null ? v.alignment * 100 : 0,
         count: v.count,
       }))
   }, [])
@@ -144,21 +137,21 @@ function ValidationStory({ onNavigateBack }) {
             Three-Dimensional Validation
           </h1>
           <p className="validation-subtitle">
-            Comparing pixel forensics, contextual analysis, and a combined approach across
-            160 image-claim pairs spanning all 8 misinformation categories
+            Scoring image integrity, claim veracity, and context alignment independently across
+            160 image-claim pairs to reveal where detection succeeds and fails
           </p>
           <div className="validation-stats-row">
             <div className="validation-stat">
-              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.methods.combined_analysis.accuracy, 1)}</strong>
-              <span>Combined Accuracy</span>
+              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.integrity.binary_accuracy, 1)}</strong>
+              <span>Integrity (ELA)</span>
             </div>
             <div className="validation-stat">
-              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.methods.contextual_analysis.accuracy, 1)}</strong>
-              <span>Contextual Accuracy</span>
+              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy, 1)}</strong>
+              <span>Veracity (MedGemma)</span>
             </div>
             <div className="validation-stat">
-              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.methods.pixel_forensics.accuracy, 1)}</strong>
-              <span>Pixel Forensics</span>
+              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy, 1)}</strong>
+              <span>Alignment (MedGemma)</span>
             </div>
             <div className="validation-stat">
               <strong>160</strong>
@@ -171,8 +164,8 @@ function ValidationStory({ onNavigateBack }) {
               <strong style={{ color: '#f5a524', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                 <PendingIcon style={{ fontSize: '1rem' }} /> Processing:
               </strong>{' '}
-              Running three-method validation on 160 image-claim pairs. Each sample is analyzed by
-              MedGemma for veracity and alignment, with pixel forensics baseline computed in parallel.
+              Running three-dimensional validation on 160 image-claim pairs. Each sample is scored on
+              integrity (ELA), veracity (MedGemma), and alignment (MedGemma).
               Results will appear here when the run completes.
             </p>
           ) : (
@@ -180,10 +173,10 @@ function ValidationStory({ onNavigateBack }) {
               <strong style={{ color: '#2db88a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                 <CheckIcon style={{ fontSize: '1rem' }} /> Validation Complete:
               </strong>{' '}
-              All three methods evaluated on the same 160 image-claim pairs.
-              Combined approach: {fmt(VALIDATION_DATA.methods.combined_analysis.accuracy)},
-              Contextual: {fmt(VALIDATION_DATA.methods.contextual_analysis.accuracy)},
-              Pixel forensics: {fmt(VALIDATION_DATA.methods.pixel_forensics.accuracy)}.
+              All 160 image-claim pairs scored across three dimensions.
+              Integrity: {fmt(VALIDATION_DATA.dimensions.integrity.binary_accuracy)},
+              Veracity: {fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy)},
+              Alignment: {fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy)}.
             </p>
           )}
         </div>
@@ -310,12 +303,12 @@ function ValidationStory({ onNavigateBack }) {
         <div className="timeline-step">
           <div className="step-marker">4</div>
           <div className="step-content">
-            <h3>The Dataset: 160 Samples Across All 8 Categories</h3>
+            <h3>The Dataset: 160 Samples Across 5 Categories</h3>
             <p>
-              We created a validation dataset using <strong>70 medical images</strong> from the BTD
-              (Brain Tumor Detection) dataset, generating 160 image-claim pairs that span all
-              8 categories of the 2&times;2&times;2 matrix. This includes 40 synthetically tampered
-              images to test the pixel forensics dimension.
+              We created a validation dataset combining 120 authentic MRI image-claim pairs from the BTD
+              (Brain Tumor Detection) dataset with 40 tampered medical scans from the UCI Medical Image
+              Tamper Detection dataset, generating 160 samples across 5 categories. The authentic images
+              test contextual analysis; the tampered images test pixel forensics.
             </p>
             <div className="chart-card">
               <h4>Dataset Composition</h4>
@@ -344,73 +337,73 @@ function ValidationStory({ onNavigateBack }) {
                   <ul className="dataset-list">
                     <li>
                       <span className="list-dot" style={{ background: '#2db88a' }} />
-                      <strong>30 Legitimate:</strong> Authentic image, true claim, aligned
+                      <strong>30 Legitimate:</strong> Authentic image, true claim, aligned (3/3)
                     </li>
                     <li>
                       <span className="list-dot" style={{ background: '#f5a524' }} />
-                      <strong>30 Misleading:</strong> Authentic image, misleading context
+                      <strong>30 Misleading:</strong> Authentic image, true claim, misaligned (2/3)
                     </li>
                     <li>
                       <span className="list-dot" style={{ background: '#e5484d' }} />
-                      <strong>30 Intentional misinfo:</strong> Authentic image, false claim, aligned
+                      <strong>30 Intentional misinfo:</strong> Authentic image, false claim, misaligned (1/3)
                     </li>
                     <li>
                       <span className="list-dot" style={{ background: '#6d7d93' }} />
-                      <strong>30 Other authentic:</strong> Authentic image, varied claims
+                      <strong>30 Other authentic:</strong> Authentic image, partial veracity, partial alignment (1/3)
                     </li>
                     <li>
-                      <span className="list-dot" style={{ background: '#9b59b6' }} />
-                      <strong>40 Tampered:</strong> Modified images across 4 veracity/alignment combos (10 each)
+                      <span className="list-dot" style={{ background: '#a855f7' }} />
+                      <strong>40 Tampered:</strong> UCI tampered DICOM scans with varied claims (tests pixel forensics)
                     </li>
                   </ul>
                 </div>
               </div>
               <div className="insight-grid" style={{ marginTop: '1rem' }}>
-                <div className="insight-box" style={{ borderLeftColor: '#9b59b6' }}>
-                  <span className="insight-number" style={{ color: '#9b59b6' }}>25%</span>
-                  <p>of samples use <strong>tampered images</strong>, giving pixel forensics a fair chance to contribute</p>
+                <div className="insight-box" style={{ borderLeftColor: '#4E9A34' }}>
+                  <span className="insight-number" style={{ color: '#4E9A34' }}>75%</span>
+                  <p>of images are <strong>authentic MRIs</strong> (120/160) &mdash; 40 are tampered DICOM scans for pixel forensics testing</p>
                 </div>
                 <div className="insight-box" style={{ borderLeftColor: '#e5484d' }}>
-                  <span className="insight-number" style={{ color: '#e5484d' }}>62.5%</span>
-                  <p>of samples are <strong>misinformation</strong> (100/160), creating a realistic imbalance</p>
+                  <span className="insight-number" style={{ color: '#e5484d' }}>50%</span>
+                  <p>of samples have <strong>misaligned or false claims</strong>, requiring contextual analysis to detect</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Step 5: Three Methods */}
+        {/* Step 5: How Each Dimension Is Assessed */}
         <div className="timeline-step">
           <div className="step-marker">5</div>
           <div className="step-content">
-            <h3>Three Methods Compared</h3>
+            <h3>How Each Dimension Is Assessed</h3>
             <p>
-              Each of the 160 samples is processed by three methods, all evaluated on the
-              exact same data for a fair comparison.
+              Each of the 160 samples is scored independently on all three dimensions.
+              Each dimension uses the method best suited to it.
             </p>
             <div className="chart-card">
-              <h4>Method Descriptions</h4>
+              <h4>Assessment Methods</h4>
               <div className="signals-grid">
-                <div className="signal-card" style={{ borderLeft: '3px solid #e5484d' }}>
-                  <span className="signal-icon"><ShieldIcon style={{ fontSize: '2rem', color: '#e5484d' }} /></span>
-                  <strong>Pixel Forensics</strong>
-                  <p>File-based heuristic baseline. Can only assess image integrity &mdash;
-                  has no access to claims or context.</p>
-                  <small style={{ color: '#e5484d', fontWeight: 'bold' }}>1 of 3 dimensions</small>
+                <div className="signal-card" style={{ borderLeft: '3px solid #4E9A34' }}>
+                  <span className="signal-icon"><ShieldIcon style={{ fontSize: '2rem', color: '#4E9A34' }} /></span>
+                  <strong>Image Integrity</strong>
+                  <p>Error Level Analysis (ELA) detects pixel-level tampering
+                  by comparing JPEG compression artifacts.</p>
+                  <small style={{ color: '#4E9A34', fontWeight: 'bold' }}>Scored 1/3 (fail) to 3/3 (pass)</small>
                 </div>
                 <div className="signal-card" style={{ borderLeft: '3px solid #2db88a' }}>
                   <span className="signal-icon"><BrainIcon style={{ fontSize: '2rem', color: '#2db88a' }} /></span>
-                  <strong>Contextual Analysis</strong>
-                  <p>MedGemma assesses claim veracity and image-claim alignment.
-                  Ignores pixel integrity.</p>
-                  <small style={{ color: '#2db88a', fontWeight: 'bold' }}>2 of 3 dimensions</small>
+                  <strong>Claim Veracity</strong>
+                  <p>MedGemma assesses whether the claim is factually and
+                  medically accurate, independent of the image.</p>
+                  <small style={{ color: '#2db88a', fontWeight: 'bold' }}>Scored 1/3 (false) to 3/3 (true)</small>
                 </div>
                 <div className="signal-card" style={{ borderLeft: '3px solid #5b8def' }}>
-                  <span className="signal-icon"><GlobeIcon style={{ fontSize: '2rem', color: '#5b8def' }} /></span>
-                  <strong>Combined</strong>
-                  <p>Pixel forensics + contextual analysis together.
-                  Flags misinformation if <em>either</em> method detects an issue.</p>
-                  <small style={{ color: '#5b8def', fontWeight: 'bold' }}>All 3 dimensions</small>
+                  <span className="signal-icon"><TargetIcon style={{ fontSize: '2rem', color: '#5b8def' }} /></span>
+                  <strong>Context Alignment</strong>
+                  <p>MedGemma evaluates whether the image actually supports,
+                  illustrates, or relates to the claim.</p>
+                  <small style={{ color: '#5b8def', fontWeight: 'bold' }}>Scored 1/3 (misaligned) to 3/3 (aligned)</small>
                 </div>
               </div>
             </div>
@@ -421,31 +414,29 @@ function ValidationStory({ onNavigateBack }) {
         <div className="timeline-step">
           <div className="step-marker">6</div>
           <div className="step-content">
-            <h3>Results: Head-to-Head Comparison</h3>
+            <h3>Results: Per-Dimension Accuracy</h3>
             {isPending ? (
               <div style={{ padding: '2rem', background: 'rgba(245, 165, 36, 0.08)', borderRadius: '12px', border: '2px dashed #f5a524', textAlign: 'center' }}>
                 <PendingIcon style={{ fontSize: '3rem', color: '#f5a524', marginBottom: '1rem' }} />
                 <h4 style={{ color: '#f5a524', marginBottom: '0.5rem' }}>Validation Running</h4>
                 <p style={{ color: '#9ba0af', maxWidth: '500px', margin: '0 auto', lineHeight: '1.6' }}>
-                  Processing 160 image-claim pairs through MedGemma for contextual analysis
-                  (veracity + alignment), with pixel forensics baseline computed in parallel.
+                  Processing 160 image-claim pairs. Each sample scored on
+                  integrity (ELA), veracity (MedGemma), and alignment (MedGemma).
                   Results will populate when the run completes.
                 </p>
               </div>
             ) : (
               <>
                 <p>
-                  All 160 image-claim pairs processed. The combined approach achieves{' '}
-                  <strong>{fmt(VALIDATION_DATA.methods.combined_analysis.accuracy)}</strong> accuracy,
-                  contextual analysis alone achieves{' '}
-                  <strong>{fmt(VALIDATION_DATA.methods.contextual_analysis.accuracy)}</strong>,
-                  and pixel forensics alone achieves{' '}
-                  <strong>{fmt(VALIDATION_DATA.methods.pixel_forensics.accuracy)}</strong>.
+                  All 160 image-claim pairs scored across three dimensions.
+                  Integrity (ELA): {fmt(VALIDATION_DATA.dimensions.integrity.binary_accuracy)},
+                  Veracity: {fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy)},
+                  Alignment: {fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy)}.
                 </p>
                 <div className="chart-card">
-                  <h4>Misinformation Detection Accuracy</h4>
+                  <h4>Per-Dimension Accuracy</h4>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={performanceData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <BarChart data={dimensionData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                       <XAxis dataKey="name" angle={0} textAnchor="middle" height={60} />
                       <YAxis domain={[0, 100]} label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft' }} />
                       <Tooltip
@@ -453,7 +444,7 @@ function ValidationStory({ onNavigateBack }) {
                         contentStyle={{ background: '#1c1e26', border: '1px solid #2d3142' }}
                       />
                       <Bar dataKey="accuracy" radius={[8, 8, 0, 0]}>
-                        {performanceData.map((entry, index) => (
+                        {dimensionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
                         ))}
                       </Bar>
@@ -463,30 +454,35 @@ function ValidationStory({ onNavigateBack }) {
 
                 {/* Detailed metrics table */}
                 <div className="chart-card" style={{ marginTop: '1rem' }}>
-                  <h4>Detailed Metrics</h4>
+                  <h4>Detailed Metrics by Dimension</h4>
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                       <thead>
                         <tr style={{ borderBottom: '2px solid #2d3142' }}>
-                          <th style={{ textAlign: 'left', padding: '0.75rem', color: '#9ba0af' }}>Method</th>
+                          <th style={{ textAlign: 'left', padding: '0.75rem', color: '#9ba0af' }}>Dimension</th>
+                          <th style={{ textAlign: 'right', padding: '0.75rem', color: '#9ba0af' }}>Exact Match</th>
                           <th style={{ textAlign: 'right', padding: '0.75rem', color: '#9ba0af' }}>Accuracy</th>
-                          <th style={{ textAlign: 'right', padding: '0.75rem', color: '#9ba0af' }}>Precision</th>
-                          <th style={{ textAlign: 'right', padding: '0.75rem', color: '#9ba0af' }}>Recall</th>
                           <th style={{ textAlign: 'right', padding: '0.75rem', color: '#9ba0af' }}>F1</th>
+                          <th style={{ textAlign: 'right', padding: '0.75rem', color: '#9ba0af' }}>n</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {Object.entries(VALIDATION_DATA.methods).map(([method, metrics]) => (
-                          <tr key={method} style={{ borderBottom: '1px solid #2d3142' }}>
-                            <td style={{ padding: '0.75rem', color: '#e9eef4', fontWeight: 600 }}>
-                              {method.replace(/_/g, ' ')}
-                            </td>
-                            <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{fmt(metrics.accuracy)}</td>
-                            <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{fmt(metrics.precision)}</td>
-                            <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{fmt(metrics.recall)}</td>
-                            <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{fmt(metrics.f1)}</td>
-                          </tr>
-                        ))}
+                        {[
+                          { key: 'integrity', label: 'Image Integrity (ELA)', color: '#4E9A34' },
+                          { key: 'veracity', label: 'Claim Veracity', color: '#2db88a' },
+                          { key: 'alignment', label: 'Context Alignment', color: '#5b8def' },
+                        ].map(({ key, label, color }) => {
+                          const m = VALIDATION_DATA.dimensions[key]
+                          return (
+                            <tr key={key} style={{ borderBottom: '1px solid #2d3142' }}>
+                              <td style={{ padding: '0.75rem', color, fontWeight: 600 }}>{label}</td>
+                              <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{fmt(m.exact_match)}</td>
+                              <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{fmt(m.binary_accuracy)}</td>
+                              <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{fmt(m.binary_f1)}</td>
+                              <td style={{ textAlign: 'right', padding: '0.75rem', color: '#c5cad4' }}>{m.n}</td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -500,11 +496,11 @@ function ValidationStory({ onNavigateBack }) {
         <div className="timeline-step">
           <div className="step-marker">7</div>
           <div className="step-content">
-            <h3>Where Each Method Excels (and Fails)</h3>
+            <h3>Where Each Dimension Excels (and Fails)</h3>
             <p>
-              The real test is per-category performance. Pixel forensics should excel on tampered
-              images. Contextual analysis should excel on misleading claims with authentic images.
-              The combined approach should cover both.
+              The real test is per-category performance. Integrity (ELA) should score uniformly
+              since all images are authentic. Veracity and alignment should differentiate
+              between legitimate, misleading, and misinformation categories.
             </p>
             {isPending ? (
               <div className="chart-card" style={{ textAlign: 'center', padding: '2rem', color: '#9ba0af' }}>
@@ -513,8 +509,8 @@ function ValidationStory({ onNavigateBack }) {
               </div>
             ) : categoryData.length > 0 ? (
               <div className="chart-card">
-                <h4>Accuracy by Misinformation Category</h4>
-                <ResponsiveContainer width="100%" height={400}>
+                <h4>Accuracy by Category and Dimension</h4>
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={categoryData} layout="vertical" margin={{ left: 30, right: 20 }}>
                     <XAxis type="number" domain={[0, 100]} />
                     <YAxis type="category" dataKey="name" width={160} style={{ fontSize: '0.8rem' }} />
@@ -522,27 +518,27 @@ function ValidationStory({ onNavigateBack }) {
                       formatter={(value) => `${value.toFixed(1)}%`}
                       contentStyle={{ background: '#1c1e26', border: '1px solid #2d3142' }}
                     />
-                    <Bar dataKey="pixel" name="Pixel Forensics" fill="#e5484d" />
-                    <Bar dataKey="contextual" name="Contextual" fill="#2db88a" />
-                    <Bar dataKey="combined" name="Combined" fill="#5b8def" />
+                    <Bar dataKey="integrity" name="Integrity (ELA)" fill="#4E9A34" />
+                    <Bar dataKey="veracity" name="Veracity" fill="#2db88a" />
+                    <Bar dataKey="alignment" name="Alignment" fill="#5b8def" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : null}
             <div className="chart-card" style={{ marginTop: '1rem' }}>
-              <h4>Expected Strengths</h4>
+              <h4>Expected Patterns</h4>
               <div className="insight-grid">
-                <div className="insight-box" style={{ borderLeftColor: '#e5484d' }}>
-                  <span className="insight-number" style={{ color: '#e5484d', fontSize: '1.5rem' }}>Pixel Forensics</span>
-                  <p>Should detect <strong>tampered images</strong> (40/160 samples) but has no ability to assess claims or alignment on the remaining 120 authentic-image samples</p>
+                <div className="insight-box" style={{ borderLeftColor: '#4E9A34' }}>
+                  <span className="insight-number" style={{ color: '#4E9A34', fontSize: '1.5rem' }}>Integrity</span>
+                  <p>ELA predicts MANIPULATED for all MRI images due to high compression variance &mdash; a <strong>degenerate predictor</strong> for this domain</p>
                 </div>
                 <div className="insight-box" style={{ borderLeftColor: '#2db88a' }}>
-                  <span className="insight-number" style={{ color: '#2db88a', fontSize: '1.5rem' }}>Contextual Analysis</span>
-                  <p>Should detect <strong>false claims and misalignment</strong> but misses pixel tampering entirely &mdash; blind to the 40 tampered samples</p>
+                  <span className="insight-number" style={{ color: '#2db88a', fontSize: '1.5rem' }}>Veracity</span>
+                  <p>MedGemma should correctly identify <strong>false claims</strong> (intentional misinfo) while recognizing true claims (legitimate, misleading)</p>
                 </div>
                 <div className="insight-box" style={{ borderLeftColor: '#5b8def' }}>
-                  <span className="insight-number" style={{ color: '#5b8def', fontSize: '1.5rem' }}>Combined</span>
-                  <p>Flags misinformation if <strong>either</strong> method detects an issue &mdash; should cover all 8 categories</p>
+                  <span className="insight-number" style={{ color: '#5b8def', fontSize: '1.5rem' }}>Alignment</span>
+                  <p>MedGemma should detect when <strong>true claims don&rsquo;t match the image</strong> &mdash; the hardest category (misleading)</p>
                 </div>
               </div>
             </div>
@@ -561,16 +557,15 @@ function ValidationStory({ onNavigateBack }) {
                 </h4>
                 <ul>
                   <li>Medical misinformation requires <strong>three-dimensional</strong> assessment &mdash; no single axis is sufficient</li>
-                  <li>Pixel forensics covers only 25% of the dataset (tampered images)</li>
-                  <li>Contextual analysis covers the 75% that pixel forensics cannot see</li>
+                  <li>ELA is a degenerate predictor for medical imaging &mdash; high compression variance makes all MRIs look &ldquo;manipulated&rdquo;</li>
+                  <li>Contextual analysis (veracity + alignment) covers what pixel forensics cannot</li>
                   {isPending ? (
-                    <li>Quantitative head-to-head results pending completion of 160-sample run</li>
+                    <li>Quantitative per-dimension results pending completion of 160-sample run</li>
                   ) : (
                     <>
-                      <li>Combined: <strong>{fmt(VALIDATION_DATA.methods.combined_analysis.accuracy)}</strong>,
-                        Contextual: <strong>{fmt(VALIDATION_DATA.methods.contextual_analysis.accuracy)}</strong>,
-                        Pixel: <strong>{fmt(VALIDATION_DATA.methods.pixel_forensics.accuracy)}</strong>
-                        (values reflect expected improvements from updated fusion logic)</li>
+                      <li>Integrity: <strong>{fmt(VALIDATION_DATA.dimensions.integrity.binary_accuracy)}</strong>,
+                        Veracity: <strong>{fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy)}</strong>,
+                        Alignment: <strong>{fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy)}</strong></li>
                     </>
                   )}
                 </ul>
@@ -581,10 +576,11 @@ function ValidationStory({ onNavigateBack }) {
                   <WarningIcon /> Known Limitations
                 </h4>
                 <ul>
-                  <li><strong>Pixel forensics baseline:</strong> Uses file-size heuristic, not deep-learning tampering detection</li>
+                  <li><strong>Pixel forensics baseline:</strong> ELA is known to fail on medical imaging due to inherent compression variance</li>
                   <li><strong>Contextual analysis:</strong> Uses direct MedGemma inference without full agent orchestration</li>
                   <li>Dataset limited to brain MRI images from BTD &mdash; may not generalize to other modalities</li>
                   <li>Ground truth labels are synthetically assigned, not expert-annotated</li>
+                  <li>40 tampered images are DICOM (UCI dataset) &mdash; different modality from BTD MRI PNGs</li>
                   <li>160 samples provides moderate statistical power; 500+ would be stronger</li>
                 </ul>
               </div>
@@ -595,7 +591,7 @@ function ValidationStory({ onNavigateBack }) {
                 </h4>
                 <ul>
                   <li>Scale to 500+ samples across diverse medical imaging modalities (X-ray, CT, histopathology)</li>
-                  <li>Replace file-size heuristic with learned pixel forensics (ELA, deep learning)</li>
+                  <li>Replace ELA with learned pixel forensics (deep learning tampering detection)</li>
                   <li>Add provenance and reverse search signals for full 5-dimension assessment</li>
                   <li>Expert annotation of ground truth labels</li>
                   <li>Field deployment validation with HERO Lab, UBC</li>
@@ -615,66 +611,71 @@ function ValidationStory({ onNavigateBack }) {
             <>
               <p className="summary-lead">
                 Medical misinformation operates across three dimensions: image integrity, claim veracity,
-                and context-image alignment. No single method covers all three. The combined approach
-                is the only way to detect the full spectrum of misinformation categories.
+                and context-image alignment. Each dimension is scored independently (0/3 to 3/3),
+                revealing exactly where detection succeeds and fails.
               </p>
               <div style={{ padding: '1.5rem', background: 'rgba(245, 165, 36, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #f5a524' }}>
                 <h3 style={{ marginTop: 0, color: '#f5a524', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <PendingIcon /> Awaiting Results
                 </h3>
                 <p style={{ marginBottom: '0.5rem', color: '#c5cad4' }}>
-                  <strong style={{ color: '#e9eef4' }}>Three methods, one dataset:</strong>{' '}
-                  Pixel forensics, contextual analysis, and a combined approach are all being evaluated
-                  on the same 160 image-claim pairs from the BTD dataset.
+                  <strong style={{ color: '#e9eef4' }}>Three dimensions, one dataset:</strong>{' '}
+                  Each of 160 image-claim pairs is scored on integrity (ELA),
+                  veracity (MedGemma), and alignment (MedGemma).
                 </p>
                 <p style={{ marginBottom: 0, color: '#c5cad4' }}>
                   <strong style={{ color: '#e9eef4' }}>Why this matters:</strong>{' '}
-                  This is the first validation that tests all three dimensions of medical misinformation
-                  detection on a dataset designed to cover the full 2&times;2&times;2 space.
+                  Per-dimension scoring reveals which aspects of misinformation detection
+                  work and which need improvement &mdash; rather than collapsing to a single binary.
                 </p>
               </div>
             </>
           ) : (
             <>
               <p className="summary-lead">
-                The combined three-dimensional approach achieves{' '}
-                <strong>{fmt(VALIDATION_DATA.methods.combined_analysis.accuracy)}</strong> accuracy,
-                outperforming both pixel forensics alone ({fmt(VALIDATION_DATA.methods.pixel_forensics.accuracy)})
-                and contextual analysis alone ({fmt(VALIDATION_DATA.methods.contextual_analysis.accuracy)}).
-                These results reflect the improved fusion logic that properly combines contextual analysis
-                signals (veracity_score, alignment_score, overall_score, is_misleading, veracity_category,
-                alignment_category) with pixel forensics outputs (pixel_authentic, confidence).
+                Per-dimension accuracy: Integrity (ELA){' '}
+                <strong>{fmt(VALIDATION_DATA.dimensions.integrity.binary_accuracy)}</strong>,
+                Veracity{' '}
+                <strong>{fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy)}</strong>,
+                Alignment{' '}
+                <strong>{fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy)}</strong>.
+                ELA fails as expected on medical imaging. Contextual analysis provides
+                the signal that pixel forensics cannot.
               </p>
               <div style={{ padding: '1.5rem', background: 'rgba(45, 184, 138, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #2db88a' }}>
                 <h3 style={{ marginTop: 0, color: '#2db88a', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckIcon /> Validated
                 </h3>
                 <p style={{ marginBottom: 0, color: '#c5cad4' }}>
-                  Three-dimensional assessment covers categories that any single method misses.
-                  The combined approach is the only method that can detect the full 2&times;2&times;2
-                  spectrum of medical misinformation.
+                  Three-dimensional scoring reveals that contextual analysis (veracity + alignment)
+                  is the critical capability for medical misinformation detection, while pixel forensics
+                  alone is insufficient for this domain.
                 </p>
               </div>
             </>
           )}
           <div className="summary-stats">
             <div className="summary-stat-large">
-              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.methods.combined_analysis.accuracy, 1)}</span>
-              <span className="stat-label">Combined Accuracy</span>
+              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy, 1)}</span>
+              <span className="stat-label">Veracity Accuracy</span>
+            </div>
+            <div className="summary-stat-large">
+              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy, 1)}</span>
+              <span className="stat-label">Alignment Accuracy</span>
             </div>
             <div className="summary-stat-large">
               <span className="stat-value">160</span>
               <span className="stat-label">Image-Claim Pairs</span>
             </div>
             <div className="summary-stat-large">
-              <span className="stat-value">8</span>
-              <span className="stat-label">Misinformation Categories</span>
+              <span className="stat-value">3</span>
+              <span className="stat-label">Dimensions Scored</span>
             </div>
           </div>
           <p className="summary-note">
-            Three-dimensional validation &mdash; 160 image-claim pairs from BTD medical imaging dataset.
-            70 unique images (120 authentic, 40 tampered). Contextual analysis via direct MedGemma inference.
-            Pixel forensics via file-based heuristic. Both methods on identical data.
+            Three-dimensional validation &mdash; 160 image-claim pairs from BTD and UCI medical imaging datasets.
+            120 authentic MRIs + 40 tampered DICOM scans, paired with claims of varying veracity and alignment.
+            Integrity via ELA, veracity and alignment via direct MedGemma inference.
           </p>
         </div>
       </section>

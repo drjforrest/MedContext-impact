@@ -7,18 +7,46 @@ Compares:
 3. Combined approach
 """
 
+import io
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
+import numpy as np
+from PIL import Image
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from app.clinical.medgemma_client import MedGemmaClient
+from app.forensics.service import _run_layer_1
+
+
+def _read_image_bytes(path: Path) -> bytes:
+    """Read image file, converting DICOM to PNG if needed."""
+    if path.suffix.lower() == ".dcm":
+        import pydicom
+
+        ds = pydicom.dcmread(path)
+        pixel_array = ds.pixel_array
+        if pixel_array.ndim > 2:
+            pixel_array = pixel_array[0]
+        pixel_array = pixel_array.astype(np.float32)
+        min_val, max_val = float(pixel_array.min()), float(pixel_array.max())
+        if max_val > min_val:
+            normalized = ((pixel_array - min_val) / (max_val - min_val) * 255.0).clip(
+                0, 255
+            )
+        else:
+            normalized = np.zeros_like(pixel_array)
+        image = Image.fromarray(normalized.astype(np.uint8))
+        buf = io.BytesIO()
+        image.save(buf, format="PNG")
+        return buf.getvalue()
+    return path.read_bytes()
 
 
 class ThreeMethodValidator:
@@ -30,6 +58,8 @@ class ThreeMethodValidator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.medgemma = MedGemmaClient()
         self.results = []
+        self.skipped_missing = 0
+        self.skipped_errors = 0
 
     def load_dataset(self) -> List[Dict]:
         """Load 3D validation dataset."""
@@ -60,36 +90,30 @@ class ThreeMethodValidator:
 
         return data
 
-    def simple_pixel_forensics(self, image_path: Path) -> Dict[str, Any]:
-        """
-        Simple pixel forensics baseline (file-based heuristic).
+    def simple_pixel_forensics(self, image_bytes: bytes) -> Dict[str, Any]:
+        """Pixel forensics baseline using Error Level Analysis (ELA).
 
-        NOTE: This is a placeholder. In production, you would:
-        - Run Error Level Analysis (ELA)
-        - Check EXIF metadata inconsistencies
-        - Use deep learning tampering detection
-
-        For now, uses file size as proxy (medical images tend to be larger).
+        Uses the same ELA implementation as the forensics service (layer 1).
+        Verdict MANIPULATED → pixel_authentic=False, AUTHENTIC → True.
         """
         try:
-            file_size = image_path.stat().st_size
-            # Simple heuristic: larger files more likely authentic
-            # Real implementation would use proper ELA
-            pixel_authentic = file_size > 100_000
-            confidence = 0.85 if pixel_authentic else 0.75
+            ela_result = _run_layer_1(image_bytes)
+
+            pixel_authentic = ela_result.verdict != "MANIPULATED"
 
             return {
                 "pixel_authentic": pixel_authentic,
-                "confidence": confidence,
-                "method": "pixel_forensics",
-                "file_size": file_size,
+                "confidence": ela_result.confidence,
+                "method": "pixel_forensics_ela",
+                "ela_verdict": ela_result.verdict,
+                "ela_details": ela_result.details,
             }
         except Exception as e:
             print(f"Pixel forensics error: {e}")
             return {
                 "pixel_authentic": False,
                 "confidence": 0.0,
-                "method": "pixel_forensics",
+                "method": "pixel_forensics_ela",
                 "error": str(e),
             }
 
@@ -368,15 +392,16 @@ Return ONLY valid JSON with this exact structure:
 
             image_path = Path(item["image_path"])
             if not image_path.exists():
-                print(f"⚠️  Missing image: {image_path}")
+                print(f"  Missing image: {image_path}")
+                self.skipped_missing += 1
                 continue
 
             try:
-                image_bytes = image_path.read_bytes()
+                image_bytes = _read_image_bytes(image_path)
                 claim = item["claim"]
 
                 # Run three methods
-                pixel_pred = self.simple_pixel_forensics(image_path)
+                pixel_pred = self.simple_pixel_forensics(image_bytes)
                 context_pred = self.contextual_analysis(image_bytes, claim)
                 combined_pred = self.combined_analysis(pixel_pred, context_pred)
 
@@ -394,109 +419,185 @@ Return ONLY valid JSON with this exact structure:
 
             except Exception as e:
                 print(f"Error processing {item.get('image_id', i)}: {e}")
+                self.skipped_errors += 1
                 continue
 
-        print(f"\n✓ Processed {len(self.results)} samples")
+        print(f"\n  Processed {len(self.results)} samples")
+        if self.skipped_missing > 0:
+            print(f"  Skipped {self.skipped_missing} samples (missing images)")
+        if self.skipped_errors > 0:
+            print(f"  Skipped {self.skipped_errors} samples (errors)")
         print(f"Completed: {datetime.now(timezone.utc).isoformat()}")
 
-    def compute_misinformation_metrics(self) -> Dict[str, Dict[str, float]]:
-        """Compute misinformation detection metrics for each method."""
-        methods = ["pixel_forensics", "contextual_analysis", "combined_analysis"]
+    @staticmethod
+    def _gt_scores(gt: Dict) -> Dict[str, int]:
+        """Map ground truth to 3-dimensional scores (each 0-3).
+
+        Matches the UI triangle: integrity / veracity / alignment.
+        3 = pass, 2 = partial, 1 = fail, 0 = unchecked.
+        """
+        # Integrity (image authenticity)
+        integrity = 3 if gt.get("pixel_authentic", True) else 1
+
+        # Veracity (claim truthfulness)
+        veracity_map = {"high": 3, "medium": 2, "low": 1}
+        veracity = veracity_map.get(gt.get("plausibility", ""), 0)
+
+        # Alignment (image-claim match)
+        alignment_map = {"aligned": 3, "partially_aligned": 2, "misaligned": 1}
+        alignment = alignment_map.get(gt.get("alignment", ""), 0)
+
+        return {"integrity": integrity, "veracity": veracity, "alignment": alignment}
+
+    @staticmethod
+    def _pred_scores(pred: Dict) -> Dict[str, int]:
+        """Map contextual analysis predictions to 3-dimensional scores.
+
+        Matches the UI triangle: integrity / veracity / alignment.
+        """
+        # Integrity from ELA
+        ela_verdict = pred.get("ela_verdict", "")
+        if ela_verdict == "AUTHENTIC":
+            integrity = 3
+        elif ela_verdict == "UNCERTAIN":
+            integrity = 2
+        elif ela_verdict == "MANIPULATED":
+            integrity = 1
+        else:
+            integrity = 0
+
+        # Veracity from contextual analysis
+        veracity_map = {"true": 3, "partially_true": 2, "false": 1}
+        veracity = veracity_map.get(pred.get("veracity_category", ""), 0)
+
+        # Alignment from contextual analysis
+        alignment_map = {
+            "aligns_fully": 3,
+            "partially_aligns": 2,
+            "does_not_align": 1,
+        }
+        alignment = alignment_map.get(pred.get("alignment_category", ""), 0)
+
+        return {"integrity": integrity, "veracity": veracity, "alignment": alignment}
+
+    def compute_dimensional_metrics(self) -> Dict[str, Dict]:
+        """Compute per-dimension accuracy for each method.
+
+        Three dimensions evaluated independently:
+        - integrity: pixel forensics (ELA) → image authenticity
+        - veracity: contextual analysis → claim truthfulness
+        - alignment: contextual analysis → image-claim match
+
+        Each dimension scored 1-3 (fail/partial/pass), matching the UI.
+        """
+        dimensions = ["integrity", "veracity", "alignment"]
         metrics = {}
 
-        for method in methods:
+        for dim in dimensions:
             y_true, y_pred = [], []
 
             for result in self.results:
-                gt = result["ground_truth"]
-                pred = result["predictions"][method]
+                gt_scores = self._gt_scores(result["ground_truth"])
+                gt_val = gt_scores[dim]
+                if gt_val == 0:
+                    continue  # skip unchecked
 
-                # Ground truth: any dimension failing = misinformation
-                # Using new metrics: veracity of claim, alignment with image, authenticity of image
-                is_misinfo_gt = not (
-                    gt["pixel_authentic"]  # image authenticity
-                    and gt.get("veracity", "high")
-                    == "high"  # claim veracity (replacing plausibility)
-                    and gt["alignment"] == "aligned"  # image-claim alignment
-                )
-                y_true.append(is_misinfo_gt)
+                # Get predictions from the relevant method
+                if dim == "integrity":
+                    pred = result["predictions"]["pixel_forensics"]
+                    pred_scores = {"integrity": 3 if pred["pixel_authentic"] else 1}
+                else:
+                    pred = result["predictions"]["contextual_analysis"]
+                    pred_scores = self._pred_scores(pred)
 
-                # Method prediction
-                if method == "pixel_forensics":
-                    y_pred.append(not pred["pixel_authentic"])
-                elif method == "contextual_analysis":
-                    y_pred.append(pred["is_misleading"])
-                else:  # combined
-                    y_pred.append(pred["is_misinformation"])
+                pred_val = pred_scores.get(dim, 0)
+                if pred_val == 0:
+                    continue  # skip if prediction unavailable
 
-            metrics[method] = {
-                "accuracy": accuracy_score(y_true, y_pred),
-                "precision": precision_score(y_true, y_pred, zero_division=0),
-                "recall": recall_score(y_true, y_pred, zero_division=0),
-                "f1": f1_score(y_true, y_pred, zero_division=0),
+                y_true.append(gt_val)
+                y_pred.append(pred_val)
+
+            if not y_true:
+                metrics[dim] = {"exact_match": 0.0, "n": 0}
+                continue
+
+            exact = sum(1 for t, p in zip(y_true, y_pred) if t == p)
+            # Also compute pass/fail binary accuracy (3=pass, else=not pass)
+            y_true_bin = [1 if v == 3 else 0 for v in y_true]
+            y_pred_bin = [1 if v == 3 else 0 for v in y_pred]
+
+            metrics[dim] = {
+                "exact_match": exact / len(y_true),
+                "binary_accuracy": accuracy_score(y_true_bin, y_pred_bin),
+                "binary_precision": precision_score(y_true_bin, y_pred_bin, zero_division=0),
+                "binary_recall": recall_score(y_true_bin, y_pred_bin, zero_division=0),
+                "binary_f1": f1_score(y_true_bin, y_pred_bin, zero_division=0),
+                "n": len(y_true),
             }
+
+        # Overall: total score (0-9) and per-sample pass count (0/3..3/3)
+        score_distribution = {f"{i}/3": 0 for i in range(4)}
+        for result in self.results:
+            gt_scores = self._gt_scores(result["ground_truth"])
+            pred = result["predictions"]["contextual_analysis"]
+            pred_scores = self._pred_scores(pred)
+            pixel_pred = result["predictions"]["pixel_forensics"]
+            pred_scores["integrity"] = 3 if pixel_pred["pixel_authentic"] else 1
+
+            passes = sum(
+                1 for dim in dimensions
+                if gt_scores[dim] != 0 and pred_scores.get(dim, 0) == gt_scores[dim]
+            )
+            score_distribution[f"{passes}/3"] += 1
+
+        metrics["score_distribution"] = score_distribution
 
         return metrics
 
-    def analyze_by_category(self) -> Dict[str, Dict[str, float]]:
-        """Performance breakdown by misinformation type."""
-        categories = {}
+    def analyze_by_category(self) -> Dict[str, Dict]:
+        """Performance breakdown by category with per-dimension accuracy."""
+        dimensions = ["integrity", "veracity", "alignment"]
+        categories: Dict[str, Dict] = {}
 
         for result in self.results:
             category = result["ground_truth"]["label"]
             if category not in categories:
                 categories[category] = {
-                    "pixel_correct": 0,
-                    "contextual_correct": 0,
-                    "combined_correct": 0,
-                    "count": 0,
+                    dim: {"correct": 0, "total": 0} for dim in dimensions
                 }
+                categories[category]["count"] = 0
 
             categories[category]["count"] += 1
-            gt = result["ground_truth"]
+            gt_scores = self._gt_scores(result["ground_truth"])
 
-            # Ground truth misinformation status using new metrics
-            gt_misinfo = not (
-                gt["pixel_authentic"]  # image authenticity
-                and gt.get("veracity", "high")
-                == "high"  # claim veracity (replacing plausibility)
-                and gt["alignment"] == "aligned"  # image-claim alignment
-            )
+            pixel_pred = result["predictions"]["pixel_forensics"]
+            context_pred = result["predictions"]["contextual_analysis"]
+            pred_scores = self._pred_scores(context_pred)
+            pred_scores["integrity"] = 3 if pixel_pred["pixel_authentic"] else 1
 
-            # Check each method
-            for method_key, pred_key in [
-                ("pixel_forensics", "pixel_correct"),
-                ("contextual_analysis", "contextual_correct"),
-                ("combined_analysis", "combined_correct"),
-            ]:
-                pred = result["predictions"][method_key]
-
-                if method_key == "pixel_forensics":
-                    pred_misinfo = not pred["pixel_authentic"]
-                elif method_key == "contextual_analysis":
-                    pred_misinfo = pred["is_misleading"]
-                else:
-                    pred_misinfo = pred["is_misinformation"]
-
-                # Correct if prediction matches ground truth
-                if pred_misinfo == gt_misinfo:
-                    categories[category][pred_key] += 1
+            for dim in dimensions:
+                gt_val = gt_scores[dim]
+                pred_val = pred_scores.get(dim, 0)
+                if gt_val == 0 or pred_val == 0:
+                    continue
+                categories[category][dim]["total"] += 1
+                if gt_val == pred_val:
+                    categories[category][dim]["correct"] += 1
 
         # Convert to accuracy rates
         category_accuracy = {}
         for cat, data in categories.items():
-            category_accuracy[cat] = {
-                "pixel": data["pixel_correct"] / data["count"],
-                "contextual": data["contextual_correct"] / data["count"],
-                "combined": data["combined_correct"] / data["count"],
-                "count": data["count"],
-            }
+            entry: Dict[str, Any] = {"count": data["count"]}
+            for dim in dimensions:
+                total = data[dim]["total"]
+                entry[dim] = data[dim]["correct"] / total if total > 0 else 0.0
+            category_accuracy[cat] = entry
 
         return category_accuracy
 
     def generate_report(self):
         """Generate comprehensive comparison report."""
-        metrics = self.compute_misinformation_metrics()
+        dim_metrics = self.compute_dimensional_metrics()
         category_analysis = self.analyze_by_category()
 
         # Save raw results
@@ -505,9 +606,12 @@ Return ONLY valid JSON with this exact structure:
 
         # Save metrics
         report = {
-            "overall_metrics": metrics,
+            "dimensional_metrics": dim_metrics,
             "category_analysis": category_analysis,
             "sample_count": len(self.results),
+            "skipped_missing_images": self.skipped_missing,
+            "skipped_errors": self.skipped_errors,
+            "total_dataset_items": len(self.results) + self.skipped_missing + self.skipped_errors,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         with open(self.output_dir / "three_method_comparison.json", "w") as f:
@@ -515,50 +619,61 @@ Return ONLY valid JSON with this exact structure:
 
         # Print summary
         print("\n" + "=" * 80)
-        print("THREE-METHOD COMPARISON RESULTS")
+        print("THREE-DIMENSIONAL VALIDATION RESULTS")
         print("=" * 80)
 
-        print("\n1. OVERALL MISINFORMATION DETECTION")
-        print("-" * 50)
-        for method, m in metrics.items():
-            print(f"\n{method.replace('_', ' ').title():25s}:")
-            print(f"  Accuracy:  {m['accuracy']:.3f}")
-            print(f"  Precision: {m['precision']:.3f}")
-            print(f"  Recall:    {m['recall']:.3f}")
-            print(f"  F1 Score:  {m['f1']:.3f}")
+        dim_labels = {
+            "integrity": "Image Integrity (ELA)",
+            "veracity": "Claim Veracity (MedGemma)",
+            "alignment": "Context Alignment (MedGemma)",
+        }
 
-        print("\n2. PERFORMANCE BY CATEGORY (Accuracy)")
-        print("-" * 50)
-        for category, accuracies in sorted(category_analysis.items()):
-            print(f"\n{category.upper()} (n={accuracies['count']}):")
-            print(f"  Pixel Forensics:     {accuracies['pixel']:.3f}")
-            print(f"  Contextual Analysis: {accuracies['contextual']:.3f}")
-            print(f"  Combined:            {accuracies['combined']:.3f}")
+        print("\n1. PER-DIMENSION ACCURACY")
+        print("-" * 60)
+        for dim in ["integrity", "veracity", "alignment"]:
+            m = dim_metrics.get(dim, {})
+            n = m.get("n", 0)
+            print(f"\n  {dim_labels[dim]} (n={n}):")
+            if n > 0:
+                print(f"    Exact match (3-level): {m['exact_match']:.3f}")
+                print(f"    Binary accuracy:       {m['binary_accuracy']:.3f}")
+                print(f"    Binary precision:       {m['binary_precision']:.3f}")
+                print(f"    Binary recall:          {m['binary_recall']:.3f}")
+                print(f"    Binary F1:              {m['binary_f1']:.3f}")
+            else:
+                print("    No samples evaluated")
 
-        print("\n3. KEY FINDINGS")
-        print("-" * 50)
+        print("\n2. SCORE DISTRIBUTION (correct dimensions per sample)")
+        print("-" * 60)
+        dist = dim_metrics.get("score_distribution", {})
+        for key in ["0/3", "1/3", "2/3", "3/3"]:
+            count = dist.get(key, 0)
+            pct = count / len(self.results) * 100 if self.results else 0
+            bar = "#" * int(pct / 2)
+            print(f"  {key}: {count:4d} ({pct:5.1f}%) {bar}")
 
-        # Calculate improvement
-        context_recall = metrics["contextual_analysis"]["recall"]
-        pixel_recall = metrics["pixel_forensics"]["recall"]
-        improvement = context_recall - pixel_recall
+        print("\n3. PERFORMANCE BY CATEGORY")
+        print("-" * 60)
+        for category, data in sorted(category_analysis.items()):
+            print(f"\n  {category.upper()} (n={data['count']}):")
+            for dim in ["integrity", "veracity", "alignment"]:
+                print(f"    {dim:12s}: {data[dim]:.3f}")
 
-        # Misleading category performance
-        if "misleading" in category_analysis:
-            misleading = category_analysis["misleading"]
-            misleading_gap = misleading["contextual"] - misleading["pixel"]
+        print("\n4. KEY FINDINGS")
+        print("-" * 60)
+        ver = dim_metrics.get("veracity", {})
+        ali = dim_metrics.get("alignment", {})
+        integ = dim_metrics.get("integrity", {})
 
-            print(
-                f"\n✓ Contextual analysis improves recall by {improvement:.1%} over pixel forensics"
-            )
-            print(
-                f"✓ On MISLEADING cases (most common): contextual achieves {misleading['contextual']:.1%} vs pixel {misleading['pixel']:.1%}"
-            )
-            print(f"✓ Improvement on misleading: {misleading_gap:.1%}")
+        if ver.get("n", 0) > 0 and integ.get("n", 0) > 0:
+            ver_acc = ver.get("binary_accuracy", 0)
+            ali_acc = ali.get("binary_accuracy", 0)
+            int_acc = integ.get("binary_accuracy", 0)
+            print(f"\n  Integrity  (ELA baseline):     {int_acc:.1%}")
+            print(f"  Veracity   (MedGemma):          {ver_acc:.1%}")
+            print(f"  Alignment  (MedGemma):          {ali_acc:.1%}")
 
-        print(f"\n✓ Results saved to: {self.output_dir}")
-        print(f"✓ Raw predictions: {self.output_dir / 'raw_predictions.json'}")
-        print(f"✓ Metrics summary: {self.output_dir / 'three_method_comparison.json'}")
+        print(f"\n  Results saved to: {self.output_dir}")
 
         return report
 
@@ -593,17 +708,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
-    main()
     main()
