@@ -24,6 +24,7 @@ def _make_db_session():
 
 def test_ingest_and_run_agentic_persists(sample_image_bytes, tmp_path, monkeypatch):
     db = _make_db_session()
+    db.query.return_value.filter.return_value.first.return_value = None
     monkeypatch.setattr(settings, "image_storage_dir", str(tmp_path))
     monkeypatch.setattr(ingestion_module, "store_provenance_manifest", MagicMock())
 
@@ -34,7 +35,7 @@ def test_ingest_and_run_agentic_persists(sample_image_bytes, tmp_path, monkeypat
             synthesis={"part_2": {"summary": "done"}},
         )
 
-    monkeypatch.setattr(ingestion_module.MedContextAgent, "run", _fake_run)
+    monkeypatch.setattr(ingestion_module.MedContextLangGraphAgent, "run", _fake_run)
 
     response = ingestion_module.ingest_and_run_agentic(
         image_bytes=sample_image_bytes,

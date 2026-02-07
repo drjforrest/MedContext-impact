@@ -183,6 +183,9 @@ node_modules/
 ui/node_modules/
 ui/dist/
 
+# macOS
+.DS_Store
+
 # Data
 src/data/
 data/

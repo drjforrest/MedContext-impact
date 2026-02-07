@@ -529,7 +529,9 @@ Return ONLY valid JSON with this exact structure:
             metrics[dim] = {
                 "exact_match": exact / len(y_true),
                 "binary_accuracy": accuracy_score(y_true_bin, y_pred_bin),
-                "binary_precision": precision_score(y_true_bin, y_pred_bin, zero_division=0),
+                "binary_precision": precision_score(
+                    y_true_bin, y_pred_bin, zero_division=0
+                ),
                 "binary_recall": recall_score(y_true_bin, y_pred_bin, zero_division=0),
                 "binary_f1": f1_score(y_true_bin, y_pred_bin, zero_division=0),
                 "n": len(y_true),
@@ -545,7 +547,8 @@ Return ONLY valid JSON with this exact structure:
             pred_scores["integrity"] = 3 if pixel_pred["pixel_authentic"] else 1
 
             passes = sum(
-                1 for dim in dimensions
+                1
+                for dim in dimensions
                 if gt_scores[dim] != 0 and pred_scores.get(dim, 0) == gt_scores[dim]
             )
             score_distribution[f"{passes}/3"] += 1
@@ -611,7 +614,9 @@ Return ONLY valid JSON with this exact structure:
             "sample_count": len(self.results),
             "skipped_missing_images": self.skipped_missing,
             "skipped_errors": self.skipped_errors,
-            "total_dataset_items": len(self.results) + self.skipped_missing + self.skipped_errors,
+            "total_dataset_items": len(self.results)
+            + self.skipped_missing
+            + self.skipped_errors,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         with open(self.output_dir / "three_method_comparison.json", "w") as f:

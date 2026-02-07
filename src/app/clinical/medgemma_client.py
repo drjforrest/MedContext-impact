@@ -314,9 +314,9 @@ class MedGemmaClient:
             if settings.medgemma_vertex_dedicated_domain:
                 domain = settings.medgemma_vertex_dedicated_domain.rstrip("/")
                 if domain.startswith("https://"):
-                    domain = domain[len("https://"):]
+                    domain = domain[len("https://") :]
                 elif domain.startswith("http://"):
-                    domain = domain[len("http://"):]
+                    domain = domain[len("http://") :]
                 url = f"https://{domain}/v1/{resource}"
             else:
                 url = (

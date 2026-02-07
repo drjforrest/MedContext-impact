@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -16,22 +16,20 @@ class TestReverseSearchService:
     @pytest.mark.unit
     def test_run_reverse_search_returns_result(self, sample_image_bytes):
         """Test that run_reverse_search returns a valid result structure."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {
-            "inline_images": [
-                {
-                    "title": "Controlled Image Result",
-                    "link": "https://example.com/controlled.jpg",
-                    "source": "https://example.com",
-                    "thumbnail": "https://example.com/controlled-thumb.jpg",
-                }
-            ]
-        }
+        from app.reverse_search.service import ReverseSearchMatch
+
+        fake_match = ReverseSearchMatch(
+            source="serpapi",
+            url="https://example.com/controlled.jpg",
+            title="Controlled Image Result",
+            snippet="A controlled image result.",
+            confidence=0.9,
+            discovered_at=datetime.now(),
+        )
         image_id = uuid4()
         with patch(
-            "app.reverse_search.service.requests.post", return_value=mock_response
+            "app.reverse_search.service._fetch_serpapi_matches",
+            return_value=([fake_match], ["serpapi"]),
         ):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
                 result = run_reverse_search(
@@ -46,30 +44,27 @@ class TestReverseSearchService:
     @pytest.mark.unit
     def test_run_reverse_search_with_mock_api(self, sample_image_bytes):
         """Test reverse search with mocked SerpAPI response."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = {
-            "inline_images": [
-                {
-                    "title": "Test Medical Image",
-                    "link": "https://example.com/image1.jpg",
-                    "source": "https://example.com",
-                    "thumbnail": "https://example.com/thumb1.jpg",
-                }
-            ]
-        }
+        from app.reverse_search.service import ReverseSearchMatch
+
+        fake_match = ReverseSearchMatch(
+            source="serpapi",
+            url="https://example.com/image1.jpg",
+            title="Test Medical Image",
+            snippet="A test medical image result.",
+            confidence=0.9,
+            discovered_at=datetime.now(),
+        )
 
         image_id = uuid4()
 
         with patch(
-            "app.reverse_search.service.requests.post", return_value=mock_response
+            "app.reverse_search.service._fetch_serpapi_matches",
+            return_value=([fake_match], ["serpapi"]),
         ):
             with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
-                with patch("app.reverse_search.service._LOGGER", MagicMock()):
-                    result = run_reverse_search(
-                        image_id=image_id, image_bytes=sample_image_bytes
-                    )
+                result = run_reverse_search(
+                    image_id=image_id, image_bytes=sample_image_bytes
+                )
 
         assert result.status == "completed"
         assert result.image_id == image_id
@@ -111,41 +106,26 @@ class TestReverseSearchService:
         assert result.status in ["queued", "completed", "invalid_request"]
 
     @pytest.mark.unit
-    def test_run_reverse_search_api_failure(self, sample_image_bytes, caplog):
-        """Test reverse search handles API failures gracefully."""
-        import requests
-
-        mock_response = MagicMock()
-        mock_response.status_code = 500
-        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-            "API Error"
-        )
-
+    def test_run_reverse_search_skips_for_local_bytes(self, sample_image_bytes, caplog):
+        """Test reverse search skips SerpAPI for local image bytes and falls back."""
         image_id = uuid4()
 
-        caplog.set_level(logging.WARNING, logger="app.reverse_search.service")
-        with patch(
-            "app.reverse_search.service.requests.post", return_value=mock_response
-        ):
-            with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
-                result = run_reverse_search(
-                    image_id=image_id, image_bytes=sample_image_bytes
-                )
+        caplog.set_level(logging.INFO, logger="app.reverse_search.service")
+        with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
+            result = run_reverse_search(
+                image_id=image_id, image_bytes=sample_image_bytes
+            )
 
-        # Should return result with fallback status
+        # Should return result with fallback matches
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
+        assert result.status == "completed"
 
-        # Verify that the API failure was logged
+        # Verify that the skip was logged
         assert len(caplog.records) > 0, "Expected log messages to be captured"
         assert any(
-            "SerpAPI reverse search failed" in record.message
-            for record in caplog.records
-        ), "Expected warning about SerpAPI failure in logs"
-
-        # Verify the log level was WARNING
-        warning_logs = [r for r in caplog.records if r.levelname == "WARNING"]
-        assert len(warning_logs) > 0, "Expected at least one WARNING level log"
+            "Skipping SerpAPI" in record.message for record in caplog.records
+        ), "Expected info about skipping SerpAPI in logs"
 
     @pytest.mark.unit
     def test_reverse_search_returns_job_response(self, sample_image_bytes):
