@@ -1,7 +1,5 @@
 # MedContext Empirical Validation
 
-**The Evidence That Changes Everything**
-
 ---
 
 ## Executive Summary
@@ -367,7 +365,7 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 - **Source**: [UCI Machine Learning Repository #520](https://archive.ics.uci.edu/dataset/520/deepfakes+medical+image+tamper+detection)
 - **DOI**: [10.24432/C5J318](https://doi.org/10.24432/C5J318)
-- **Citation**: Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning. *USENIX Security Symposium*.
+- **Citation**: Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning. _USENIX Security Symposium_.
 - **Total Images**: 22,753 (22,590 authentic, 163 manipulated)
 - **Balanced Subset**: 326 images (163 authentic, 163 manipulated)
 - **Format**: Real-world medical and forensic imagery

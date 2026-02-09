@@ -1326,8 +1326,42 @@ function App() {
               ) : null}
             </section>
 
-            <section className="card">
-              <h2>Contextual authenticity results</h2>
+            <section className="card" ref={result ? (el => el ? el.setAttribute('data-export-target', 'results') : null) : null}>
+              <div className="result-header">
+                <h2>Contextual authenticity results</h2>
+                {result && (
+                  <div className="export-buttons">
+                    <button
+                      type="button"
+                      className="ghost export-button"
+                      onClick={() => {
+                        const resultsElement = document.querySelector('[data-export-target="results"]');
+                        if (resultsElement) {
+                          import('./utils/exportUtils').then(({ downloadAsPDF }) => {
+                            downloadAsPDF(resultsElement, 'medcontext-results.pdf');
+                          });
+                        }
+                      }}
+                    >
+                      Download as PDF
+                    </button>
+                    <button
+                      type="button"
+                      className="ghost export-button"
+                      onClick={() => {
+                        const resultsElement = document.querySelector('[data-export-target="results"]');
+                        if (resultsElement) {
+                          import('./utils/exportUtils').then(({ copyToClipboardText }) => {
+                            copyToClipboardText(resultsElement);
+                          });
+                        }
+                      }}
+                    >
+                      Copy to Clipboard
+                    </button>
+                  </div>
+                )}
+              </div>
               <p className="helper">
                 Full analysis that combines MedGemma triage with embedded tools
                 (reverse search, provenance, and forensics) when needed.

@@ -441,7 +441,7 @@ function ValidationStory({ onNavigateBack }) {
                       <YAxis domain={[0, 100]} label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft' }} />
                       <Tooltip
                         formatter={(value) => `${value.toFixed(1)}%`}
-                        contentStyle={{ background: '#1c1e26', border: '1px solid #2d3142' }}
+                        contentStyle={{ background: '#1c1e26', border: '1px solid #2d3142', color: '#e9eef4' }}
                       />
                       <Bar dataKey="accuracy" radius={[8, 8, 0, 0]}>
                         {dimensionData.map((entry, index) => (

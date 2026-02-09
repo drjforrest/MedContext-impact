@@ -503,3 +503,43 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Recharts Tooltip Styling for Dark Mode */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  background: rgba(28, 30, 38, 0.95) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  padding: 12px !important;
+  font-size: 14px !important;
+}
+
+.recharts-tooltip-label {
+  color: #e9eef4 !important;
+  margin-bottom: 8px !important;
+  font-weight: 600 !important;
+}
+
+.recharts-tooltip-item {
+  color: #c5cad4 !important;
+  margin: 4px 0 !important;
+}
+
+.recharts-tooltip-item-name {
+  color: #9ba0af !important;
+}
+
+.recharts-tooltip-item-value {
+  color: #e9eef4 !important;
+  font-weight: 600 !important;
+  float: right;
+}
+
+.recharts-tooltip-item-separator {
+  margin: 0 4px !important;
+  color: #9ba0af !important;
+}

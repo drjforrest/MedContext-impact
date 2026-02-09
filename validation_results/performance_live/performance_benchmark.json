@@ -1,0 +1,64 @@
+{
+  "benchmark_summary": {
+    "dataset": "data/validation/uci_tamper",
+    "samples": 1,
+    "warmup": 0,
+    "mode": "live",
+    "serpapi_enabled": true,
+    "medgemma_provider": "local",
+    "llm_provider": "openai_compatible"
+  },
+  "errors": {
+    "count": 0,
+    "samples": []
+  },
+  "fallback_attempts": [],
+  "latency_ms": {
+    "total": {
+      "mean_ms": 36073.25658299988,
+      "p50_ms": 36073.25658299988,
+      "p95_ms": 36073.25658299988
+    },
+    "triage": {
+      "mean_ms": 22415.399958999842,
+      "p50_ms": 22415.399958999842,
+      "p95_ms": 22415.399958999842
+    },
+    "reverse_search": {
+      "mean_ms": 0.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0
+    },
+    "forensics": {
+      "mean_ms": 0.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0
+    },
+    "provenance": {
+      "mean_ms": 0.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0
+    },
+    "synthesis": {
+      "mean_ms": 12856.844249999995,
+      "p50_ms": 12856.844249999995,
+      "p95_ms": 12856.844249999995
+    },
+    "postprocess": {
+      "mean_ms": 801.0015830000157,
+      "p50_ms": 801.0015830000157,
+      "p95_ms": 801.0015830000157
+    }
+  },
+  "throughput": {
+    "images_per_second": 0.027721341010009105,
+    "total_seconds": 36.07329095800014
+  },
+  "cost_drivers": {
+    "medgemma_calls_per_image": 1,
+    "llm_calls_per_image": 1,
+    "reverse_search_calls_per_image": 1,
+    "provenance_calls_per_image": 1,
+    "forensics_calls_per_image": 1
+  }
+}

@@ -1,16 +1,16 @@
 # MedContext: Contextual Authenticity Detection for Medical Images
 
-**Team:** Counter Force AI (Jamie I. Forrest, PhD, MPH)
-**Affiliation:** HERO Lab, School of Nursing, University of British Columbia
+**Team:** Jamie I. Forrest, PhD, MPH (Counterforce AI)
+**Affiliation:** Health Equity & Resilience Observatory, Faculty of Applied Science, University of British Columbia
 **Category:** Agentic AI System | Medical AI & Healthcare Innovation
 
 ---
 
 ## The Problem
 
-Medical misinformation is a global health crisis — but the dominant threat is not what most people assume. A comprehensive scoping review of approximately 100 sources (Forrest 2026) reveals that over 80% of visual medical misinformation consists of authentic images paired with false or misleading claims. Sophisticated deepfakes accounted for 0% of visual misinformation in COVID-19 studies. The real weapon is not image fabrication — it is context manipulation.
+Medical misinformation is a global health crisis — but the dominant threat is not what most people assume. A comprehensive scoping review of approximately 100 sources (Forrest 2026) reveals that over 80% of visual medical misinformation consists of authentic images paired with false or misleading claims. Sophisticated deepfakes accounted for 0% of visual misinformation in COVID-19 studies. The real weapon is not image fabrication, it's context manipulation.
 
-This distinction matters because it renders pixel-level forensics fundamentally inadequate. If the image itself is authentic, there is nothing at the pixel level to detect. Yet the vast majority of existing detection tools target exactly this scenario — optimising for synthetic benchmarks that do not reflect the actual threat distribution.
+This distinction matters because it renders pixel-level forensics fundamentally inadequate. If the image itself is authentic, there is nothing at the pixel level to detect. Yet the vast majority of existing detection tools target exactly this scenario, optimizing for synthetic benchmarks that do not reflect a real threat distribution.
 
 ## Empirical Validation
 
@@ -32,9 +32,9 @@ The system operates in three phases:
 
 **Phase 1 — Triage.** MedGemma (google/medgemma-1.5-4b-it) performs clinical analysis: image type identification, anatomical findings, and claim plausibility assessment. This medical context is passed to a separate orchestrator LLM (Gemini 2.5 Pro), which decides which investigative tools to deploy based on the clinical assessment and claim characteristics.
 
-**Phase 2 — Dynamic Tool Dispatch.** The orchestrator invokes only the tools warranted by the triage — reverse image search for context verification, pixel forensics if manipulation is suspected, or provenance chain validation. For medically plausible claims with clear image alignment, unnecessary tools are skipped, reducing computational cost by approximately 60% without sacrificing accuracy.
+**Phase 2 — Dynamic Tool Dispatch.** The orchestrator invokes only the tools warranted by the triage — reverse image search for context verification, pixel forensics if manipulation is suspected, or provenance chain validation. For medically plausible claims with clear image alignment, unnecessary tools are skipped, reducing computational cost by  without sacrificing accuracy.
 
-**Phase 3 — Evidence Synthesis.** The orchestrator aggregates MedGemma's clinical analysis with tool results into an explainable verdict — a veracity–alignment matrix that independently scores claim accuracy and image–claim correspondence. Each assessment includes traceable reasoning with clear attribution ("per MedGemma's clinical analysis" versus "per investigative evidence").
+**Phase 3 — Evidence Synthesis.** The orchestrator aggregates MedGemma's clinical analysis with tool results into an explainable verdict — a veracity–alignment matrix that independently scores claim accuracy and image–claim alignment. Each assessment includes traceable reasoning with clear attribution ("per MedGemma's clinical analysis" versus "per investigative evidence").
 
 This separation of concerns prevents domain overstepping: MedGemma never makes strategic decisions about which tools to run, and the orchestrator never makes medical judgements. LangGraph provides workflow visualisation and state management for the agentic pipeline.
 
@@ -54,9 +54,9 @@ MedContext is production-ready, not a prototype:
 
 ## Real-World Impact
 
-MedContext is designed for deployment through the Health Equity & Resilience Observatory (HERO) Lab at UBC, targeting clinical and public health settings across African health systems — environments where medical misinformation causes measurable harm and where resource constraints demand efficient, explainable tools. The Telegram bot integration provides accessible verification in settings where web applications are impractical. The system's cache-aware design and adaptive tool selection minimise API costs for sustained deployment.
+MedContext is designed for deployment through the Health Equity & Resilience Observatory (HERO) at UBC, targeting clinical and public health settings across African health systems and other settings — environments where medical misinformation causes measurable harm and where resource constraints demand efficient, explainable tools. The Telegram bot integration provides accessible verification in settings where web applications are impractical. The system's cache-aware design and adaptive tool selection minimize API costs for sustained deployment.
 
-The core insight — that contextual authenticity, not pixel forensics, addresses the dominant misinformation threat — reframes the problem in a way that has implications beyond this specific tool, informing how health systems and platforms approach medical image verification at scale.
+The core insight: contextual authenticity, not pixel forensics, addresses the dominant misinformation threat and reframes the problem in a way that has implications beyond this specific tool, informing how health systems and platforms approach medical image verification at scale.
 
 ---
 
