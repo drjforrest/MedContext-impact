@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from uuid import uuid4
 
 import numpy as np
-from PIL import ExifTags, Image, ImageChops
+from PIL import ExifTags, Image
 
 from app.clinical.medgemma_client import MedGemmaClient, MedGemmaClientError
 from app.core.config import settings
@@ -19,12 +19,9 @@ class IntegrityLayerResult:
     details: dict[str, object]
 
 
-@dataclass(frozen=True)
-class Layer1Thresholds:
-    ela_std_authentic: float
-    ela_std_manipulated: float
-    ela_max_authentic: float | None = None
-    ela_max_manipulated: float | None = None
+_DICOM_MAGIC_OFFSET = 128
+_DICOM_MAGIC = b"DICM"
+_COPY_MOVE_SUSPECT_THRESHOLD = 0.02
 
 
 DEFAULT_MEDGEMMA_PROMPT = (
@@ -41,99 +38,204 @@ def _normalize_score(value: float, low: float, high: float) -> float:
     return max(0.0, min(1.0, (value - low) / (high - low)))
 
 
-def _run_layer_1(
-    image_bytes: bytes,
-    thresholds: Layer1Thresholds | None = None,
-) -> IntegrityLayerResult:
-    try:
-        original = Image.open(io.BytesIO(image_bytes))
-        if original.mode not in ("RGB", "L"):
-            original = original.convert("RGB")
+def _is_dicom(image_bytes: bytes) -> bool:
+    return (
+        len(image_bytes) > _DICOM_MAGIC_OFFSET + 4
+        and image_bytes[_DICOM_MAGIC_OFFSET : _DICOM_MAGIC_OFFSET + 4] == _DICOM_MAGIC
+    )
 
-        temp_buffer = io.BytesIO()
-        original.save(temp_buffer, format="JPEG", quality=95)
-        temp_buffer.seek(0)
-        compressed = Image.open(temp_buffer)
 
-        ela_image = ImageChops.difference(original, compressed)
-        ela_gray = ela_image.convert("L")
-        ela_array_raw = np.array(ela_gray, dtype=np.float32)
-        ela_max_raw = float(np.max(ela_array_raw)) if ela_array_raw.size else 0.0
-        ela_std_raw = float(np.std(ela_array_raw)) if ela_array_raw.size else 0.0
-        ela_array = ela_array_raw.copy()
-        scale = 1.0
-        if ela_max_raw > 0:
-            scale = 255.0 / ela_max_raw
-            ela_array = ela_array * scale
+def _copy_move_score(
+    slice_img: np.ndarray,
+    patch_size: int = 16,
+    stride: int = 8,
+    similarity_threshold: float = 0.98,
+    max_pairs: int = 5000,
+) -> float:
+    """Heuristic copy-move score on a normalized 2D float32 slice.
 
-        ela_mean = float(np.mean(ela_array))
-        ela_std = float(np.std(ela_array))
-        ela_max = float(np.max(ela_array)) if ela_array.size else 0.0
+    Samples random non-overlapping patch pairs and counts those with cosine
+    similarity above *similarity_threshold*.  A score >_COPY_MOVE_SUSPECT_THRESHOLD
+    is treated as suspicious.  This is a placeholder heuristic; swap for a
+    trained CNN without touching any calling code.
+    """
+    h, w = slice_img.shape
+    patches: list[np.ndarray] = []
+    coords: list[tuple[int, int]] = []
 
-        verdict = "UNCERTAIN"
-        confidence = 0.5
-        if ela_array.size:
-            if thresholds is None:
-                thresholds = Layer1Thresholds(
-                    ela_std_authentic=0.22,
-                    ela_std_manipulated=0.74,
-                )
-            std_score = _normalize_score(
-                ela_std, thresholds.ela_std_authentic, thresholds.ela_std_manipulated
+    for y in range(0, h - patch_size + 1, stride):
+        for x in range(0, w - patch_size + 1, stride):
+            patches.append(
+                slice_img[y : y + patch_size, x : x + patch_size].reshape(-1)
             )
-            if thresholds.ela_max_authentic is not None and (
-                thresholds.ela_max_manipulated is not None
-            ):
-                max_score = _normalize_score(
-                    ela_max,
-                    thresholds.ela_max_authentic,
-                    thresholds.ela_max_manipulated,
-                )
-                score = 0.8 * std_score + 0.2 * max_score
-            else:
-                score = std_score
+            coords.append((y, x))
 
-            verdict = "MANIPULATED" if score >= 0.5 else "AUTHENTIC"
-            confidence = max(score, 1.0 - score)
+    n = len(patches)
+    if n < 2:
+        return 0.0
+
+    patches_arr = np.stack(patches, axis=0)
+    norms = np.linalg.norm(patches_arr, axis=1, keepdims=True) + 1e-8
+    patches_norm = patches_arr / norms
+
+    rng = np.random.default_rng(42)
+    # Over-sample candidates to reach max_pairs valid (non-adjacent) pairs
+    candidates = rng.integers(0, n, size=(max_pairs * 4, 2))
+
+    suspicious = 0
+    total = 0
+    for pair in candidates:
+        i, j = int(pair[0]), int(pair[1])
+        if i == j:
+            continue
+        y1, x1 = coords[i]
+        y2, x2 = coords[j]
+        if abs(y1 - y2) < patch_size and abs(x1 - x2) < patch_size:
+            continue
+        if float(np.dot(patches_norm[i], patches_norm[j])) >= similarity_threshold:
+            suspicious += 1
+        total += 1
+        if total >= max_pairs:
+            break
+
+    return suspicious / total if total > 0 else 0.0
+
+
+def _run_layer_1_dicom(image_bytes: bytes) -> IntegrityLayerResult:
+    """DICOM-native pixel forensics replacing ELA for medical images.
+
+    Performs two complementary checks:
+    1. Header integrity  – verifies required DICOM UIDs and geometry tags.
+    2. Copy-move score   – detects cloned regions directly on the native
+                           float32 pixel array (no JPEG round-trip).
+    """
+    try:
+        import pydicom
+
+        ds = pydicom.dcmread(io.BytesIO(image_bytes))
+
+        # --- 1. Header integrity ---
+        issues: list[str] = []
+        for tag in ("StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"):
+            if not getattr(ds, tag, None):
+                issues.append(f"missing_{tag.lower()}")
+
+        rows = getattr(ds, "Rows", None)
+        cols = getattr(ds, "Columns", None)
+        if not rows or not cols:
+            issues.append("missing_dimensions")
+
+        px_spacing = getattr(ds, "PixelSpacing", None)
+        if px_spacing is not None and len(px_spacing) != 2:
+            issues.append("invalid_pixel_spacing")
+
+        sl_thick = getattr(ds, "SliceThickness", None)
+        if sl_thick is not None and float(sl_thick) <= 0:
+            issues.append("invalid_slice_thickness")
+
+        acq_date = getattr(ds, "AcquisitionDate", None)
+        acq_time = getattr(ds, "AcquisitionTime", None)
+        if bool(acq_date) != bool(acq_time):
+            issues.append("partial_acquisition_timestamp")
+
+        header_ok = len(issues) == 0
+
+        # --- 2. Pixel copy-move analysis ---
+        pixels = ds.pixel_array.astype(np.float32)
+        pixel_shape = list(pixels.shape)
+
+        if pixels.ndim == 3:
+            slice_img: np.ndarray = pixels[pixels.shape[0] // 2]
+        elif pixels.ndim == 2:
+            slice_img = pixels
+        else:
+            issues.append(f"unsupported_pixel_dims_{pixels.ndim}")
+            slice_img = np.zeros((1, 1), dtype=np.float32)
+
+        pmin, pmax = float(np.percentile(slice_img, 1)), float(
+            np.percentile(slice_img, 99)
+        )
+        if pmax > pmin:
+            slice_norm = np.clip((slice_img - pmin) / (pmax - pmin), 0.0, 1.0)
+        else:
+            slice_norm = np.zeros_like(slice_img)
+
+        copy_move_score = _copy_move_score(slice_norm)
+
+        # --- 3. Verdict ---
+        if not header_ok:
+            verdict = "MANIPULATED"
+            confidence = 0.70
+        elif copy_move_score > _COPY_MOVE_SUSPECT_THRESHOLD:
+            verdict = "MANIPULATED"
+            confidence = min(0.85, 0.60 + copy_move_score * 10.0)
+        else:
+            verdict = "AUTHENTIC"
+            confidence = max(0.60, 0.85 - copy_move_score * 10.0)
 
         return IntegrityLayerResult(
             verdict=verdict,
             confidence=confidence,
             details={
-                "method": "error_level_analysis",
-                "ela_mean": round(ela_mean, 2),
-                "ela_std": round(ela_std, 2),
-                "ela_max": round(ela_max, 2),
-                "ela_max_raw": round(ela_max_raw, 2),
-                "ela_std_raw": round(ela_std_raw, 4),
-                "ela_scale": round(scale, 4),
-                "image_size": original.size,
-                "image_mode": original.mode,
-                "thresholds": {
-                    "ela_std_authentic": (
-                        round(thresholds.ela_std_authentic, 4) if thresholds else None
-                    ),
-                    "ela_std_manipulated": (
-                        round(thresholds.ela_std_manipulated, 4) if thresholds else None
-                    ),
-                    "ela_max_authentic": (
-                        round(thresholds.ela_max_authentic, 4)
-                        if thresholds and thresholds.ela_max_authentic is not None
-                        else None
-                    ),
-                    "ela_max_manipulated": (
-                        round(thresholds.ela_max_manipulated, 4)
-                        if thresholds and thresholds.ela_max_manipulated is not None
-                        else None
-                    ),
-                },
+                "method": "dicom_native_forensics",
+                "header_ok": header_ok,
+                "header_issues": issues,
+                "copy_move_score": round(copy_move_score, 4),
+                "pixel_shape": pixel_shape,
+                "modality": getattr(ds, "Modality", None),
+                "rows": rows,
+                "columns": cols,
             },
         )
     except Exception as exc:
         return IntegrityLayerResult(
             verdict="UNCERTAIN",
             confidence=0.5,
-            details={"error": str(exc), "method": "error_level_analysis"},
+            details={"error": str(exc), "method": "dicom_native_forensics"},
+        )
+
+
+def _run_layer_1(image_bytes: bytes) -> IntegrityLayerResult:
+    if _is_dicom(image_bytes):
+        return _run_layer_1_dicom(image_bytes)
+    try:
+        image = Image.open(io.BytesIO(image_bytes))
+        if image.mode not in ("RGB", "L"):
+            image = image.convert("RGB")
+        gray = image.convert("L")
+        pixel_array = np.array(gray, dtype=np.float32)
+
+        pmin = float(np.percentile(pixel_array, 1))
+        pmax = float(np.percentile(pixel_array, 99))
+        if pmax > pmin:
+            pixel_norm = np.clip((pixel_array - pmin) / (pmax - pmin), 0.0, 1.0)
+        else:
+            pixel_norm = np.zeros_like(pixel_array)
+
+        copy_move_score = _copy_move_score(pixel_norm)
+
+        if copy_move_score > _COPY_MOVE_SUSPECT_THRESHOLD:
+            verdict = "MANIPULATED"
+            confidence = min(0.85, 0.60 + copy_move_score * 10.0)
+        else:
+            verdict = "AUTHENTIC"
+            confidence = max(0.60, 0.85 - copy_move_score * 10.0)
+
+        return IntegrityLayerResult(
+            verdict=verdict,
+            confidence=confidence,
+            details={
+                "method": "pixel_forensics",
+                "copy_move_score": round(copy_move_score, 4),
+                "image_size": list(image.size),
+                "image_mode": image.mode,
+            },
+        )
+    except Exception as exc:
+        return IntegrityLayerResult(
+            verdict="UNCERTAIN",
+            confidence=0.5,
+            details={"error": str(exc), "method": "pixel_forensics"},
         )
 
 

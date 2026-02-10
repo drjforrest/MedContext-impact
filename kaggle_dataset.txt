@@ -89,7 +89,12 @@ Each sample has three ground truth dimensions:
 
 5. **Cross-modality mismatch.** The 40 tampered images are lung CT DICOMs while the
    120 authentic images are brain MRI PNGs — different anatomical regions and file formats.
-   This is a known confound.
+   This creates a perfect correlation between pixel_authentic and modality/anatomical region 
+   (brain MRI vs lung CT), allowing models to classify anatomy instead of detecting tampering, 
+   and therefore invalidates direct comparisons between the pixel forensics baseline and 
+   contextual methods. To ensure fair tampering-detection comparisons, we recommend either 
+   controlling for modality (e.g., matching modalities/formats) or excluding pixel_authentic-based 
+   evaluation when modalities differ.
 
 6. **Single evaluation context.** This dataset was designed to validate the MedContext
    system specifically. Independent validation on real-world misinformation corpora is

@@ -22,23 +22,51 @@ export const downloadAsPDF = async (element, filename = 'medcontext-results.pdf'
       backgroundColor: '#1c1e26', // Match the dark theme
     });
     
-    const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgWidth = 210; // A4 width in mm
     const pageHeight = 297; // A4 height in mm
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    // Add additional pages if content is taller than one page
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, Math.abs(position), imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    
+    // Calculate number of pages needed
+    const pages = Math.ceil(imgHeight / pageHeight);
+    
+    // Process each page
+    for (let pageIndex = 0; pageIndex < pages; pageIndex++) {
+      // Calculate source Y position in the original canvas
+      const imagePixelHeight = canvas.height;
+      const pixelsPerMM = imagePixelHeight / imgHeight;
+      const srcY = pageIndex * pageHeight * pixelsPerMM;
+      
+      // Calculate slice height (may be less than pageHeight for the last slice)
+      const remainingHeight = imgHeight - (pageIndex * pageHeight);
+      const sliceHeight = Math.min(pageHeight, remainingHeight);
+      const slicePixelHeight = sliceHeight * pixelsPerMM;
+      
+      // Create a temporary canvas to hold the slice
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = slicePixelHeight;
+      const ctx = tempCanvas.getContext('2d');
+      
+      // Draw the slice from the original canvas to the temporary canvas
+      ctx.drawImage(
+        canvas,
+        0, srcY,
+        canvas.width, slicePixelHeight,
+        0, 0,
+        canvas.width, slicePixelHeight
+      );
+      
+      // Convert the slice to data URL
+      const croppedImgData = tempCanvas.toDataURL('image/png');
+      
+      // Add a new page if not the first page
+      if (pageIndex > 0) {
+        pdf.addPage();
+      }
+      
+      // Add the cropped image slice to the PDF
+      pdf.addImage(croppedImgData, 'PNG', 0, 0, imgWidth, sliceHeight);
     }
 
     pdf.save(filename);
@@ -61,12 +89,17 @@ export const copyToClipboardText = (element) => {
   try {
     // Extract text content from the element
     const textContent = element.innerText || element.textContent || '';
-    
-    // Copy to clipboard
-    copyToClipboard(textContent);
-    
-    // Show success feedback
-    alert('Results copied to clipboard!');
+
+    // Copy to clipboard and check the return value
+    const copySuccess = copyToClipboard(textContent);
+
+    if (copySuccess) {
+      // Show success feedback
+      alert('Results copied to clipboard!');
+    } else {
+      // Show failure message
+      alert('Failed to copy results to clipboard');
+    }
   } catch (error) {
     console.error('Error copying to clipboard:', error);
     alert('There was an error copying to clipboard. Please try again.');

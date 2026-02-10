@@ -28,5 +28,5 @@ def test_run_forensics_enabled_returns_selected_layers(sample_image_bytes):
     assert "layer_1" in layers
     assert "layer_3" in layers
     assert "layer_2" not in layers
-    assert "ela_std" in layers["layer_1"]["details"]
+    assert "copy_move_score" in layers["layer_1"]["details"]
     assert "has_exif" in layers["layer_3"]["details"]

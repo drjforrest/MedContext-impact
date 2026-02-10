@@ -116,19 +116,23 @@ class MedContextLangGraphAgent:
 
     def _triage_node(self, state: AgentState) -> AgentState:
         """
-        Two-step triage:
-        1. MedGemma provides medical analysis
-        2. LLM orchestrator decides which tools to use based on that analysis
+        Three-step triage:
+        1. Fast structural pre-screen (DICOM, EXIF, claim keywords) — no ML, deterministic
+        2. MedGemma provides medical analysis
+        3. LLM orchestrator decides which tools to use, informed by pre-screen signals
         """
         start = perf_counter()
         image_bytes = state["image_bytes"]
         context = state.get("context")
 
-        # Step 1: Get medical analysis from MedGemma
+        # Step 1: Structural pre-screen — cheap, runs before any ML
+        pre_screen = self._pre_screen_integrity(image_bytes, context)
+
+        # Step 2: Get medical analysis from MedGemma
         medical_analysis = self._get_medical_analysis(image_bytes, context)
 
-        # Step 2: LLM orchestrator decides which tools to use
-        tool_selection = self._orchestrate_tool_selection(medical_analysis, context)
+        # Step 3: LLM orchestrator decides which tools to use
+        tool_selection = self._orchestrate_tool_selection(medical_analysis, context, pre_screen)
 
         # Combine for backwards compatibility and downstream use
         combined_triage = {
@@ -157,6 +161,61 @@ class MedContextLangGraphAgent:
             duration_ms=duration_ms,
         )
         return state
+
+    def _pre_screen_integrity(
+        self, image_bytes: bytes, context: str | None
+    ) -> dict[str, Any]:
+        """Fast structural pre-screen for integrity signals — no ML, runs before tool selection.
+
+        Checks three signal classes:
+        1. File format: DICOM files have verifiable header structure → always warrant forensics
+        2. EXIF metadata: editing software tags (Photoshop, GIMP, etc.) → strong tamper signal
+        3. Claim language: keywords suggesting the author acknowledges modification
+
+        Returns a dict with `force_forensics=True` if any hard signal is found.
+        """
+        # 1. DICOM magic bytes check (offset 128, 4 bytes "DICM")
+        _DICOM_OFFSET = 128
+        is_dicom = (
+            len(image_bytes) > _DICOM_OFFSET + 4
+            and image_bytes[_DICOM_OFFSET : _DICOM_OFFSET + 4] == b"DICM"
+        )
+
+        # 2. EXIF software tag check (PIL, zero ML cost)
+        metadata_flags: list[str] = []
+        _EDITING_SOFTWARE = {"photoshop", "gimp", "affinity", "lightroom", "capture one",
+                              "paintshop", "pixelmator", "corel", "darktable"}
+        try:
+            from PIL import Image as _PILImage
+            with _PILImage.open(io.BytesIO(image_bytes)) as img:
+                exif_data = img._getexif() or {}
+                # Tag 305 = Software, Tag 271 = Make, Tag 272 = Model
+                software_tag = str(exif_data.get(305, "")).lower()
+                if any(s in software_tag for s in _EDITING_SOFTWARE):
+                    metadata_flags.append(f"editing_software:{software_tag[:40]}")
+        except Exception:
+            pass  # Non-JPEG or no EXIF — not a flag
+
+        # 3. Claim language keywords
+        claim_flags: list[str] = []
+        if context:
+            _EDIT_KEYWORDS = [
+                "enhanced", "highlighted", "annotated", "processed",
+                "comparison", "modified", "edited", "filtered", "overlaid",
+            ]
+            ctx_lower = context.lower()
+            for kw in _EDIT_KEYWORDS:
+                if kw in ctx_lower:
+                    claim_flags.append(kw)
+
+        force_forensics = is_dicom or bool(metadata_flags)
+
+        return {
+            "is_dicom": is_dicom,
+            "metadata_flags": metadata_flags,
+            "claim_flags": claim_flags,
+            "force_forensics": force_forensics,
+        }
 
     def _get_medical_analysis(
         self, image_bytes: bytes, context: str | None
@@ -230,7 +289,10 @@ class MedContextLangGraphAgent:
         return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
     def _orchestrate_tool_selection(
-        self, medical_analysis: MedGemmaResult, context: str | None
+        self,
+        medical_analysis: MedGemmaResult,
+        context: str | None,
+        pre_screen: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         LLM orchestrator decides which investigative tools to deploy.
@@ -238,12 +300,43 @@ class MedContextLangGraphAgent:
         Uses MedGemma's medical analysis as authoritative input but makes
         strategic decisions about tool selection.  When no add-on modules are
         enabled, skips the LLM call entirely.
+
+        Pre-screen signals hard-gate forensics before the LLM is consulted:
+        - DICOM files always warrant pixel forensics (header is structurally verifiable)
+        - EXIF editing software tags bypass LLM decision entirely
         """
         enabled = settings.get_enabled_addons()
         if not enabled:
             return {"tools": [], "reasoning": "No add-on modules enabled"}
 
+        # Hard-gate: structural signals bypass LLM decision
+        if pre_screen and pre_screen.get("force_forensics") and "forensics" in enabled:
+            reasons: list[str] = []
+            if pre_screen.get("is_dicom"):
+                reasons.append("DICOM file — header integrity verifiable without ML")
+            if pre_screen.get("metadata_flags"):
+                reasons.append(f"EXIF anomaly: {', '.join(pre_screen['metadata_flags'])}")
+            forced: list[str] = ["forensics"]
+            if context:
+                forced.append("reverse_search")
+            forced.append("provenance")
+            return {
+                "tools": self._sanitize_tools(forced),
+                "reasoning": f"Forensics required by pre-screen: {'; '.join(reasons)}",
+            }
+
         tool_descriptions = self._build_tool_descriptions(enabled)
+
+        # Summarise pre-screen context for the LLM
+        pre_screen_summary = ""
+        if pre_screen:
+            lines = []
+            lines.append(f"- File format: {'DICOM' if pre_screen.get('is_dicom') else 'standard image (PNG/JPEG)'}")
+            if pre_screen.get("metadata_flags"):
+                lines.append(f"- EXIF flags: {', '.join(pre_screen['metadata_flags'])}")
+            if pre_screen.get("claim_flags"):
+                lines.append(f"- Claim language flags: {', '.join(pre_screen['claim_flags'])}")
+            pre_screen_summary = "Structural pre-screen results:\n" + "\n".join(lines) + "\n\n"
 
         system_prompt = (
             "You are an investigative orchestration agent. Your role is to decide "
@@ -253,19 +346,20 @@ class MedContextLangGraphAgent:
             "by MedGemma, a specialized medical AI. Your job is ONLY to decide "
             "which investigative tools to use.\n\n"
             f"Available investigative tools:\n{tool_descriptions}\n\n"
-            "Your strategic considerations:\n"
-            "1. If the medical analysis indicates the claim is medically plausible, "
-            "focus on verifying the image hasn't been misused (reverse_search, provenance)\n"
-            "2. If the medical analysis indicates inconsistencies or the claim seems "
-            "implausible, consider forensics to check for manipulation\n"
-            "3. If the image appears in a high-stakes context (medical advice, clinical "
-            "claims), verify provenance\n"
-            "4. Consider computational cost - don't run all tools unless necessary\n\n"
+            "EXPLICIT ROUTING RULES (apply in order):\n"
+            "1. If claim_language_flags contain editing terms (enhanced, annotated, etc.), "
+            "include forensics — the author is acknowledging the image was modified\n"
+            "2. If the medical analysis plausibility is LOW, include forensics\n"
+            "3. If veracity seems high but alignment is uncertain/low, include forensics "
+            "— this pattern suggests image swapping rather than a false claim\n"
+            "4. If the image appears in a high-stakes clinical context, include provenance\n"
+            "5. If a user claim is provided, include reverse_search to check prior usage\n"
+            "6. Consider computational cost — don't run all tools unless signals justify it\n\n"
             "Return ONLY valid JSON (no other text) with this exact structure:\n"
             "{\n"
             '  "tools": ["tool1", "tool2"],\n'
-            '  "reasoning": "Brief explanation of why these tools were selected '
-            'based on the medical analysis"\n'
+            '  "reasoning": "Brief explanation referencing the specific signals that '
+            'drove tool selection"\n'
             "}\n\n"
             "CRITICAL REQUIREMENTS:\n"
             "- Respond with ONLY the JSON object above, no other text\n"
@@ -274,8 +368,9 @@ class MedContextLangGraphAgent:
             "- Start your response with { and end with }"
         )
 
-        # Build user prompt with medical analysis
-        user_prompt = "Medical Analysis from MedGemma:\n"
+        # Build user prompt with pre-screen context + medical analysis
+        user_prompt = pre_screen_summary
+        user_prompt += "Medical Analysis from MedGemma:\n"
         user_prompt += json.dumps(medical_analysis.output, indent=2, default=str)
 
         if context:
@@ -284,7 +379,7 @@ class MedContextLangGraphAgent:
         else:
             user_prompt += "\n\nNo user claim provided."
 
-        user_prompt += "\n\nBased on this medical analysis, which investigative tools should be deployed?"
+        user_prompt += "\n\nBased on the pre-screen signals and medical analysis, which investigative tools should be deployed?"
 
         try:
             result = self.llm.generate(
@@ -314,8 +409,8 @@ class MedContextLangGraphAgent:
 
         except LlmClientError as e:
             logger.warning(f"LLM orchestrator failed for tool selection: {e}")
-            # Fallback: infer tools from medical analysis
-            return self._fallback_tool_selection(medical_analysis, context)
+            # Fallback: infer tools from pre-screen signals + medical analysis
+            return self._fallback_tool_selection(medical_analysis, context, pre_screen)
 
     def _build_tool_descriptions(self, enabled: frozenset[str]) -> str:
         """Build the tool descriptions section for the tool selection prompt."""
@@ -326,7 +421,7 @@ class MedContextLangGraphAgent:
             ),
             "forensics": (
                 "- forensics: Analyze pixel-level evidence of manipulation, "
-                "EXIF metadata, error level analysis (useful when image "
+                "EXIF metadata, pixel-level copy-move forensics (useful when image "
                 "authenticity is questionable)"
             ),
             "provenance": (
@@ -339,14 +434,29 @@ class MedContextLangGraphAgent:
         )
 
     def _fallback_tool_selection(
-        self, medical_analysis: MedGemmaResult, context: str | None
+        self,
+        medical_analysis: MedGemmaResult,
+        context: str | None,
+        pre_screen: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Fallback tool selection if LLM orchestrator fails.
-        Uses simple heuristics based on medical analysis, filtered by enabled add-ons.
+        Uses pre-screen signals first, then medical analysis heuristics.
         """
-        candidates = []
-        reasoning = "Fallback heuristic selection (LLM orchestrator unavailable)"
+        candidates: list[str] = []
+        reasons: list[str] = []
+
+        # Pre-screen signals take priority
+        if pre_screen:
+            if pre_screen.get("force_forensics"):
+                candidates.append("forensics")
+                if pre_screen.get("is_dicom"):
+                    reasons.append("DICOM file")
+                if pre_screen.get("metadata_flags"):
+                    reasons.append(f"EXIF: {', '.join(pre_screen['metadata_flags'])}")
+            if pre_screen.get("claim_flags"):
+                candidates.append("forensics")
+                reasons.append(f"claim keywords: {', '.join(pre_screen['claim_flags'])}")
 
         medical_output = medical_analysis.output
         if isinstance(medical_output, dict):
@@ -357,22 +467,22 @@ class MedContextLangGraphAgent:
                 else "medium"
             )
 
-            # If claim exists, always check reverse search
             if context:
                 candidates.append("reverse_search")
 
-            # If plausibility is low, check forensics
-            if plausibility == "low":
+            if plausibility == "low" and "forensics" not in candidates:
                 candidates.append("forensics")
-                reasoning = "Low plausibility - checking for manipulation"
+                reasons.append("low claim plausibility")
 
-            # Always check provenance for medical images
             candidates.append("provenance")
         else:
-            # Minimal fallback: just reverse search
-            candidates = ["reverse_search"]
-            reasoning = "Minimal fallback selection"
+            candidates.append("reverse_search")
+            reasons.append("minimal fallback")
 
+        reasoning = (
+            "Fallback heuristic selection (LLM orchestrator unavailable)"
+            + (f": {'; '.join(reasons)}" if reasons else "")
+        )
         return {"tools": self._sanitize_tools(candidates), "reasoning": reasoning}
 
     def _dispatch_node(self, state: AgentState) -> AgentState:

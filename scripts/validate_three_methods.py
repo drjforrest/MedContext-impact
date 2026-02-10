@@ -7,15 +7,12 @@ Compares:
 3. Combined approach
 """
 
-import io
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-import numpy as np
-from PIL import Image
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 # Add src to path
@@ -26,26 +23,12 @@ from app.forensics.service import _run_layer_1
 
 
 def _read_image_bytes(path: Path) -> bytes:
-    """Read image file, converting DICOM to PNG if needed."""
-    if path.suffix.lower() == ".dcm":
-        import pydicom
+    """Read image file as raw bytes.
 
-        ds = pydicom.dcmread(path)
-        pixel_array = ds.pixel_array
-        if pixel_array.ndim > 2:
-            pixel_array = pixel_array[0]
-        pixel_array = pixel_array.astype(np.float32)
-        min_val, max_val = float(pixel_array.min()), float(pixel_array.max())
-        if max_val > min_val:
-            normalized = ((pixel_array - min_val) / (max_val - min_val) * 255.0).clip(
-                0, 255
-            )
-        else:
-            normalized = np.zeros_like(pixel_array)
-        image = Image.fromarray(normalized.astype(np.uint8))
-        buf = io.BytesIO()
-        image.save(buf, format="PNG")
-        return buf.getvalue()
+    DICOM files are passed through as-is so that _run_layer_1 can use the
+    native DICOM forensics path (header integrity + copy-move on the pixel array).
+    Standard image formats (PNG, JPEG, etc.) are also read as-is.
+    """
     return path.read_bytes()
 
 
@@ -91,29 +74,30 @@ class ThreeMethodValidator:
         return data
 
     def simple_pixel_forensics(self, image_bytes: bytes) -> Dict[str, Any]:
-        """Pixel forensics baseline using Error Level Analysis (ELA).
+        """Pixel forensics baseline using copy-move detection.
 
-        Uses the same ELA implementation as the forensics service (layer 1).
+        DICOM files use native DICOM header + pixel forensics.
+        Standard images (PNG/JPEG) use normalized grayscale copy-move detection.
         Verdict MANIPULATED → pixel_authentic=False, AUTHENTIC → True.
         """
         try:
-            ela_result = _run_layer_1(image_bytes)
+            layer1_result = _run_layer_1(image_bytes)
 
-            pixel_authentic = ela_result.verdict != "MANIPULATED"
+            pixel_authentic = layer1_result.verdict != "MANIPULATED"
 
             return {
                 "pixel_authentic": pixel_authentic,
-                "confidence": ela_result.confidence,
-                "method": "pixel_forensics_ela",
-                "ela_verdict": ela_result.verdict,
-                "ela_details": ela_result.details,
+                "confidence": layer1_result.confidence,
+                "method": "pixel_forensics",
+                "layer1_verdict": layer1_result.verdict,
+                "layer1_details": layer1_result.details,
             }
         except Exception as e:
             print(f"Pixel forensics error: {e}")
             return {
                 "pixel_authentic": False,
                 "confidence": 0.0,
-                "method": "pixel_forensics_ela",
+                "method": "pixel_forensics",
                 "error": str(e),
             }
 
@@ -455,13 +439,13 @@ Return ONLY valid JSON with this exact structure:
 
         Matches the UI triangle: integrity / veracity / alignment.
         """
-        # Integrity from ELA
-        ela_verdict = pred.get("ela_verdict", "")
-        if ela_verdict == "AUTHENTIC":
+        # Integrity from pixel forensics
+        layer1_verdict = pred.get("layer1_verdict", "")
+        if layer1_verdict == "AUTHENTIC":
             integrity = 3
-        elif ela_verdict == "UNCERTAIN":
+        elif layer1_verdict == "UNCERTAIN":
             integrity = 2
-        elif ela_verdict == "MANIPULATED":
+        elif layer1_verdict == "MANIPULATED":
             integrity = 1
         else:
             integrity = 0
@@ -484,7 +468,7 @@ Return ONLY valid JSON with this exact structure:
         """Compute per-dimension accuracy for each method.
 
         Three dimensions evaluated independently:
-        - integrity: pixel forensics (ELA) → image authenticity
+        - integrity: pixel forensics (copy-move) → image authenticity
         - veracity: contextual analysis → claim truthfulness
         - alignment: contextual analysis → image-claim match
 
@@ -628,7 +612,7 @@ Return ONLY valid JSON with this exact structure:
         print("=" * 80)
 
         dim_labels = {
-            "integrity": "Image Integrity (ELA)",
+            "integrity": "Image Integrity (Pixel Forensics)",
             "veracity": "Claim Veracity (MedGemma)",
             "alignment": "Context Alignment (MedGemma)",
         }
@@ -674,7 +658,7 @@ Return ONLY valid JSON with this exact structure:
             ver_acc = ver.get("binary_accuracy", 0)
             ali_acc = ali.get("binary_accuracy", 0)
             int_acc = integ.get("binary_accuracy", 0)
-            print(f"\n  Integrity  (ELA baseline):     {int_acc:.1%}")
+            print(f"\n  Integrity  (Pixel Forensics):  {int_acc:.1%}")
             print(f"  Veracity   (MedGemma):          {ver_acc:.1%}")
             print(f"  Alignment  (MedGemma):          {ali_acc:.1%}")
 

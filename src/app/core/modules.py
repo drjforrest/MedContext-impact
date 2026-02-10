@@ -56,7 +56,7 @@ def get_all_modules() -> list[ModuleInfo]:
         ModuleInfo(
             name="forensics",
             display_name="Forensics Analysis",
-            description="Pixel-level ELA, EXIF analysis, and semantic forensics",
+            description="Pixel-level copy-move forensics, EXIF analysis, and semantic forensics",
             category="addon",
             enabled=settings.enable_forensics,
             env_flag="ENABLE_FORENSICS",

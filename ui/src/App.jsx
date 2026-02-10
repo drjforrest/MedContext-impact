@@ -1337,9 +1337,21 @@ function App() {
                       onClick={() => {
                         const resultsElement = document.querySelector('[data-export-target="results"]');
                         if (resultsElement) {
-                          import('./utils/exportUtils').then(({ downloadAsPDF }) => {
-                            downloadAsPDF(resultsElement, 'medcontext-results.pdf');
-                          });
+                          import('./utils/exportUtils')
+                            .then(({ downloadAsPDF }) => {
+                              try {
+                                downloadAsPDF(resultsElement, 'medcontext-results.pdf');
+                              } catch (error) {
+                                console.error('Error in downloadAsPDF:', error);
+                                alert('Failed to download PDF. Please try again.');
+                              }
+                            })
+                            .catch((error) => {
+                              console.error('Failed to load export utilities:', error);
+                              alert('Failed to load export functionality. Please try again.');
+                            });
+                        } else {
+                          alert('Results element not found for export.');
                         }
                       }}
                     >
@@ -1351,9 +1363,21 @@ function App() {
                       onClick={() => {
                         const resultsElement = document.querySelector('[data-export-target="results"]');
                         if (resultsElement) {
-                          import('./utils/exportUtils').then(({ copyToClipboardText }) => {
-                            copyToClipboardText(resultsElement);
-                          });
+                          import('./utils/exportUtils')
+                            .then(({ copyToClipboardText }) => {
+                              try {
+                                copyToClipboardText(resultsElement);
+                              } catch (error) {
+                                console.error('Error in copyToClipboardText:', error);
+                                alert('Failed to copy results to clipboard. Please try again.');
+                              }
+                            })
+                            .catch((error) => {
+                              console.error('Failed to load export utilities:', error);
+                              alert('Failed to load export functionality. Please try again.');
+                            });
+                        } else {
+                          alert('Results element not found for export.');
                         }
                       }}
                     >
@@ -1609,7 +1633,7 @@ function App() {
                     {Object.entries(forensicsData.results).map(([layerName, layerData]) => (
                       <div key={layerName} className="result-block">
                         <h3>
-                          {layerName === 'layer_1' ? '📊 Layer 1: Pixel Forensics (ELA)' :
+                          {layerName === 'layer_1' ? '📊 Layer 1: Pixel Forensics' :
                             layerName === 'layer_2' ? '🧠 Layer 2: Semantic Analysis' :
                               '📝 Layer 3: Metadata & EXIF'}
                         </h3>
@@ -1626,13 +1650,14 @@ function App() {
                             {layerData.details.method ? (
                               <p><strong>Method:</strong> {layerData.details.method}</p>
                             ) : null}
-                            {layerData.details.ela_mean !== undefined ? (
+                            {layerData.details.copy_move_score !== undefined ? (
                               <div className="forensics-stats">
-                                <p><strong>ELA Mean:</strong> {layerData.details.ela_mean}</p>
-                                <p><strong>ELA Std Dev:</strong> {layerData.details.ela_std}</p>
-                                <p><strong>ELA Max:</strong> {layerData.details.ela_max}</p>
+                                <p><strong>Copy-Move Score:</strong> {layerData.details.copy_move_score}</p>
                                 {layerData.details.image_size ? (
                                   <p><strong>Image Size:</strong> {layerData.details.image_size[0]} x {layerData.details.image_size[1]}</p>
+                                ) : null}
+                                {layerData.details.image_mode ? (
+                                  <p><strong>Mode:</strong> {layerData.details.image_mode}</p>
                                 ) : null}
                               </div>
                             ) : null}

@@ -233,54 +233,44 @@ class MedGemmaClient:
             "max_tokens": 1024,
         }
 
-        # Use direct HTTP with ADC for dedicated endpoints
+        # Use Vertex AI SDK (handles dedicated endpoint routing without DNS dependency)
         try:
-            from google.auth import default
-            from google.auth.transport.requests import Request as AuthRequest
+            import vertexai
+            from google.cloud import aiplatform
         except ImportError as exc:
             raise MedGemmaClientError(
-                "google-auth not installed. Install google-auth."
+                "google-cloud-aiplatform not installed. Install google-cloud-aiplatform."
             ) from exc
 
-        # Get ADC token
+        endpoint_id = settings.medgemma_vertex_endpoint
+        project = settings.medgemma_vertex_project or "medcontext"
+        location = settings.medgemma_vertex_location or "us-central1"
+
         try:
-            credentials, project = default()
-            credentials.refresh(AuthRequest())
-            token = credentials.token
+            vertexai.init(project=project, location=location)
+            ep = aiplatform.Endpoint(
+                f"projects/{project}/locations/{location}/endpoints/{endpoint_id}"
+            )
+            response_obj = ep.predict(instances=[instance])
         except Exception as exc:
-            raise MedGemmaClientError(f"Failed to get ADC token: {exc}") from exc
-
-        # Build URL
-        url = self._build_vertex_predict_url(settings.medgemma_vertex_endpoint)
-
-        # Make request
-        try:
-            with httpx.Client(timeout=120.0) as client:
-                response = client.post(
-                    url,
-                    headers={"Authorization": f"Bearer {token}"},
-                    json={"instances": [instance]},
-                )
-                response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise MedGemmaClientError(f"Vertex AI request failed: {exc}") from exc
-
-        # Parse response
-        try:
-            data = response.json()
-        except ValueError as exc:
-            raise MedGemmaClientError("Vertex AI returned non-JSON response.") from exc
+            raise MedGemmaClientError(f"Vertex AI SDK predict failed: {exc}") from exc
 
         # Extract text from chat completions response
-        predictions = data.get("predictions", {})
+        predictions = response_obj.predictions
         if isinstance(predictions, dict):
             choices = predictions.get("choices", [])
-            if choices and isinstance(choices, list):
-                raw_text = choices[0].get("message", {}).get("content", "")
-            else:
-                raw_text = str(predictions)
+        elif isinstance(predictions, list) and predictions:
+            first = predictions[0]
+            choices = first.get("choices", []) if isinstance(first, dict) else []
+        else:
+            choices = []
+
+        if choices and isinstance(choices, list):
+            raw_text = choices[0].get("message", {}).get("content", "")
         else:
             raw_text = str(predictions)
+
+        url = f"projects/{project}/locations/{location}/endpoints/{endpoint_id}"
 
         # Clean and parse the response (like other providers)
         cleaned = self._clean_text(raw_text)
