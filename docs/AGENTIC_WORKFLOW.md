@@ -78,10 +78,12 @@ graph TB
 **Role:** Medical domain expert
 
 **Inputs:**
+
 - Medical image (bytes)
 - User claim (optional)
 
 **Outputs:**
+
 ```json
 {
   "image_type": "Chest X-ray (posteroanterior view)",
@@ -98,6 +100,7 @@ graph TB
 ```
 
 **Does NOT:**
+
 - Decide which investigative tools to use
 - Make strategic orchestration decisions
 
@@ -106,10 +109,12 @@ graph TB
 **Role:** Strategic investigative orchestration
 
 **Inputs:**
+
 - MedGemma's medical analysis
 - User claim
 
 **System Prompt:**
+
 ```
 You are an investigative orchestration agent. Your role is to decide which
 investigative tools to deploy based on medical image analysis and user claims.
@@ -119,6 +124,7 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 ```
 
 **Outputs:**
+
 ```json
 {
   "tools": ["reverse_search", "provenance"],
@@ -127,6 +133,7 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 ```
 
 **Strategic Considerations:**
+
 1. If medically plausible → verify image source (reverse_search, provenance)
 2. If medically implausible → check for manipulation (forensics)
 3. If high-stakes context → verify provenance chain
@@ -136,13 +143,14 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 
 **Available Tools:**
 
-| Tool | Purpose | When Used |
-|------|---------|-----------|
-| **reverse_search** | Find prior uses of this image online via Google Cloud Vision API Web Detection | Detect image misuse or repurposing |
-| **forensics** | Analyze pixel-level manipulation evidence (DICOM header integrity, copy-move, EXIF) | When image authenticity is questionable |
-| **provenance** | Read C2PA manifests, build SHA-256 hash-chained observation blocks, optionally anchor to Polygon blockchain | Establish image history and genealogy |
+| Tool               | Purpose                                                                                                     | When Used                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| **reverse_search** | Find prior uses of this image online via Google Vision Web Detection                                        | Detect image misuse or repurposing      |
+| **forensics**      | Analyze pixel-level manipulation evidence (DICOM header integrity, copy-move, EXIF)                         | When image authenticity is questionable |
+| **provenance**     | Read C2PA manifests, build SHA-256 hash-chained observation blocks, optionally anchor to Polygon blockchain | Establish image history and genealogy   |
 
 **Dynamic Execution:**
+
 - Only runs tools selected by orchestrator
 - Typically 60% faster for genuine images (doesn't run unnecessary forensics)
 - Each tool provides specific evidence
@@ -152,6 +160,7 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 **Role:** Gemini Pro Orchestrator aggregates all evidence
 
 **Inputs:**
+
 - MedGemma's medical analysis (authoritative medical input)
 - Tool selection reasoning
 - Reverse search results
@@ -160,6 +169,7 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 - User claim
 
 **Outputs:**
+
 ```json
 {
   "part_1": {
@@ -182,6 +192,7 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 ## Example Scenario: "My Nan's COVID X-ray"
 
 **Input:**
+
 - Image: Chest X-ray showing pneumonia
 - Claim: "This is a chest X-ray of my nan with COVID"
 
@@ -210,21 +221,25 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 ## Key Architectural Benefits
 
 ### ✅ Separation of Concerns
+
 - Medical questions → MedGemma
 - Strategic questions → Gemini Pro
 - Each model operates in its domain of expertise
 
 ### ✅ Medical Accuracy Preserved
+
 - MedGemma provides nuanced medical reasoning
 - Orchestrator respects medical plausibility assessments
 - No false dismissals of medically valid claims
 
 ### ✅ Strategic Optimization
+
 - Orchestrator uses superior reasoning for tool selection
 - Cost-effective (doesn't run unnecessary tools)
 - Scalable and configurable (can swap orchestrator LLM)
 
 ### ✅ Transparency
+
 - Clear attribution of each decision
 - Traceable reasoning at every step
 - Auditable evidence chain
@@ -234,6 +249,7 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 See `src/app/orchestrator/langgraph_agent.py` for the complete implementation.
 
 **Key methods:**
+
 - `_get_medical_analysis()` - MedGemma medical expertise
 - `_orchestrate_tool_selection()` - Gemini Pro strategic decisions
 - `_synthesize()` - Gemini Pro evidence aggregation
@@ -241,6 +257,7 @@ See `src/app/orchestrator/langgraph_agent.py` for the complete implementation.
 ## Configuration
 
 Set in `.env`:
+
 ```bash
 # MedGemma provider (for medical analysis)
 MEDGEMMA_PROVIDER=huggingface

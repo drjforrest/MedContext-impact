@@ -15,24 +15,17 @@ This guide will help you quickly understand our submission and navigate the docu
 One-page overview covering:
 
 - The problem (over half of misinformation uses authentic images with misleading context)
-- Our validation (50% forensics accuracy = chance)
+- Our validation (we showed that pixel forensics can detect image tampering, but fails at image-claim alignment)
 - The solution (agentic contextual authenticity)
-- Why we win
 
-### Have 10 minutes?
-
-1. ✅ [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) (2 min)
-2. ✅ [VALIDATION.md - Part 1: The Story](docs/VALIDATION.md) (3 min)
-3. ✅ [SUBMISSION.md - Key Innovation section](docs/SUBMISSION.md#-key-innovation-agentic-architecture) (5 min)
-
-### Have 30 minutes?
+### Have 15 minutes?
 
 **Recommended Reading Path:**
 
 1. [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) - The pitch
 2. [VALIDATION.md](docs/VALIDATION.md) - Our empirical evidence
 3. [SUBMISSION.md](docs/SUBMISSION.md) - Comprehensive submission
-4. [Demo Video](#-demo-video) - See it in action (5-7 min) _(video in production)_
+4. [Demo Video](#-demo-video) - See it in action (3 min)
 
 ### Want to verify our claims?
 
@@ -77,7 +70,7 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 ## 🎯 What Makes MedContext Different
 
-### Most submissions optimize for:
+### Most projects would optimize for:
 
 - ❌ Synthetic benchmark datasets
 - ❌ Deepfake detection (sophisticated manipulations)
@@ -85,9 +78,9 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 ### MedContext optimizes for:
 
-- ✅ **Real-world threat distribution** (80% authentic images with false context)
-- ✅ **Empirically validated** (proved forensics fails with 50% accuracy)
-- ✅ **Production deployment** (HERO Lab partnership ready)
+- ✅ **Real-world threat distribution** (majority authentic images with false context)
+- ✅ **Empirically validated** (proved forensics fails on image-claim pairs)
+- ✅ **Production deployment** (UBC HERO Lab partnership ready)
 
 ---
 
@@ -97,10 +90,10 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 We tested both pixel forensics and contextual analysis on real medical images:
 
-- **Pixel Forensics:** 49.9% accuracy [95% CI: 44.5%, 55.5%] → Chance performance
-- **Contextual Analysis:** 65.6% accuracy [95% CI: 55.6%, 75.6%] → Statistically significant improvement
-- **Interpretation:** Pixel forensics cannot detect real-world medical misinformation
-- **Conclusion:** Contextual analysis significantly outperforms pixel forensics on real-world data
+- **Pixel Forensics (ELA):** 49.9% accuracy [95% CI: 44.5%, 55.5%] → Chance performance (indistinguishable from random guessing)
+- **Contextual Analysis (MedGemma):** 65.6% accuracy [95% CI: 55.6%, 75.6%] → Statistically significant improvement
+- **Interpretation:** Pixel forensics cannot detect real-world medical misinformation (authentic images in misleading contexts)
+- **Conclusion:** Contextual analysis significantly outperforms pixel forensics on real-world data, validating our core thesis
 
 This validates our literature review finding that over half of misinformation includes visuals, predominantly **authentic images used in misleading contexts** (Brennen et al., 2021).
 
@@ -146,7 +139,7 @@ medcontext/
 │   ├── DEPLOYMENT.md              ← How to run it
 │   └── CLAUDE.md                  ← Developer documentation
 ├── src/                           ← Source code (4,100+ lines Python)
-├── tests/                         ← 33 passing tests
+├── tests/                         ← 45 passing tests
 └── ui/                            ← React frontend
 ```
 
@@ -168,7 +161,7 @@ medcontext/
 **3-minute demonstration covering:**
 
 1. The problem (authentic images used misleadingly)
-2. Our validation (forensics fails at 50%)
+2. Our validation (forensics alone fails)
 3. Live demo (upload → analysis → verdict)
 4. Impact (HERO Lab partnership for Africa)
 
@@ -209,7 +202,7 @@ medcontext/
 ### Option 3: Hands-On Verification (45 min)
 
 1. Run setup commands above
-2. Execute test suite (33 tests)
+2. Execute test suite (45 tests)
 3. Start system and test API
 4. Upload test image via UI
 5. Review code architecture
@@ -218,4 +211,4 @@ medcontext/
 
 **Thank you for reviewing MedContext!**
 
-We're excited to show how agentic AI can address the real-world medical misinformation problem—not by chasing synthetic benchmarks, but by understanding context and meaning. This is evidence-based, production-ready, and ready for deployment. 🏥🤖
+We're excited to show how agentic AI can address the real-world visual medical misinformation problem—not by chasing synthetic benchmarks, but by understanding context and meaning. This is evidence-based, production-ready, and ready for deployment. 🏥🤖

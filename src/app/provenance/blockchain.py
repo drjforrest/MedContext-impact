@@ -141,16 +141,20 @@ class BlockchainAnchorService:
 
     def get_explorer_url(self, tx_hash: str) -> str:
         """Return explorer URL for a transaction hash."""
-        if self._network in ("local", "hardhat", "anvil"):
-            return f"local://{self._network}/tx/{tx_hash}"
-        if self._network.lower() in ("mumbai", "polygon-mumbai"):
+        net = self._network.lower()
+        if net in ("local", "hardhat", "anvil"):
+            return f"local://{net}/tx/{tx_hash}"
+
+        if net in ("mumbai", "polygon-mumbai"):
             base = "https://mumbai.polygonscan.com"
-        elif self._network.lower() in ("amoy", "polygon-amoy"):
+        elif net in ("amoy", "polygon-amoy"):
             base = "https://www.oklink.com/amoy"
-        elif self._network.lower() in ("polygon", "mainnet", "ethereum"):
+        elif net in ("polygon", "mainnet"):
             base = "https://polygonscan.com"
+        elif net == "ethereum":
+            base = "https://etherscan.io"
         else:
-            # Default to mainnet if unknown network
+            # Default to Polygon mainnet if unknown network
             base = "https://polygonscan.com"
         return f"{base}/tx/{tx_hash}"
 

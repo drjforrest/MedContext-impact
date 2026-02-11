@@ -47,7 +47,7 @@ class TestContextualIntegrityScore:
 
     @pytest.mark.unit
     def test_compute_with_custom_weights(self):
-        """Custom weights should shift the contextual authenticity score."""
+        """Custom weights should shift the contextual integrity score."""
         weights = ContextualIntegrityWeights(
             alignment=0.3,
             plausibility=0.4,
@@ -112,7 +112,7 @@ class TestContextualIntegrityScore:
 
     @pytest.mark.unit
     def test_alignment_dominates(self):
-        """Alignment should dominate contextual authenticity score."""
+        """Alignment should dominate contextual integrity score."""
         score = compute_contextual_integrity_score(
             alignment=0.9,
             plausibility=0.2,

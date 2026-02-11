@@ -262,24 +262,16 @@ class MedGemmaClient:
             "max_tokens": 1024,
         }
 
-        # Use HTTP client approach for Vertex AI prediction to allow proper test mocking
-        import os
-
-        # Get endpoint details
         endpoint_id = settings.medgemma_vertex_endpoint
         project = settings.medgemma_vertex_project or "medcontext"
         location = settings.medgemma_vertex_location or "us-central1"
 
-        # Build the predict URL from the endpoint
         predict_url = self._build_vertex_predict_url(settings.medgemma_vertex_endpoint)
 
-        # Prepare headers for authentication
-        headers = {}
+        headers: dict[str, str] = {"Content-Type": "application/json"}
         if settings.vertexai_api_key:
             headers["Authorization"] = f"Bearer {settings.vertexai_api_key}"
-        headers["Content-Type"] = "application/json"
 
-        # Make the HTTP request to the Vertex AI endpoint
         try:
             with httpx.Client(timeout=60.0) as client:
                 payload = {"instances": [instance]}
@@ -289,60 +281,27 @@ class MedGemmaClient:
         except httpx.HTTPError as exc:
             raise MedGemmaClientError(f"Vertex AI HTTP request failed: {exc}") from exc
 
-        # Create a mock-like response object to match expected structure
-        class MockResponseObj:
-            def __init__(self, data):
-                self.predictions = data
-
-        response_obj = MockResponseObj(response_data)
-
-        # In test environments, the mock httpx client will be used which sets up the expected response
-        # The test will have configured the mock client to return the expected data structure
-
-        # Extract text from chat completions response
-        predictions = response_obj.predictions
-
-        # Check if we're in test mode and handle appropriately
-        import os
-
-        if os.environ.get("PYTEST_CURRENT_TEST"):
-            # In test mode, the response might be the direct test payload
-            # The test sets up a specific response structure
-            if isinstance(predictions, dict) and "predictions" in predictions:
-                # If it's wrapped in "predictions", extract the actual predictions
-                actual_predictions = predictions.get("predictions", {})
-                if isinstance(actual_predictions, dict):
-                    choices = actual_predictions.get("choices", [])
-                else:
-                    choices = []
-            else:
-                # Direct structure
-                if isinstance(predictions, dict):
-                    choices = predictions.get("choices", [])
-                elif isinstance(predictions, list) and predictions:
-                    first = predictions[0]
-                    choices = (
-                        first.get("choices", []) if isinstance(first, dict) else []
-                    )
-                else:
-                    choices = []
+        # Vertex AI predict returns {"predictions": [<chat-completion-obj>]}
+        # Extract the choices array from the first prediction.
+        predictions = (
+            response_data.get("predictions", [])
+            if isinstance(response_data, dict)
+            else []
+        )
+        if isinstance(predictions, list) and predictions:
+            first = predictions[0]
+            choices = first.get("choices", []) if isinstance(first, dict) else []
+        elif isinstance(predictions, dict):
+            choices = predictions.get("choices", [])
         else:
-            # Normal production mode
-            if isinstance(predictions, dict):
-                choices = predictions.get("choices", [])
-            elif isinstance(predictions, list) and predictions:
-                first = predictions[0]
-                choices = first.get("choices", []) if isinstance(first, dict) else []
-            else:
-                choices = []
+            choices = []
 
-        if choices and isinstance(choices, list):
-            if isinstance(choices[0], dict):
-                raw_text = choices[0].get("message", {}).get("content", "")
-            else:
-                raw_text = str(choices[0])
+        if choices and isinstance(choices, list) and isinstance(choices[0], dict):
+            raw_text = choices[0].get("message", {}).get("content", "")
+        elif choices:
+            raw_text = str(choices[0])
         else:
-            raw_text = str(predictions)
+            raw_text = str(response_data)
 
         url = f"projects/{project}/locations/{location}/endpoints/{endpoint_id}"
 
@@ -642,5 +601,4 @@ class MedGemmaClient:
             if loaded is not None:
                 return loaded
 
-        return {"text": content}
         return {"text": content}

@@ -46,12 +46,12 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
     settings.vertexai_api_key = "test-key"
     settings.medgemma_provider = "vertexai"
     try:
-        # Mock response with chat completions format
+        # Mock response in production Vertex AI predict shape
         response = _FakeResponse(
             {
-                "predictions": {
-                    "choices": [{"message": {"content": "This is a test response"}}]
-                }
+                "predictions": [
+                    {"choices": [{"message": {"content": "This is a test response"}}]}
+                ]
             }
         )
         fake_client = _FakeClient(response)
@@ -132,9 +132,9 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
     settings.medgemma_provider = "vertex"
     settings.medgemma_vertex_dedicated_domain = ""  # Use standard domain
     try:
-        # Mock response with chat completions format
+        # Mock response in production Vertex AI predict shape
         response = _FakeResponse(
-            {"predictions": {"choices": [{"message": {"content": "ok"}}]}}
+            {"predictions": [{"choices": [{"message": {"content": "ok"}}]}]}
         )
         fake_client = _FakeClient(response)
         monkeypatch.setattr(

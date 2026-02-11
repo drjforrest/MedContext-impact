@@ -72,7 +72,7 @@ langsmith==0.6.4
 mako==1.3.10
 markupsafe==3.0.3
 matplotlib==3.10.8
--e file:///Users/drjforrest/dev/projects/hero-counterforce/medcontext
+(Line 75 would be removed entirely from requirements.txt)
 mpmath==1.3.0
 multidict==6.7.1
 networkx==3.6.1
