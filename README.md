@@ -6,7 +6,7 @@
 
 **Medical images don't need to be fake to cause harm.**
 
-[![Tests](https://img.shields.io/badge/tests-33%2F33%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-45%2F45%20passing-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12+-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -146,7 +146,7 @@ cd ui && npm run dev
 ```bash
 # Run test suite
 uv run pytest tests/ -v
-# Expected: 33/33 passed ✅
+# Expected: 45/45 passed ✅
 
 # Test API
 curl http://localhost:8000/health
@@ -233,7 +233,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 | ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                             |
 | ❌ Use ELA on medical images         | ✅ Proved ELA fails (50%); uses DICOM-native forensics (97.5%)  |
 | ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                     |
-| ❌ Proof of concept                  | ✅ Production-ready (33/33 tests passing)                 |
+| ❌ Proof of concept                  | ✅ Production-ready (45/45 tests passing)                 |
 
 ---
 
@@ -242,7 +242,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 ### Production-Ready Quality
 
 - **Code:** 4,100+ lines Python, 527 lines React
-- **Tests:** 33/33 passing (100% coverage on core modules)
+- **Tests:** 45/45 passing (100% coverage on core modules)
 - **Architecture:** FastAPI + React + PostgreSQL
 - **Security:** Tool whitelist, prompt injection protection, SSRF prevention
 - **Providers:** 4 MedGemma options (HuggingFace, vLLM, Vertex AI, Local)
@@ -274,13 +274,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 2. [**EXECUTIVE_SUMMARY.md**](docs/EXECUTIVE_SUMMARY.md) - One-page overview (2 min)
 3. [**VALIDATION.md**](docs/VALIDATION.md) - Empirical evidence (10 min)
 4. [**SUBMISSION.md**](docs/SUBMISSION.md) - Comprehensive submission (15 min)
-5. [**AGENTIC_ARCHITECTURE.md**](docs/AGENTIC_ARCHITECTURE.md) - Technical deep dive (optional)
-
-**Supporting Documentation:**
-
-- [**DEPLOYMENT.md**](docs/DEPLOYMENT.md) - Setup instructions
-- [**CLAUDE.md**](CLAUDE.md) - Developer documentation
-- [**VIDEO_SCRIPT.md**](docs/VIDEO_SCRIPT.md) - Demo video guide
+5. [**AGENTIC_WORKFLOW.md**](docs/AGENTIC_WORKFLOW.md) - Technical deep dive (optional)
 
 ---
 
@@ -318,7 +312,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 - Multi-provider MedGemma (HuggingFace, vLLM, Vertex AI, Local)
 - Gemini 2.5 Pro/Flash (LLM orchestration)
 - PIL + NumPy (forensics)
-- SerpAPI (reverse search)
+- Google Cloud Vision API (reverse image search)
 
 **Infrastructure:**
 
@@ -399,16 +393,16 @@ medcontext/
 │   ├── EXECUTIVE_SUMMARY.md        ← 1-page pitch
 │   ├── VALIDATION.md               ← Empirical evidence
 │   ├── SUBMISSION.md               ← Comprehensive submission
-│   └── AGENTIC_ARCHITECTURE.md     ← Technical details
+│   └── AGENTIC_WORKFLOW.md          ← Technical details
 ├── src/app/
 │   ├── orchestrator/               ← Agentic workflow
 │   ├── forensics/                  ← Forensics layer
-│   ├── provenance/                 ← Blockchain-style chain
-│   ├── reverse_search/             ← SerpAPI integration
+│   ├── provenance/                 ← C2PA + hash chain + optional Polygon anchoring
+│   ├── reverse_search/             ← Google Vision API integration
 │   ├── metrics/                    ← Integrity scoring
 │   └── api/v1/endpoints/           ← REST API
 ├── ui/                             ← React frontend
-├── tests/                          ← 33 passing tests
+├── tests/                          ← 45 passing tests
 └── scripts/                        ← Utilities
 ```
 
@@ -430,11 +424,12 @@ medcontext/
 - **Ensemble voting:** Confidence-weighted signals
 - **Honest framing:** Supporting evidence, not definitive claims
 
-### Blockchain Provenance
+### Provenance Tracking
 
-- **Hash-chained records** - Immutable audit trail
-- **Tamper detection** - Genealogy verification
-- **Observation-based** - Extensible for future signals
+- **C2PA manifest reading** - Verifies embedded Content Provenance and Authenticity signatures
+- **Hash-chained records** - SHA-256 linked observation blocks forming an immutable audit trail
+- **Polygon blockchain anchoring** - Optional on-chain timestamps for independent verification
+- **Observation-based** - Extensible chain recording submissions, manifests, and validations
 
 ### Real-Time Monitoring
 

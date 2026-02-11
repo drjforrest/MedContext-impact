@@ -299,7 +299,7 @@ MedContext's approach focuses on signals that address the dominant threat: authe
 1. **Alignment** (60% weight): Does the image content match the claimed context? (MedGemma/LLM synthesis)
 2. **Medical Plausibility** (15% weight): Is the medical claim itself plausible based on visual evidence? (MedGemma semantic analysis)
 3. **Genealogy Consistency** (15% weight): Is the provenance chain intact and consistent? (Blockchain-style hash chain)
-4. **Source Reputation** (10% weight): Do credible sources use this image similarly? (Reverse search via SerpAPI)
+4. **Source Reputation** (10% weight): Do credible sources use this image similarly? (Reverse search via Google Cloud Vision API)
 
 **Weight Rationale:** These weights are expert-informed heuristic starting points rather than empirically derived values. Since over half of medical misinformation includes visuals, with the vast majority being authentic images in misleading contexts rather than pixel manipulations (Brennen et al., 2020), we allocate the majority weight (60%) to **Alignment** to reflect its primary role in detecting image-claim correspondence. The three complementary signals—**Medical Plausibility**, **Genealogy Consistency**, and **Source Reputation**—receive a pragmatic split of the remaining weight (15%, 15%, and 10% respectively) pending planned ablation studies and holdout experiments. These weights will be refined after validation experiments once the dataset is fully curated.
 

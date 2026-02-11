@@ -29,13 +29,13 @@ graph TB
     DispatchStart --> CheckForensics{forensics<br/>selected?}
     DispatchStart --> CheckProvenance{provenance<br/>selected?}
 
-    CheckReverse -->|Yes| ReverseSearch[🔍 Reverse Search<br/>Check prior uses]
+    CheckReverse -->|Yes| ReverseSearch[🔍 Reverse Search<br/>Google Vision Web Detection]
     CheckReverse -->|No| SkipReverse[ ]
 
     CheckForensics -->|Yes| Forensics[🔬 Forensics<br/>Pixel analysis + EXIF]
     CheckForensics -->|No| SkipForensics[ ]
 
-    CheckProvenance -->|Yes| Provenance[⛓️ Provenance<br/>Blockchain verification]
+    CheckProvenance -->|Yes| Provenance[⛓️ Provenance<br/>C2PA + hash chain + Polygon]
     CheckProvenance -->|No| SkipProvenance[ ]
 
     ReverseSearch --> Evidence[📊 Evidence Collection]
@@ -138,9 +138,9 @@ a specialized medical AI. Your job is ONLY to decide which investigative tools t
 
 | Tool | Purpose | When Used |
 |------|---------|-----------|
-| **reverse_search** | Find prior uses of this image online | Detect image misuse or repurposing |
-| **forensics** | Analyze pixel-level manipulation evidence | When image authenticity is questionable |
-| **provenance** | Verify blockchain-style source chain | Establish image history and genealogy |
+| **reverse_search** | Find prior uses of this image online via Google Cloud Vision API Web Detection | Detect image misuse or repurposing |
+| **forensics** | Analyze pixel-level manipulation evidence (DICOM header integrity, copy-move, EXIF) | When image authenticity is questionable |
+| **provenance** | Read C2PA manifests, build SHA-256 hash-chained observation blocks, optionally anchor to Polygon blockchain | Establish image history and genealogy |
 
 **Dynamic Execution:**
 - Only runs tools selected by orchestrator

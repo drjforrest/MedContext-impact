@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -9,7 +9,6 @@ from app.db.session import get_db
 from app.provenance.blockchain import get_blockchain_anchor_service
 from app.provenance.service import build_provenance, get_provenance_manifest
 from app.provenance.service import store_provenance_manifest
-from app.schemas.common import JobResponse
 from app.schemas.provenance import (
     ProvenanceChainResponse,
     ProvenanceManifestCreate,
@@ -62,13 +61,6 @@ async def get_provenance_chain(
 ) -> ProvenanceChainResponse:
     submission = _get_image_submission(image_id, db)
     return build_provenance(image_id=image_id, image_hash=submission.image_hash, db=db)
-
-
-@router.get("/genealogy/{image_id}", response_model=JobResponse)
-async def get_genealogical_tree(image_id: UUID) -> JobResponse:
-    return JobResponse(
-        job_id=uuid4(), status="completed", detail=f"genealogy ready for {image_id}"
-    )
 
 
 @router.post("/manifest", response_model=ProvenanceManifestResponse)

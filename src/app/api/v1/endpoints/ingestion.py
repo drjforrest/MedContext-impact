@@ -221,27 +221,6 @@ def ingest_and_run_agentic(
     )
 
 
-@router.post("/web", response_model=SubmissionResponse)
-async def handle_web_upload(
-    file: UploadFile = File(...),
-    context: str = Form(...),
-) -> SubmissionResponse:
-    return SubmissionResponse(image_id=uuid4(), detail="web upload accepted")
-
-
-@router.post("/extension", response_model=SubmissionResponse)
-async def handle_extension_submission(
-    file: UploadFile = File(...),
-    context: str = Form(...),
-) -> SubmissionResponse:
-    return SubmissionResponse(image_id=uuid4(), detail="extension upload accepted")
-
-
-@router.post("/whatsapp", response_model=SubmissionResponse)
-async def handle_whatsapp_webhook(payload: dict) -> SubmissionResponse:
-    return SubmissionResponse(image_id=uuid4(), detail="whatsapp payload accepted")
-
-
 @router.post("/agentic", response_model=AgentRunResponse)
 async def ingest_and_run_agent(
     file: UploadFile = File(...),

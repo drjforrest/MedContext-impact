@@ -1,11 +1,9 @@
 __all__ = [
     "analysis",
-    "decision_support",
-    "ingestion",
     "forensics",
+    "ingestion",
     "orchestrator",
     "provenance",
     "reverse_search",
     "semantic",
-    "visualization",
 ]

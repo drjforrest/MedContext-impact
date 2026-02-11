@@ -40,7 +40,7 @@ def get_all_modules() -> list[ModuleInfo]:
         ModuleInfo(
             name="reverse_search",
             display_name="Reverse Image Search",
-            description="Source verification via SerpAPI",
+            description="Source verification via Google Cloud Vision API Web Detection",
             category="addon",
             enabled=settings.enable_reverse_search,
             env_flag="ENABLE_REVERSE_SEARCH",
@@ -48,7 +48,7 @@ def get_all_modules() -> list[ModuleInfo]:
         ModuleInfo(
             name="provenance",
             display_name="Provenance Tracking",
-            description="Blockchain-style hash chain genealogy",
+            description="C2PA manifest verification, SHA-256 hash chain, optional Polygon blockchain anchoring",
             category="addon",
             enabled=settings.enable_provenance,
             env_flag="ENABLE_PROVENANCE",

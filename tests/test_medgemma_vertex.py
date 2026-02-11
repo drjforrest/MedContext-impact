@@ -60,11 +60,20 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
             lambda timeout=60.0: fake_client,
         )
 
-        # Mock ADC token
-        def mock_default():
-            from types import SimpleNamespace
+        # Mock ADC token with proper credential interface
+        class MockCredentials:
+            def __init__(self):
+                self.token = "test-token"
 
-            creds = SimpleNamespace(token="test-token", refresh=lambda x: None)
+            def refresh(self, request):
+                pass
+
+            def before_request(self, request, method, url, headers):
+                headers["authorization"] = f"Bearer {self.token}"
+                return headers
+
+        def mock_default(scopes=None, request=None):
+            creds = MockCredentials()
             return creds, "test-project"
 
         monkeypatch.setattr("google.auth.default", mock_default)
@@ -133,11 +142,20 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
             lambda timeout=60.0: fake_client,
         )
 
-        # Mock ADC token
-        def mock_default():
-            from types import SimpleNamespace
+        # Mock ADC token with proper credential interface
+        class MockCredentials:
+            def __init__(self):
+                self.token = "test-token"
 
-            creds = SimpleNamespace(token="test-token", refresh=lambda x: None)
+            def refresh(self, request):
+                pass
+
+            def before_request(self, request, method, url, headers):
+                headers["authorization"] = f"Bearer {self.token}"
+                return headers
+
+        def mock_default(scopes=None, request=None):
+            creds = MockCredentials()
             return creds, "test-project"
 
         monkeypatch.setattr("google.auth.default", mock_default)

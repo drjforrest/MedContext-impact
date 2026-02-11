@@ -19,7 +19,7 @@ class TestReverseSearchService:
         from app.reverse_search.service import ReverseSearchMatch
 
         fake_match = ReverseSearchMatch(
-            source="serpapi",
+            source="google_vision",
             url="https://example.com/controlled.jpg",
             title="Controlled Image Result",
             snippet="A controlled image result.",
@@ -28,13 +28,12 @@ class TestReverseSearchService:
         )
         image_id = uuid4()
         with patch(
-            "app.reverse_search.service._fetch_serpapi_matches",
-            return_value=([fake_match], ["serpapi"]),
+            "app.reverse_search.service._reverse_search_with_google_vision",
+            return_value=[fake_match],
         ):
-            with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
-                result = run_reverse_search(
-                    image_id=image_id, image_bytes=sample_image_bytes
-                )
+            result = run_reverse_search(
+                image_id=image_id, image_bytes=sample_image_bytes
+            )
 
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
@@ -43,11 +42,11 @@ class TestReverseSearchService:
 
     @pytest.mark.unit
     def test_run_reverse_search_with_mock_api(self, sample_image_bytes):
-        """Test reverse search with mocked SerpAPI response."""
+        """Test reverse search with mocked Google Vision response."""
         from app.reverse_search.service import ReverseSearchMatch
 
         fake_match = ReverseSearchMatch(
-            source="serpapi",
+            source="google_vision",
             url="https://example.com/image1.jpg",
             title="Test Medical Image",
             snippet="A test medical image result.",
@@ -58,13 +57,12 @@ class TestReverseSearchService:
         image_id = uuid4()
 
         with patch(
-            "app.reverse_search.service._fetch_serpapi_matches",
-            return_value=([fake_match], ["serpapi"]),
+            "app.reverse_search.service._reverse_search_with_google_vision",
+            return_value=[fake_match],
         ):
-            with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
-                result = run_reverse_search(
-                    image_id=image_id, image_bytes=sample_image_bytes
-                )
+            result = run_reverse_search(
+                image_id=image_id, image_bytes=sample_image_bytes
+            )
 
         assert result.status == "completed"
         assert result.image_id == image_id
@@ -76,7 +74,10 @@ class TestReverseSearchService:
         image_id2 = uuid4()
 
         # Different image IDs but same image bytes
-        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+        with patch(
+            "app.reverse_search.service._reverse_search_with_google_vision",
+            return_value=[],
+        ):
             result1 = run_reverse_search(
                 image_id=image_id1, image_bytes=sample_image_bytes
             )
@@ -85,17 +86,17 @@ class TestReverseSearchService:
             )
 
         # Should have same query_hash (based on image content)
-        # Note: query_hash may be None only if image_bytes is empty/None at submission time
         assert hasattr(result1, "query_hash"), "result1 missing query_hash attribute"
         assert hasattr(result2, "query_hash"), "result2 missing query_hash attribute"
         assert result1.query_hash == result2.query_hash
 
     @pytest.mark.unit
-    def test_run_reverse_search_without_api_key(self, sample_image_bytes):
-        """Test reverse search fallback when API key is missing."""
+    def test_run_reverse_search_without_vision_library(self, sample_image_bytes, caplog):
+        """Test reverse search handles missing google-cloud-vision gracefully."""
         image_id = uuid4()
 
-        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+        caplog.set_level(logging.WARNING, logger="app.reverse_search.service")
+        with patch("app.reverse_search.service.vision", None):
             result = run_reverse_search(
                 image_id=image_id, image_bytes=sample_image_bytes
             )
@@ -103,35 +104,33 @@ class TestReverseSearchService:
         # Should still return valid structure
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
-        assert result.status in ["queued", "completed", "invalid_request"]
+        assert result.status in ["completed", "invalid_request"]
 
     @pytest.mark.unit
-    def test_run_reverse_search_skips_for_local_bytes(self, sample_image_bytes, caplog):
-        """Test reverse search skips SerpAPI for local image bytes and falls back."""
+    def test_run_reverse_search_no_matches(self, sample_image_bytes):
+        """Test reverse search completes when Vision API returns no matches."""
         image_id = uuid4()
 
-        caplog.set_level(logging.INFO, logger="app.reverse_search.service")
-        with patch("app.reverse_search.service.settings.serp_api_key", "test_key"):
+        with patch(
+            "app.reverse_search.service._reverse_search_with_google_vision",
+            return_value=[],
+        ):
             result = run_reverse_search(
                 image_id=image_id, image_bytes=sample_image_bytes
             )
 
-        # Should return result with fallback matches
         assert hasattr(result, "image_id")
         assert hasattr(result, "status")
         assert result.status == "completed"
-
-        # Verify that the skip was logged
-        assert len(caplog.records) > 0, "Expected log messages to be captured"
-        assert any(
-            "Skipping SerpAPI" in record.message for record in caplog.records
-        ), "Expected info about skipping SerpAPI in logs"
 
     @pytest.mark.unit
     def test_reverse_search_returns_job_response(self, sample_image_bytes):
         """Test that reverse search returns job response structure."""
         image_id = uuid4()
-        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+        with patch(
+            "app.reverse_search.service._reverse_search_with_google_vision",
+            return_value=[],
+        ):
             result = run_reverse_search(
                 image_id=image_id, image_bytes=sample_image_bytes
             )
@@ -145,7 +144,10 @@ class TestReverseSearchService:
     def test_reverse_search_timestamp_format(self, sample_image_bytes):
         """Test that queued_at timestamp is properly formatted."""
         image_id = uuid4()
-        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+        with patch(
+            "app.reverse_search.service._reverse_search_with_google_vision",
+            return_value=[],
+        ):
             result = run_reverse_search(
                 image_id=image_id, image_bytes=sample_image_bytes
             )
@@ -163,7 +165,10 @@ class TestReverseSearchService:
         image_id1 = uuid4()
         image_id2 = uuid4()
 
-        with patch("app.reverse_search.service.settings.serp_api_key", ""):
+        with patch(
+            "app.reverse_search.service._reverse_search_with_google_vision",
+            return_value=[],
+        ):
             result1 = run_reverse_search(
                 image_id=image_id1, image_bytes=sample_image_bytes
             )

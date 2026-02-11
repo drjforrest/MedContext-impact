@@ -44,7 +44,7 @@ The system operates in three phases:
 
 **Phase 1 — Triage.** MedGemma (google/medgemma-1.5-4b-it) performs clinical analysis: image type identification, anatomical findings, and claim plausibility assessment. This medical context is passed to a separate orchestrator LLM (Gemini 2.5 Pro), which decides which investigative tools to deploy based on the clinical assessment and claim characteristics.
 
-**Phase 2 — Dynamic Tool Dispatch.** The orchestrator invokes only the tools warranted by the triage — reverse image search for context verification, pixel forensics if manipulation is suspected, or provenance chain validation. For medically plausible claims with clear image alignment, unnecessary tools are skipped, reducing computational cost by  without sacrificing accuracy.
+**Phase 2 — Dynamic Tool Dispatch.** The orchestrator invokes only the tools warranted by the triage — reverse image search via Google Cloud Vision API Web Detection for context verification, pixel forensics if manipulation is suspected, or provenance verification (C2PA manifest reading, SHA-256 hash-chained observation blocks, optional Polygon blockchain anchoring). For medically plausible claims with clear image alignment, unnecessary tools are skipped, reducing computational cost without sacrificing accuracy.
 
 **Phase 3 — Evidence Synthesis.** The orchestrator aggregates MedGemma's clinical analysis with tool results into an explainable verdict — a veracity–alignment matrix that independently scores claim accuracy and image–claim alignment. Each assessment includes traceable reasoning with clear attribution ("per MedGemma's clinical analysis" versus "per investigative evidence").
 
@@ -59,7 +59,7 @@ MedGemma serves as the clinical reasoning backbone across multiple deployment co
 MedContext is production-ready, not a prototype:
 
 - **4,100+ lines** of Python across a modular FastAPI backend with SQLAlchemy/PostgreSQL, Alembic migrations, and comprehensive error handling
-- **33/33 tests passing** covering integrity scoring, provenance chain verification, reverse search caching, and agentic workflow defaults
+- **45/45 tests passing** covering image integrity scoring, provenance chain verification, blockchain anchoring, reverse search caching, MedGemma Vertex AI integration, and agentic workflow defaults
 - **Security hardened** with prompt injection protection (user context wrapped in explicit data-only markers), SSRF prevention via IP validation, tool whitelist enforcement, and rate-limited demo access
 - **Full-stack deployment** with React 19 frontend, Docker support with health checks, and a Telegram bot for field verification
 - **Reproducible** via documented setup with `.env.example` and Docker Compose

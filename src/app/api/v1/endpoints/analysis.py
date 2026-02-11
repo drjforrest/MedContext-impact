@@ -1,22 +1,9 @@
-from uuid import UUID, uuid4
-
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from app.clinical.medgemma_client import MedGemmaClient, MedGemmaClientError
-from app.schemas.common import JobResponse
 from app.schemas.medgemma import MedGemmaResponse
 
 router = APIRouter()
-
-
-@router.post("/image/{image_id}", response_model=JobResponse)
-async def analyze_image(image_id: UUID) -> JobResponse:
-    return JobResponse(job_id=uuid4(), detail=f"analysis queued for {image_id}")
-
-
-@router.get("/analysis/{analysis_id}", response_model=JobResponse)
-async def get_analysis(analysis_id: UUID) -> JobResponse:
-    return JobResponse(job_id=analysis_id, status="completed")
 
 
 @router.post("/upload", response_model=MedGemmaResponse)

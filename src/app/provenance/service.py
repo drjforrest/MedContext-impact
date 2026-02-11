@@ -1,3 +1,23 @@
+"""Provenance chain service for medical image verification.
+
+Builds an auditable provenance record for each image through three layers:
+
+1. **C2PA manifest reading** -- Uses the ``c2pa`` library to extract and
+   validate Content Provenance and Authenticity manifests embedded in
+   image files.  Validation state is normalised to valid / invalid / unknown.
+
+2. **Hash-chained observation blocks** -- Each observation (submission,
+   manifest, C2PA validation) is recorded as a block whose SHA-256 hash
+   incorporates the previous block's hash, forming a tamper-evident chain
+   stored in PostgreSQL.
+
+3. **Polygon blockchain anchoring** (optional) -- When enabled via
+   ``ENABLE_BLOCKCHAIN_ANCHORING``, a condensed chain summary is recorded
+   on-chain through ``BlockchainAnchorService``, providing an independently
+   verifiable timestamp.  Anchoring is non-fatal; if it fails or is
+   disabled the local chain is still returned.
+"""
+
 from __future__ import annotations
 
 import hashlib
@@ -16,6 +36,7 @@ from sqlalchemy.orm import Session
 from app.db.models.provenance import ProvenanceBlock as ProvenanceBlockModel
 from app.db.models.provenance import ProvenanceManifest
 from app.db.session import SessionLocal
+from app.provenance.blockchain import get_blockchain_anchor_service
 from app.schemas.provenance import ProvenanceBlock, ProvenanceChainResponse
 
 logger = logging.getLogger(__name__)
@@ -360,8 +381,6 @@ def build_provenance(
         # Optionally anchor the chain on the Polygon blockchain (non-fatal)
         blockchain_tx_hash: str | None = None
         if manifest_record and session:
-            from app.provenance.blockchain import get_blockchain_anchor_service
-
             anchor_service = get_blockchain_anchor_service()
             if anchor_service:
                 chain_summary = {
@@ -383,8 +402,6 @@ def build_provenance(
 
         blockchain_verification_url: str | None = None
         if blockchain_tx_hash:
-            from app.provenance.blockchain import get_blockchain_anchor_service
-
             svc = get_blockchain_anchor_service()
             if svc:
                 blockchain_verification_url = svc.get_explorer_url(blockchain_tx_hash)

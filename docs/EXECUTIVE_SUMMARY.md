@@ -60,7 +60,7 @@ First agentic AI system optimized for real-world threat distribution:
 
 ### Quality (Production-Ready)
 
-- **33/33 tests passing** (100% coverage on core modules)
+- **45/45 tests passing** (100% coverage on core modules)
 - 4,100+ lines production Python
 - 4 MedGemma providers (HuggingFace, vLLM, Vertex AI, Local)
 - Full-stack: FastAPI backend + React frontend + PostgreSQL

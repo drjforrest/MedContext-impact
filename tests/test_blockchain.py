@@ -231,10 +231,14 @@ class TestBuildProvenanceBlockchainIntegration:
         image_id = uuid4()
         db = MagicMock()
 
-        # Set up db.query mock to return no existing manifest
+        # Set up db.query mock to return an existing manifest so blockchain anchoring is reached
+        manifest_record = MagicMock()
+        manifest_record.id = 1
+        manifest_record.manifest_label = "test-manifest"
+        manifest_record.signature_status = "valid"
         query = MagicMock()
         query.filter.return_value = query
-        query.one_or_none.return_value = None
+        query.one_or_none.return_value = manifest_record
         query.order_by.return_value = query
         query.all.return_value = []
         db.query.return_value = query

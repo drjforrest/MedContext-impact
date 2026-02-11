@@ -1,3 +1,15 @@
+"""Reverse image search using Google Cloud Vision API Web Detection.
+
+Sends raw image bytes to the Vision API and returns three match types:
+  - Full page matches (pages_with_matching_images)
+  - Partial / visually similar matches (partially_matching_images)
+  - Named web entities (web_entities with confidence > 0.5)
+
+Results are cached in-memory (TTLCache, 1 hour, max 1024 entries).
+The google-cloud-vision package is optional; when absent the search
+returns an empty match list and logs a warning.
+"""
+
 from __future__ import annotations
 
 import base64
@@ -7,9 +19,13 @@ from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 import cachetools
-from google.cloud import vision
 
 from app.core.config import settings
+
+try:
+    from google.cloud import vision  # type: ignore[attr-defined]
+except ImportError:
+    vision = None  # type: ignore[assignment]
 from app.schemas.reverse_search import (
     ReverseSearchJobResponse,
     ReverseSearchMatch,
@@ -41,10 +57,13 @@ def _hash_text(text: str) -> str:
 def _reverse_search_with_google_vision(image_bytes: bytes) -> list[ReverseSearchMatch]:
     """
     Google Vision API accepts image bytes directly - no URL needed.
-    
+
     Privacy: Image sent directly to Google's API over HTTPS, not stored publicly.
     Cost: $1.50 per 1000 images (Web Detection feature).
     """
+    if vision is None:
+        _LOGGER.warning("google-cloud-vision not installed; skipping Vision API search")
+        return []
     try:
         client = vision.ImageAnnotatorClient()
 

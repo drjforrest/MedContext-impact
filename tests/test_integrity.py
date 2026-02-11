@@ -1,22 +1,21 @@
-"""Tests for the MedContext Integrity Score calculation."""
+"""Tests for the MedContext Contextual Integrity Score calculation."""
 
 import pytest
 
 from app.metrics.integrity import (
     ContextualIntegrityWeights,
-    IntegrityWeights,
     compute_contextual_integrity_score,
-    compute_integrity_score,
 )
 
 
-class TestIntegrityScore:
-    """Test suite for integrity score computation."""
+class TestContextualIntegrityScore:
+    """Test suite for contextual integrity score computation."""
 
     @pytest.mark.unit
     def test_compute_perfect_score(self):
         """Test that all maximum values result in score of 1.0."""
-        score = compute_integrity_score(
+        score = compute_contextual_integrity_score(
+            alignment=1.0,
             plausibility=1.0,
             genealogy_consistency=1.0,
             source_reputation=1.0,
@@ -26,7 +25,8 @@ class TestIntegrityScore:
     @pytest.mark.unit
     def test_compute_zero_score(self):
         """Test that all minimum values result in score of 0.0."""
-        score = compute_integrity_score(
+        score = compute_contextual_integrity_score(
+            alignment=0.0,
             plausibility=0.0,
             genealogy_consistency=0.0,
             source_reputation=0.0,
@@ -35,106 +35,18 @@ class TestIntegrityScore:
 
     @pytest.mark.unit
     def test_compute_with_default_weights(self):
-        """Test computation with default weights."""
-        score = compute_integrity_score(
-            plausibility=0.8,
-            genealogy_consistency=0.6,
-            source_reputation=0.7,
+        """Test computation with default weights (60/15/15/10)."""
+        score = compute_contextual_integrity_score(
+            alignment=0.8,
+            plausibility=0.6,
+            genealogy_consistency=0.7,
+            source_reputation=0.5,
         )
-        # Expected: 0.4*0.8 + 0.3*0.6 + 0.3*0.7 = 0.32 + 0.18 + 0.21 = 0.71
-        assert score == pytest.approx(0.71, abs=0.001)
+        # Expected: 0.6*0.8 + 0.15*0.6 + 0.15*0.7 + 0.1*0.5 = 0.48 + 0.09 + 0.105 + 0.05 = 0.725
+        assert score == pytest.approx(0.725, abs=0.001)
 
     @pytest.mark.unit
     def test_compute_with_custom_weights(self):
-        """Test computation with custom weights."""
-        weights = IntegrityWeights(
-            plausibility=0.5,
-            genealogy_consistency=0.3,
-            source_reputation=0.2,
-        )
-        score = compute_integrity_score(
-            plausibility=0.8,
-            genealogy_consistency=0.6,
-            source_reputation=0.7,
-            weights=weights,
-        )
-        # Expected: 0.5*0.8 + 0.3*0.6 + 0.2*0.7 = 0.4 + 0.18 + 0.14 = 0.72
-        assert score == pytest.approx(0.72, abs=0.001)
-
-    @pytest.mark.unit
-    def test_compute_with_none_values(self):
-        """Test that None values are treated as 0.0 (maintaining weight distribution)."""
-        score = compute_integrity_score(
-            plausibility=0.8,
-            genealogy_consistency=None,
-            source_reputation=None,
-        )
-        # None treated as 0.0, weights not renormalized:
-        # Expected: 0.4*0.8 + 0.3*0.0 + 0.3*0.0 = 0.32
-        assert score == pytest.approx(0.32, abs=0.001)
-
-    @pytest.mark.unit
-    def test_compute_with_all_none(self):
-        """Test that all None values result in 0.0."""
-        score = compute_integrity_score(
-            plausibility=None,
-            genealogy_consistency=None,
-            source_reputation=None,
-        )
-        assert score == 0.0
-
-    @pytest.mark.unit
-    def test_compute_clamps_high_values(self):
-        """Test that values > 1.0 are clamped to 1.0."""
-        score = compute_integrity_score(
-            plausibility=1.5,
-            genealogy_consistency=2.0,
-            source_reputation=1.2,
-        )
-        assert score == 1.0
-
-    @pytest.mark.unit
-    def test_compute_clamps_negative_values(self):
-        """Test that negative values are clamped to 0.0."""
-        score = compute_integrity_score(
-            plausibility=-0.5,
-            genealogy_consistency=-1.0,
-            source_reputation=-0.2,
-        )
-        assert score == 0.0
-
-    @pytest.mark.unit
-    def test_compute_partial_none_with_weights(self):
-        """Test that None values contribute 0.0 (no weight renormalization)."""
-        score = compute_integrity_score(
-            plausibility=0.9,
-            genealogy_consistency=None,
-            source_reputation=0.6,
-        )
-        # None treated as 0.0, weights not renormalized:
-        # Expected: 0.4*0.9 + 0.3*0.0 + 0.3*0.6 = 0.36 + 0.0 + 0.18 = 0.54
-        assert score == pytest.approx(0.54, abs=0.001)
-
-    @pytest.mark.unit
-    def test_integrity_weights_immutable(self):
-        """Test that IntegrityWeights dataclass is frozen."""
-        weights = IntegrityWeights()
-        with pytest.raises(AttributeError):
-            weights.plausibility = 0.5
-
-    @pytest.mark.unit
-    def test_contextual_integrity_alignment_weighted(self):
-        """Alignment should dominate contextual authenticity score."""
-        score = compute_contextual_integrity_score(
-            alignment=0.9,
-            plausibility=0.2,
-            genealogy_consistency=0.2,
-            source_reputation=0.2,
-        )
-        assert score > 0.6
-
-    @pytest.mark.unit
-    def test_contextual_integrity_custom_weights(self):
         """Custom weights should shift the contextual authenticity score."""
         weights = ContextualIntegrityWeights(
             alignment=0.3,
@@ -149,4 +61,69 @@ class TestIntegrityScore:
             source_reputation=0.5,
             weights=weights,
         )
-        assert score > 0.5
+        # Expected: 0.3*0.2 + 0.4*0.9 + 0.2*0.5 + 0.1*0.5 = 0.06 + 0.36 + 0.10 + 0.05 = 0.57
+        assert score == pytest.approx(0.57, abs=0.001)
+
+    @pytest.mark.unit
+    def test_compute_with_none_values(self):
+        """Test that None values are treated as 0.0 (maintaining weight distribution)."""
+        score = compute_contextual_integrity_score(
+            alignment=0.8,
+            plausibility=None,
+            genealogy_consistency=None,
+            source_reputation=None,
+        )
+        # None treated as 0.0, weights not renormalized:
+        # Expected: 0.6*0.8 + 0.15*0.0 + 0.15*0.0 + 0.1*0.0 = 0.48
+        assert score == pytest.approx(0.48, abs=0.001)
+
+    @pytest.mark.unit
+    def test_compute_with_all_none(self):
+        """Test that all None values result in 0.0."""
+        score = compute_contextual_integrity_score(
+            alignment=None,
+            plausibility=None,
+            genealogy_consistency=None,
+            source_reputation=None,
+        )
+        assert score == 0.0
+
+    @pytest.mark.unit
+    def test_compute_clamps_high_values(self):
+        """Test that values > 1.0 are clamped to 1.0."""
+        score = compute_contextual_integrity_score(
+            alignment=1.5,
+            plausibility=2.0,
+            genealogy_consistency=1.2,
+            source_reputation=1.3,
+        )
+        assert score == 1.0
+
+    @pytest.mark.unit
+    def test_compute_clamps_negative_values(self):
+        """Test that negative values are clamped to 0.0."""
+        score = compute_contextual_integrity_score(
+            alignment=-0.5,
+            plausibility=-1.0,
+            genealogy_consistency=-0.2,
+            source_reputation=-0.3,
+        )
+        assert score == 0.0
+
+    @pytest.mark.unit
+    def test_alignment_dominates(self):
+        """Alignment should dominate contextual authenticity score."""
+        score = compute_contextual_integrity_score(
+            alignment=0.9,
+            plausibility=0.2,
+            genealogy_consistency=0.2,
+            source_reputation=0.2,
+        )
+        assert score > 0.6
+
+    @pytest.mark.unit
+    def test_weights_immutable(self):
+        """Test that ContextualIntegrityWeights dataclass is frozen."""
+        weights = ContextualIntegrityWeights()
+        with pytest.raises(AttributeError):
+            weights.alignment = 0.5

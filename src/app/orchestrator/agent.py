@@ -555,7 +555,9 @@ class MedContextAgent:
                 )
                 search_results = get_reverse_search_results(resolved_image_id)
                 if search_results is not None:
-                    results["reverse_search_results"] = search_results.model_dump()
+                    results["reverse_search_results"] = search_results.model_dump(
+                        mode="json"
+                    )
             elif tool == "forensics":
                 layers = self._select_forensics_layers(triage)
                 results[tool] = run_forensics(image_bytes=image_bytes, layers=layers)

@@ -4,13 +4,6 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class IntegrityWeights:
-    plausibility: float = 0.4
-    genealogy_consistency: float = 0.3
-    source_reputation: float = 0.3
-
-
-@dataclass(frozen=True)
 class ContextualIntegrityWeights:
     alignment: float = 0.6
     plausibility: float = 0.15
@@ -35,30 +28,6 @@ def _compute_weighted_score(values: list[tuple[float, float | None]]) -> float:
         score += weight * signal_value
 
     return _clamp(score)
-
-
-def compute_integrity_score(
-    *,
-    plausibility: float | None,
-    genealogy_consistency: float | None,
-    source_reputation: float | None,
-    weights: IntegrityWeights | None = None,
-) -> float:
-    """Compute the MedContext Integrity Score (0.0-1.0).
-
-    The score is a weighted average of three signals:
-    - plausibility (MedGemma)
-    - genealogy consistency (provenance/blockchain)
-    - source reputation (reverse search)
-    """
-
-    active_weights = weights or IntegrityWeights()
-    weighted_values: list[tuple[float, float | None]] = [
-        (active_weights.plausibility, plausibility),
-        (active_weights.genealogy_consistency, genealogy_consistency),
-        (active_weights.source_reputation, source_reputation),
-    ]
-    return _compute_weighted_score(weighted_values)
 
 
 def compute_contextual_integrity_score(
