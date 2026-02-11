@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -53,9 +53,6 @@ function renderTriIcon(status, cx, cy) {
 
 const defaultApiBase =
   import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-const defaultReversePollIntervalMs = 1500
-const defaultReversePollTimeoutMs = 20000
-
 const getStoredApiBase = () => {
   if (typeof window === 'undefined') {
     return defaultApiBase
@@ -71,14 +68,6 @@ const getStoredAccessCode = () => {
   return window.localStorage.getItem('medcontext_access_code') || ''
 }
 
-const getStoredNumber = (key, fallback) => {
-  if (typeof window === 'undefined') {
-    return fallback
-  }
-  const stored = window.localStorage.getItem(key)
-  const parsed = stored ? Number(stored) : Number.NaN
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
-}
 
 function App() {
   const [activeView, setActiveView] = useState('main')
@@ -91,28 +80,6 @@ function App() {
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
-  const [reverseImageFile, setReverseImageFile] = useState(null)
-  const [reverseImageId, setReverseImageId] = useState('')
-  const [reverseStatus, setReverseStatus] = useState('idle')
-  const [reverseError, setReverseError] = useState('')
-  const [reverseJob, setReverseJob] = useState(null)
-  const [reverseResult, setReverseResult] = useState(null)
-  const [reverseFileKey, setReverseFileKey] = useState(0)
-  const [showReverseSearch, setShowReverseSearch] = useState(false)
-  const [reversePollIntervalMs, setReversePollIntervalMs] = useState(() =>
-    getStoredNumber(
-      'medcontext_reverse_poll_interval_ms',
-      defaultReversePollIntervalMs,
-    ),
-  )
-  const [reversePollTimeoutMs, setReversePollTimeoutMs] = useState(() =>
-    getStoredNumber(
-      'medcontext_reverse_poll_timeout_ms',
-      defaultReversePollTimeoutMs,
-    ),
-  )
-  const [agentStepIndex, setAgentStepIndex] = useState(0)
-  const agentStartRef = useRef(null)
   const [modules, setModules] = useState(null)
 
   const hasFile = Boolean(imageFile)
@@ -164,75 +131,32 @@ function App() {
     return 'Ready'
   }, [status])
 
-  const reverseStatusLabel = useMemo(() => {
-    if (reverseStatus === 'loading') return 'Searching the web...'
-    if (reverseStatus === 'success') return 'Reverse search complete'
-    if (reverseStatus === 'timeout') return 'Reverse search timed out'
-    if (reverseStatus === 'error') return 'Reverse search failed'
-    return 'Ready'
-  }, [reverseStatus])
-
-  const agentSteps = useMemo(() => {
-    const steps = [
-      {
-        key: 'database',
-        label: 'Checking database',
-        detail: 'Looking for previous analyses of this image.',
-      },
-      {
-        key: 'triage',
-        label: 'Medical analysis',
-        detail: 'MedGemma evaluates claim veracity and context alignment.',
-      },
-    ]
-    if (isAddonEnabled('reverse_search')) {
-      steps.push({
-        key: 'reverse_search',
-        label: 'Source verification',
-        detail: 'Searching for where this image appears online.',
-      })
-    }
-    if (isAddonEnabled('provenance')) {
-      steps.push({
-        key: 'provenance',
-        label: 'Tracking genealogy',
-        detail: 'Building usage history and provenance chain.',
-      })
-    }
-    steps.push({
-      key: 'synthesis',
-      label: 'Generating report',
-      detail: 'Combining findings into final authenticity assessment.',
-    })
-    return steps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modules])
-
-  useEffect(() => {
-    if (status !== 'loading') {
-      agentStartRef.current = null
-      setAgentStepIndex(0)
-      return
-    }
-
-    if (!agentStartRef.current) {
-      agentStartRef.current = Date.now()
-    }
-
-    const stepWindowMs = 8000
-    const updateStep = () => {
-      const elapsed = Date.now() - (agentStartRef.current || Date.now())
-      const computedIndex = Math.floor(elapsed / stepWindowMs)
-      const maxIndex =
-        status === 'loading' ? Math.max(0, agentSteps.length - 2) : agentSteps.length - 1
-      const nextIndex = Math.min(maxIndex, computedIndex)
-      setAgentStepIndex(nextIndex)
-    }
-
-    updateStep()
-    const timer = window.setInterval(updateStep, 600)
-    return () => window.clearInterval(timer)
-  }, [agentSteps.length, status])
+  const agentSteps = [
+    {
+      key: 'image_integrity',
+      label: 'Image Integrity',
+      detail: 'Pixel forensics, metadata, and manipulation detection.',
+      toolKey: 'forensics',
+    },
+    {
+      key: 'contextual_authenticity',
+      label: 'Contextual Authenticity',
+      detail: 'MedGemma evaluates claim veracity and context alignment.',
+      toolKey: null,
+    },
+    {
+      key: 'source_verification',
+      label: 'Source Verification',
+      detail: 'Reverse image search to find where this image appears online.',
+      toolKey: 'reverse_search',
+    },
+    {
+      key: 'provenance',
+      label: 'Provenance',
+      detail: 'Immutable audit trail and usage history for the image.',
+      toolKey: 'provenance',
+    },
+  ]
 
   const handleRun = async () => {
     setError('')
@@ -295,131 +219,6 @@ function App() {
     }
   }
 
-  const handleReversePollIntervalChange = (valueMs) => {
-    const nextValue = Number.isFinite(valueMs) && valueMs > 0
-      ? valueMs
-      : defaultReversePollIntervalMs
-    setReversePollIntervalMs(nextValue)
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(
-        'medcontext_reverse_poll_interval_ms',
-        String(nextValue),
-      )
-    }
-  }
-
-  const handleReversePollTimeoutChange = (valueMs) => {
-    const nextValue = Number.isFinite(valueMs) && valueMs > 0
-      ? valueMs
-      : defaultReversePollTimeoutMs
-    setReversePollTimeoutMs(nextValue)
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(
-        'medcontext_reverse_poll_timeout_ms',
-        String(nextValue),
-      )
-    }
-  }
-
-  const handleReverseSearch = async () => {
-    setReverseError('')
-    setReverseJob(null)
-    setReverseResult(null)
-
-    if (!reverseImageFile) {
-      setReverseError('Select an image file to search.')
-      setReverseStatus('error')
-      return
-    }
-
-    const trimmedId = reverseImageId.trim()
-    const imageId =
-      trimmedId || (typeof crypto !== 'undefined' ? crypto.randomUUID() : '')
-
-    if (!imageId) {
-      setReverseError('Unable to generate an image id.')
-      setReverseStatus('error')
-      return
-    }
-
-    setReverseImageId(imageId)
-    setReverseStatus('loading')
-
-    const formData = new FormData()
-    formData.append('file', reverseImageFile)
-
-    try {
-      const headers = {}
-      if (accessCode.trim()) {
-        headers['X-Demo-Access-Code'] = accessCode.trim()
-      }
-      const response = await fetch(
-        `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/search/${imageId}`,
-        {
-          method: 'POST',
-          headers,
-          body: formData,
-        },
-      )
-      const payload = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(payload.detail || 'Reverse search failed.')
-      }
-      setReverseJob(payload)
-
-      const pollIntervalMs = reversePollIntervalMs
-      const pollTimeoutMs = reversePollTimeoutMs
-      const pollStart = Date.now()
-      let resultResponse
-      let resultPayload = {}
-
-      while (Date.now() - pollStart < pollTimeoutMs) {
-        const pollHeaders = {}
-        if (accessCode.trim()) {
-          pollHeaders['X-Demo-Access-Code'] = accessCode.trim()
-        }
-        resultResponse = await fetch(
-          `${apiBase.replace(/\/$/, '')}/api/v1/reverse-search/results/${imageId}`,
-          { headers: pollHeaders },
-        )
-        resultPayload = await resultResponse.json().catch(() => ({}))
-        if (!resultResponse.ok) {
-          throw new Error(resultPayload.detail || 'Failed to fetch results.')
-        }
-
-        const terminalStatus = resultPayload?.status
-        const hasResults =
-          Array.isArray(resultPayload?.matches) ||
-          Array.isArray(resultPayload?.results)
-
-        if (terminalStatus === 'ready' || hasResults) {
-          setReverseResult(resultPayload)
-          setReverseStatus('success')
-          return
-        }
-
-        if (terminalStatus === 'failed' || terminalStatus === 'error') {
-          throw new Error(
-            resultPayload.detail || 'Reverse search failed to complete.',
-          )
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs))
-      }
-
-      const timeoutError = new Error(
-        resultPayload.detail || 'Reverse search timed out.',
-      )
-      timeoutError.name = 'TimeoutError'
-      throw timeoutError
-    } catch (err) {
-      setReverseError(
-        err instanceof Error ? err.message : 'Reverse search failed.',
-      )
-      setReverseStatus(err?.name === 'TimeoutError' ? 'timeout' : 'error')
-    }
-  }
-
   const synthesis = result?.synthesis
   const contextualIntegrity = synthesis?.contextual_integrity
   const part1 = synthesis?.part_1
@@ -444,34 +243,17 @@ function App() {
     [forensicsData, orchestratorReverseSearch, provenanceData],
   )
   const agentStepStates = useMemo(() => {
-    const hasAnyToolActivity = Object.values(toolActivity).some(Boolean)
-    return agentSteps.map((step, index) => {
-      if (status === 'success') {
-        if (step.key in toolActivity) {
-          return toolActivity[step.key] ? 'done' : 'skipped'
-        }
-        return 'done'
+    return agentSteps.map((step) => {
+      if (status === 'idle') return 'idle'
+      if (status === 'loading') return 'pending'
+      // success or error: reflect what the triage agent actually selected
+      if (step.toolKey === null) {
+        // Contextual Authenticity always runs
+        return status === 'success' ? 'done' : 'idle'
       }
-      if (status === 'error') {
-        if (step.key in toolActivity) {
-          return toolActivity[step.key] ? 'done' : 'skipped'
-        }
-        return hasAnyToolActivity ? 'skipped' : 'idle'
-      }
-      if (status === 'loading') {
-        if (step.key === 'medgemma') {
-          return hasAnyToolActivity ? 'done' : 'active'
-        }
-        if (step.key in toolActivity && toolActivity[step.key]) {
-          return 'done'
-        }
-        if (index < agentStepIndex) return 'done'
-        if (index === agentStepIndex) return 'active'
-        return 'pending'
-      }
-      return 'idle'
+      return toolActivity[step.toolKey] ? 'done' : 'skipped'
     })
-  }, [agentStepIndex, agentSteps, status, toolActivity])
+  }, [agentSteps, status, toolActivity])
   const integrityVisualization = contextualIntegrity?.visualization || null
   const integrityScore =
     typeof integrityVisualization?.overall_confidence === 'number'
@@ -639,10 +421,15 @@ function App() {
     }
     if (provenanceData) {
       const blockCount = provenanceData.blocks?.length || 0
+      const isAnchored = Boolean(provenanceData.blockchain_tx_hash)
       items.push({
         label: 'Provenance chain',
         value: `${blockCount} blocks`,
-        detail: blockCount ? 'Immutable chain constructed.' : 'No chain data.',
+        detail: isAnchored
+          ? 'Immutable chain anchored on Polygon blockchain.'
+          : blockCount
+            ? 'Immutable chain constructed.'
+            : 'No chain data.',
         tone: blockCount ? 'high' : 'neutral',
       })
     }
@@ -906,51 +693,6 @@ function App() {
                 </label>
               </div>
             </div>
-            <div className="settings-section">
-              <h3>Reverse search polling</h3>
-              <div className="grid">
-                <label className="field">
-                  <span>Polling interval (ms)</span>
-                  <input
-                    type="number"
-                    min="500"
-                    step="100"
-                    value={reversePollIntervalMs}
-                    onChange={(event) => {
-                      const nextValue = Number(event.target.value)
-                      handleReversePollIntervalChange(
-                        Number.isFinite(nextValue) && nextValue > 0
-                          ? nextValue
-                          : reversePollIntervalMs,
-                      )
-                    }}
-                  />
-                  <span className="helper">
-                    How often the UI checks for results.
-                  </span>
-                </label>
-                <label className="field">
-                  <span>Timeout (ms)</span>
-                  <input
-                    type="number"
-                    min="1000"
-                    step="500"
-                    value={reversePollTimeoutMs}
-                    onChange={(event) => {
-                      const nextValue = Number(event.target.value)
-                      handleReversePollTimeoutChange(
-                        Number.isFinite(nextValue) && nextValue > 0
-                          ? nextValue
-                          : reversePollTimeoutMs,
-                      )
-                    }}
-                  />
-                  <span className="helper">
-                    Max time to wait before timing out.
-                  </span>
-                </label>
-              </div>
-            </div>
           </section>
         ) : (
           <>
@@ -1179,152 +921,6 @@ function App() {
                 </section>
               ) : null}
             </div>
-
-            <section className="card">
-              <div className="reverse-header">
-                <div>
-                  <h2>Reverse image search only</h2>
-                  <p className="helper">
-                    {isAddonEnabled('reverse_search')
-                      ? 'Optional: use this for a standalone lookup. The full Contextual Authenticity analysis already runs reverse search if determined necessary by the triage agent.'
-                      : 'Add-on module not enabled. Set ENABLE_REVERSE_SEARCH=true to activate.'}
-                  </p>
-                </div>
-                {isAddonEnabled('reverse_search') ? (
-                  <button
-                    type="button"
-                    className="ghost"
-                    onClick={() => setShowReverseSearch((current) => !current)}
-                  >
-                    {showReverseSearch ? 'Hide' : 'Show'}
-                  </button>
-                ) : (
-                  <span className="badge badge-addon">Add-on</span>
-                )}
-              </div>
-              {showReverseSearch ? (
-                <>
-                  <div className="reverse-header reverse-header-status">
-                    <div className="status" aria-live="polite">
-                      <span className={`status-dot status-${reverseStatus}`} />
-                      {reverseStatus === 'loading' ? (
-                        <span className="spinner" aria-hidden="true" />
-                      ) : null}
-                      <span>{reverseStatusLabel}</span>
-                    </div>
-                  </div>
-                  <div className="grid">
-                    <label className="field">
-                      <span>Image file</span>
-                      <input
-                        key={reverseFileKey}
-                        type="file"
-                        accept="image/*"
-                        onChange={(event) =>
-                          setReverseImageFile(event.target.files?.[0] || null)
-                        }
-                      />
-                      <span className="helper">
-                        {reverseImageFile
-                          ? reverseImageFile.name
-                          : 'Provide the image to search.'}
-                      </span>
-                    </label>
-                    <label className="field">
-                      <span>Image ID (optional)</span>
-                      <input
-                        type="text"
-                        placeholder="Leave blank to auto-generate"
-                        value={reverseImageId}
-                        onChange={(event) => setReverseImageId(event.target.value)}
-                      />
-                      <span className="helper">
-                        Used to retrieve results from the API cache.
-                      </span>
-                    </label>
-                  </div>
-                  <div className="actions">
-                    <button
-                      type="button"
-                      onClick={handleReverseSearch}
-                      disabled={reverseStatus === 'loading'}
-                    >
-                      Run reverse search
-                    </button>
-                    <button
-                      type="button"
-                      className="ghost"
-                      onClick={() => {
-                        setReverseImageFile(null)
-                        setReverseImageId('')
-                        setReverseJob(null)
-                        setReverseResult(null)
-                        setReverseError('')
-                        setReverseStatus('idle')
-                        setReverseFileKey((currentKey) => currentKey + 1)
-                      }}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  {reverseError ? <p className="error">{reverseError}</p> : null}
-                  {reverseResult ? (
-                    <div className="results">
-                      <div className="reverse-meta">
-                        <span>Image ID: {reverseResult.image_id}</span>
-                        {reverseResult.query_hash ? (
-                          <span>Query hash: {reverseResult.query_hash}</span>
-                        ) : null}
-                        {reverseProviders.length ? (
-                          <span>Providers: {reverseProviders.join(', ')}</span>
-                        ) : null}
-                      </div>
-                      {reverseMatches.length ? (
-                        <div className="match-grid">
-                      {reverseMatches.map((match, index) => {
-                        const matchKey = match.id || match.url || index
-                        const confidence = match.confidence ?? 0
-
-                        return (
-                          <article className="match-card" key={matchKey}>
-                            <div className="match-header">
-                              <span className="pill">{match.source}</span>
-                              <span className="pill pill-muted">
-                                {Math.round(confidence * 100)}% confidence
-                              </span>
-                            </div>
-                            <h3>{match.title || 'Untitled match'}</h3>
-                            {match.snippet ? (
-                              <p className="summary-text">{match.snippet}</p>
-                            ) : null}
-                            {match.url ? (
-                              <a href={match.url} target="_blank" rel="noreferrer">
-                                {match.url}
-                              </a>
-                            ) : null}
-                            {match.metadata ? (
-                              <p className="helper">
-                                Metadata: {Object.keys(match.metadata).length} fields
-                              </p>
-                            ) : null}
-                          </article>
-                        )
-                      })}
-                        </div>
-                      ) : (
-                        <p className="helper">
-                          No matches returned. Try another image or check Google Vision API status.
-                        </p>
-                      )}
-                    </div>
-                  ) : reverseJob ? (
-                    <p className="helper">
-                      Reverse search queued. Image ID: {reverseJob.image_id}
-                    </p>
-                  ) : null}
-                </>
-              ) : null}
-            </section>
 
             <section className="card" ref={result ? (el => el ? el.setAttribute('data-export-target', 'results') : null) : null}>
               <div className="result-header">
@@ -1711,6 +1307,26 @@ function App() {
                     <p><strong>Chain ID:</strong> <code>{provenanceData.chain_id}</code></p>
                     <p><strong>Status:</strong> <span className="pill pill-success">{provenanceData.status}</span></p>
                     <p><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</p>
+                    {provenanceData.blockchain_tx_hash ? (
+                      <p>
+                        <strong>Blockchain anchor:</strong>{' '}
+                        <code>{provenanceData.blockchain_tx_hash.substring(0, 18)}…</code>
+                        {provenanceData.blockchain_verification_url &&
+                        !provenanceData.blockchain_verification_url.startsWith('local://') ? (
+                          <>
+                            {' '}
+                            <a
+                              href={provenanceData.blockchain_verification_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="pill pill-success"
+                            >
+                              Verify on-chain ↗
+                            </a>
+                          </>
+                        ) : null}
+                      </p>
+                    ) : null}
                   </div>
                   {provenanceData.blocks?.length > 0 ? (
                     <div className="provenance-blocks">

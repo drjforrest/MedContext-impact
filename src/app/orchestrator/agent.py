@@ -21,6 +21,22 @@ def _get_allowed_tools() -> frozenset[str]:
     return settings.get_enabled_addons()
 
 
+_TOOL_DESCRIPTIONS: dict[str, str] = {
+    "forensics": (
+        "pixel-level and metadata forensics — use when the image may be tampered, "
+        "edited, or AI-generated, or when image integrity is uncertain"
+    ),
+    "reverse_search": (
+        "reverse image search — use when the image may have been reused from a "
+        "different context, or when the claimed origin is suspicious"
+    ),
+    "provenance": (
+        "provenance chain — use when the image claims a specific origin, "
+        "publication, or institution, or when a C2PA/content credential should be "
+        "verified; records an immutable audit trail for the submission"
+    ),
+}
+
 MAX_PREVIEW_BYTES = 1024 * 1024
 
 
@@ -74,17 +90,29 @@ class MedContextAgent:
         )
 
     def _triage(self, image_bytes: bytes, context: str | None) -> MedGemmaResult:
+        allowed_tools = sorted(_get_allowed_tools())
+        tool_guide = (
+            "\nAvailable investigation tools (only list tools from this set):\n"
+            + "\n".join(
+                f"  - {t}: {_TOOL_DESCRIPTIONS.get(t, t)}" for t in allowed_tools
+            )
+            + "\n"
+            if allowed_tools
+            else "\n(No additional investigation tools are enabled.)\n"
+        )
         prompt = (
-            "You are a clinical investigator. "
+            "You are a clinical investigator assessing a medical image for potential "
+            "contextual misinformation.\n"
             "Return ONLY valid JSON with this exact structure:\n"
             "{\n"
-            '  "required_investigation": [<list of needed tools>],\n'
+            '  "required_investigation": [<tools needed from the available list below>],\n'
             '  "primary_findings": "<description>",\n'
             '  "plausibility": "<low|medium|high>",\n'
             '  "context_risk": "<low|medium|high>",\n'
             '  "claim_type": "<caption|clinical|news|social|unknown>"\n'
             "}\n"
-            "CRITICAL: plausibility must be exactly one of: low, medium, high"
+            "CRITICAL: plausibility must be exactly one of: low, medium, high\n"
+            + tool_guide
         )
         if context:
             safe_context = html.escape(context, quote=True)
@@ -532,9 +560,10 @@ class MedContextAgent:
                 layers = self._select_forensics_layers(triage)
                 results[tool] = run_forensics(image_bytes=image_bytes, layers=layers)
             elif tool == "provenance":
-                results[tool] = build_provenance(
+                chain = build_provenance(
                     image_id=resolved_image_id, image_bytes=image_bytes
                 )
+                results[tool] = chain.model_dump(mode="json")
         return results
 
     def _generate_image_id(self):
