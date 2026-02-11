@@ -91,7 +91,9 @@ class TestReverseSearchService:
         assert result1.query_hash == result2.query_hash
 
     @pytest.mark.unit
-    def test_run_reverse_search_without_vision_library(self, sample_image_bytes, caplog):
+    def test_run_reverse_search_without_vision_library(
+        self, sample_image_bytes, caplog
+    ):
         """Test reverse search handles missing google-cloud-vision gracefully."""
         image_id = uuid4()
 

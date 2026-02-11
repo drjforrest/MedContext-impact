@@ -16,7 +16,6 @@ from app.db.models import ImageSubmission, MedGemmaAnalysis, SubmissionContext
 from app.db.session import get_db
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
 from app.provenance.service import store_provenance_manifest
-from app.schemas.common import SubmissionResponse
 from app.schemas.orchestrator import AgentRunResponse
 
 router = APIRouter()

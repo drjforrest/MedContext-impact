@@ -3,17 +3,21 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
-from app.provenance.blockchain import BlockchainAnchorService, get_blockchain_anchor_service
+from app.provenance.blockchain import (
+    BlockchainAnchorService,
+    get_blockchain_anchor_service,
+)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_service(
     rpc_url: str = "https://rpc-mumbai.maticvigil.com",
@@ -54,6 +58,7 @@ def _make_service(
 # ---------------------------------------------------------------------------
 # BlockchainAnchorService unit tests
 # ---------------------------------------------------------------------------
+
 
 class TestBlockchainAnchorService:
 
@@ -102,7 +107,9 @@ class TestBlockchainAnchorService:
     def test_anchor_provenance_returns_none_on_failure(self):
         """anchor_provenance returns None and does not raise when transaction fails."""
         service = _make_service()
-        with patch.object(service, "_send_transaction", side_effect=ConnectionError("RPC down")):
+        with patch.object(
+            service, "_send_transaction", side_effect=ConnectionError("RPC down")
+        ):
             manifest = MagicMock()
             db = MagicMock()
             result = service.anchor_provenance(
@@ -114,7 +121,10 @@ class TestBlockchainAnchorService:
 
         assert result is None
         # Manifest should not have been updated
-        assert not hasattr(manifest, "blockchain_tx_hash") or manifest.blockchain_tx_hash != "anything"
+        assert (
+            not hasattr(manifest, "blockchain_tx_hash")
+            or manifest.blockchain_tx_hash != "anything"
+        )
 
     @pytest.mark.unit
     def test_verify_on_chain_returns_records(self):
@@ -122,7 +132,9 @@ class TestBlockchainAnchorService:
         service = _make_service()
 
         metadata_json = json.dumps({"chain_id": str(uuid4()), "block_count": 2})
-        service._contract.functions.getProvenanceCount.return_value.call.return_value = 1
+        service._contract.functions.getProvenanceCount.return_value.call.return_value = (
+            1
+        )
         service._contract.functions.getProvenance.return_value.call.return_value = (
             metadata_json,
             1707000000,
@@ -157,12 +169,14 @@ class TestBlockchainAnchorService:
 # get_blockchain_anchor_service factory tests
 # ---------------------------------------------------------------------------
 
+
 class TestGetBlockchainAnchorService:
 
     @pytest.mark.unit
     def test_returns_none_when_anchoring_disabled(self):
         """Factory returns None when enable_blockchain_anchoring=False."""
         import app.provenance.blockchain as bm
+
         bm._instance = None  # reset singleton
 
         mock_settings = MagicMock()
@@ -177,6 +191,7 @@ class TestGetBlockchainAnchorService:
     def test_returns_none_when_abi_missing(self):
         """Factory returns None when contract_abi.json has not been deployed yet."""
         import app.provenance.blockchain as bm
+
         bm._instance = None
 
         mock_settings = MagicMock()
@@ -198,6 +213,7 @@ class TestGetBlockchainAnchorService:
     def test_returns_none_when_env_vars_missing(self):
         """Factory returns None when required env vars are empty strings."""
         import app.provenance.blockchain as bm
+
         bm._instance = None
 
         mock_settings = MagicMock()
@@ -219,6 +235,7 @@ class TestGetBlockchainAnchorService:
 # ---------------------------------------------------------------------------
 # Integration: build_provenance with blockchain anchor
 # ---------------------------------------------------------------------------
+
 
 class TestBuildProvenanceBlockchainIntegration:
 
@@ -247,9 +264,14 @@ class TestBuildProvenanceBlockchainIntegration:
 
         mock_anchor = MagicMock()
         mock_anchor.anchor_provenance.return_value = expected_tx
-        mock_anchor.get_explorer_url.return_value = f"https://mumbai.polygonscan.com/tx/{expected_tx}"
+        mock_anchor.get_explorer_url.return_value = (
+            f"https://mumbai.polygonscan.com/tx/{expected_tx}"
+        )
 
-        with patch("app.provenance.service.get_blockchain_anchor_service", return_value=mock_anchor):
+        with patch(
+            "app.provenance.service.get_blockchain_anchor_service",
+            return_value=mock_anchor,
+        ):
             result = build_provenance(
                 image_id=image_id,
                 image_hash="e" * 64,
@@ -275,7 +297,9 @@ class TestBuildProvenanceBlockchainIntegration:
         query.all.return_value = []
         db.query.return_value = query
 
-        with patch("app.provenance.service.get_blockchain_anchor_service", return_value=None):
+        with patch(
+            "app.provenance.service.get_blockchain_anchor_service", return_value=None
+        ):
             result = build_provenance(
                 image_id=image_id,
                 image_hash="f" * 64,
@@ -304,7 +328,10 @@ class TestBuildProvenanceBlockchainIntegration:
         mock_anchor = MagicMock()
         mock_anchor.anchor_provenance.side_effect = RuntimeError("network timeout")
 
-        with patch("app.provenance.service.get_blockchain_anchor_service", return_value=mock_anchor):
+        with patch(
+            "app.provenance.service.get_blockchain_anchor_service",
+            return_value=mock_anchor,
+        ):
             result = build_provenance(
                 image_id=image_id,
                 image_hash="0" * 64,

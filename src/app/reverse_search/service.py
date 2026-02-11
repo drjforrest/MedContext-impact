@@ -12,7 +12,6 @@ returns an empty match list and logs a warning.
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import logging
 from datetime import datetime, timezone
@@ -20,7 +19,6 @@ from uuid import UUID, uuid4
 
 import cachetools
 
-from app.core.config import settings
 
 try:
     from google.cloud import vision  # type: ignore[attr-defined]
@@ -77,46 +75,49 @@ def _reverse_search_with_google_vision(image_bytes: bytes) -> list[ReverseSearch
 
         # Extract full matching images
         for page in web_detection.pages_with_matching_images[:10]:
-            matches.append(ReverseSearchMatch(
-                source="google_vision",
-                url=page.url,
-                title=page.page_title or "Image match found",
-                snippet=f"Full image match discovered at {page.url}",
-                confidence=0.95,
-                discovered_at=datetime.now(timezone.utc),
-                metadata={
-                    "match_type": "full",
-                    "page_url": page.page_url
-                }
-            ))
+            matches.append(
+                ReverseSearchMatch(
+                    source="google_vision",
+                    url=page.url,
+                    title=page.page_title or "Image match found",
+                    snippet=f"Full image match discovered at {page.url}",
+                    confidence=0.95,
+                    discovered_at=datetime.now(timezone.utc),
+                    metadata={"match_type": "full", "page_url": page.page_url},
+                )
+            )
 
         # Extract partial matches (visually similar)
         for partial in web_detection.partially_matching_images[:10]:
-            matches.append(ReverseSearchMatch(
-                source="google_vision",
-                url=partial.url,
-                title="Partial match",
-                snippet="Visually similar image found",
-                confidence=0.70,
-                discovered_at=datetime.now(timezone.utc),
-                metadata={"match_type": "partial"}
-            ))
+            matches.append(
+                ReverseSearchMatch(
+                    source="google_vision",
+                    url=partial.url,
+                    title="Partial match",
+                    snippet="Visually similar image found",
+                    confidence=0.70,
+                    discovered_at=datetime.now(timezone.utc),
+                    metadata={"match_type": "partial"},
+                )
+            )
 
         # Extract web entities (what Google thinks the image represents)
         for entity in web_detection.web_entities:
             if entity.score > 0.5:
-                matches.append(ReverseSearchMatch(
-                    source="google_vision",
-                    url=f"https://www.google.com/search?q={entity.description}",
-                    title=f"Related: {entity.description}",
-                    snippet=f"Entity confidence: {entity.score:.2f}",
-                    confidence=entity.score,
-                    discovered_at=datetime.now(timezone.utc),
-                    metadata={
-                        "match_type": "entity",
-                        "entity_id": entity.entity_id
-                    }
-                ))
+                matches.append(
+                    ReverseSearchMatch(
+                        source="google_vision",
+                        url=f"https://www.google.com/search?q={entity.description}",
+                        title=f"Related: {entity.description}",
+                        snippet=f"Entity confidence: {entity.score:.2f}",
+                        confidence=entity.score,
+                        discovered_at=datetime.now(timezone.utc),
+                        metadata={
+                            "match_type": "entity",
+                            "entity_id": entity.entity_id,
+                        },
+                    )
+                )
 
         return matches
     except Exception as e:
@@ -137,14 +138,14 @@ def run_reverse_search(
     if image_bytes:
         matches = _reverse_search_with_google_vision(image_bytes)
         providers = _PROVIDERS if matches else None
-        
+
         if matches:
             status = "completed"
             detail = f"Found {len(matches)} matches via Google Vision API"
         else:
             status = "completed"
             detail = "No matches found via Google Vision API"
-            
+
         _RESULTS_CACHE[resolved_image_id] = ReverseSearchResult(
             job_id=job_id,
             image_id=resolved_image_id,
@@ -185,7 +186,7 @@ def get_reverse_search_results(image_id: UUID | str) -> ReverseSearchResult:
 
     now = datetime.now(timezone.utc)
     fallback_hash = _hash_text(str(resolved_image_id))
-    
+
     result = ReverseSearchResult(
         job_id=uuid4(),
         image_id=resolved_image_id,

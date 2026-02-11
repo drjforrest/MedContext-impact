@@ -124,15 +124,15 @@ class MedContextLangGraphAgent:
 
         # Combined pre-screen + MedGemma analysis + tool recommendations
         pre_screen = self._pre_screen_integrity(image_bytes, context)
-        
+
         # Get medical analysis from MedGemma
         medical_analysis = self._get_medical_analysis(image_bytes, context)
-        
+
         # MedGemma suggests tools based on medical analysis and pre-screen results
         medgemma_tool_recommendations = self._medgemma_tool_recommendations(
             medical_analysis, context, pre_screen
         )
-        
+
         # LLM orchestrator approves or modifies MedGemma's tool recommendations
         tool_selection = self._orchestrate_tool_approval(
             medical_analysis, context, pre_screen, medgemma_tool_recommendations
@@ -235,11 +235,13 @@ class MedContextLangGraphAgent:
         if pre_screen and pre_screen.get("claim_flags"):
             if "forensics" not in recommendations:
                 recommendations.append("forensics")
-            reasoning_parts.append(f"claim flags: {', '.join(pre_screen['claim_flags'])}")
+            reasoning_parts.append(
+                f"claim flags: {', '.join(pre_screen['claim_flags'])}"
+            )
 
         return {
             "tools": self._sanitize_tools(recommendations),
-            "reasoning": f"MedGemma recommendations based on: {', '.join(reasoning_parts)}"
+            "reasoning": f"MedGemma recommendations based on: {', '.join(reasoning_parts)}",
         }
 
     def _orchestrate_tool_approval(
@@ -258,14 +260,6 @@ class MedContextLangGraphAgent:
         enabled = settings.get_enabled_addons()
         if not enabled:
             return {"tools": [], "reasoning": "No add-on modules enabled"}
-
-        # If MedGemma recommendations are provided, use them as input
-        if medgemma_recommendations:
-            medgemma_tools = medgemma_recommendations.get("tools", [])
-            medgemma_reasoning = medgemma_recommendations.get("reasoning", "")
-        else:
-            medgemma_tools = []
-            medgemma_reasoning = ""
 
         # Hard-gate: structural signals override MedGemma recommendations
         if pre_screen and pre_screen.get("force_forensics") and "forensics" in enabled:
@@ -376,7 +370,9 @@ class MedContextLangGraphAgent:
             if medgemma_recommendations:
                 return medgemma_recommendations
             else:
-                return self._fallback_tool_selection(medical_analysis, context, pre_screen)
+                return self._fallback_tool_selection(
+                    medical_analysis, context, pre_screen
+                )
 
     def _pre_screen_integrity(
         self, image_bytes: bytes, context: str | None

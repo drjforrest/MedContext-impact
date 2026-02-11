@@ -10,6 +10,7 @@ Outputs:
     - Prints contract address and transaction hash
     - Writes ABI to src/app/provenance/contract_abi.json
 """
+
 from __future__ import annotations
 
 import json
@@ -104,7 +105,7 @@ def main() -> None:
     else:
         explorer_url = f"https://polygonscan.com/address/{contract_address}"
 
-    print(f"\n✓ Contract deployed successfully!")
+    print("\n✓ Contract deployed successfully!")
     print(f"  Address: {contract_address}")
     print(f"  Tx hash: {tx_hash.hex()}")
     print(f"  Explorer: {explorer_url}")
@@ -114,9 +115,9 @@ def main() -> None:
     ABI_OUTPUT_PATH.write_text(json.dumps(contract_interface["abi"], indent=2))
     print(f"\n✓ ABI written to {ABI_OUTPUT_PATH}")
 
-    print(f"\nAdd to .env:")
+    print("\nAdd to .env:")
     print(f"  CONTRACT_ADDRESS={contract_address}")
-    print(f"  ENABLE_BLOCKCHAIN_ANCHORING=true")
+    print("  ENABLE_BLOCKCHAIN_ANCHORING=true")
 
 
 if __name__ == "__main__":

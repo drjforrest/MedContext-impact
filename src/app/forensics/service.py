@@ -195,7 +195,7 @@ def _run_layer_1_dicom(image_bytes: bytes) -> IntegrityLayerResult:
                 "columns": cols,
             },
         )
-    except Exception as exc:
+    except Exception:
         import logging
 
         logging.exception("DICOM forensics layer_1 failed")

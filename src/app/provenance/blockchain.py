@@ -195,7 +195,6 @@ def get_blockchain_anchor_service() -> BlockchainAnchorService | None:
     if _instance is not None:
         return _instance
 
-    from app.core.config import settings
 
     if not settings.enable_blockchain_anchoring:
         return None
