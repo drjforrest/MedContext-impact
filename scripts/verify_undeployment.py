@@ -11,7 +11,7 @@ from google.cloud import aiplatform
 
 PROJECT_ID = "medcontext"
 LOCATION = "us-central1"
-ENDPOINT_ID = "PLACEHOLDER_ENDPOINT_ID"
+ENDPOINT_ID = "mg-endpoint-51eed710-5889-4a87-a7e9-675990019775"
 
 
 def main():
