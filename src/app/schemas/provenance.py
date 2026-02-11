@@ -22,6 +22,8 @@ class ProvenanceChainResponse(BaseModel):
     status: str
     created_at: datetime
     blocks: list[ProvenanceBlock]
+    blockchain_tx_hash: str | None = None
+    blockchain_verification_url: str | None = None
 
 
 class ProvenanceManifestCreate(BaseModel):

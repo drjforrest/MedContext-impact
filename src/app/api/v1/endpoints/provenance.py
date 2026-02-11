@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.modules import require_module
 from app.db.models import ImageSubmission
 from app.db.session import get_db
+from app.provenance.blockchain import get_blockchain_anchor_service
 from app.provenance.service import build_provenance, get_provenance_manifest
 from app.provenance.service import store_provenance_manifest
 from app.schemas.common import JobResponse
@@ -96,3 +97,27 @@ async def get_manifest(
     if record is None:
         raise HTTPException(status_code=404, detail="Manifest not found.")
     return _build_manifest_response(record)
+
+
+@router.get("/verify/{image_hash}/blockchain")
+async def blockchain_verify(image_hash: str) -> dict:
+    """
+    Query the Polygon smart contract for provenance records for this image hash.
+
+    Returns the full on-chain history with timestamps, recorder addresses,
+    and a PolygonScan verification URL.
+    """
+    _validate_image_hash(image_hash)
+    anchor_service = get_blockchain_anchor_service()
+    if anchor_service is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Blockchain anchoring is not enabled or not configured.",
+        )
+    result = anchor_service.verify_on_chain(image_hash)
+    if not result["verified"]:
+        raise HTTPException(
+            status_code=404,
+            detail="No on-chain provenance records found for this image hash.",
+        )
+    return result

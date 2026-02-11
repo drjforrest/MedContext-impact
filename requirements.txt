@@ -330,3 +330,8 @@ xxhash==3.6.0
     # via langgraph
 zstandard==0.25.0
     # via langsmith
+
+# Blockchain provenance anchoring (optional feature)
+web3==6.15.1
+eth-account==0.11.0
+py-solc-x==2.0.2

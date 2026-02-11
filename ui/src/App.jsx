@@ -1313,7 +1313,7 @@ function App() {
                         </div>
                       ) : (
                         <p className="helper">
-                          No matches returned. Try another image or check SerpAPI status.
+                          No matches returned. Try another image or check Google Vision API status.
                         </p>
                       )}
                     </div>

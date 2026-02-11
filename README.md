@@ -37,21 +37,23 @@ From our comprehensive literature review of ~100 sources, we discovered the real
 
 **Hypothesis:** If authentic images dominate misinformation, pixel-level forensics should fail on real-world medical datasets.
 
-**Test:** We evaluated forensics approaches on 326 real medical images from the UCI Tamper Detection dataset, with particular focus on DICOM images that require specialized validation methods.
+**Test:** Two validation studies:
+1. **Study 1 (ELA, n=326):** ELA tested on 326 UCI Tamper Detection DICOM images → proved ELA fails (49.9%, chance)
+2. **Study 2 (three-method, n=160):** Format-routed pixel forensics + MedGemma contextual analysis on 160 samples (120 BTD MRI PNGs + 40 UCI tampered DICOMs)
 
-**Updated Methodology:**
+**Methodology:**
 
-- **DICOM-Specific Forensics:** Removed ELA (Error Level Analysis) for DICOM images due to inappropriate JPEG compression assumptions; replaced with DICOM header integrity checks, metadata consistency analysis, and modality-specific validation
-- **Contextual Analysis:** Enhanced with medical domain expertise, focusing on image-claim alignment rather than pixel manipulation
-- **Multi-Layer Validation:** Combined pixel forensics (for non-DICOM), header validation (for DICOM), and contextual analysis
+- **Layer 1 (format-routed):** DICOM → header integrity + copy-move detection; PNG/JPEG → copy-move detection (replaces ELA)
+- **Layer 2 (MedGemma):** Veracity scored on the claim alone; alignment scored on the image-claim pair
+- **Layer 3 (EXIF):** Software tags, modification timestamps, camera metadata
 
-**Result:**
+**Results:**
 
 <div align="center">
 
-### 49.9% Accuracy [95% CI: 44.5%, 55.5%] - Pixel Forensics Alone
+### Study 1 — ELA: 49.9% [95% CI: 44.5%, 55.5%] — Chance (proves ELA fails)
 
-### 65.6% Accuracy [95% CI: 55.6%, 75.6%] - Contextual Analysis
+### Study 2 — Image Integrity: 97.5% · Veracity: 61.3% · Alignment: 56.9%
 
 </div>
 
@@ -67,10 +69,10 @@ From our comprehensive literature review of ~100 sources, we discovered the real
 
 **What this proves:**
 
-- ✅ Pixel forensics alone achieve chance performance on medical images
-- ✅ DICOM-specific validation methods are necessary for medical imaging
-- ✅ Context-based detection significantly outperforms pixel-based methods
-- ✅ MedContext is optimized for the actual problem (not synthetic benchmarks)
+- ✅ ELA achieves chance performance on medical DICOM images (Study 1: 49.9%)
+- ✅ DICOM-native pixel forensics reliably detects tampered images (Study 2: 97.5%)
+- ✅ Pixel forensics has no signal for veracity or alignment — those require MedGemma
+- ✅ MedContext is optimized for the actual problem: contextual misuse of authentic images
 
 [**📊 See Full Validation Results**](docs/VALIDATION.md)
 
@@ -229,7 +231,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 | ------------------------------------ | --------------------------------------------------------- |
 | ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (80% authentic images) |
 | ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                             |
-| ❌ Claim pixel forensics works       | ✅ Proved pixel forensics fails (50% accuracy)            |
+| ❌ Use ELA on medical images         | ✅ Proved ELA fails (50%); uses DICOM-native forensics (97.5%)  |
 | ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                     |
 | ❌ Proof of concept                  | ✅ Production-ready (33/33 tests passing)                 |
 
@@ -247,11 +249,14 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ### Empirical Validation
 
-- **Pixel Forensics:** UCI Tamper Detection (326 images) → 49.9% accuracy [95% CI: 44.5%, 55.5%]
-- **Contextual Analysis:** 90 image-claim pairs → 65.6% accuracy [95% CI: 55.6%, 75.6%]
-- **Method:** Bootstrap resampling (1,000 iterations)
-- **Results:** 95% confidence intervals for all metrics
-- **Conclusion:** Pixel forensics achieves chance performance; contextual analysis significantly outperforms
+| Study | Dataset | Method | Result |
+|-------|---------|--------|--------|
+| Study 1 (historical) | 326 UCI DICOM images | ELA (Layer 1) | 49.9% — chance performance |
+| Study 2 (current) | 160 samples (120 BTD + 40 UCI) | DICOM-native pixel forensics | **97.5% image integrity** (100% precision) |
+| Study 2 (current) | 160 image-claim pairs | MedGemma contextual | Veracity 61.3% · Alignment 56.9% |
+
+- **Method:** Study 1: Bootstrap resampling (1,000 iterations); Study 2: three-method dimensional validation
+- **Conclusion:** ELA achieves chance performance; DICOM-native forensics solves tamper detection; contextual analysis is required for the 80% authentic-image threat
 
 ### Novel Contributions
 
@@ -375,7 +380,7 @@ GET /api/v1/orchestrator/graph
 **Individual Tools:**
 
 ```bash
-POST /api/v1/forensics/analyze      # ELA + EXIF analysis
+POST /api/v1/forensics/analyze      # Pixel forensics + EXIF analysis
 POST /api/v1/reverse-search/search  # Reverse image search
 POST /api/v1/ingestion/upload       # Image submission
 ```
@@ -420,8 +425,8 @@ medcontext/
 
 ### Forensics as Supporting Evidence
 
-- **Layer 1:** ELA (Error Level Analysis)
-- **Layer 3:** EXIF metadata extraction
+- **Layer 1:** Format-routed pixel forensics (DICOM → header integrity + copy-move; PNG/JPEG → copy-move)
+- **Layer 3:** EXIF metadata extraction (software tags, timestamps)
 - **Ensemble voting:** Confidence-weighted signals
 - **Honest framing:** Supporting evidence, not definitive claims
 

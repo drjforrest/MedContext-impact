@@ -24,6 +24,9 @@ class ProvenanceManifest(Base):
     validation_state = Column(String, nullable=True)
     validation_results = Column(JSONB, nullable=True)
     source_url = Column(Text, nullable=True)
+    blockchain_tx_hash = Column(String, unique=True, nullable=True)
+    blockchain_network = Column(String, nullable=True)
+    blockchain_anchored_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 

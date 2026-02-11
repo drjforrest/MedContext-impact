@@ -357,8 +357,37 @@ def build_provenance(
         elif manifest_record:
             status = "registered"
 
+        # Optionally anchor the chain on the Polygon blockchain (non-fatal)
+        blockchain_tx_hash: str | None = None
+        if manifest_record and session:
+            from app.provenance.blockchain import get_blockchain_anchor_service
+
+            anchor_service = get_blockchain_anchor_service()
+            if anchor_service:
+                chain_summary = {
+                    "chain_id": str(chain_id),
+                    "image_hash": image_hash,
+                    "block_count": len(blocks),
+                    "final_hash": blocks[-1].block_hash if blocks else None,
+                    "system": "medcontext-v0.1.0",
+                }
+                try:
+                    blockchain_tx_hash = anchor_service.anchor_provenance(
+                        image_hash, chain_summary, manifest_record, session
+                    )
+                except Exception as exc:
+                    logger.warning("Blockchain anchor failed (non-fatal): %s", exc)
+
         if owns_session:
             session.commit()
+
+        blockchain_verification_url: str | None = None
+        if blockchain_tx_hash:
+            from app.provenance.blockchain import get_blockchain_anchor_service
+
+            svc = get_blockchain_anchor_service()
+            if svc:
+                blockchain_verification_url = svc.get_explorer_url(blockchain_tx_hash)
 
         return ProvenanceChainResponse(
             chain_id=chain_id,
@@ -366,6 +395,8 @@ def build_provenance(
             status=status,
             created_at=datetime.now(timezone.utc),
             blocks=blocks,
+            blockchain_tx_hash=blockchain_tx_hash,
+            blockchain_verification_url=blockchain_verification_url,
         )
     finally:
         if owns_session:

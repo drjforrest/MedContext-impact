@@ -26,6 +26,10 @@ dependencies = [
   "psycopg2-binary>=2.9.11",
   "cachetools>=6.2.4",
   "pydicom>=3.0.0",
+  # Blockchain provenance anchoring (optional feature)
+  "web3==6.15.1",
+  "eth-account==0.11.0",
+  "py-solc-x==2.0.2",
 ]
 
 [project.optional-dependencies]

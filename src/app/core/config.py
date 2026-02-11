@@ -63,11 +63,31 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN"),
     )
-    # Add-on modules (disabled by default; core works without them)
+    # Add-on modules (forensics enabled by default; others opt-in)
     enable_reverse_search: bool = False
     enable_provenance: bool = False
-    enable_forensics: bool = False
+    enable_forensics: bool = True
     enable_forensics_medgemma: bool = False
+
+    # Blockchain provenance anchoring (requires enable_provenance=True)
+    enable_blockchain_anchoring: bool = False
+    polygon_rpc_url: str = Field(
+        default="",
+        validation_alias=AliasChoices("POLYGON_RPC_URL"),
+    )
+    ethereum_private_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("ETHEREUM_PRIVATE_KEY"),
+        repr=False,
+    )
+    polygon_network: str = Field(
+        default="mumbai",
+        validation_alias=AliasChoices("POLYGON_NETWORK"),
+    )
+    contract_address: str = Field(
+        default="",
+        validation_alias=AliasChoices("CONTRACT_ADDRESS"),
+    )
 
     def get_enabled_addons(self) -> frozenset[str]:
         """Return the set of enabled add-on tool names."""

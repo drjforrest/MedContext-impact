@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import logging
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 import cachetools
+from google.cloud import vision
 
 from app.core.config import settings
 from app.schemas.reverse_search import (
@@ -15,27 +17,7 @@ from app.schemas.reverse_search import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-_PROVIDERS = ["open_web", "news_archive", "social_graph"]
-_SAMPLE_MATCHES = [
-    {
-        "source": "open_web",
-        "url": "https://example.com/news/health-image-1",
-        "title": "Image appears in early coverage",
-        "snippet": "The image was first spotted in a regional news archive.",
-    },
-    {
-        "source": "news_archive",
-        "url": "https://example.com/archive/health-image-2",
-        "title": "Archived snapshot",
-        "snippet": "A historical archive lists the image with metadata.",
-    },
-    {
-        "source": "social_graph",
-        "url": "https://example.com/social/post/12345",
-        "title": "Early social share",
-        "snippet": "The earliest share appears in a public community post.",
-    },
-]
+_PROVIDERS = ["google_vision"]
 _RESULTS_CACHE: cachetools.TTLCache[UUID, ReverseSearchResult] = cachetools.TTLCache(
     maxsize=1024,
     ttl=3600,
@@ -56,89 +38,71 @@ def _hash_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _extract_serpapi_matches(payload: dict, now: datetime) -> list[ReverseSearchMatch]:
-    candidates = None
-    for key in ("image_results", "images_results", "inline_images"):
-        if isinstance(payload.get(key), list):
-            candidates = payload[key]
-            break
-    if not candidates:
+def _reverse_search_with_google_vision(image_bytes: bytes) -> list[ReverseSearchMatch]:
+    """
+    Google Vision API accepts image bytes directly - no URL needed.
+    
+    Privacy: Image sent directly to Google's API over HTTPS, not stored publicly.
+    Cost: $1.50 per 1000 images (Web Detection feature).
+    """
+    try:
+        client = vision.ImageAnnotatorClient()
+
+        # Send raw image bytes to Google Vision
+        image = vision.Image(content=image_bytes)
+
+        response = client.web_detection(image=image)
+        web_detection = response.web_detection
+
+        matches = []
+
+        # Extract full matching images
+        for page in web_detection.pages_with_matching_images[:10]:
+            matches.append(ReverseSearchMatch(
+                source="google_vision",
+                url=page.url,
+                title=page.page_title or "Image match found",
+                snippet=f"Full image match discovered at {page.url}",
+                confidence=0.95,
+                discovered_at=datetime.now(timezone.utc),
+                metadata={
+                    "match_type": "full",
+                    "page_url": page.page_url
+                }
+            ))
+
+        # Extract partial matches (visually similar)
+        for partial in web_detection.partially_matching_images[:10]:
+            matches.append(ReverseSearchMatch(
+                source="google_vision",
+                url=partial.url,
+                title="Partial match",
+                snippet="Visually similar image found",
+                confidence=0.70,
+                discovered_at=datetime.now(timezone.utc),
+                metadata={"match_type": "partial"}
+            ))
+
+        # Extract web entities (what Google thinks the image represents)
+        for entity in web_detection.web_entities:
+            if entity.score > 0.5:
+                matches.append(ReverseSearchMatch(
+                    source="google_vision",
+                    url=f"https://www.google.com/search?q={entity.description}",
+                    title=f"Related: {entity.description}",
+                    snippet=f"Entity confidence: {entity.score:.2f}",
+                    confidence=entity.score,
+                    discovered_at=datetime.now(timezone.utc),
+                    metadata={
+                        "match_type": "entity",
+                        "entity_id": entity.entity_id
+                    }
+                ))
+
+        return matches
+    except Exception as e:
+        _LOGGER.error(f"Google Vision API error: {e}")
         return []
-
-    matches: list[ReverseSearchMatch] = []
-    for index, item in enumerate(candidates[:10]):
-        if not isinstance(item, dict):
-            continue
-
-        url = item.get("link") or item.get("original") or item.get("image")
-        if not url:
-            continue
-
-        source = item.get("source") or item.get("source_name") or "serpapi"
-        title = item.get("title") or item.get("snippet")
-        snippet = item.get("snippet") or item.get("description")
-        confidence = max(0.3, 0.9 - (index * 0.05))
-        metadata = {
-            "thumbnail": item.get("thumbnail"),
-            "source_icon": item.get("source_icon"),
-            "position": item.get("position", index + 1),
-        }
-
-        matches.append(
-            ReverseSearchMatch(
-                source=source,
-                url=url,
-                title=title,
-                snippet=snippet,
-                confidence=round(confidence, 3),
-                discovered_at=now,
-                metadata={k: v for k, v in metadata.items() if v is not None},
-            )
-        )
-
-    return matches
-
-
-def _fetch_serpapi_matches(
-    image_bytes: bytes, now: datetime
-) -> tuple[list[ReverseSearchMatch], list[str] | None]:
-    if not settings.serp_api_key:
-        return [], None
-
-    # Size check: Base64 encoding increases size by ~33%, so we check the original bytes
-    # Typical URL length limits are around 8KB-2KB, so we'll use a conservative limit
-    MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
-    if len(image_bytes) > MAX_IMAGE_SIZE_BYTES:
-        _LOGGER.warning(
-            "Image too large for SerpAPI reverse search: %d bytes > %d bytes",
-            len(image_bytes),
-            MAX_IMAGE_SIZE_BYTES,
-        )
-        return [], None
-
-    # SerpAPI does not support sending base64 image content directly in GET request parameters.
-    # According to SerpAPI documentation, the recommended approach is to provide an image URL.
-    # Since we have local image bytes, we cannot use the image_content parameter with GET requests.
-    # We would need to host the image at a public URL to use SerpAPI's reverse image search.
-    # Therefore, we skip SerpAPI for local image bytes.
-
-    _LOGGER.info(
-        "Skipping SerpAPI reverse search - requires public image URL, not local bytes"
-    )
-    return [], None
-
-
-def _build_matches(query_hash: str, queued_at: datetime) -> list[ReverseSearchMatch]:
-    return [
-        ReverseSearchMatch(
-            source="serpapi",
-            url=f"https://serpapi.com/search?q={query_hash}",
-            title="SerpAPI Search Result",
-            snippet="A search result from the SerpAPI API.",
-            confidence=0.5,
-            discovered_at=queued_at,
-        )
-    ]
 
 
 def run_reverse_search(
@@ -152,16 +116,20 @@ def run_reverse_search(
     detail: str | None = None
 
     if image_bytes:
-        matches, providers = _fetch_serpapi_matches(image_bytes, queued_at)
-        if not matches:
-            matches = _build_matches(query_hash, queued_at)
-            providers = _PROVIDERS
-
-        status = "completed"
+        matches = _reverse_search_with_google_vision(image_bytes)
+        providers = _PROVIDERS if matches else None
+        
+        if matches:
+            status = "completed"
+            detail = f"Found {len(matches)} matches via Google Vision API"
+        else:
+            status = "completed"
+            detail = "No matches found via Google Vision API"
+            
         _RESULTS_CACHE[resolved_image_id] = ReverseSearchResult(
             job_id=job_id,
             image_id=resolved_image_id,
-            status="completed",
+            status=status,
             queried_at=queued_at,
             query_hash=query_hash,
             providers=providers,
@@ -198,8 +166,7 @@ def get_reverse_search_results(image_id: UUID | str) -> ReverseSearchResult:
 
     now = datetime.now(timezone.utc)
     fallback_hash = _hash_text(str(resolved_image_id))
-    matches = _build_matches(fallback_hash, now)
-
+    
     result = ReverseSearchResult(
         job_id=uuid4(),
         image_id=resolved_image_id,
@@ -207,7 +174,7 @@ def get_reverse_search_results(image_id: UUID | str) -> ReverseSearchResult:
         queried_at=now,
         query_hash=fallback_hash,
         providers=_PROVIDERS,
-        matches=matches,
+        matches=[],
     )
     _RESULTS_CACHE[resolved_image_id] = result
     return result

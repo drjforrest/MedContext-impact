@@ -4,13 +4,15 @@
 
 ## Executive Summary
 
-We empirically validated that **traditional pixel-level forensics achieve ~50% accuracy** (chance performance) on real-world medical image manipulation detection, particularly when applied to DICOM images. This finding provides quantitative evidence that contextual authenticity analysis—not pixel authenticity—is the correct approach for medical misinformation detection.
+We empirically validated that **ELA (Error Level Analysis) achieves ~50% accuracy** (chance performance) on real-world medical image manipulation detection. This finding confirmed that ELA is inappropriate for medical imaging and motivated its replacement with DICOM-native pixel forensics. A separate contextual analysis layer is required for the dominant real-world threat: authentic images with misleading claims.
 
-**Key Finding:**
+**Key Findings:**
 
-> Traditional pixel-level forensics (including ELA) achieved 49.9% accuracy [95% CI: 44.5%, 55.5%] on medical images, statistically indistinguishable from random guessing. However, **DICOM-specific validation methods** and **contextual analysis** significantly outperform pixel-based approaches.
+> **Study 1 (historical — ELA):** ELA achieved 49.9% accuracy [95% CI: 44.5%, 55.5%] on 326 UCI Tamper Detection images, indistinguishable from chance. ELA relies on JPEG compression artefacts — a signal absent in DICOM files and images recompressed multiple times.
+>
+> **Study 2 (current — three-method):** Replacing ELA with format-routed pixel forensics (DICOM → header integrity + copy-move; PNG/JPEG → copy-move) achieves **97.5% accuracy** on image integrity across 160 samples (100% precision, 96.7% recall). Contextual analysis (MedGemma) independently scores veracity on the claim alone (61.3%) and alignment on the image-claim pair (56.9%) — dimensions pixel forensics cannot address.
 
-This validates our core thesis from literature review: over half of medical misinformation includes visuals, predominantly authentic images used in misleading contexts (Brennen et al., 2021), making pixel-based detection insufficient.
+This validates our core thesis from literature review: over half of medical misinformation includes visuals, predominantly authentic images used in misleading contexts (Brennen et al., 2021). DICOM-native forensics solves the tamper-detection problem; contextual analysis is required for the 80% authentic-image threat.
 
 ---
 
@@ -28,18 +30,19 @@ From our comprehensive literature review (Forrest 2026, ~100 sources):
 
 ### The Test
 
-We evaluated our forensics layer using **DICOM-appropriate methods** (header integrity, metadata consistency, modality-specific validation) + compression analysis + EXIF metadata on the UCI Tamper Detection dataset—real medical images with documented manipulations.
+We evaluated ELA (Layer 1) + MedGemma semantic analysis (Layer 2) + EXIF metadata (Layer 3) on the UCI Tamper Detection dataset — real medical DICOM images with documented manipulations. ELA was the Layer 1 method at the time; it has since been replaced with DICOM-native pixel forensics (see Study 2 results above).
 
 **Dataset:** 326 balanced images (163 authentic + 163 manipulated)
 **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals
-**Forensics Layers:** DICOM-specific validation (for medical images) + MedGemma (semantic) + EXIF (metadata)
+**Forensics Layers (Study 1):** ELA compression analysis + MedGemma semantic + EXIF metadata
 
 ### The Result
 
-**Traditional Pixel Forensics Accuracy: 49.9% [95% CI: 44.5%, 55.5%]** (chance performance)
-**DICOM-Appropriate Methods + Contextual Analysis: 65.6% [95% CI: 55.6%, 75.6%]** (significant improvement)
+**Study 1 — ELA (Layer 1): 49.9% [95% CI: 44.5%, 55.5%]** (chance performance, n=326 UCI DICOMs)
+**Contextual Analysis (MedGemma): 65.6% [95% CI: 55.6%, 75.6%]** (significant improvement, n=90 image-claim pairs)
+**Study 2 — DICOM-native pixel forensics: 97.5%** (100% precision, 96.7% recall, n=160 samples)
 
-Traditional pixel-level approaches (including ELA) performed at chance level, while DICOM-appropriate validation methods combined with contextual analysis significantly outperformed.
+ELA performed at chance level. Replacing ELA with format-routed pixel forensics (DICOM-native for DICOMs, copy-move for PNG/JPEG) achieves 97.5% accuracy on image integrity. Contextual analysis (MedGemma) significantly outperforms ELA for the authentic-image misinformation threat and remains necessary for veracity and alignment.
 
 ### The Validation
 
@@ -58,10 +61,11 @@ While competitors chase 95% accuracy on synthetic manipulation benchmarks, we're
 | Approach                                  | Benchmark Accuracy | Real-World Performance                                   | Target Threat        |
 | ----------------------------------------- | ------------------ | -------------------------------------------------------- | -------------------- |
 | Synthetic manipulation detectors          | 90%+               | ❓ Untested                                              | Deepfakes (20%)      |
-| Traditional Pixel forensics (incl. ELA)   | 85%+               | ⚠️ ~50% (our study)                                      | Any manipulation     |
-| **DICOM-Appropriate + Contextual**[^1]    | N/A                | ✅ 65.6% (combined approach) — full system under evaluation | Context misuse (80%) |
+| ELA (old Layer 1)                         | 85%+               | ⚠️ ~50% — Study 1 (our study, n=326 UCI DICOMs)          | Any manipulation     |
+| **DICOM-native pixel forensics**[^1]      | N/A                | ✅ 97.5% image integrity — Study 2 (n=160)               | Pixel tampering (20%) |
+| **Contextual analysis (MedGemma)**        | N/A                | ✅ 65.6% (n=90 claim pairs) · veracity 61.3% · alignment 56.9% | Context misuse (80%) |
 
-[^1]: This validation tested traditional forensics layer (ELA + MedGemma image analysis + EXIF metadata) vs. DICOM-appropriate methods (header integrity, metadata consistency, modality-specific validation) + contextual analysis. The full contextual system includes provenance tracking, reverse image search, source reputation analysis, and genealogy verification—components not evaluated in traditional forensics study.
+[^1]: Study 1 tested ELA (Layer 1) + MedGemma semantic (Layer 2) + EXIF (Layer 3) on 326 UCI DICOM images. ELA failed (49.9%), which motivated Study 2. Study 2 tested format-routed pixel forensics (DICOM → header integrity + copy-move; PNG/JPEG → copy-move) on 160 samples (120 BTD MRI PNGs + 40 UCI DICOMs) plus MedGemma contextual analysis for veracity and alignment. The full system also includes provenance tracking and reverse image search — not evaluated in either validation study.
 
 **Key Insight:** High benchmark accuracy ≠ real-world effectiveness; medical imaging requires specialized validation approaches.
 
@@ -149,15 +153,17 @@ The current **UNCERTAIN → Positive** mapping was chosen as the **primary evalu
 
 Under this rule, all 287 UNCERTAIN verdicts + 39 MANIPULATED verdicts = 326 total positive (manipulated) predictions in the confusion matrix below.
 
-### ELA Feature Analysis
+### Pixel Forensics Feature Analysis (Traditional Methods)
 
 | Metric             | Authentic Images | Manipulated Images | Difference |
 | ------------------ | ---------------- | ------------------ | ---------- |
-| **ELA Std Mean**   | 27.22 ± 6.20     | 26.56 ± 6.56       | -0.66      |
-| **ELA Std Median** | 27.18            | 26.48              | -0.70      |
-| **ELA Max Mean**   | 255.00 ± 0.00    | 255.00 ± 0.00      | 0.00       |
+| **Pixel Std Mean** | 27.22 ± 6.20     | 26.56 ± 6.56       | -0.66      |
+| **Pixel Std Median**| 27.18            | 26.48              | -0.70      |
+| **Pixel Max Mean** | 255.00 ± 0.00    | 255.00 ± 0.00      | 0.00       |
 
-**Critical Finding:** ELA standard deviation means are nearly identical between authentic and manipulated images, with authentic images paradoxically showing _higher_ variability (27.22 vs 26.56). This inversion indicates compression artifacts dominate the signal, making manipulation detection unreliable. The lack of separability in ELA features directly explains why 88% of predictions fell below the 0.50 threshold and were classified as UNCERTAIN (see binary mapping rule above).
+**Critical Finding:** Traditional pixel forensics standard deviation means are nearly identical between authentic and manipulated images, with authentic images paradoxically showing _higher_ variability (27.22 vs 26.56). This inversion indicates compression artifacts dominate the signal, making manipulation detection unreliable. The lack of separability in pixel forensics features directly explains why 88% of predictions fell below the 0.50 threshold and were classified as UNCERTAIN (see binary mapping rule above).
+
+For DICOM images specifically, ELA is inappropriate because DICOM files are not JPEG-compressed. The current Layer 1 implementation routes DICOM files to DICOM-native forensics (header integrity + copy-move on the pixel array) and PNG/JPEG to copy-move detection.
 
 ### Separability Analysis
 
@@ -165,7 +171,7 @@ Under this rule, all 287 UNCERTAIN verdicts + 39 MANIPULATED verdicts = 326 tota
 - **Distributions Overlap**: ✅ Extensive
 - **Recommended Threshold**: 26.89 (midpoint, but ineffective)
 
-The negative mean gap and extensive overlap confirm that **ELA features cannot reliably separate authentic from manipulated images** in this dataset.
+The negative mean gap and extensive overlap confirm that **ELA features cannot reliably separate authentic from manipulated images** in this medical DICOM dataset. This finding directly motivated replacing ELA with DICOM-native pixel forensics.
 
 ### Confusion Matrix
 
@@ -225,7 +231,7 @@ The **UNCERTAIN** label communicates model uncertainty directly to users who req
 
 **Observed Performance and Deployment Guidance:**
 
-In this validation run, **88% of predictions (287 out of 326 images) fell into the UNCERTAIN category** because integrity scores clustered tightly at the 0.50 decision threshold. This high uncertainty rate indicates the underlying pixel forensics features (ELA) lack discriminative power on this dataset. When deploying user-initiated verification systems with elevated UNCERTAIN rates, consider the following strategies:
+In this validation run (Study 1 — ELA), **88% of predictions (287 out of 326 images) fell into the UNCERTAIN category** because integrity scores clustered tightly at the 0.50 decision threshold. This high uncertainty rate indicates ELA lacks discriminative power on DICOM medical images. When deploying user-initiated verification systems with elevated UNCERTAIN rates, consider the following strategies:
 
 1. **Threshold Recalibration**:
    - If user-submitted images show similar clustering at 0.50, conduct calibration studies to determine if alternative thresholds (e.g., 0.45 or 0.55) provide better separation while maintaining transparent uncertainty communication.
@@ -262,23 +268,27 @@ MedGemma performed flawlessly with zero errors, demonstrating robust production 
 
 ---
 
-## Part 3: Why Pixel Forensics Failed
+## Part 3: Why ELA Failed (and What Replaced It)
 
-### 1. Compression Artifacts Dominate
+### 1. Compression Artefacts Dominate
 
-ELA measures compression inconsistencies, not manipulation. Authentic images that have been repeatedly shared/compressed show high ELA values indistinguishable from manipulated images.
+ELA measures JPEG compression inconsistencies, not manipulation. Authentic medical images that have been repeatedly shared and recompressed show high ELA values indistinguishable from manipulated images. DICOM files are not JPEG-compressed at all, making ELA structurally inapplicable.
 
 ### 2. Inverted Distributions
 
-Authentic images had _higher_ ELA standard deviation than manipulated ones. This counter-intuitive result stems from authentic medical images often undergoing multiple compression cycles (shared via social media, saved/uploaded repeatedly).
+Authentic images had _higher_ ELA standard deviation than manipulated ones (27.22 vs 26.56). This counter-intuitive result stems from authentic images undergoing multiple compression cycles (shared via social media, saved/uploaded repeatedly). The signal is therefore anti-discriminative.
 
 ### 3. Extensive Feature Overlap
 
-The 95% confidence intervals for accuracy span from 44.5% to 55.5%, encompassing random chance (50%). No effective threshold can separate the two classes.
+The 95% confidence intervals for accuracy span 44.5%–55.5%, encompassing random chance (50%). No effective threshold can separate the two classes.
 
 ### 4. Metadata Is Sparse
 
 Medical images often lack EXIF data (anonymized for privacy). When present, timestamps can be easily forged.
+
+### What Replaced ELA
+
+Layer 1 now uses **format-routed pixel forensics**: DICOM files are validated via header integrity (UID consistency, geometry, timestamps) and copy-move detection on the native pixel array; PNG/JPEG files use normalised grayscale copy-move detection. This achieves **97.5% accuracy** on image integrity in the three-method validation (Study 2, n=160), compared to ELA's 49.9% on the same type of dataset.
 
 ---
 
@@ -374,9 +384,19 @@ These signals are designed to detect contextual misuse that pixel forensics cann
 
 ### Forensics Layers Tested
 
-1. **Layer 1 (ELA - Error Level Analysis)**: Detects compression artifacts and potential manipulation boundaries
+**Study 1 (historical — ELA, n=326 UCI DICOMs):**
+
+1. **Layer 1 (ELA — Error Level Analysis)**: Detects JPEG compression artefacts. *Replaced in current implementation.*
 2. **Layer 2 (MedGemma Semantic)**: Medical AI analysis of image plausibility (326 successful calls, 0 errors)
 3. **Layer 3 (EXIF Metadata)**: Examines modification timestamps and camera data
+
+**Current implementation (Study 2, n=160):**
+
+1. **Layer 1 (format-routed pixel forensics)**:
+   - *DICOM files:* Header integrity validation (UIDs, geometry, timestamps) + copy-move detection on native pixel array
+   - *PNG/JPEG files:* Normalised grayscale copy-move detection
+2. **Layer 2 (MedGemma Semantic)**: Opt-in; veracity assessed on the claim alone, alignment on the image-claim pair
+3. **Layer 3 (EXIF Metadata)**: Examines software tags, modification timestamps, and camera metadata
 
 ### Ensemble Decision
 
@@ -551,9 +571,11 @@ Proceedings ELMAR-2013, 25-27 September 2013, Zadar, Croatia
 
 ## Part 10: Next Steps
 
-### Pixel Forensics Validation ✅ Complete
+### Pixel Forensics Validation ✅ Complete (Two Studies)
 
-Our empirical study demonstrates that pixel-level forensics achieve ~50% accuracy on the UCI Tamper Detection dataset, validating our core thesis that pixel forensics are insufficient for real-world medical misinformation detection.
+**Study 1 (ELA):** ELA achieves ~50% accuracy on 326 UCI DICOM images, validating that ELA is inappropriate for medical imaging. ✅
+
+**Study 2 (DICOM-native pixel forensics):** Format-routed pixel forensics achieves 97.5% accuracy on image integrity across 160 samples (100% precision, 96.7% recall). This confirms DICOM-native methods are correct for tamper detection. ✅
 
 ### Contextual Signals Validation 🔄 Framework Ready
 
@@ -579,7 +601,7 @@ A comprehensive validation framework for the four contextual signals has been de
 
 ## Conclusion
 
-Our empirical validation provides **quantitative evidence** that pixel-level forensics achieve chance-level performance (49.9% accuracy) on real-world medical image manipulation detection. This finding validates the MedContext approach:
+Our empirical validation provides **quantitative evidence** that ELA achieves chance-level performance (49.9% accuracy) on real-world DICOM medical image manipulation detection. Replacing ELA with DICOM-native pixel forensics achieves 97.5% accuracy on image integrity — but pixel forensics has no signal for the dominant threat. This validates the MedContext approach:
 
 **Medical misinformation detection requires contextual authenticity analysis, not pixel authenticity verification.**
 
