@@ -266,7 +266,10 @@ class MedGemmaClient:
             choices = []
 
         if choices and isinstance(choices, list):
-            raw_text = choices[0].get("message", {}).get("content", "")
+            if isinstance(choices[0], dict):
+                raw_text = choices[0].get("message", {}).get("content", "")
+            else:
+                raw_text = str(choices[0])
         else:
             raw_text = str(predictions)
 

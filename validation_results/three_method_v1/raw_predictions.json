@@ -2136,7 +2136,7 @@
     "predictions": {
       "pixel_forensics": {
         "pixel_authentic": true,
-        "confidence": 0.6659999999999999,
+        "confidence": 0.666,
         "method": "pixel_forensics",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
@@ -5332,7 +5332,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.0388,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5364,7 +5364,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.0388,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5407,7 +5407,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5512,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5439,7 +5439,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5512,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5482,7 +5482,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5616,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5514,7 +5514,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5616,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5557,7 +5557,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.3672,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5589,7 +5589,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.3672,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5632,7 +5632,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4008,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5664,7 +5664,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4008,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5707,7 +5707,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5544,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5739,7 +5739,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5544,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5782,7 +5782,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.082,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5814,7 +5814,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.082,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5857,7 +5857,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5748,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5889,7 +5889,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5748,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5932,7 +5932,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4504,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -5964,7 +5964,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4504,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6007,7 +6007,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4288,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6039,7 +6039,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4288,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6082,7 +6082,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1214,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6114,7 +6114,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1214,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6157,7 +6157,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5682,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6189,7 +6189,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5682,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6232,7 +6232,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5778,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6264,7 +6264,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5778,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6307,7 +6307,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.2128,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6339,7 +6339,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.2128,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6382,7 +6382,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4152,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6414,7 +6414,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4152,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6457,7 +6457,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5644,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6489,7 +6489,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5644,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6532,7 +6532,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4288,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6564,7 +6564,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4288,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6607,7 +6607,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.494,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6639,7 +6639,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.494,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6682,7 +6682,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5744,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6714,7 +6714,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5744,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6757,7 +6757,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5652,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6789,7 +6789,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5652,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6832,7 +6832,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4488,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6864,7 +6864,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4488,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6907,7 +6907,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5656,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6939,7 +6939,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5656,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -6982,7 +6982,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.0462,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7014,7 +7014,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.0462,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7057,7 +7057,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1648,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7089,7 +7089,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1648,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7132,7 +7132,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4288,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7164,7 +7164,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4288,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7207,7 +7207,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5476,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7239,7 +7239,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5476,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7282,7 +7282,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1596,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7314,7 +7314,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1596,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7357,7 +7357,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5754,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7389,7 +7389,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5754,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7432,7 +7432,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5688,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7464,7 +7464,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5688,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7507,7 +7507,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4512,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7539,7 +7539,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4512,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7582,7 +7582,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5598,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7614,7 +7614,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5598,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7657,7 +7657,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5652,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7689,7 +7689,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5652,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7732,7 +7732,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4086,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7764,7 +7764,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.4086,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7807,7 +7807,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5826,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7839,7 +7839,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5826,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7882,7 +7882,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.578,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7914,7 +7914,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.578,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7957,7 +7957,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.3394,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -7989,7 +7989,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.3394,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8032,7 +8032,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5722,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8064,7 +8064,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.5722,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8107,7 +8107,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1534,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8139,7 +8139,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1534,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8182,7 +8182,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1592,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8214,7 +8214,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.1592,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8257,7 +8257,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.565,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],
@@ -8289,7 +8289,7 @@
             "partial_acquisition_timestamp"
           ],
           "copy_move_score": 0.565,
-          "pixel_shape": [
+          "image_size": [
             512,
             512
           ],

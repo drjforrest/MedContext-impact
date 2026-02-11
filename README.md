@@ -35,34 +35,41 @@ From our comprehensive literature review of ~100 sources, we discovered the real
 
 ## 🔬 Our Validation: Proving the Thesis
 
-**Hypothesis:** If authentic images dominate misinformation, pixel-level forensics should fail.
+**Hypothesis:** If authentic images dominate misinformation, pixel-level forensics should fail on real-world medical datasets.
 
-**Test:** We ran forensics (ELA + EXIF + MedGemma) on 326 real medical images from the UCI Tamper Detection dataset.
+**Test:** We evaluated forensics approaches on 326 real medical images from the UCI Tamper Detection dataset, with particular focus on DICOM images that require specialized validation methods.
+
+**Updated Methodology:**
+
+- **DICOM-Specific Forensics:** Removed ELA (Error Level Analysis) for DICOM images due to inappropriate JPEG compression assumptions; replaced with DICOM header integrity checks, metadata consistency analysis, and modality-specific validation
+- **Contextual Analysis:** Enhanced with medical domain expertise, focusing on image-claim alignment rather than pixel manipulation
+- **Multi-Layer Validation:** Combined pixel forensics (for non-DICOM), header validation (for DICOM), and contextual analysis
 
 **Result:**
 
 <div align="center">
 
-### 49.9% Accuracy [95% CI: 44.5%, 55.5%]
+### 49.9% Accuracy [95% CI: 44.5%, 55.5%] - Pixel Forensics Alone
 
-**Chance Performance = Hypothesis Confirmed**
+### 65.6% Accuracy [95% CI: 55.6%, 75.6%] - Contextual Analysis
 
 </div>
 
 <div align="center">
 <img src="ui/public/validation/roc_curve.png" width="45%" alt="ROC Curve showing AUC≈0.5"/>
-<img src="ui/public/validation/ela_distribution_overlap.png" width="45%" alt="ELA distributions overlapping"/>
+<img src="ui/public/validation/confusion_matrix.png" width="45%" alt="Confusion matrix"/>
 </div>
 
 <div align="center">
-<img src="ui/public/validation/confusion_matrix.png" width="45%" alt="Confusion matrix"/>
+<img src="ui/public/validation/contextual_signals_performance.png" width="45%" alt="Contextual signals performance"/>
 <img src="ui/public/validation/confidence_intervals.png" width="45%" alt="Bootstrap confidence intervals"/>
 </div>
 
 **What this proves:**
 
-- ✅ Pixel forensics cannot detect real-world medical misinformation
-- ✅ Context-based detection is necessary
+- ✅ Pixel forensics alone achieve chance performance on medical images
+- ✅ DICOM-specific validation methods are necessary for medical imaging
+- ✅ Context-based detection significantly outperforms pixel-based methods
 - ✅ MedContext is optimized for the actual problem (not synthetic benchmarks)
 
 [**📊 See Full Validation Results**](docs/VALIDATION.md)

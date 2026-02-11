@@ -145,15 +145,23 @@ def _run_layer_1_dicom(image_bytes: bytes) -> IntegrityLayerResult:
         pixel_shape = list(pixels.shape)
 
         if pixels.ndim == 3:
-            slice_img: np.ndarray = pixels[pixels.shape[0] // 2]
+            # Could be (frames, rows, cols) or (rows, cols, channels)
+            if pixels.shape[2] <= 4:  # Likely RGB/RGBA
+                slice_img: np.ndarray = pixels[:, :, 0]  # Take first channel
+            else:
+                slice_img = pixels[pixels.shape[0] // 2]
         elif pixels.ndim == 2:
             slice_img = pixels
+        elif pixels.ndim == 4:
+            # Multi-frame with channels: (frames, rows, cols, channels)
+            slice_img = pixels[pixels.shape[0] // 2, :, :, 0]
         else:
             issues.append(f"unsupported_pixel_dims_{pixels.ndim}")
             slice_img = np.zeros((1, 1), dtype=np.float32)
 
-        pmin, pmax = float(np.percentile(slice_img, 1)), float(
-            np.percentile(slice_img, 99)
+        pmin, pmax = (
+            float(np.percentile(slice_img, 1)),
+            float(np.percentile(slice_img, 99)),
         )
         if pmax > pmin:
             slice_norm = np.clip((slice_img - pmin) / (pmax - pmin), 0.0, 1.0)
@@ -188,10 +196,16 @@ def _run_layer_1_dicom(image_bytes: bytes) -> IntegrityLayerResult:
             },
         )
     except Exception as exc:
+        import logging
+
+        logging.exception("DICOM forensics layer_1 failed")
         return IntegrityLayerResult(
             verdict="UNCERTAIN",
             confidence=0.5,
-            details={"error": str(exc), "method": "dicom_native_forensics"},
+            details={
+                "error": "DICOM analysis failed",
+                "method": "dicom_native_forensics",
+            },
         )
 
 

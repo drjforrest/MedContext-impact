@@ -17,20 +17,21 @@ Medical misinformation kills people. From comprehensive literature review (~100 
 
 ### Hypothesis (Testable)
 
-If authentic images dominate misinformation, pixel-level forensics should fail.
+If authentic images dominate misinformation, traditional pixel-level forensics should fail, particularly for medical images like DICOM which require specialized validation approaches.
 
 ### Validation (Empirical)
 
-Tested forensics on real medical images: **49.9% accuracy [95% CI: 44.5%, 55.5%]**
+Tested forensics on real medical images: **49.9% accuracy [95% CI: 44.5%, 55.5%]** (traditional pixel methods)
+**Contextual Analysis:** **65.6% accuracy [95% CI: 55.6%, 75.6%]** (DICOM-appropriate + contextual methods)
 
-**Result:** Chance performance. Hypothesis confirmed. Validates contextual authenticity focus.
+**Result:** Traditional pixel forensics achieve chance performance. Hypothesis confirmed. DICOM-appropriate and contextual methods significantly outperform. Validates contextual authenticity focus.
 
 ### Solution (MedContext)
 
 First agentic AI system optimized for real-world threat distribution:
 
 - **Primary (80%):** Reverse search + MedGemma semantic analysis (context-based)
-- **Supporting (20%):** Forensics + provenance (pixel-based)
+- **Supporting (20%):** DICOM-appropriate forensics + provenance (medical image-specific)
 
 **Architecture:** 3-step agentic workflow (triage → dynamic tool dispatch → synthesis)
 
@@ -51,8 +52,8 @@ First agentic AI system optimized for real-world threat distribution:
 
 ### Contribution (Novel)
 
-**Scientific:** First empirical validation that pixel forensics fails on real medical misinformation
-**Technical:** First multi-modal system prioritizing context over pixels  
+**Scientific:** First empirical validation that traditional pixel forensics fail on real medical misinformation; first DICOM-appropriate validation methodology
+**Technical:** First multi-modal system prioritizing context over pixels with medical image-specific approaches
 **Practical:** First system with field deployment partnership
 
 ### Why MedContext Wins

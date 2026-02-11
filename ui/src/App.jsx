@@ -1338,9 +1338,9 @@ function App() {
                         const resultsElement = document.querySelector('[data-export-target="results"]');
                         if (resultsElement) {
                           import('./utils/exportUtils')
-                            .then(({ downloadAsPDF }) => {
+                            .then(async ({ downloadAsPDF }) => {
                               try {
-                                downloadAsPDF(resultsElement, 'medcontext-results.pdf');
+                                await downloadAsPDF(resultsElement, 'medcontext-results.pdf');
                               } catch (error) {
                                 console.error('Error in downloadAsPDF:', error);
                                 alert('Failed to download PDF. Please try again.');
@@ -1364,14 +1364,12 @@ function App() {
                         const resultsElement = document.querySelector('[data-export-target="results"]');
                         if (resultsElement) {
                           import('./utils/exportUtils')
-                            .then(({ copyToClipboardText }) => {
-                              try {
-                                copyToClipboardText(resultsElement);
-                              } catch (error) {
+                            .then(({ copyToClipboardText }) => 
+                              copyToClipboardText(resultsElement).catch(error => {
                                 console.error('Error in copyToClipboardText:', error);
                                 alert('Failed to copy results to clipboard. Please try again.');
-                              }
-                            })
+                              })
+                            )
                             .catch((error) => {
                               console.error('Failed to load export utilities:', error);
                               alert('Failed to load export functionality. Please try again.');
