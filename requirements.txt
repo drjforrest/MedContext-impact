@@ -22,7 +22,7 @@ cytoolz==1.1.0
 distro==1.9.0
 docstring-parser==0.17.0
 eth-abi==5.2.0
-eth-account==0.13.7
+eth-account==0.11.0
 eth-hash==0.7.1
 eth-keyfile==0.8.1
 eth-keys==0.7.0
@@ -90,7 +90,7 @@ proto-plus==1.27.0
 protobuf==6.33.4
 psutil==7.2.1
 psycopg2-binary==2.9.11
-py-solc-x==2.0.5
+py-solc-x==2.0.2
 pyasn1==0.6.2
 pyasn1-modules==0.4.2
 pycparser==3.0
@@ -141,7 +141,7 @@ update-checker==0.18.0
 urllib3==2.6.3
 uuid-utils==0.13.0
 uvicorn==0.34.0
-web3==7.14.1
+web3==6.15.1
 websocket-client==1.9.0
 websockets==15.0.1
 wheel==0.46.3

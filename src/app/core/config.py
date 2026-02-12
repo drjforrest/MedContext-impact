@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     medgemma_vertex_location: str = "us-central1"
     medgemma_vertex_endpoint: str = ""
     medgemma_vertex_dedicated_domain: str = ""
+    medgemma_vertex_ip: str = ""  # Direct IP to bypass DNS resolution
     vertexai_api_key: str = Field(
         default="",
         validation_alias=AliasChoices(

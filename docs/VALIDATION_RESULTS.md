@@ -1,21 +1,30 @@
-# MedContext Forensics Validation Results
+# MedContext Proof of Justification Results (PoJ 1 — ELA on DICOM)
 
 **Date**: January 28, 2026  
-**Dataset**: UCI Tamper Detection (326 balanced images)  
-**Method**: Pixel-level forensics (ELA + EXIF) with MedGemma integration  
+**Dataset**: UCI Tamper Detection (326 balanced images, DICOM format)  
+**Method**: ELA (Error Level Analysis) + EXIF + MedGemma  
 **Bootstrap Iterations**: 1,000 (for 95% confidence intervals)
+
+---
+
+## Context
+
+This document reports **Proof of Justification** results—empirical evidence that motivated MedContext's design. This is **not** validation of MedContext on real-world misinformation. See [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md) for the full narrative and [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) for the validation plan.
 
 ---
 
 ## Executive Summary
 
-Our empirical validation demonstrates that **pixel-level forensics achieve ~50% accuracy** (essentially chance performance) when detecting image manipulation in real-world datasets. This finding provides strong evidence that contextual authenticity analysis—not pixel authenticity—is the correct approach for medical misinformation detection.
+**PoJ 1** demonstrates that **ELA achieves ~50% accuracy** (chance performance) on DICOM medical images. ELA relies on JPEG compression artefacts—a signal absent in DICOM files. This proves ELA is the wrong tool for DICOM.
 
 ### Key Finding
 
-> **Pixel-level forensics achieved 49.9% accuracy [95% CI: 44.5%, 55.5%], statistically indistinguishable from random guessing.**
+> **ELA achieved 49.9% accuracy [95% CI: 44.5%, 55.5%] on 326 UCI DICOM images—indistinguishable from random guessing.**
 
-This validates our core thesis from the literature review:
+**What we proved:** ELA does not work on DICOM (format mismatch).  
+**Limitation:** We selected a DICOM dataset without initially considering that DICOM requires specialized forensics. ELA was never appropriate for this format.
+
+This supports our thesis from the literature review:
 
 - Over half of medical misinformation includes visuals, predominantly **authentic images in misleading contexts** (Brennen et al., 2020)
 - 0% sophisticated deepfakes detected in COVID misinformation studies
@@ -158,9 +167,9 @@ The manipulation probability scores are tightly clustered near the decision thre
    - Medical images often lack EXIF data (anonymized for privacy)
    - When present, timestamps can be easily forged
 
-### Validation of MedContext Thesis
+### What PoJ 1 Supports
 
-These results **empirically confirm** the central premise of MedContext:
+These results **support the design rationale** of MedContext:
 
 > **Medical misinformation is fundamentally a context problem, not a pixel problem.**
 
@@ -170,11 +179,13 @@ From our literature review:
 - **0% of COVID-19 misinformation involved sophisticated deepfakes**
 - **Pixel forensics address <20% of real-world misinformation**
 
-Our validation adds quantitative evidence:
+PoJ 1 adds quantitative evidence:
 
-- **49.9% accuracy = chance performance**
-- **Extensive distribution overlap = no reliable pixel-level signal**
-- **MedGemma integration successful, but cannot overcome weak forensic features**
+- **49.9% accuracy = chance performance** (ELA on DICOM)
+- **Extensive distribution overlap = no reliable ELA signal on DICOM**
+- **MedGemma integration successful**—but ELA was the wrong tool for the format from the start
+
+**Proper validation** on real-world misinformation (Med-MMHL, AMMeBa) is pending.
 
 ### Why Contextual Authenticity Works
 
@@ -254,9 +265,7 @@ All validation code is available in `scripts/validate_forensics.py` with:
 
 ## Conclusion
 
-Our empirical validation provides **quantitative evidence** that pixel-level forensics achieve chance-level performance (49.9% accuracy) on real-world image manipulation detection. This finding validates the MedContext approach: **medical misinformation detection requires contextual authenticity analysis, not pixel authenticity verification.**
-
-By focusing on how images are used rather than whether pixels are authentic, MedContext addresses the dominant threat that pixel forensics miss—authentic images presented with false or misleading medical context.
+PoJ 1 provides **quantitative evidence** that ELA achieves chance-level performance (49.9% accuracy) on DICOM medical images. ELA relies on JPEG compression artefacts—DICOM is not JPEG-compressed. This Proof of Justification *motivates* MedContext's design; **proper validation** on real-world misinformation datasets (Med-MMHL, AMMeBa) remains to be done. See [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md).
 
 ---
 
@@ -285,5 +294,6 @@ Proceedings ELMAR-2013, 25-27 September 2013, Zadar, Croatia
 
 ---
 
-**Validation Timestamp**: 2026-01-28T06:52:24 UTC  
-**Report Generated**: 2026-01-28T14:00:00 UTC
+**Proof of Justification (PoJ 1) Timestamp**: 2026-01-28T06:52:24 UTC  
+**Report Generated**: 2026-01-28T14:00:00 UTC  
+**See**: [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md) | [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md)

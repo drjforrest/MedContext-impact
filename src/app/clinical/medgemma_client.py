@@ -88,30 +88,89 @@ class MedGemmaClient:
                 "Missing MEDGEMMA_HF_TOKEN for HuggingFace inference."
             )
 
-        url = (
-            f"https://api-inference.huggingface.co/models/{settings.medgemma_hf_model}"
-        )
+        # Use custom endpoint URL if available (for dedicated endpoints), otherwise use Inference API
+        if settings.medgemma_url and not settings.medgemma_url.startswith("http://localhost"):
+            url = settings.medgemma_url.rstrip("/")
+        else:
+            url = (
+                f"https://api-inference.huggingface.co/models/{settings.medgemma_hf_model}"
+            )
         headers = {"Authorization": f"Bearer {settings.medgemma_hf_token}"}
 
+        # Resize image to reduce GPU memory usage for dedicated endpoints
+        if settings.medgemma_url and not settings.medgemma_url.startswith("http://localhost"):
+            try:
+                from PIL import Image
+                img = Image.open(io.BytesIO(image_bytes))
+                # Resize to max 768px on longest side to reduce memory
+                max_size = 768
+                if max(img.size) > max_size:
+                    ratio = max_size / max(img.size)
+                    new_size = tuple(int(dim * ratio) for dim in img.size)
+                    img = img.resize(new_size, Image.Resampling.LANCZOS)
+
+                # Convert back to bytes
+                buffer = io.BytesIO()
+                img.save(buffer, format=img.format or 'JPEG', quality=85)
+                image_bytes = buffer.getvalue()
+            except Exception:
+                pass  # Use original if resize fails
+
         payload: dict[str, Any] | bytes
-        if prompt:
-            encoded_image = base64.b64encode(image_bytes).decode("ascii")
-            payload = {"inputs": {"image": encoded_image, "text": prompt}}
+        encoded_image = base64.b64encode(image_bytes).decode("ascii")
+
+        # Use TGI (Text Generation Inference) format for dedicated endpoints
+        if settings.medgemma_url and not settings.medgemma_url.startswith("http://localhost"):
+            # Dedicated endpoints expect image embedded in inputs string with markdown syntax
+            image_format = _detect_image_format(image_bytes)
+            image_data_url = f"data:image/{image_format};base64,{encoded_image}"
+            # Format: ![](image_url)prompt_text
+            inputs_text = f"![]({image_data_url}){prompt or 'Describe this medical image.'}"
+            payload = {
+                "inputs": inputs_text,
+                "parameters": {
+                    "max_new_tokens": settings.medgemma_max_new_tokens,
+                }
+            }
         else:
-            payload = image_bytes
+            # Use standard HF Inference API format
+            if prompt:
+                payload = {"inputs": {"image": encoded_image, "text": prompt}}
+            else:
+                payload = image_bytes
 
         try:
-            with httpx.Client(timeout=60.0) as client:
+            # CPU-based vision endpoints can take 90+ seconds per request
+            timeout = httpx.Timeout(300.0, read=300.0, write=30.0, connect=10.0)
+            with httpx.Client(timeout=timeout) as client:
                 if isinstance(payload, bytes):
                     response = client.post(url, headers=headers, content=payload)
                 else:
                     response = client.post(url, headers=headers, json=payload)
                 response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            # Include response body in error message for debugging
+            error_detail = exc.response.text if exc.response else "No response body"
+            raise MedGemmaClientError(
+                f"HuggingFace request failed: {exc}. Response: {error_detail[:500]}"
+            ) from exc
         except httpx.HTTPError as exc:
             raise MedGemmaClientError(f"HuggingFace request failed: {exc}") from exc
 
-        # Clean and parse the response
+        # Clean and parse the response - TGI returns [{"generated_text": "..."}]
         raw_text = response.text
+        try:
+            response_data = response.json()
+            if isinstance(response_data, list) and response_data:
+                # TGI format: extract generated_text from first item
+                generated = response_data[0].get("generated_text", "")
+                # Remove the input prompt from the generated text
+                if prompt and generated.startswith(prompt):
+                    generated = generated[len(prompt):].strip()
+                raw_text = generated
+        except Exception:
+            pass  # Fall back to using raw response.text
+
         cleaned = self._clean_text(raw_text)
         parsed = self._parse_json(cleaned)
 
@@ -244,10 +303,10 @@ class MedGemmaClient:
     ) -> MedGemmaResult:
         if not settings.medgemma_vertex_endpoint:
             raise MedGemmaClientError("Missing MEDGEMMA_VERTEX_ENDPOINT for Vertex AI.")
-        if not settings.medgemma_vertex_project and not settings.vertexai_api_key:
+        if not settings.medgemma_vertex_project:
             raise MedGemmaClientError("Missing MEDGEMMA_VERTEX_PROJECT for Vertex AI.")
 
-        # Build chat completions format for vLLM
+        # Build chat completions format
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
         image_url = f"data:image/png;base64,{encoded_image}"
 
@@ -262,50 +321,63 @@ class MedGemmaClient:
             "max_tokens": 1024,
         }
 
+        # Use Vertex AI SDK (handles dedicated endpoint routing without DNS dependency)
+        try:
+            from google.cloud import aiplatform
+        except ImportError as exc:
+            raise MedGemmaClientError(
+                "Vertex AI requires google-cloud-aiplatform. Install with: pip install google-cloud-aiplatform"
+            ) from exc
+
         endpoint_id = settings.medgemma_vertex_endpoint
         project = settings.medgemma_vertex_project or "medcontext"
         location = settings.medgemma_vertex_location or "us-central1"
 
-        predict_url = self._build_vertex_predict_url(settings.medgemma_vertex_endpoint)
-
-        headers: dict[str, str] = {"Content-Type": "application/json"}
-        if settings.vertexai_api_key:
-            headers["Authorization"] = f"Bearer {settings.vertexai_api_key}"
-
         try:
-            with httpx.Client(timeout=60.0) as client:
-                payload = {"instances": [instance]}
-                response = client.post(predict_url, json=payload, headers=headers)
-                response.raise_for_status()
-                response_data = response.json()
-        except httpx.HTTPError as exc:
-            raise MedGemmaClientError(f"Vertex AI HTTP request failed: {exc}") from exc
+            aiplatform.init(project=project, location=location)
+            endpoint = aiplatform.Endpoint(endpoint_id)
 
-        # Vertex AI predict returns {"predictions": [<chat-completion-obj>]}
-        # Extract the choices array from the first prediction.
-        predictions = (
-            response_data.get("predictions", [])
-            if isinstance(response_data, dict)
-            else []
-        )
-        if isinstance(predictions, list) and predictions:
+            # Set dedicated endpoint DNS if configured
+            if settings.medgemma_vertex_dedicated_domain:
+                domain = settings.medgemma_vertex_dedicated_domain.strip()
+                if domain.startswith("https://"):
+                    domain = domain[len("https://"):]
+                elif domain.startswith("http://"):
+                    domain = domain[len("http://"):]
+                domain = domain.rstrip("/")
+
+                # Populate dedicated_endpoint_dns if empty
+                if not (getattr(endpoint, "dedicated_endpoint_dns", None) or "").strip():
+                    endpoint.gca_resource.dedicated_endpoint_dns = domain
+
+            response_obj = endpoint.predict(
+                instances=[instance],
+                use_dedicated_endpoint=True if settings.medgemma_vertex_dedicated_domain else False,
+            )
+        except Exception as exc:
+            raise MedGemmaClientError(f"Vertex AI SDK predict failed: {exc}") from exc
+
+        # Extract text from chat completions response
+        predictions = response_obj.predictions
+        if isinstance(predictions, dict):
+            choices = predictions.get("choices", [])
+        elif isinstance(predictions, list) and predictions:
             first = predictions[0]
             choices = first.get("choices", []) if isinstance(first, dict) else []
-        elif isinstance(predictions, dict):
-            choices = predictions.get("choices", [])
         else:
             choices = []
 
-        if choices and isinstance(choices, list) and isinstance(choices[0], dict):
-            raw_text = choices[0].get("message", {}).get("content", "")
-        elif choices:
-            raw_text = str(choices[0])
+        if choices and isinstance(choices, list):
+            if isinstance(choices[0], dict):
+                raw_text = choices[0].get("message", {}).get("content", "")
+            else:
+                raw_text = str(choices[0])
         else:
-            raw_text = str(response_data)
+            raw_text = str(predictions)
 
         url = f"projects/{project}/locations/{location}/endpoints/{endpoint_id}"
 
-        # Clean and parse the response (like other providers)
+        # Clean and parse the response
         cleaned = self._clean_text(raw_text)
         parsed = self._parse_json(cleaned)
 
@@ -337,9 +409,9 @@ class MedGemmaClient:
             if settings.medgemma_vertex_dedicated_domain:
                 domain = settings.medgemma_vertex_dedicated_domain.rstrip("/")
                 if domain.startswith("https://"):
-                    domain = domain[len("https://") :]
+                    domain = domain[len("https://"):]
                 elif domain.startswith("http://"):
-                    domain = domain[len("http://") :]
+                    domain = domain[len("http://"):]
                 url = f"https://{domain}/v1/{resource}"
             else:
                 url = (
@@ -392,10 +464,13 @@ class MedGemmaClient:
         last_status: int | None = None
         last_url: str | None = None
         response = None
+        headers = {}
+        if settings.medgemma_hf_token:
+            headers["Authorization"] = f"Bearer {settings.medgemma_hf_token}"
         with httpx.Client(timeout=90.0) as client:
             for url in candidate_urls:
                 try:
-                    response = client.post(url, json=payload)
+                    response = client.post(url, json=payload, headers=headers)
                     response.raise_for_status()
                     break
                 except httpx.HTTPStatusError as exc:

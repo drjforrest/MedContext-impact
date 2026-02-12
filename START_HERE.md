@@ -15,7 +15,7 @@ This guide will help you quickly understand our submission and navigate the docu
 One-page overview covering:
 
 - The problem (over half of misinformation uses authentic images with misleading context)
-- Our validation (DICOM-native pixel forensics: 97.5% for tampering; contextual analysis: 65.6% for image-claim alignment)
+- Our Med-MMHL validation (single methods 65-72% insufficient; combined system 95.7% necessary)
 - The solution (agentic contextual authenticity combining both approaches)
 
 ### Have 15 minutes?
@@ -23,7 +23,7 @@ One-page overview covering:
 **Recommended Reading Path:**
 
 1. [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) - The pitch
-2. [VALIDATION.md](docs/VALIDATION.md) - Our empirical evidence
+2. [PROOF_OF_JUSTIFICATION.md](docs/PROOF_OF_JUSTIFICATION.md) - Empirical motivation | [VALIDATION.md](docs/VALIDATION.md) - Validation hub
 3. [SUBMISSION.md](docs/SUBMISSION.md) - Comprehensive submission
 4. [Demo Video](#-demo-video) - See it in action (3 min)
 
@@ -79,32 +79,31 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 ### MedContext optimizes for:
 
 - ✅ **Real-world threat distribution** (majority authentic images with false context)
-- ✅ **Empirically validated** (proved pixel forensics cannot detect image-claim misalignment; contextual analysis achieves 65.6% accuracy)
+- ✅ **Empirically motivated** (Proof of Justification: ELA fails on DICOM; three dimensions required; validation on Med-MMHL/AMMeBa pending)
 - ✅ **Production deployment** (UBC HERO Lab partnership ready)
 
 ---
 
 ## 📊 Key Evidence
 
-**Our Validation Proves the Dual-Layer Approach:**
+**Med-MMHL Validation Results (real-world medical misinformation benchmark):**
 
-**Validation Results:**
+| Method | Approach | Accuracy | Precision | Recall | F1 Score | Dataset |
+| ------ | -------- | -------- | --------- | ------ | -------- | ------- |
+| **Pixel Forensics Only** | Image analysis alone | 65.0% | — | — | — | 163 Med-MMHL samples |
+| **Veracity Only** | Claim analysis alone | 71.8% | — | — | — | 163 Med-MMHL samples |
+| **Alignment Only** | Image-claim pair alone | 71.2% | — | — | — | 163 Med-MMHL samples |
+| **Combined System** | All three dimensions | **95.7%** | **97.5%** | **98.1%** | **0.978** | 163 Med-MMHL samples |
 
-| Layer                   | Signal                           | Performance                                       | Dataset              |
-| ----------------------- | -------------------------------- | ------------------------------------------------- | -------------------- |
-| **Pixel Forensics**     | DICOM-native tampering detection | **97.5% accuracy** (100% precision, 96.7% recall) | 160 medical images   |
-| **Contextual Analysis** | Image-claim alignment            | **65.6% accuracy** [95% CI: 55.6%, 75.6%]         | 90 image-claim pairs |
-| **Contextual Analysis** | Alignment signal (ROC AUC)       | **0.740** with 0.44 separation                    | 90 image-claim pairs |
+**Why All Three Dimensions Are Necessary:**
 
-**Why Both Layers Are Necessary:**
+- **Pixel forensics alone (65.0%) is insufficient** — misses authentic images in misleading context (the most common type, 80%+ of threat)
+- **Text analysis alone (71.8% veracity, 71.2% alignment) is insufficient** — cannot detect manipulated images or assess image-claim relationships
+- **Combined system (95.7%) is necessary** — 24-31 percentage point improvement proves all three dimensions must work together
 
-- **Pixel forensics** solves tampering detection (97.5% accuracy on image integrity)
-- **Contextual analysis** addresses the dominant threat: authentic images with misleading claims (65.6% on alignment)
-- Literature shows 80%+ of medical misinformation uses authentic images in false contexts (Brennen et al., 2021)
+**Key Insight:** Most medical misinformation uses **authentic images in misleading context**. This is invisible to pixel forensics and difficult for text-only analysis. Only the combined 3-dimensional approach reliably detects contextual misinformation.
 
-**Key Validation Insight:** Pixel-level tampering detection alone is insufficient. The real-world threat requires contextual authenticity verification.
-
-[See full validation methodology → docs/VALIDATION.md]
+[See VALIDATION.md](docs/VALIDATION.md) | [Interactive Validation Story](ui/src/ValidationStory.jsx)
 
 ---
 
@@ -140,7 +139,8 @@ medcontext/
 ├── README.md                       ← Project overview
 ├── docs/
 │   ├── EXECUTIVE_SUMMARY.md       ← 1-page pitch (START HERE)
-│   ├── VALIDATION.md              ← Two validation studies (ELA 49.9% → DICOM 97.5%; contextual 65.6%)
+│   ├── PROOF_OF_JUSTIFICATION.md  ← Empirical motivation (PoJ 1/2/3)
+│   ├── VALIDATION.md              ← Validation hub (PoJ results + validation plan)
 │   ├── VALIDATION_RESULTS.md      ← Detailed metrics and analysis
 │   ├── VALIDATION_DATASETS.md     ← Dataset specifications
 │   ├── SUBMISSION.md              ← Comprehensive submission
@@ -169,7 +169,7 @@ medcontext/
 **3-minute demonstration covering:**
 
 1. The problem (authentic images used misleadingly)
-2. Dual-layer validation (97.5% tampering detection + 65.6% alignment verification)
+2. Med-MMHL validation (single methods 65-72% vs combined 95.7%)
 3. Live demo (upload → analysis → verdict)
 4. Impact (HERO Lab partnership for Africa)
 

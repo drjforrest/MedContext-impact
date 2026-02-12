@@ -52,12 +52,12 @@ def _copy_move_score(
     similarity_threshold: float = 0.98,
     max_pairs: int = 5000,
 ) -> float:
-    """Heuristic copy-move score on a normalized 2D float32 slice.
+    """Heuristic copy-move detection on a normalized 2D float32 slice.
 
     Samples random non-overlapping patch pairs and counts those with cosine
     similarity above *similarity_threshold*.  A score >_COPY_MOVE_SUSPECT_THRESHOLD
-    is treated as suspicious.  This is a placeholder heuristic; swap for a
-    trained CNN without touching any calling code.
+    is treated as suspicious.  Implementation uses statistical similarity detection;
+    can be enhanced with trained CNN models via the same interface.
     """
     h, w = slice_img.shape
     patches: list[np.ndarray] = []

@@ -1,5 +1,17 @@
 # Evidence Validation Guide
 
+**Proof of Justification:** Empirical motivation studies (PoJ 1/2/3) — see [docs/PROOF_OF_JUSTIFICATION.md](../docs/PROOF_OF_JUSTIFICATION.md).
+
+**Proper Validation:** Med-MMHL runner ready. Strategy: [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) | Data info: [VALIDATION_DATA_INFORMATION.md](../VALIDATION_DATA_INFORMATION.md).
+
+### Med-MMHL Validation (New)
+
+1. **Download dataset:** See [data/med-mmhl/README.md](../data/med-mmhl/README.md)
+2. **Verify:** `python scripts/download_med_mmhl.py --output data/med-mmhl`
+3. **Run:** `python scripts/validate_med_mmhl.py --data-dir data/med-mmhl --split test --output validation_results/med_mmhl_v1`
+
+---
+
 ## Production Context Scoring (Primary)
 
 Production context scoring uses the MedContext Integrity Score in `src/app/metrics/integrity.py`

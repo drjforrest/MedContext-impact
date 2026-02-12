@@ -1,0 +1,31 @@
+{
+  "dataset": "Med-MMHL",
+  "split": "test",
+  "n_samples": 5,
+  "n_skipped_missing": 0,
+  "n_skipped_errors": 0,
+  "require_medical": false,
+  "timestamp": "2026-02-12T05:35:22.019318+00:00",
+  "metrics": {
+    "pixel_authenticity": {
+      "mean_authentic_rate": 0.8,
+      "n": 5
+    },
+    "veracity": {
+      "accuracy": 1.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": NaN,
+      "n": 5
+    },
+    "alignment": {
+      "accuracy": 1.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": NaN,
+      "n": 5
+    }
+  }
+}
