@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from collections import defaultdict
 
+
 def load_validation_results(results_dir: Path):
     """Load validation results."""
     raw_predictions = results_dir / "raw_predictions.json"
@@ -18,13 +19,16 @@ def load_validation_results(results_dir: Path):
 
     return predictions, report
 
+
 def generate_confusion_matrix(predictions):
     """Generate confusion matrix data for misinformation detection."""
     tp = fp = tn = fn = 0
 
     for pred in predictions:
-        gt_misinfo = pred['ground_truth'].get('is_misinformation', False)
-        pred_misinfo = pred['predictions']['combined_analysis'].get('is_misinformation', False)
+        gt_misinfo = pred["ground_truth"].get("is_misinformation", False)
+        pred_misinfo = pred["predictions"]["combined_analysis"].get(
+            "is_misinformation", False
+        )
 
         if gt_misinfo and pred_misinfo:
             tp += 1
@@ -40,15 +44,16 @@ def generate_confusion_matrix(predictions):
             {"name": "True Positive", "value": tp},
             {"name": "False Positive", "value": fp},
             {"name": "True Negative", "value": tn},
-            {"name": "False Negative", "value": fn}
+            {"name": "False Negative", "value": fn},
         ],
         "matrix_grid": [
             {"actual": "Misinformation", "predicted": "Misinformation", "count": tp},
             {"actual": "Misinformation", "predicted": "Legitimate", "count": fn},
             {"actual": "Legitimate", "predicted": "Misinformation", "count": fp},
-            {"actual": "Legitimate", "predicted": "Legitimate", "count": tn}
-        ]
+            {"actual": "Legitimate", "predicted": "Legitimate", "count": tn},
+        ],
     }
+
 
 def generate_score_distributions(predictions):
     """Generate score distribution data."""
@@ -56,27 +61,32 @@ def generate_score_distributions(predictions):
     alignment_scores = []
 
     for pred in predictions:
-        context = pred['predictions']['contextual_analysis']
-        gt = pred['ground_truth']
+        context = pred["predictions"]["contextual_analysis"]
+        gt = pred["ground_truth"]
 
-        veracity_scores.append({
-            "score": context.get('veracity_score', 0.5),
-            "category": context.get('veracity_category', 'unknown'),
-            "ground_truth": gt.get('plausibility', 'unknown'),
-            "is_misinformation": gt.get('is_misinformation', False)
-        })
+        veracity_scores.append(
+            {
+                "score": context.get("veracity_score", 0.5),
+                "category": context.get("veracity_category", "unknown"),
+                "ground_truth": gt.get("plausibility", "unknown"),
+                "is_misinformation": gt.get("is_misinformation", False),
+            }
+        )
 
-        alignment_scores.append({
-            "score": context.get('alignment_score', 0.5),
-            "category": context.get('alignment_category', 'unknown'),
-            "ground_truth": gt.get('alignment', 'unknown'),
-            "is_misinformation": gt.get('is_misinformation', False)
-        })
+        alignment_scores.append(
+            {
+                "score": context.get("alignment_score", 0.5),
+                "category": context.get("alignment_category", "unknown"),
+                "ground_truth": gt.get("alignment", "unknown"),
+                "is_misinformation": gt.get("is_misinformation", False),
+            }
+        )
 
     return {
         "veracity_distribution": veracity_scores,
-        "alignment_distribution": alignment_scores
+        "alignment_distribution": alignment_scores,
     }
+
 
 def generate_performance_comparison(predictions):
     """Compare performance of different detection methods."""
@@ -84,33 +94,43 @@ def generate_performance_comparison(predictions):
         "Pixel Forensics": {"correct": 0, "total": 0},
         "Veracity Only": {"correct": 0, "total": 0},
         "Alignment Only": {"correct": 0, "total": 0},
-        "Combined System": {"correct": 0, "total": 0}
+        "Combined System": {"correct": 0, "total": 0},
     }
 
     for pred in predictions:
-        gt_misinfo = pred['ground_truth'].get('is_misinformation', False)
+        gt_misinfo = pred["ground_truth"].get("is_misinformation", False)
 
         # Pixel forensics
-        pixel_pred = not pred['predictions']['pixel_forensics'].get('pixel_authentic', True)
+        pixel_pred = not pred["predictions"]["pixel_forensics"].get(
+            "pixel_authentic", True
+        )
         if pixel_pred == gt_misinfo:
             methods["Pixel Forensics"]["correct"] += 1
         methods["Pixel Forensics"]["total"] += 1
 
         # Veracity only
-        context = pred['predictions']['contextual_analysis']
-        veracity_pred = context.get('veracity_category') == 'false' or context.get('veracity_score', 0.5) < 0.5
+        context = pred["predictions"]["contextual_analysis"]
+        veracity_pred = (
+            context.get("veracity_category") == "false"
+            or context.get("veracity_score", 0.5) < 0.5
+        )
         if veracity_pred == gt_misinfo:
             methods["Veracity Only"]["correct"] += 1
         methods["Veracity Only"]["total"] += 1
 
         # Alignment only
-        alignment_pred = context.get('alignment_category') == 'does_not_align' or context.get('alignment_score', 0.5) < 0.5
+        alignment_pred = (
+            context.get("alignment_category") == "does_not_align"
+            or context.get("alignment_score", 0.5) < 0.5
+        )
         if alignment_pred == gt_misinfo:
             methods["Alignment Only"]["correct"] += 1
         methods["Alignment Only"]["total"] += 1
 
         # Combined
-        combined_pred = pred['predictions']['combined_analysis'].get('is_misinformation', False)
+        combined_pred = pred["predictions"]["combined_analysis"].get(
+            "is_misinformation", False
+        )
         if combined_pred == gt_misinfo:
             methods["Combined System"]["correct"] += 1
         methods["Combined System"]["total"] += 1
@@ -119,64 +139,97 @@ def generate_performance_comparison(predictions):
         "method_comparison": [
             {
                 "method": name,
-                "accuracy": (stats["correct"] / stats["total"] * 100) if stats["total"] > 0 else 0,
+                "accuracy": (
+                    (stats["correct"] / stats["total"] * 100)
+                    if stats["total"] > 0
+                    else 0
+                ),
                 "correct": stats["correct"],
-                "total": stats["total"]
+                "total": stats["total"],
             }
             for name, stats in methods.items()
         ]
     }
+
 
 def generate_sample_details(predictions):
     """Generate per-sample detail data."""
     samples = []
 
     for i, pred in enumerate(predictions):
-        gt = pred['ground_truth']
-        context = pred['predictions']['contextual_analysis']
-        combined = pred['predictions']['combined_analysis']
-        pixel = pred['predictions']['pixel_forensics']
+        gt = pred["ground_truth"]
+        context = pred["predictions"]["contextual_analysis"]
+        combined = pred["predictions"]["combined_analysis"]
+        pixel = pred["predictions"]["pixel_forensics"]
 
-        samples.append({
-            "id": pred.get('image_id', f"sample_{i}"),
-            "ground_truth": {
-                "is_misinformation": gt.get('is_misinformation', False),
-                "plausibility": gt.get('plausibility', 'unknown'),
-                "alignment": gt.get('alignment', 'unknown'),
-                "pixel_authentic": gt.get('pixel_authentic', True)
-            },
-            "predictions": {
-                "is_misinformation": combined.get('is_misinformation', False),
-                "veracity_score": context.get('veracity_score', 0.5),
-                "veracity_category": context.get('veracity_category', 'unknown'),
-                "alignment_score": context.get('alignment_score', 0.5),
-                "alignment_category": context.get('alignment_category', 'unknown'),
-                "pixel_authentic": pixel.get('pixel_authentic', True)
-            },
-            "correct": gt.get('is_misinformation', False) == combined.get('is_misinformation', False)
-        })
+        samples.append(
+            {
+                "id": pred.get("image_id", f"sample_{i}"),
+                "ground_truth": {
+                    "is_misinformation": gt.get("is_misinformation", False),
+                    "plausibility": gt.get("plausibility", "unknown"),
+                    "alignment": gt.get("alignment", "unknown"),
+                    "pixel_authentic": gt.get("pixel_authentic", True),
+                },
+                "predictions": {
+                    "is_misinformation": combined.get("is_misinformation", False),
+                    "veracity_score": context.get("veracity_score", 0.5),
+                    "veracity_category": context.get("veracity_category", "unknown"),
+                    "alignment_score": context.get("alignment_score", 0.5),
+                    "alignment_category": context.get("alignment_category", "unknown"),
+                    "pixel_authentic": pixel.get("pixel_authentic", True),
+                },
+                "correct": gt.get("is_misinformation", False)
+                == combined.get("is_misinformation", False),
+            }
+        )
 
     return {"samples": samples}
+
 
 def generate_metric_summary(predictions):
     """Generate summary metrics."""
     # Calculate all metrics
-    tp = sum(1 for p in predictions if p['ground_truth'].get('is_misinformation') and p['predictions']['combined_analysis'].get('is_misinformation'))
-    fp = sum(1 for p in predictions if not p['ground_truth'].get('is_misinformation') and p['predictions']['combined_analysis'].get('is_misinformation'))
-    tn = sum(1 for p in predictions if not p['ground_truth'].get('is_misinformation') and not p['predictions']['combined_analysis'].get('is_misinformation'))
-    fn = sum(1 for p in predictions if p['ground_truth'].get('is_misinformation') and not p['predictions']['combined_analysis'].get('is_misinformation'))
+    tp = sum(
+        1
+        for p in predictions
+        if p["ground_truth"].get("is_misinformation")
+        and p["predictions"]["combined_analysis"].get("is_misinformation")
+    )
+    fp = sum(
+        1
+        for p in predictions
+        if not p["ground_truth"].get("is_misinformation")
+        and p["predictions"]["combined_analysis"].get("is_misinformation")
+    )
+    tn = sum(
+        1
+        for p in predictions
+        if not p["ground_truth"].get("is_misinformation")
+        and not p["predictions"]["combined_analysis"].get("is_misinformation")
+    )
+    fn = sum(
+        1
+        for p in predictions
+        if p["ground_truth"].get("is_misinformation")
+        and not p["predictions"]["combined_analysis"].get("is_misinformation")
+    )
 
     accuracy = (tp + tn) / len(predictions) if predictions else 0
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+    f1 = (
+        2 * (precision * recall) / (precision + recall)
+        if (precision + recall) > 0
+        else 0
+    )
 
     return {
         "summary_metrics": [
             {"metric": "Accuracy", "value": accuracy * 100},
             {"metric": "Precision", "value": precision * 100},
             {"metric": "Recall", "value": recall * 100},
-            {"metric": "F1 Score", "value": f1 * 100}
+            {"metric": "F1 Score", "value": f1 * 100},
         ],
         "raw_metrics": {
             "accuracy": accuracy,
@@ -186,9 +239,10 @@ def generate_metric_summary(predictions):
             "tp": tp,
             "fp": fp,
             "tn": tn,
-            "fn": fn
-        }
+            "fn": fn,
+        },
     }
+
 
 def main():
     if len(sys.argv) < 2:
@@ -223,7 +277,7 @@ def main():
 
     # Save chart data
     output_file = results_dir / "chart_data.json"
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(chart_data, f, indent=2)
 
     print(f"\n✅ Chart data generated: {output_file}")
@@ -232,6 +286,7 @@ def main():
     print(f"  - Precision: {chart_data['raw_metrics']['precision']*100:.1f}%")
     print(f"  - Recall: {chart_data['raw_metrics']['recall']*100:.1f}%")
     print(f"  - F1 Score: {chart_data['raw_metrics']['f1']:.3f}")
+
 
 if __name__ == "__main__":
     main()

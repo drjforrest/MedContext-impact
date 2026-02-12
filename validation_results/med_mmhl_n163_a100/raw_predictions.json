@@ -34,9 +34,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -47,12 +53,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -92,9 +92,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.826,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -105,12 +111,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -150,9 +150,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -163,12 +169,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -208,9 +208,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.712,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -221,12 +227,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -266,9 +266,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -279,12 +285,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -324,9 +324,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -337,12 +343,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -382,9 +382,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -395,12 +401,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -440,9 +440,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -453,12 +459,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -498,9 +498,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -511,12 +517,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -556,9 +556,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -569,12 +575,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -614,9 +614,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -627,12 +633,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -672,9 +672,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -685,12 +691,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -730,9 +730,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -743,12 +749,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -788,9 +788,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.76,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -801,12 +807,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -846,9 +846,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -859,12 +865,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -904,9 +904,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -917,12 +923,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -962,9 +962,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.9,
+        "alignment_category": "aligns_fully",
+        "overall_score": 0.6300000000000001,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -975,13 +981,7 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.9,
-        "veracity_category": "true",
-        "alignment_score": 0.9,
-        "alignment_category": "aligns_fully",
-        "overall_score": 0.9,
-        "is_misleading": false,
-        "is_misinformation": true
+        "is_misinformation": false
       }
     }
   },
@@ -1020,9 +1020,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1033,12 +1039,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1078,9 +1078,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.822,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1091,12 +1097,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1136,9 +1136,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1149,12 +1155,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1194,9 +1194,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1207,12 +1213,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1252,9 +1252,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1265,12 +1271,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1310,9 +1310,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1323,12 +1329,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1368,9 +1368,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1381,12 +1387,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1426,9 +1426,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1439,12 +1445,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1484,9 +1484,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1497,12 +1503,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1542,9 +1542,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1555,12 +1561,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1600,9 +1600,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1613,12 +1619,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1658,9 +1658,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1671,12 +1677,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1716,9 +1716,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1729,12 +1735,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1774,9 +1774,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1787,12 +1793,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1832,9 +1832,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1845,12 +1851,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1890,9 +1890,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1903,12 +1909,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -1948,9 +1948,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -1961,12 +1967,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2006,9 +2006,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2019,12 +2025,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2064,9 +2064,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2077,12 +2083,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2122,9 +2122,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2135,12 +2141,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2180,9 +2180,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.712,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2193,12 +2199,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2238,9 +2238,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2251,12 +2257,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2296,9 +2296,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2309,12 +2315,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2354,9 +2354,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2367,12 +2373,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2412,9 +2412,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2425,12 +2431,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2470,9 +2470,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2483,12 +2489,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2528,9 +2528,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2541,12 +2547,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2586,9 +2586,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.9,
+        "alignment_category": "aligns_fully",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2599,12 +2605,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.9,
-        "alignment_category": "aligns_fully",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2644,9 +2644,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2657,12 +2663,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2702,9 +2702,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2715,12 +2721,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -2760,9 +2760,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2773,12 +2779,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2818,9 +2818,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2831,12 +2837,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2876,9 +2876,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2889,12 +2895,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2934,9 +2934,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -2947,12 +2953,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -2992,9 +2992,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3005,12 +3011,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3050,9 +3050,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3063,12 +3069,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3108,9 +3108,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3121,12 +3127,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3166,9 +3166,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3179,12 +3185,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3224,9 +3224,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3237,12 +3243,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3282,9 +3282,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3295,12 +3301,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3340,9 +3340,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3353,12 +3359,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3398,9 +3398,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3411,12 +3417,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3456,9 +3456,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3469,12 +3475,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3514,9 +3514,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3527,12 +3533,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3572,9 +3572,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3585,12 +3591,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3630,9 +3630,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3643,12 +3649,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3688,9 +3688,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3701,12 +3707,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3746,9 +3746,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3759,12 +3765,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3804,9 +3804,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.706,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3817,12 +3823,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3862,9 +3862,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3875,12 +3881,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3920,9 +3920,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3933,12 +3939,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -3978,9 +3978,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -3991,12 +3997,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4036,9 +4036,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4049,12 +4055,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4094,9 +4094,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4107,12 +4113,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4152,9 +4152,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4165,12 +4171,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4210,9 +4210,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4223,12 +4229,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4268,9 +4268,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4281,12 +4287,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4326,9 +4326,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.836,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4339,12 +4345,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4384,9 +4384,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4397,12 +4403,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4442,9 +4442,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4455,12 +4461,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4500,9 +4500,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4513,12 +4519,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4558,9 +4558,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4571,12 +4577,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4616,9 +4616,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4629,12 +4635,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4674,9 +4674,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4687,12 +4693,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4732,9 +4732,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.758,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4745,12 +4751,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.9,
-        "veracity_category": "true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": false
       }
     }
@@ -4790,9 +4790,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4803,12 +4809,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4848,9 +4848,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4861,12 +4867,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4906,9 +4906,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4919,12 +4925,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -4964,9 +4964,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -4977,12 +4983,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5022,9 +5022,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5035,12 +5041,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5080,9 +5080,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5093,12 +5099,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.9,
-        "veracity_category": "true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5138,9 +5138,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5151,12 +5157,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5196,9 +5196,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5209,12 +5215,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5254,9 +5254,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5267,12 +5273,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5312,9 +5312,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5325,12 +5331,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5370,9 +5370,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.842,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5383,12 +5389,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5428,9 +5428,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.848,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5441,12 +5447,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5486,9 +5486,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5499,12 +5505,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5544,9 +5544,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5557,12 +5563,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5602,9 +5602,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5615,12 +5621,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5660,9 +5660,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5673,12 +5679,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5718,9 +5718,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5731,12 +5737,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5776,9 +5776,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5789,12 +5795,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5834,9 +5834,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5847,12 +5853,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5892,9 +5892,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.842,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5905,12 +5911,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -5950,9 +5950,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -5963,12 +5969,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6008,9 +6008,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.724,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6021,12 +6027,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6066,9 +6066,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6079,12 +6085,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6124,9 +6124,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6137,12 +6143,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6182,9 +6182,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.836,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6195,12 +6201,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6240,9 +6240,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6253,12 +6259,6 @@
           ],
           "image_mode": "L"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6298,9 +6298,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.81,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6311,12 +6317,6 @@
           ],
           "image_mode": "L"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6356,9 +6356,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6369,12 +6375,6 @@
           ],
           "image_mode": "L"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6414,9 +6414,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6427,12 +6433,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6472,9 +6472,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.834,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6485,12 +6491,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6530,9 +6530,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.838,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6543,12 +6549,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6588,9 +6588,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6601,12 +6607,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6646,9 +6646,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6659,12 +6665,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6704,9 +6704,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6717,12 +6723,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6762,9 +6762,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6775,12 +6781,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6820,9 +6820,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6833,12 +6839,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6878,9 +6878,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.6739999999999999,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6891,12 +6897,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6936,9 +6936,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -6949,12 +6955,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -6994,9 +6994,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.846,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7007,12 +7013,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7052,9 +7052,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.814,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7065,12 +7071,6 @@
           ],
           "image_mode": "L"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7110,9 +7110,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7123,12 +7129,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7168,9 +7168,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.9,
+        "alignment_category": "aligns_fully",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7181,12 +7187,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.9,
-        "alignment_category": "aligns_fully",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -7226,9 +7226,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7239,12 +7245,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7284,9 +7284,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7297,12 +7303,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7342,9 +7342,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7355,12 +7361,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7400,9 +7400,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.8039999999999999,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7413,12 +7419,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": false
       }
     }
@@ -7458,9 +7458,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.6739999999999999,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7471,12 +7477,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7516,9 +7516,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7529,12 +7535,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -7574,9 +7574,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7587,12 +7593,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7632,9 +7632,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.836,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7645,12 +7651,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -7690,9 +7690,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7703,12 +7709,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7748,9 +7748,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.816,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7761,12 +7767,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": false
       }
     }
@@ -7806,9 +7806,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.7959999999999999,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7819,12 +7825,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": false
       }
     }
@@ -7864,9 +7864,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7877,12 +7883,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -7922,9 +7922,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7935,12 +7941,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -7980,9 +7980,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -7993,12 +7999,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -8038,9 +8038,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.834,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8051,12 +8057,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8096,9 +8096,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8109,12 +8115,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -8154,9 +8154,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8167,12 +8173,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8212,9 +8212,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8225,12 +8231,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -8270,9 +8270,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8283,12 +8289,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8328,9 +8328,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8341,12 +8347,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8386,9 +8386,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8399,12 +8405,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8444,9 +8444,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8457,12 +8463,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8502,9 +8502,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8515,12 +8521,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8560,9 +8560,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8573,12 +8579,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8618,9 +8618,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8631,12 +8637,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.9,
-        "veracity_category": "true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8676,9 +8676,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.6,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.6,
+        "is_misleading": false,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8689,12 +8695,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.6,
-        "alignment_category": "partially_aligns",
-        "overall_score": 0.6,
-        "is_misleading": false,
         "is_misinformation": true
       }
     }
@@ -8734,9 +8734,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8747,12 +8753,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8792,9 +8792,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8805,12 +8811,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8852,9 +8852,17 @@
         "failed": true
       },
       "combined_analysis": {
+        "veracity_score": 0.0,
+        "veracity_category": "false",
+        "alignment_score": 0.0,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.0,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "error": "Direct MedGemma analysis failed",
+        "failed": true,
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8865,14 +8873,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.0,
-        "veracity_category": "false",
-        "alignment_score": 0.0,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.0,
-        "is_misleading": true,
-        "error": "Direct MedGemma analysis failed",
-        "failed": true,
         "is_misinformation": true
       }
     }
@@ -8912,9 +8912,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8925,12 +8931,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.6,
-        "veracity_category": "partially_true",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -8970,9 +8970,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -8983,12 +8989,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9028,9 +9028,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9041,12 +9047,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9086,9 +9086,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.846,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9099,12 +9105,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9144,9 +9144,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.82,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9157,12 +9163,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9202,9 +9202,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.6859999999999999,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9215,12 +9221,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9260,9 +9260,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9273,12 +9279,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9318,9 +9318,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": true,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "AUTHENTIC",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9331,12 +9337,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9376,9 +9376,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9389,12 +9395,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }
@@ -9434,9 +9434,15 @@
         "method": "contextual_analysis"
       },
       "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
         "pixel_authentic": false,
         "confidence": 0.85,
-        "method": "combined_analysis",
         "layer1_verdict": "MANIPULATED",
         "layer1_details": {
           "method": "pixel_forensics",
@@ -9447,12 +9453,6 @@
           ],
           "image_mode": "RGB"
         },
-        "veracity_score": 0.1,
-        "veracity_category": "false",
-        "alignment_score": 0.1,
-        "alignment_category": "does_not_align",
-        "overall_score": 0.1,
-        "is_misleading": true,
         "is_misinformation": true
       }
     }

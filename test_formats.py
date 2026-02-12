@@ -6,9 +6,9 @@ import json
 
 # Simple 1x1 test image
 test_image = bytes.fromhex(
-    '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4'
-    '8900000010494441541863f8cfc0f0030000050002fef02cc0890000000049454e'
-    '44ae426082'
+    "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4"
+    "8900000010494441541863f8cfc0f0030000050002fef02cc0890000000049454e"
+    "44ae426082"
 )
 
 url = "https://fxar9mmzlra5k3ua.us-east-1.aws.endpoints.huggingface.cloud"
@@ -21,28 +21,19 @@ encoded = base64.b64encode(test_image).decode("ascii")
 formats = {
     "Format 1 - TGI style": {
         "inputs": "What is in this image?",
-        "parameters": {
-            "max_new_tokens": 100,
-            "image": encoded
-        }
+        "parameters": {"max_new_tokens": 100, "image": encoded},
     },
     "Format 2 - Direct inputs": {
-        "inputs": {
-            "prompt": "What is in this image?",
-            "image": encoded
-        }
+        "inputs": {"prompt": "What is in this image?", "image": encoded}
     },
     "Format 3 - Text + image fields": {
         "text": "What is in this image?",
-        "image": encoded
+        "image": encoded,
     },
     "Format 4 - Inputs string with parameters": {
         "inputs": "What is in this image?",
-        "parameters": {
-            "image": encoded,
-            "max_new_tokens": 100
-        }
-    }
+        "parameters": {"image": encoded, "max_new_tokens": 100},
+    },
 }
 
 for name, payload in formats.items():

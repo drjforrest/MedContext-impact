@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Dict, List
 
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    precision_recall_fscore_support,
+    roc_auc_score,
+)
 from sklearn.utils import resample
 
 
@@ -26,6 +31,17 @@ def compute_three_dimensional_metrics(
     """
     if len(predictions) != len(ground_truth):
         raise ValueError("predictions and ground_truth must have same length")
+    if len(predictions) == 0:
+        raise ValueError("predictions and ground_truth cannot be empty")
+
+    # Warn if sample size is small
+    if len(predictions) < 30:
+        warnings.warn(
+            f"Sample size n={len(predictions)} is insufficient for statistical validation. "
+            "Metrics may be unreliable. Minimum recommended: n=30 for basic validation, "
+            "n=100+ for publication-quality results.",
+            UserWarning
+        )
 
     # Dimension 1: Pixel authenticity (rate, not classification)
     pixel_authentic = [p.get("pixel_authentic", True) for p in predictions]
@@ -34,13 +50,19 @@ def compute_three_dimensional_metrics(
     # Dimension 2: Veracity
     # In Med-MMHL: is_fake_claim=True means misinformation
     # Our model: high veracity_score = plausible
-    veracity_score = [p.get("veracity_score", p.get("claim_veracity", 0.5)) for p in predictions]
-    veracity_pred = [s > 0.5 for s in veracity_score]  # high score = plausible = not fake
-    veracity_truth = [not g["is_fake_claim"] for g in ground_truth]  # not fake = plausible
+    veracity_score = [
+        p.get("veracity_score", p.get("claim_veracity", 0.5)) for p in predictions
+    ]
+    veracity_pred = [
+        s > 0.5 for s in veracity_score
+    ]  # high score = plausible = not fake
+    veracity_truth = [
+        not g["is_fake_claim"] for g in ground_truth
+    ]  # not fake = plausible
 
     veracity_acc = accuracy_score(veracity_truth, veracity_pred)
     veracity_pr, veracity_re, veracity_f1, _ = precision_recall_fscore_support(
-        veracity_truth, veracity_pred, average="binary", zero_division=0
+        veracity_truth, veracity_pred, average="binary", zero_division=np.nan
     )
     try:
         veracity_auc = roc_auc_score(
@@ -48,20 +70,27 @@ def compute_three_dimensional_metrics(
             [p.get("veracity_score", 0.5) for p in predictions],
         )
     except ValueError:
-        veracity_auc = 0.5
+        # ROC AUC undefined when only one class present
+        veracity_auc = np.nan
 
     # Dimension 3: Alignment
     # expected_misalignment=True means fake (misaligned)
-    alignment_score = [p.get("alignment_score", p.get("alignment", 0.5)) for p in predictions]
+    alignment_score = [
+        p.get("alignment_score", p.get("alignment", 0.5)) for p in predictions
+    ]
     if isinstance(alignment_score[0], bool):
         alignment_pred = alignment_score
     else:
-        alignment_pred = [s > 0.5 for s in alignment_score]  # high = aligned = not misaligned
-    alignment_truth = [not g["expected_misalignment"] for g in ground_truth]  # not misaligned = aligned
+        alignment_pred = [
+            s > 0.5 for s in alignment_score
+        ]  # high = aligned = not misaligned
+    alignment_truth = [
+        not g["expected_misalignment"] for g in ground_truth
+    ]  # not misaligned = aligned
 
     alignment_acc = accuracy_score(alignment_truth, alignment_pred)
     alignment_pr, alignment_re, alignment_f1, _ = precision_recall_fscore_support(
-        alignment_truth, alignment_pred, average="binary", zero_division=0
+        alignment_truth, alignment_pred, average="binary", zero_division=np.nan
     )
     try:
         alignment_auc = roc_auc_score(
@@ -69,7 +98,12 @@ def compute_three_dimensional_metrics(
             [p.get("alignment_score", 0.5) for p in predictions],
         )
     except ValueError:
-        alignment_auc = 0.5
+        # ROC AUC undefined when only one class present
+        alignment_auc = np.nan
+
+    # Convert NaN to None for JSON serialization
+    def nan_to_none(val: float) -> float | None:
+        return None if np.isnan(val) else float(val)
 
     return {
         "pixel_authenticity": {
@@ -78,18 +112,18 @@ def compute_three_dimensional_metrics(
         },
         "veracity": {
             "accuracy": float(veracity_acc),
-            "precision": float(veracity_pr),
-            "recall": float(veracity_re),
-            "f1": float(veracity_f1),
-            "roc_auc": float(veracity_auc),
+            "precision": nan_to_none(veracity_pr),
+            "recall": nan_to_none(veracity_re),
+            "f1": nan_to_none(veracity_f1),
+            "roc_auc": nan_to_none(veracity_auc),
             "n": len(predictions),
         },
         "alignment": {
             "accuracy": float(alignment_acc),
-            "precision": float(alignment_pr),
-            "recall": float(alignment_re),
-            "f1": float(alignment_f1),
-            "roc_auc": float(alignment_auc),
+            "precision": nan_to_none(alignment_pr),
+            "recall": nan_to_none(alignment_re),
+            "f1": nan_to_none(alignment_f1),
+            "roc_auc": nan_to_none(alignment_auc),
             "n": len(predictions),
         },
     }

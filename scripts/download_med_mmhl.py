@@ -74,7 +74,9 @@ def main() -> int:
             print(f"Expected benchmark path not found: {benchmark_path}")
             print()
             print("Download Med-MMHL from Dropbox:")
-            print("  https://www.dropbox.com/scl/fo/zvud6ta0uaqm2j1liupts/h?rlkey=zhychubvhspdxramyjdqjteqd&dl=0")
+            print(
+                "  https://www.dropbox.com/scl/fo/zvud6ta0uaqm2j1liupts/h?rlkey=zhychubvhspdxramyjdqjteqd&dl=0"
+            )
             print()
             print("Extract to:", args.output.resolve())
             print()

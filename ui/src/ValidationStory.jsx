@@ -22,7 +22,7 @@ import './ValidationStory.css'
 // Med-MMHL validation data — proving multi-dimensional approach is essential
 // Full validation run: validation_results/med_mmhl_n163_a100 (Feb 12, 2026)
 // Dataset: Med-MMHL medical multimodal misinformation benchmark
-// Key finding: Single-dimension methods (65-72%) vs Combined system (95.7%)
+// Key finding: Single-dimension methods (65-72%) vs Combined system (96.3%)
 const VALIDATION_DATA = {
   // Individual dimension performance (insufficient alone)
   dimensions: {
@@ -32,11 +32,11 @@ const VALIDATION_DATA = {
   },
   // Combined multimodal system performance (the goal)
   combined: {
-    accuracy: 0.957,
-    precision: 0.975,
+    accuracy: 0.963,
+    precision: 0.981,
     recall: 0.981,
-    f1: 0.978,
-    tp: 155, fp: 4, tn: 1, fn: 3,
+    f1: 0.981,
+    tp: 155, fp: 3, tn: 2, fn: 3,
   },
   dataset: {
     name: "Med-MMHL",
@@ -159,8 +159,8 @@ function ValidationStory({ onNavigateBack }) {
                 <CheckIcon style={{ fontSize: '1rem' }} /> Validation Complete:
               </strong>{' '}
               Med-MMHL results prove the multi-dimensional approach: pixel forensics alone (65.0%), veracity alone (71.8%),
-              alignment alone (71.2%) are all insufficient—but the <strong>combined system achieves 95.7% accuracy</strong>
-              with 97.5% precision and 98.1% recall.
+              alignment alone (71.2%) are all insufficient—but the <strong>combined system achieves 96.3% accuracy</strong>
+              with 98.1% precision and 98.1% recall.
             </p>
           )}
         </div>
@@ -199,7 +199,7 @@ function ValidationStory({ onNavigateBack }) {
                 <strong style={{ color: '#5b8def' }}>Key finding:</strong>{' '}
                 The most dangerous misinformation—authentic images supporting false claims—is invisible to
                 pixel forensics and difficult for text-only analysis. Only the <strong>combined 3-dimensional
-                approach achieves 95.7% accuracy</strong>, proving all three dimensions are necessary.
+                approach achieves 96.3% accuracy</strong>, proving all three dimensions are necessary.
               </p>
             </div>
           </div>
@@ -399,7 +399,7 @@ function ValidationStory({ onNavigateBack }) {
               <>
                 <p>
                   Validation on 163 Med-MMHL samples proves the multi-dimensional approach is essential.
-                  Single methods achieve 65-72% accuracy, while the <strong>combined system achieves 95.7%</strong>—a
+                  Single methods achieve 65-72% accuracy, while the <strong>combined system achieves 96.3%</strong>—a
                   dramatic improvement proving that all three dimensions are necessary for effective detection.
                 </p>
                 <div className="chart-card">
@@ -420,7 +420,7 @@ function ValidationStory({ onNavigateBack }) {
                     </BarChart>
                   </ResponsiveContainer>
                   <p className="helper" style={{ marginTop: '1rem', color: '#c5cad4', textAlign: 'center' }}>
-                    The <strong style={{ color: '#e5484d' }}>combined system (95.7%)</strong> dramatically
+                    The <strong style={{ color: '#e5484d' }}>combined system (96.3%)</strong> dramatically
                     outperforms any single dimension alone, proving that effective medical misinformation
                     detection requires analyzing all three dimensions together.
                   </p>
@@ -505,7 +505,7 @@ function ValidationStory({ onNavigateBack }) {
           <div className="step-content">
             <h3>Why the Combined Approach Works</h3>
             <p>
-              The dramatic improvement from 65-72% (single methods) to 95.7% (combined) isn't just additive—it's
+              The dramatic improvement from 65-72% (single methods) to 96.3% (combined) isn't just additive—it's
               <strong> synergistic</strong>. Each dimension provides complementary signal that the others cannot,
               and analyzing them together reveals misinformation that any single method would miss.
             </p>
@@ -586,13 +586,13 @@ function ValidationStory({ onNavigateBack }) {
                 </h4>
                 <ul>
                   <li>Justification studies on Med-MMHL prove <strong>single-dimension methods are insufficient</strong>: pixel forensics (65%), veracity (72%), alignment (71%)</li>
-                  <li>Combined multi-dimensional system achieves <strong>95.7% accuracy</strong> with 97.5% precision and 98.1% recall</li>
-                  <li>The 24-31 percentage point improvement validates the thesis: effective medical visual misinformation detection requires all three dimensions</li>
+                  <li>Combined multi-dimensional system achieves <strong>96.3% accuracy</strong> with 98.1% precision and 98.1% recall</li>
+                  <li>The 25-31 percentage point improvement validates the thesis: effective medical visual misinformation detection requires all three dimensions</li>
                   {isPending ? (
                     <li>Quantitative results pending completion of Med-MMHL validation run</li>
                   ) : (
                     <>
-                      <li>Med-MMHL benchmark (163 samples): Single methods 65-72% vs Combined system <strong>95.7%</strong></li>
+                      <li>Med-MMHL benchmark (163 samples): Single methods 65-72% vs Combined system <strong>96.3%</strong></li>
                     </>
                   )}
                 </ul>
@@ -674,8 +674,8 @@ function ValidationStory({ onNavigateBack }) {
                   <CheckIcon /> Justification Validated
                 </h3>
                 <p style={{ marginBottom: 0, color: '#c5cad4' }}>
-                  The 24-31 percentage point improvement from single-dimension methods (65-72%) to the combined
-                  system (95.7%) validates the core thesis: <strong>effective medical visual misinformation
+                  The 25-31 percentage point improvement from single-dimension methods (65-72%) to the combined
+                  system (96.3%) validates the core thesis: <strong>effective medical visual misinformation
                   detection requires analyzing image integrity, claim veracity, and context alignment together</strong>—not
                   individually.
                 </p>

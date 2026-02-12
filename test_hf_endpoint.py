@@ -4,9 +4,10 @@ import sys
 import json
 from pathlib import Path
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 from app.clinical.medgemma_client import MedGemmaClient
+
 
 def test_endpoint():
     """Test the HuggingFace endpoint with a sample image."""
@@ -55,7 +56,9 @@ Analyze this medical image and the claim: "This shows COVID-19 test results"
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     test_endpoint()

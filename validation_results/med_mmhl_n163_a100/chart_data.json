@@ -2,7 +2,7 @@
   "metadata": {
     "total_samples": 163,
     "dataset": "Med-MMHL",
-    "timestamp": "2026-02-12T08:38:13.360885+00:00"
+    "timestamp": "2026-02-12T09:39:54.089105+00:00"
   },
   "confusion_matrix": [
     {
@@ -11,11 +11,11 @@
     },
     {
       "name": "False Positive",
-      "value": 4
+      "value": 3
     },
     {
       "name": "True Negative",
-      "value": 1
+      "value": 2
     },
     {
       "name": "False Negative",
@@ -36,12 +36,12 @@
     {
       "actual": "Legitimate",
       "predicted": "Misinformation",
-      "count": 4
+      "count": 3
     },
     {
       "actual": "Legitimate",
       "predicted": "Legitimate",
-      "count": 1
+      "count": 2
     }
   ],
   "veracity_distribution": [
@@ -2025,8 +2025,8 @@
     },
     {
       "method": "Combined System",
-      "accuracy": 95.70552147239265,
-      "correct": 156,
+      "accuracy": 96.31901840490798,
+      "correct": 157,
       "total": 163
     }
   ],
@@ -2328,14 +2328,14 @@
         "pixel_authentic": true
       },
       "predictions": {
-        "is_misinformation": true,
+        "is_misinformation": false,
         "veracity_score": 0.9,
         "veracity_category": "true",
         "alignment_score": 0.9,
         "alignment_category": "aligns_fully",
         "pixel_authentic": false
       },
-      "correct": false
+      "correct": true
     },
     {
       "id": "med_mmhl_test_10_0",
@@ -4969,11 +4969,11 @@
   "summary_metrics": [
     {
       "metric": "Accuracy",
-      "value": 95.70552147239265
+      "value": 96.31901840490798
     },
     {
       "metric": "Precision",
-      "value": 97.48427672955975
+      "value": 98.10126582278481
     },
     {
       "metric": "Recall",
@@ -4981,17 +4981,17 @@
     },
     {
       "metric": "F1 Score",
-      "value": 97.79179810725552
+      "value": 98.10126582278481
     }
   ],
   "raw_metrics": {
-    "accuracy": 0.9570552147239264,
-    "precision": 0.9748427672955975,
+    "accuracy": 0.9631901840490797,
+    "precision": 0.9810126582278481,
     "recall": 0.9810126582278481,
-    "f1": 0.9779179810725552,
+    "f1": 0.9810126582278481,
     "tp": 155,
-    "fp": 4,
-    "tn": 1,
+    "fp": 3,
+    "tn": 2,
     "fn": 3
   }
 }

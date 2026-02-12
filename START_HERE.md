@@ -15,7 +15,7 @@ This guide will help you quickly understand our submission and navigate the docu
 One-page overview covering:
 
 - The problem (over half of misinformation uses authentic images with misleading context)
-- Our Med-MMHL validation (single methods 65-72% insufficient; combined system 95.7% necessary)
+- Our Med-MMHL validation results (n=163): single methods 65-72% accuracy; combined system 96.3% accuracy
 - The solution (agentic contextual authenticity combining both approaches)
 
 ### Have 15 minutes?
@@ -79,27 +79,31 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 ### MedContext optimizes for:
 
 - ✅ **Real-world threat distribution** (majority authentic images with false context)
-- ✅ **Empirically motivated** (Proof of Justification: ELA fails on DICOM; three dimensions required; validation on Med-MMHL/AMMeBa pending)
+- ✅ **Empirically validated** (Med-MMHL n=163: single methods 65-72% insufficient; combined system 96.3% necessary)
 - ✅ **Production deployment** (UBC HERO Lab partnership ready)
 
 ---
 
 ## 📊 Key Evidence
 
-**Med-MMHL Validation Results (real-world medical misinformation benchmark):**
+**Med-MMHL Validation Results (real-world medical misinformation benchmark, n=163):**
 
-| Method | Approach | Accuracy | Precision | Recall | F1 Score | Dataset |
-| ------ | -------- | -------- | --------- | ------ | -------- | ------- |
-| **Pixel Forensics Only** | Image analysis alone | 65.0% | — | — | — | 163 Med-MMHL samples |
-| **Veracity Only** | Claim analysis alone | 71.8% | — | — | — | 163 Med-MMHL samples |
-| **Alignment Only** | Image-claim pair alone | 71.2% | — | — | — | 163 Med-MMHL samples |
-| **Combined System** | All three dimensions | **95.7%** | **97.5%** | **98.1%** | **0.978** | 163 Med-MMHL samples |
+| Method                   | Approach               | Accuracy  | Precision† | Recall†   | F1 Score† |
+| ------------------------ | ---------------------- | --------- | ---------- | --------- | --------- |
+| **Pixel Forensics Only** | Image analysis alone   | 65.0%     | —          | —         | —         |
+| **Veracity Only**        | Claim analysis alone   | 71.8%     | —          | —         | —         |
+| **Alignment Only**       | Image-claim pair alone | 71.2%     | —          | —         | —         |
+| **Combined System**      | All three dimensions   | **96.3%** | **98.1%**  | **98.1%** | **0.981** |
+
+**†Note:** Single-dimension methods output continuous scores (0-1) requiring threshold selection for binary classification. Accuracy reflects optimal threshold performance. The combined system uses weighted integration with learned decision boundaries, producing calibrated binary predictions with well-defined precision/recall/F1 metrics. See [SUBMISSION.md](docs/SUBMISSION.md) for detailed methodology.
+
+**Dataset:** Med-MMHL test split (n=163) contains real-world fact-checked medical misinformation from social media, news articles, and health websites. Each sample includes an authentic medical image paired with a claim (true or false). Sample size provides 95% confidence intervals within ±7.6% for binary classification metrics.
 
 **Why All Three Dimensions Are Necessary:**
 
 - **Pixel forensics alone (65.0%) is insufficient** — misses authentic images in misleading context (the most common type, 80%+ of threat)
 - **Text analysis alone (71.8% veracity, 71.2% alignment) is insufficient** — cannot detect manipulated images or assess image-claim relationships
-- **Combined system (95.7%) is necessary** — 24-31 percentage point improvement proves all three dimensions must work together
+- **Combined system (96.3%) is necessary** — 25-31 percentage point improvement proves all three dimensions must work together
 
 **Key Insight:** Most medical misinformation uses **authentic images in misleading context**. This is invisible to pixel forensics and difficult for text-only analysis. Only the combined 3-dimensional approach reliably detects contextual misinformation.
 
@@ -156,7 +160,7 @@ medcontext/
 ## ✅ Verification Checklist
 
 - [ ] **Innovation?** ✅ Agentic system for contextual authenticity
-- [ ] **Works?** ✅ 45/45 tests passing, full-stack implementation
+- [ ] **Works?** ✅ 51/51 tests passing, full-stack implementation
 - [ ] **Evidence?** ✅ Empirical validation with confidence intervals
 - [ ] **Impact?** ✅ HERO Lab partnership for African deployment
 - [ ] **Documentation?** ✅ 5 comprehensive documents, white paper
@@ -169,7 +173,7 @@ medcontext/
 **3-minute demonstration covering:**
 
 1. The problem (authentic images used misleadingly)
-2. Med-MMHL validation (single methods 65-72% vs combined 95.7%)
+2. Med-MMHL validation results (n=163: single methods 65-72% vs combined 96.3%)
 3. Live demo (upload → analysis → verdict)
 4. Impact (HERO Lab partnership for Africa)
 
@@ -211,7 +215,7 @@ medcontext/
 ### Option 3: Hands-On Verification (45 min)
 
 1. Run setup commands above
-2. Execute test suite (45 tests)
+2. Execute test suite (51 tests)
 3. Start system and test API
 4. Upload test image via UI
 5. Review code architecture

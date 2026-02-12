@@ -5,8 +5,9 @@ import base64
 import httpx
 from pathlib import Path
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 from app.core.config import settings
+
 
 def test_raw_endpoint():
     """Test the raw HuggingFace endpoint response."""
@@ -36,7 +37,7 @@ def test_raw_endpoint():
         "parameters": {
             "image": encoded_image,
             "max_new_tokens": 500,
-        }
+        },
     }
 
     print(f"\nEndpoint URL: {url}")
@@ -72,7 +73,9 @@ def test_raw_endpoint():
     except Exception as e:
         print(f"\n❌ Request error: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     test_raw_endpoint()

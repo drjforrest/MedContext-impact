@@ -5,8 +5,9 @@ import base64
 import httpx
 from pathlib import Path
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 from app.core.config import settings
+
 
 def test_vllm_format():
     """Test the vLLM/OpenAI-compatible format."""
@@ -24,13 +25,16 @@ def test_vllm_format():
 
     # OpenAI-compatible chat completions format
     content = [
-        {"type": "text", "text": """Return ONLY valid JSON:
+        {
+            "type": "text",
+            "text": """Return ONLY valid JSON:
 {
   "veracity": "true",
   "alignment": "aligns_fully",
   "veracity_reasoning": "test",
   "alignment_reasoning": "test"
-}"""},
+}""",
+        },
         {"type": "image_url", "image_url": {"url": image_url}},
     ]
 
@@ -64,11 +68,11 @@ def test_vllm_format():
                     print(f"Response type: {type(data)}")
                     if isinstance(data, dict):
                         print(f"Keys: {list(data.keys())}")
-                        if 'choices' in data:
+                        if "choices" in data:
                             print(f"Choices: {len(data['choices'])}")
-                            if data['choices']:
-                                msg = data['choices'][0].get('message', {})
-                                content = msg.get('content', '')
+                            if data["choices"]:
+                                msg = data["choices"][0].get("message", {})
+                                content = msg.get("content", "")
                                 print(f"\nContent (first 500 chars):\n{content[:500]}")
                     return
                 elif response.status_code == 404:
@@ -82,6 +86,7 @@ def test_vllm_format():
             print(f"❌ Timeout after 90 seconds")
         except Exception as e:
             print(f"❌ Error: {e}")
+
 
 if __name__ == "__main__":
     test_vllm_format()

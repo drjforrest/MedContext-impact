@@ -60,12 +60,20 @@ def load_med_mmhl_dataset(
             )
 
     df = pd.read_csv(csv_path, header=0, sep=",")
-    if "content" not in df.columns or "image" not in df.columns or "det_fake_label" not in df.columns:
+    if (
+        "content" not in df.columns
+        or "image" not in df.columns
+        or "det_fake_label" not in df.columns
+    ):
         raise ValueError(
             f"Expected columns content, image, det_fake_label. Got: {list(df.columns)}"
         )
 
-    base = base_image_dir or (benchmark_path.parent if "benchmarked_data" in str(benchmark_path) else benchmark_path)
+    base = base_image_dir or (
+        benchmark_path.parent
+        if "benchmarked_data" in str(benchmark_path)
+        else benchmark_path
+    )
     if not base.exists():
         base = benchmark_path.parent
 
@@ -83,7 +91,16 @@ def load_med_mmhl_dataset(
         image_str = row["image"]
         image_paths = _parse_image_paths(image_str)
 
-        is_fake = int(row["det_fake_label"]) == 1
+        # Defensively parse det_fake_label (handle NaN, None, invalid values)
+        label_value = row["det_fake_label"]
+        if pd.isna(label_value):
+            # Skip rows with missing label
+            continue
+        try:
+            is_fake = int(label_value) == 1
+        except (ValueError, TypeError):
+            # Invalid label value - skip this row
+            continue
 
         for j, img_path in enumerate(image_paths):
             resolved = _resolve_image_path(img_path, base)
@@ -97,20 +114,22 @@ def load_med_mmhl_dataset(
                 if not ann.get("is_authentic_medical_image", False):
                     continue
 
-            records.append({
-                "image_id": claim_id,
-                "image_path": str(resolved),
-                "claim": content,
-                "ground_truth": {
-                    "is_fake_claim": is_fake,
-                    "expected_misalignment": is_fake,
-                    "is_misinformation": is_fake,
-                    "pixel_authentic": True,  # Med-MMHL: most images are authentic
-                    "plausibility": "low" if is_fake else "high",
-                    "alignment": "misaligned" if is_fake else "aligned",
-                },
-                "annotations": ann,
-            })
+            records.append(
+                {
+                    "image_id": claim_id,
+                    "image_path": str(resolved),
+                    "claim": content,
+                    "ground_truth": {
+                        "is_fake_claim": is_fake,
+                        "expected_misalignment": is_fake,
+                        "is_misinformation": is_fake,
+                        "pixel_authentic": True,  # Med-MMHL: most images are authentic
+                        "plausibility": "low" if is_fake else "high",
+                        "alignment": "misaligned" if is_fake else "aligned",
+                    },
+                    "annotations": ann,
+                }
+            )
 
     return records
 
@@ -134,7 +153,11 @@ def _parse_image_paths(image_str: str) -> List[str]:
             # Filter out placeholder ".." (no image)
             return [p for p in parts if p.strip() != ".."]
         if inner.strip() and inner.strip() != "..":
-            return [p.strip().strip("'\"").strip() for p in inner.split(",") if p.strip() != ".."]
+            return [
+                p.strip().strip("'\"").strip()
+                for p in inner.split(",")
+                if p.strip() != ".."
+            ]
 
     if s.startswith("/") or "/" in s or s.endswith((".png", ".jpg", ".jpeg")):
         return [s] if s != ".." else []

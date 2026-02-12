@@ -958,9 +958,11 @@ function App() {
                                 {forensicsData.results.layer_1.verdict}
                               </span>
                             </div>
-                            <div>
-                              <strong>Confidence:</strong> {Math.round((forensicsData.results.layer_1.confidence || 0) * 100)}%
-                            </div>
+                            {forensicsData.results.layer_1.confidence != null ? (
+                              <div>
+                                <strong>Confidence:</strong> {Math.round(forensicsData.results.layer_1.confidence * 100)}%
+                              </div>
+                            ) : null}
                             {forensicsData.results.layer_1.details?.copy_move_score !== undefined ? (
                               <div>
                                 <strong>Copy-Move Score:</strong> {forensicsData.results.layer_1.details.copy_move_score.toFixed(4)}
@@ -1039,7 +1041,11 @@ function App() {
                           <span className="score-value-text">
                             {forensicsData.results?.layer_1?.verdict || 'Unknown'}
                           </span>
-                          <span>{Math.round((forensicsData.results?.layer_1?.confidence || 0) * 100)}% confidence</span>
+                          <span>
+                            {forensicsData.results?.layer_1?.confidence != null
+                              ? `${Math.round(forensicsData.results.layer_1.confidence * 100)}% confidence`
+                              : 'Confidence N/A'}
+                          </span>
                         </div>
                       ) : (
                         <div className="score-pill score-neutral">
@@ -1055,9 +1061,7 @@ function App() {
                           <span className="score-value-text">
                             {claimVeracity.accuracy?.replace('_', ' ') || 'Unknown'}
                           </span>
-                          {claimVeracity.score !== undefined ? (
-                            <span>{Math.round(claimVeracity.score * 100)}% score</span>
-                          ) : null}
+
                         </div>
                       ) : (
                         <div className="score-pill score-neutral">
@@ -1185,9 +1189,11 @@ function App() {
                           <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
                             {layerData.verdict}
                           </span>
-                          <span className="pill pill-muted">
-                            {Math.round(layerData.confidence * 100)}% confidence
-                          </span>
+                          {layerData.confidence != null ? (
+                            <span className="pill pill-muted">
+                              {Math.round(layerData.confidence * 100)}% confidence
+                            </span>
+                          ) : null}
                         </div>
                         {layerData.details ? (
                           <div className="forensics-details">

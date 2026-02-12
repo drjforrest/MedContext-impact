@@ -19,7 +19,7 @@ That said, there are several issues ranging from critical blockers to polish ite
 
 ### 1. Demo Video Is Missing
 
-Both `README.md` (line 282) and `START_HERE.md` (line 167) show placeholder text: *"[Video will be embedded here — currently in production]"*. The competition appears to require a 3-minute video demo (your own docs say "competition requirement is 3 minutes maximum"). A missing video is likely a disqualifying gap or at minimum a major scoring penalty. This should be your top priority.
+Both `README.md` (line 282) and `START_HERE.md` (line 167) show placeholder text: _"[Video will be embedded here — currently in production]"_. The competition appears to require a 3-minute video demo (your own docs say "competition requirement is 3 minutes maximum"). A missing video is likely a disqualifying gap or at minimum a major scoring penalty. This should be your top priority.
 
 **Action:** Record and embed a 3-minute video covering the problem, validation, live demo, and impact.
 
@@ -27,14 +27,14 @@ Both `README.md` (line 282) and `START_HERE.md` (line 167) show placeholder text
 
 The numbers don't match across your documentation. A judge cross-referencing will notice:
 
-| Metric | README / EXEC SUMMARY | START_HERE | VALIDATION.md | kaggle_dataset.txt |
-|--------|----------------------|------------|---------------|-------------------|
-| Pixel forensics accuracy | 97.5% | 97.5% | 97.5% | **25.0%** |
-| Veracity | 61.3% | — | 61.3% | **61.9%** |
-| Alignment | 56.9% | **65.6%** | 56.9% / 65.6% | **60.6%** |
-| Contextual overall | — | 65.6% | 65.6% | — |
+| Metric                   | README / EXEC SUMMARY | START_HERE | VALIDATION.md | kaggle_dataset.txt |
+| ------------------------ | --------------------- | ---------- | ------------- | ------------------ |
+| Pixel forensics accuracy | 97.5%                 | 97.5%      | 97.5%         | **25.0%**          |
+| Veracity                 | 61.3%                 | —          | 61.3%         | **61.9%**          |
+| Alignment                | 56.9%                 | **65.6%**  | 56.9% / 65.6% | **60.6%**          |
+| Contextual overall       | —                     | 65.6%      | 65.6%         | —                  |
 
-The `kaggle_dataset.txt` (your Kaggle dataset card) reports pixel forensics at **25.0%** — the *inverse* of 97.5% — suggesting a labelling or inversion error. START_HERE reports 65.6% alignment accuracy but the actual three-method validation JSON shows 56.9% binary accuracy for alignment. These discrepancies need to be reconciled into a single, consistent set of numbers across every document.
+The `kaggle_dataset.txt` (your Kaggle dataset card) reports pixel forensics at **25.0%** — the _inverse_ of 97.5% — suggesting a labelling or inversion error. START_HERE reports 65.6% alignment accuracy but the actual three-method validation JSON shows 56.9% binary accuracy for alignment. These discrepancies need to be reconciled into a single, consistent set of numbers across every document.
 
 **Action:** Audit every document for metric consistency. Use the `three_method_comparison.json` as the source of truth and update all docs to match.
 
@@ -46,7 +46,7 @@ The `kaggle_dataset.txt` (your Kaggle dataset card) reports pixel forensics at *
 
 ### 4. Missing LICENSE File
 
-README says *"MIT License — See [LICENSE](LICENSE) file for details"* but no LICENSE file exists in the repository root. This is a dead link judges will click.
+README says _"MIT License — See [LICENSE](LICENSE) file for details"_ but no LICENSE file exists in the repository root. This is a dead link judges will click.
 
 **Action:** Add a LICENSE file. Note: the competition requires CC BY 4.0 for winners (Section 6 of rules). You might want to dual-license or switch to CC BY 4.0 proactively.
 
@@ -57,6 +57,7 @@ README says *"MIT License — See [LICENSE](LICENSE) file for details"* but no L
 ### 5. Dead Documentation Links
 
 README references two files that don't exist:
+
 - `docs/DEPLOYMENT.md` (line 449)
 - `docs/AGENTIC_ARCHITECTURE.md` (line 450) — the actual file is `docs/AGENTIC_WORKFLOW.md`
 
@@ -64,7 +65,7 @@ README references two files that don't exist:
 
 ### 6. Test Coverage Claim Is Overstated
 
-README claims *"100% coverage on core modules"* with 45/45 tests. Having reviewed the test files, the tests rely heavily on mocking — MedGemma calls, LLM orchestration, and database interactions are all mocked. There's no integration test that runs the actual pipeline with real images. The 97.5% pixel forensics accuracy can't be reproduced from the test suite alone.
+README claims _"100% coverage on core modules"_ with 51/51 tests. Having reviewed the test files, the tests rely heavily on mocking — MedGemma calls, LLM orchestration, and database interactions are all mocked. There's no integration test that runs the actual pipeline with real images. The 97.5% pixel forensics accuracy can't be reproduced from the test suite alone.
 
 This isn't necessarily a problem (unit tests with mocks are standard), but claiming "100% coverage on core modules" when core functionality is mocked could be challenged.
 
@@ -72,7 +73,7 @@ This isn't necessarily a problem (unit tests with mocks are standard), but claim
 
 ### 7. Copy-Move Detection Is Explicitly a Placeholder
 
-`src/app/forensics/service.py` line 59 says: *"This is a placeholder heuristic; swap for a trained CNN without touching any calling code."* If a judge reads the source code (they will), this undercuts the 97.5% pixel forensics accuracy claim. The accuracy may come from DICOM header integrity checks rather than the copy-move heuristic, but the presence of "placeholder" language is a red flag.
+`src/app/forensics/service.py` line 59 says: _"This is a placeholder heuristic; swap for a trained CNN without touching any calling code."_ If a judge reads the source code (they will), this undercuts the 97.5% pixel forensics accuracy claim. The accuracy may come from DICOM header integrity checks rather than the copy-move heuristic, but the presence of "placeholder" language is a red flag.
 
 **Action:** Either replace the placeholder with a real implementation, or reframe the 97.5% claim to explicitly attribute it to DICOM header integrity validation (not copy-move detection). At minimum, remove the word "placeholder" from the code comment.
 
@@ -94,7 +95,7 @@ Genealogy Consistency and Source Reputation both contribute 0.0 because there's 
 
 ### 10. Entity/Branding Inconsistency
 
-SUBMISSION.md says *"Team: Jamie I. Forrest, PhD, MPH (Counterforce AI)"* but all other documentation references HERO Lab / UBC. It's unclear whether this is a HERO Lab project, a Counterforce AI project, or both. Judges might find this confusing.
+SUBMISSION.md says _"Team: Jamie I. Forrest, PhD, MPH (Counterforce AI)"_ but all other documentation references HERO Lab / UBC. It's unclear whether this is a HERO Lab project, a Counterforce AI project, or both. Judges might find this confusing.
 
 **Action:** Pick a consistent identity for the competition. If it's both, briefly explain the relationship.
 
@@ -142,7 +143,7 @@ VALIDATION.md is 617 lines — a thorough and honest document, but potentially o
 
 ### 18. Score Distribution Discrepancy
 
-The EXECUTIVE_SUMMARY says *"38.1% of samples score 3/3"* but the actual JSON shows 61 out of 160 = 38.1%, while START_HERE doesn't mention this. These numbers are correct but could be confusing alongside other metrics.
+The EXECUTIVE_SUMMARY says _"38.1% of samples score 3/3"_ but the actual JSON shows 61 out of 160 = 38.1%, while START_HERE doesn't mention this. These numbers are correct but could be confusing alongside other metrics.
 
 ### 19. Demo Access Code in README
 
@@ -174,17 +175,17 @@ These are genuinely strong and should be emphasised in the submission:
 
 ## Suggested 10-Day Priority Plan
 
-| Day | Focus | Items |
-|-----|-------|-------|
-| 1–3 | **Demo video** | Record, edit, embed (Critical #1) |
-| 3–4 | **Metric reconciliation** | Audit all docs, fix numbers (Critical #2) |
-| 4–5 | **Dependencies & LICENSE** | Sync versions, add LICENSE (Critical #3, #4) |
-| 5–6 | **Documentation fixes** | Dead links, "first" hedging, entity consistency (High #5, #10, #11) |
+| Day | Focus                        | Items                                                                         |
+| --- | ---------------------------- | ----------------------------------------------------------------------------- |
+| 1–3 | **Demo video**               | Record, edit, embed (Critical #1)                                             |
+| 3–4 | **Metric reconciliation**    | Audit all docs, fix numbers (Critical #2)                                     |
+| 4–5 | **Dependencies & LICENSE**   | Sync versions, add LICENSE (Critical #3, #4)                                  |
+| 5–6 | **Documentation fixes**      | Dead links, "first" hedging, entity consistency (High #5, #10, #11)           |
 | 6–7 | **Code & test improvements** | Fix placeholder language, soften coverage claim, add smoke test (High #6, #7) |
-| 7–8 | **Validation caveats** | Add cross-modality note, 2/4 signals note to executive docs (High #8, #9) |
-| 8–9 | **Polish** | .env defaults, CORS, lit review, formatting (Medium #12–15) |
-| 10 | **Final review** | End-to-end judge simulation: clone, setup, run, read docs |
+| 7–8 | **Validation caveats**       | Add cross-modality note, 2/4 signals note to executive docs (High #8, #9)     |
+| 8–9 | **Polish**                   | .env defaults, CORS, lit review, formatting (Medium #12–15)                   |
+| 10  | **Final review**             | End-to-end judge simulation: clone, setup, run, read docs                     |
 
 ---
 
-*This review is based on a thorough reading of all documentation, source code, test files, validation results, and competition rules as of February 11, 2026.*
+_This review is based on a thorough reading of all documentation, source code, test files, validation results, and competition rules as of February 11, 2026._

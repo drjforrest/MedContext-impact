@@ -89,18 +89,21 @@ class MedGemmaClient:
             )
 
         # Use custom endpoint URL if available (for dedicated endpoints), otherwise use Inference API
-        if settings.medgemma_url and not settings.medgemma_url.startswith("http://localhost"):
+        if settings.medgemma_url and not settings.medgemma_url.startswith(
+            "http://localhost"
+        ):
             url = settings.medgemma_url.rstrip("/")
         else:
-            url = (
-                f"https://api-inference.huggingface.co/models/{settings.medgemma_hf_model}"
-            )
+            url = f"https://api-inference.huggingface.co/models/{settings.medgemma_hf_model}"
         headers = {"Authorization": f"Bearer {settings.medgemma_hf_token}"}
 
         # Resize image to reduce GPU memory usage for dedicated endpoints
-        if settings.medgemma_url and not settings.medgemma_url.startswith("http://localhost"):
+        if settings.medgemma_url and not settings.medgemma_url.startswith(
+            "http://localhost"
+        ):
             try:
                 from PIL import Image
+
                 img = Image.open(io.BytesIO(image_bytes))
                 # Resize to max 768px on longest side to reduce memory
                 max_size = 768
@@ -111,26 +114,31 @@ class MedGemmaClient:
 
                 # Convert back to bytes
                 buffer = io.BytesIO()
-                img.save(buffer, format=img.format or 'JPEG', quality=85)
+                img.save(buffer, format=img.format or "JPEG", quality=85)
                 image_bytes = buffer.getvalue()
             except Exception:
                 pass  # Use original if resize fails
 
         payload: dict[str, Any] | bytes
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
+        inputs_text: Optional[str] = None
 
         # Use TGI (Text Generation Inference) format for dedicated endpoints
-        if settings.medgemma_url and not settings.medgemma_url.startswith("http://localhost"):
+        if settings.medgemma_url and not settings.medgemma_url.startswith(
+            "http://localhost"
+        ):
             # Dedicated endpoints expect image embedded in inputs string with markdown syntax
             image_format = _detect_image_format(image_bytes)
             image_data_url = f"data:image/{image_format};base64,{encoded_image}"
             # Format: ![](image_url)prompt_text
-            inputs_text = f"![]({image_data_url}){prompt or 'Describe this medical image.'}"
+            inputs_text = (
+                f"![]({image_data_url}){prompt or 'Describe this medical image.'}"
+            )
             payload = {
                 "inputs": inputs_text,
                 "parameters": {
                     "max_new_tokens": settings.medgemma_max_new_tokens,
-                }
+                },
             }
         else:
             # Use standard HF Inference API format
@@ -164,8 +172,11 @@ class MedGemmaClient:
             if isinstance(response_data, list) and response_data:
                 # TGI format: extract generated_text from first item
                 generated = response_data[0].get("generated_text", "")
-                # Remove the input prompt from the generated text
-                if prompt and generated.startswith(prompt):
+                # Remove the input from the generated text
+                # First try stripping inputs_text (full input with image markdown), then prompt
+                if inputs_text and generated.startswith(inputs_text):
+                    generated = generated[len(inputs_text):].strip()
+                elif prompt and generated.startswith(prompt):
                     generated = generated[len(prompt):].strip()
                 raw_text = generated
         except Exception:
@@ -341,18 +352,22 @@ class MedGemmaClient:
             if settings.medgemma_vertex_dedicated_domain:
                 domain = settings.medgemma_vertex_dedicated_domain.strip()
                 if domain.startswith("https://"):
-                    domain = domain[len("https://"):]
+                    domain = domain[len("https://") :]
                 elif domain.startswith("http://"):
-                    domain = domain[len("http://"):]
+                    domain = domain[len("http://") :]
                 domain = domain.rstrip("/")
 
                 # Populate dedicated_endpoint_dns if empty
-                if not (getattr(endpoint, "dedicated_endpoint_dns", None) or "").strip():
+                if not (
+                    getattr(endpoint, "dedicated_endpoint_dns", None) or ""
+                ).strip():
                     endpoint.gca_resource.dedicated_endpoint_dns = domain
 
             response_obj = endpoint.predict(
                 instances=[instance],
-                use_dedicated_endpoint=True if settings.medgemma_vertex_dedicated_domain else False,
+                use_dedicated_endpoint=(
+                    True if settings.medgemma_vertex_dedicated_domain else False
+                ),
             )
         except Exception as exc:
             raise MedGemmaClientError(f"Vertex AI SDK predict failed: {exc}") from exc
@@ -409,9 +424,9 @@ class MedGemmaClient:
             if settings.medgemma_vertex_dedicated_domain:
                 domain = settings.medgemma_vertex_dedicated_domain.rstrip("/")
                 if domain.startswith("https://"):
-                    domain = domain[len("https://"):]
+                    domain = domain[len("https://") :]
                 elif domain.startswith("http://"):
-                    domain = domain[len("http://"):]
+                    domain = domain[len("http://") :]
                 url = f"https://{domain}/v1/{resource}"
             else:
                 url = (

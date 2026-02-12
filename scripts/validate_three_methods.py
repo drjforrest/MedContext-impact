@@ -246,13 +246,8 @@ Return ONLY valid JSON with this exact structure:
             veracity_score = veracity_scores.get(veracity_cat, 0.5)
             alignment_score = alignment_scores.get(alignment_cat, 0.5)
 
-            # Check if we got default values which may indicate failed analysis
-            is_mock = (
-                veracity_cat == "partially_true"
-                and alignment_cat == "partially_aligns"
-                and veracity_score == 0.5
-                and alignment_score == 0.5
-            )
+            # Check if we got default values which indicate failed analysis
+            is_mock = veracity_score == 0.5 and alignment_score == 0.5
 
             result_data = {
                 "veracity_score": veracity_score,
@@ -286,12 +281,19 @@ Return ONLY valid JSON with this exact structure:
     def combined_analysis(
         self, pixel_result: Dict, context_result: Dict
     ) -> Dict[str, Any]:
-        """Combine pixel + contextual predictions.
+        """Combine pixel + contextual predictions with contextual priority.
 
-        Misinformation if:
-        - Pixels are tampered OR
-        - Context is misleading (veracity/alignment fails) OR
-        - Authentic images with false claims produce misinformation
+        DECISION HIERARCHY:
+        1. Strong contextual signals (veracity >= 0.8 AND alignment >= 0.8) are DECISIVE
+           → is_misinformation = false regardless of pixel forensics
+        2. Weak contextual signals defer to combined evidence
+           → Misinformation if pixels tampered OR context misleading
+
+        RATIONALE: Pixel forensics has false positives (compression artifacts, format
+        conversions). Strong contextual alignment (verified claim + matching image)
+        indicates legitimate content even if pixels show anomalies.
+
+        WEIGHTS: overall_score = 0.3*pixel + 0.4*veracity + 0.3*alignment
         """
         # Extract contextual signals
         veracity_score = context_result.get("veracity_score", 0.5)
@@ -302,64 +304,70 @@ Return ONLY valid JSON with this exact structure:
         alignment_category = context_result.get(
             "alignment_category", "partially_aligns"
         )
+        pixel_authentic = pixel_result.get("pixel_authentic", True)
 
-        # Determine if there's contextual misinformation regardless of pixel authenticity
-        # Low veracity (false claims) constitutes misinformation even with authentic images
+        # Determine contextual strength
+        strong_contextual_signals = veracity_score >= 0.8 and alignment_score >= 0.8
         low_veracity = veracity_category == "false" or veracity_score < 0.5
         low_alignment = alignment_category == "does_not_align" or alignment_score < 0.5
-        # Also consider "partially_true" and "partially_aligns" as potential indicators when scores are low
         medium_veracity = veracity_category == "partially_true" and veracity_score < 0.6
         medium_alignment = (
             alignment_category == "partially_aligns" and alignment_score < 0.6
         )
 
-        # Misinformation occurs if:
-        # 1. Image is tampered (original condition)
-        # 2. Claim is misleading regardless of image authenticity (new condition)
-        # 3. Claim has low veracity (false claims constitute misinformation)
-        # 4. Image-claim alignment is poor
-        # 5. Even partially true claims with low scores can be misleading
-        is_misinformation = (
-            not pixel_result["pixel_authentic"]  # Tampered image
-            or is_misleading  # Contextual analysis indicates misleading
-            or low_veracity  # False claim
-            or low_alignment  # Poor alignment
-            or medium_veracity  # Partially true but with low confidence
-            or medium_alignment  # Partially aligns but with low confidence
-        )
-
-        # Update is_misleading to reflect combined analysis
-        # Consider misleading if contextual indicators show low veracity or poor alignment
-        combined_is_misleading = (
-            is_misleading
-            or low_veracity
-            or low_alignment
-            or medium_veracity
-            or medium_alignment
-        )
-
-        # Adjust overall score based on combined analysis
-        # If there's contextual misinformation, lower the overall score
-        combined_overall_score = overall_score
-        if low_veracity or low_alignment or medium_veracity or medium_alignment:
-            # Reduce score if contextual analysis shows issues
-            combined_overall_score = min(
-                combined_overall_score, 0.3 if (low_veracity or low_alignment) else 0.5
+        # DECISION LOGIC: Strong contextual signals override pixel forensics
+        if strong_contextual_signals:
+            # High confidence in both veracity and alignment → NOT misinformation
+            # Even if pixel forensics detected anomalies (likely false positive)
+            is_misinformation = False
+            combined_is_misleading = False
+            # Weighted score: 30% pixel, 40% veracity, 30% alignment
+            pixel_score = 1.0 if pixel_authentic else 0.0
+            combined_overall_score = (
+                0.3 * pixel_score + 0.4 * veracity_score + 0.3 * alignment_score
+            )
+        else:
+            # Weak contextual signals → use standard OR logic
+            # Misinformation if: tampered pixels OR misleading context
+            is_misinformation = (
+                not pixel_authentic  # Tampered image
+                or is_misleading  # Contextual analysis indicates misleading
+                or low_veracity  # False claim
+                or low_alignment  # Poor alignment
+                or medium_veracity  # Partially true but with low confidence
+                or medium_alignment  # Partially aligns but with low confidence
             )
 
-        # Combine results from both analyses, avoiding key conflicts
+            combined_is_misleading = (
+                is_misleading
+                or low_veracity
+                or low_alignment
+                or medium_veracity
+                or medium_alignment
+            )
+
+            # Reduce overall score if contextual analysis shows issues
+            if low_veracity or low_alignment or medium_veracity or medium_alignment:
+                combined_overall_score = min(
+                    overall_score, 0.3 if (low_veracity or low_alignment) else 0.5
+                )
+            else:
+                combined_overall_score = overall_score
+
+        # Combine results preserving pixel details for transparency
         combined_result = {
-            **pixel_result,
-            **context_result,
+            **context_result,  # Contextual data takes precedence
+            "pixel_authentic": pixel_authentic,  # Preserve pixel verdict
+            "confidence": pixel_result.get("confidence", 0.0),  # Preserve pixel confidence
+            "layer1_verdict": pixel_result.get("layer1_verdict", "UNKNOWN"),
+            "layer1_details": pixel_result.get("layer1_details", {}),
             "is_misinformation": is_misinformation,
             "is_misleading": combined_is_misleading,
             "overall_score": combined_overall_score,
             "method": "combined_analysis",
+            "veracity_category": veracity_category,
+            "alignment_category": alignment_category,
         }
-
-        # Preserve and potentially update the semantic categories from contextual analysis
-        combined_result["veracity_category"] = veracity_category
-        combined_result["alignment_category"] = alignment_category
 
         return combined_result
 

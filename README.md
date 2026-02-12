@@ -47,7 +47,7 @@ We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark
 
 ### Single Dimensions Fail: Pixel Forensics 65.0% · Veracity 71.8% · Alignment 71.2%
 
-### Combined System Succeeds: **95.7% Accuracy** (97.5% Precision, 98.1% Recall)
+### Combined System Succeeds: **96.3% Accuracy** (98.1% Precision, 98.1% Recall)
 
 </div>
 
@@ -65,8 +65,8 @@ We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark
 
 - ✅ **Pixel forensics alone (65.0%) is insufficient** — misses authentic images used in misleading context (the most common type)
 - ✅ **Text analysis alone (71.8% veracity, 71.2% alignment) is insufficient** — cannot detect manipulated images or assess image-claim relationships
-- ✅ **Combined multi-dimensional system (95.7%) is necessary** — 24-31 percentage point improvement proves all three dimensions are required
-- ✅ High precision (97.5%) and recall (98.1%) on real-world medical misinformation from Med-MMHL benchmark
+- ✅ **Combined multi-dimensional system (96.3%) is necessary** — 25-31 percentage point improvement proves all three dimensions are required
+- ✅ High precision (98.1%) and recall (98.1%) on real-world medical misinformation from Med-MMHL benchmark
 
 **Key Insight:** The most dangerous misinformation—authentic images supporting false claims—requires analyzing **all three dimensions together**. Single-dimension methods miss this entirely.
 
@@ -223,13 +223,13 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ### What Makes MedContext Different
 
-| Most Submissions                     | MedContext                                                |
-| ------------------------------------ | --------------------------------------------------------- |
-| ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (80% authentic images) |
-| ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                             |
-| ❌ Use ELA on medical images         | ✅ Proved ELA fails (50%); uses DICOM-native forensics (97.5%)  |
-| ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                     |
-| ❌ Proof of concept                  | ✅ Production-ready (45/45 tests passing)                 |
+| Most Submissions                     | MedContext                                                     |
+| ------------------------------------ | -------------------------------------------------------------- |
+| ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (80% authentic images)      |
+| ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                                  |
+| ❌ Use ELA on medical images         | ✅ Proved ELA fails (50%); uses DICOM-native forensics (98.1%) |
+| ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                          |
+| ❌ Proof of concept                  | ✅ Production-ready (51/51 tests passing)                      |
 
 ---
 
@@ -245,11 +245,11 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ### Proof of Justification (Empirical Motivation)
 
-| PoJ | Dataset | Method | Result |
-|-----|---------|--------|--------|
-| PoJ 1 | 326 UCI DICOM images | ELA (Layer 1) | 49.9% — chance (wrong tool for format) |
+| PoJ   | Dataset                        | Method                       | Result                                     |
+| ----- | ------------------------------ | ---------------------------- | ------------------------------------------ |
+| PoJ 1 | 326 UCI DICOM images           | ELA (Layer 1)                | 49.9% — chance (wrong tool for format)     |
 | PoJ 2 | 160 samples (120 BTD + 40 UCI) | DICOM-native pixel forensics | **97.5% image integrity** (100% precision) |
-| PoJ 3 | 160 image-claim pairs | MedGemma contextual | Veracity 61.3% · Alignment 56.9% |
+| PoJ 3 | 160 image-claim pairs          | MedGemma contextual          | Veracity 61.3% · Alignment 56.9%           |
 
 - **Method:** PoJ 1: Bootstrap resampling (1,000 iterations); PoJ 2/3: three-method dimensional validation
 - **Conclusion:** ELA fails on DICOM; DICOM-native forensics work on DICOM (limitation: 98% real-world images are PNG/JPEG); contextual analysis (veracity + alignment) is required for the 80% authentic-image threat
@@ -466,13 +466,17 @@ MIT License - See [LICENSE](LICENSE) file for details
 Our validation dataset (160 image-claim pairs) was constructed from two publicly available medical image tampering datasets. We gratefully acknowledge the authors:
 
 **UCI Deepfakes: Medical Image Tamper Detection**
-> Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning. *USENIX Security Symposium*.
+
+> Mirsky, Y., Mahler, T., Shelef, I., & Elovici, Y. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery using Deep Learning. _USENIX Security Symposium_.
+>
 > - Repository: https://archive.ics.uci.edu/dataset/520/deepfakes+medical+image+tamper+detection
 > - DOI: [10.24432/C5J318](https://doi.org/10.24432/C5J318)
 > - License: CC BY 4.0
 
 **BTD: Back-in-Time Diffusion MRI and CT Deepfake Test Sets**
-> Graboski, F., Mirsky, Y. (2024). Back-in-Time Diffusion: Unsupervised Detection of Medical Deepfakes. *ACM Transactions on Intelligent Systems and Technology*.
+
+> Graboski, F., Mirsky, Y. (2024). Back-in-Time Diffusion: Unsupervised Detection of Medical Deepfakes. _ACM Transactions on Intelligent Systems and Technology_.
+>
 > - Paper: [arXiv:2407.15169](https://arxiv.org/abs/2407.15169)
 > - Dataset: https://www.kaggle.com/datasets/freddiegraboski/btd-mri-and-ct-deepfake-test-sets
 > - Code: https://github.com/FreddieMG/BTD--Unsupervised-Detection-of-Medical-Deepfakes

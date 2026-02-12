@@ -48,10 +48,22 @@ from app.validation.metrics import (
 )
 
 import importlib.util
+
+target_path = scripts_dir / "validate_three_methods.py"
 _spec = importlib.util.spec_from_file_location(
     "validate_three_methods",
-    scripts_dir / "validate_three_methods.py",
+    target_path,
 )
+if _spec is None:
+    raise FileNotFoundError(
+        f"Could not load module spec from {target_path}. "
+        "Ensure validate_three_methods.py exists in the scripts directory."
+    )
+if _spec.loader is None:
+    raise RuntimeError(
+        f"Module spec for {target_path} has no loader. "
+        "The file may be corrupted or inaccessible."
+    )
 vtm = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(vtm)
 ThreeMethodValidator = vtm.ThreeMethodValidator
@@ -92,17 +104,21 @@ def run_validation(
     dataset = []
     for r in records:
         gt = r["ground_truth"]
-        dataset.append({
-            "image_id": r["image_id"],
-            "image_path": r["image_path"],
-            "claim": r["claim"],
-            "ground_truth": {
-                "pixel_authentic": gt.get("pixel_authentic", True),
-                "alignment": "misaligned" if gt.get("expected_misalignment") else "aligned",
-                "plausibility": "low" if gt.get("is_fake_claim") else "high",
-                "is_misinformation": gt.get("is_fake_claim", False),
-            },
-        })
+        dataset.append(
+            {
+                "image_id": r["image_id"],
+                "image_path": r["image_path"],
+                "claim": r["claim"],
+                "ground_truth": {
+                    "pixel_authentic": gt.get("pixel_authentic", True),
+                    "alignment": (
+                        "misaligned" if gt.get("expected_misalignment") else "aligned"
+                    ),
+                    "plausibility": "low" if gt.get("is_fake_claim") else "high",
+                    "is_misinformation": gt.get("is_fake_claim", False),
+                },
+            }
+        )
 
     # Write temporary dataset for validator
     temp_dataset = output_dir / "med_mmhl_dataset.json"
@@ -125,15 +141,19 @@ def run_validation(
         pixel = result["predictions"]["pixel_forensics"]
         gt = result["ground_truth"]
 
-        predictions.append({
-            "pixel_authentic": pixel.get("pixel_authentic", True),
-            "veracity_score": pred.get("veracity_score", 0.5),
-            "alignment_score": pred.get("alignment_score", 0.5),
-        })
-        ground_truth.append({
-            "is_fake_claim": gt.get("is_misinformation", False),
-            "expected_misalignment": gt.get("alignment") == "misaligned",
-        })
+        predictions.append(
+            {
+                "pixel_authentic": pixel.get("pixel_authentic", True),
+                "veracity_score": pred.get("veracity_score", 0.5),
+                "alignment_score": pred.get("alignment_score", 0.5),
+            }
+        )
+        ground_truth.append(
+            {
+                "is_fake_claim": gt.get("is_misinformation", False),
+                "expected_misalignment": gt.get("alignment") == "misaligned",
+            }
+        )
 
     # Compute metrics
     metrics = compute_three_dimensional_metrics(predictions, ground_truth)
@@ -141,7 +161,8 @@ def run_validation(
     # Bootstrap CI if requested
     if bootstrap_iterations > 0 and len(predictions) >= 10:
         ci = bootstrap_confidence_intervals(
-            predictions, ground_truth,
+            predictions,
+            ground_truth,
             n_iterations=bootstrap_iterations,
         )
         metrics["bootstrap_95ci"] = ci
@@ -171,9 +192,7 @@ def run_validation(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate MedContext on Med-MMHL"
-    )
+    parser = argparse.ArgumentParser(description="Validate MedContext on Med-MMHL")
     parser.add_argument(
         "--data-dir",
         type=Path,
@@ -221,7 +240,10 @@ def main() -> int:
         print("Error: --require-medical requires --annotations")
         return 1
 
-    if not (args.data_dir / "benchmarked_data").exists() and not (args.data_dir / "image_article").exists():
+    if (
+        not (args.data_dir / "benchmarked_data").exists()
+        and not (args.data_dir / "image_article").exists()
+    ):
         print(f"Error: Data not found at {args.data_dir}")
         print("Run scripts/download_med_mmhl.py first to verify setup.")
         return 1
@@ -252,16 +274,24 @@ def main() -> int:
     print(f"  {m['pixel_authenticity']['mean_authentic_rate']:.1%}")
     print()
     print("Veracity (claim plausibility):")
-    print(f"  Accuracy: {m['veracity']['accuracy']:.1%} | F1: {m['veracity']['f1']:.3f}")
+    print(
+        f"  Accuracy: {m['veracity']['accuracy']:.1%} | F1: {m['veracity']['f1']:.3f}"
+    )
     print()
     print("Alignment (image-claim consistency):")
-    print(f"  Accuracy: {m['alignment']['accuracy']:.1%} | F1: {m['alignment']['f1']:.3f}")
+    print(
+        f"  Accuracy: {m['alignment']['accuracy']:.1%} | F1: {m['alignment']['f1']:.3f}"
+    )
     if "bootstrap_95ci" in m:
         ci = m["bootstrap_95ci"]
         print()
         print("Bootstrap 95% CI:")
-        print(f"  Veracity accuracy:   {ci['veracity_accuracy']['mean']:.1%} [{ci['veracity_accuracy']['ci_lower']:.1%}, {ci['veracity_accuracy']['ci_upper']:.1%}]")
-        print(f"  Alignment accuracy: {ci['alignment_accuracy']['mean']:.1%} [{ci['alignment_accuracy']['ci_lower']:.1%}, {ci['alignment_accuracy']['ci_upper']:.1%}]")
+        print(
+            f"  Veracity accuracy:   {ci['veracity_accuracy']['mean']:.1%} [{ci['veracity_accuracy']['ci_lower']:.1%}, {ci['veracity_accuracy']['ci_upper']:.1%}]"
+        )
+        print(
+            f"  Alignment accuracy: {ci['alignment_accuracy']['mean']:.1%} [{ci['alignment_accuracy']['ci_lower']:.1%}, {ci['alignment_accuracy']['ci_upper']:.1%}]"
+        )
     print()
     print(f"Report: {args.output / 'validation_report.json'}")
     return 0
