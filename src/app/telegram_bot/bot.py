@@ -1,8 +1,9 @@
-"""Telegram bot for MedContext - Mobile-friendly image authenticity analysis."""
+"""Telegram bot for MedContext - Mobile-friendly image and contextual authenticity analysis."""
 
 from __future__ import annotations
 
 import asyncio
+import html
 import logging
 from typing import Any
 
@@ -39,6 +40,24 @@ class MedContextTelegramBot:
         self.agent = MedContextAgent()
         self.user_sessions: dict[int, dict[str, Any]] = {}
 
+    @staticmethod
+    def _safe_truncate(text: str, max_length: int) -> str:
+        """Safely escape HTML and truncate text, adding ellipsis only if truncated."""
+        if not text:
+            return ""
+        escaped = html.escape(str(text))
+        if len(escaped) <= max_length:
+            return escaped
+        return escaped[:max_length] + "..."
+
+    @staticmethod
+    def _safe_percent(value: Any) -> str:
+        """Safely convert a value to percentage, handling non-numeric inputs."""
+        try:
+            return f"{round(float(value) * 100)}%"
+        except (TypeError, ValueError, AttributeError):
+            return "N/A"
+
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Start command - welcome message and instructions."""
         user = update.effective_user
@@ -64,18 +83,18 @@ class MedContextTelegramBot:
     ) -> None:
         """Help command - detailed usage instructions."""
         help_text = (
-            "*MedContext Help* 📚\n\n"
-            "*Commands:*\n"
+            "<b>MedContext Help</b> 📚\n\n"
+            "<b>Commands:</b>\n"
             "• /start - Start a new analysis\n"
             "• /help - Show this help message\n"
             "• /cancel - Cancel current analysis\n"
             "• /status - Check analysis status\n\n"
-            "*How to use:*\n"
+            "<b>How to use:</b>\n"
             "1. Send me a medical image (photo)\n"
             "2. I'll ask for context/caption\n"
             "3. Confirm to run analysis\n"
             "4. Get detailed results\n\n"
-            "*What we check:*\n"
+            "<b>What we check:</b>\n"
             "✅ Context alignment\n"
             "✅ Medical plausibility\n"
             "✅ Source reputation\n"
@@ -83,7 +102,7 @@ class MedContextTelegramBot:
             "Questions? Contact @medcontext_support"
         )
 
-        await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(help_text, parse_mode=ParseMode.HTML)
 
     async def cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Cancel the current analysis."""
@@ -122,13 +141,13 @@ class MedContextTelegramBot:
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         await update.message.reply_text(
-            "📸 *Image received!*\n\n"
+            "📸 <b>Image received!</b>\n\n"
             "Now, please provide context or a claim about this image.\n\n"
             "For example:\n"
-            "• _'MRI showing brain tumor in frontal lobe'_\n"
-            "• _'Chest X-ray confirms COVID-19 pneumonia'_\n\n"
-            "Or press *Skip* if no context available.",
-            parse_mode=ParseMode.MARKDOWN,
+            "• <i>'MRI showing brain tumor in frontal lobe'</i>\n"
+            "• <i>'Chest X-ray confirms COVID-19 pneumonia'</i>\n\n"
+            "Or press <b>Skip</b> if no context available.",
+            parse_mode=ParseMode.HTML,
             reply_markup=reply_markup,
         )
 
@@ -158,14 +177,12 @@ class MedContextTelegramBot:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        context_preview = update.message.text[:100]
-        if len(update.message.text) > 100:
-            context_preview += "..."
+        context_preview = self._safe_truncate(update.message.text, 100)
 
         await update.message.reply_text(
-            f"📝 *Context received:*\n_{context_preview}_\n\n"
+            f"📝 <b>Context received:</b>\n<i>{context_preview}</i>\n\n"
             "Ready to analyze. This may take 30-60 seconds.",
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=ParseMode.HTML,
             reply_markup=reply_markup,
         )
 
@@ -183,25 +200,25 @@ class MedContextTelegramBot:
         if query.data == "help":
             # Show help message
             help_text = (
-                "*MedContext Help* 📚\n\n"
-                "*Commands:*\n"
+                "<b>MedContext Help</b> 📚\n\n"
+                "<b>Commands:</b>\n"
                 "• /start - Start a new analysis\n"
                 "• /help - Show this help message\n"
                 "• /cancel - Cancel current analysis\n"
                 "• /status - Check analysis status\n\n"
-                "*How to use:*\n"
+                "<b>How to use:</b>\n"
                 "1. Send me a medical image (photo)\n"
                 "2. I'll ask for context/caption\n"
                 "3. Confirm to run analysis\n"
                 "4. Get detailed results\n\n"
-                "*What we check:*\n"
+                "<b>What we check:</b>\n"
                 "✅ Context alignment\n"
                 "✅ Medical plausibility\n"
                 "✅ Source reputation\n"
                 "✅ Image provenance\n\n"
                 "Questions? Contact @medcontext_support"
             )
-            await query.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
+            await query.message.reply_text(help_text, parse_mode=ParseMode.HTML)
             return WAITING_FOR_IMAGE
 
         elif query.data == "skip_context":
@@ -224,10 +241,10 @@ class MedContextTelegramBot:
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             await query.edit_message_text(
-                "⏭️ *No context provided*\n\n"
+                "⏭️ <b>No context provided</b>\n\n"
                 "Analysis will proceed without user context.\n"
                 "Ready to analyze. This may take 30-60 seconds.",
-                parse_mode=ParseMode.MARKDOWN,
+                parse_mode=ParseMode.HTML,
                 reply_markup=reply_markup,
             )
             return CONFIRM_ANALYSIS
@@ -240,12 +257,12 @@ class MedContextTelegramBot:
                 return ConversationHandler.END
 
             await query.edit_message_text(
-                "⚙️ *Analysis started...*\n\n"
+                "⚙️ <b>Analysis started...</b>\n\n"
                 "🔍 Checking medical plausibility\n"
                 "🌐 Searching for sources\n"
                 "🔗 Building provenance chain\n\n"
                 "Please wait...",
-                parse_mode=ParseMode.MARKDOWN,
+                parse_mode=ParseMode.HTML,
             )
 
             # Run analysis
@@ -292,13 +309,14 @@ class MedContextTelegramBot:
 
         except Exception as exc:
             logger.error(f"Analysis failed for user {user_id}: {exc}")
+            error_safe = self._safe_truncate(str(exc), 200)
             error_message = (
-                "❌ *Analysis Failed*\n\n"
-                f"Error: {str(exc)[:200]}\n\n"
+                "❌ <b>Analysis Failed</b>\n\n"
+                f"Error: {error_safe}\n\n"
                 "Please try again with /start or contact support."
             )
             await update.callback_query.message.reply_text(
-                error_message, parse_mode=ParseMode.MARKDOWN
+                error_message, parse_mode=ParseMode.HTML
             )
 
     async def _send_results(self, update: Update, result: AgentRunResult) -> None:
@@ -316,11 +334,11 @@ class MedContextTelegramBot:
 
         # ========== SECTION 1: MODULES SELECTED ==========
         modules_msg = (
-            "🎯 *Analysis Complete*\n\n"
+            "🎯 <b>Analysis Complete</b>\n\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
-            "*1️⃣ MODULES SELECTED*\n"
+            "<b>1️⃣ MODULES SELECTED</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n\n"
-            "✅ *Contextual Analysis* (Always Active)\n"
+            "✅ <b>Contextual Analysis</b> (Always Active)\n"
             "└ MedGemma evaluates claim veracity and alignment\n\n"
         )
 
@@ -328,13 +346,11 @@ class MedContextTelegramBot:
         if forensics_data:
             forensics_results = forensics_data.get("results", {})
             layer_1 = forensics_results.get("layer_1", {})
-            verdict = layer_1.get("verdict", "Unknown")
+            verdict = html.escape(str(layer_1.get("verdict", "Unknown")))
             confidence = layer_1.get("confidence")
-            confidence_text = (
-                f"{round(confidence * 100)}%" if confidence is not None else "N/A"
-            )
+            confidence_text = self._safe_percent(confidence)
             modules_msg += (
-                "✅ *Pixel Forensics Selected*\n"
+                "✅ <b>Pixel Forensics Selected</b>\n"
                 f"└ Verdict: {verdict} ({confidence_text} confidence)\n\n"
             )
 
@@ -342,7 +358,7 @@ class MedContextTelegramBot:
         if reverse_search_data:
             matches = reverse_search_data.get("matches", [])
             modules_msg += (
-                "✅ *Reverse Image Search Selected*\n"
+                "✅ <b>Reverse Image Search Selected</b>\n"
                 f"└ {len(matches)} matches found online\n\n"
             )
 
@@ -356,23 +372,27 @@ class MedContextTelegramBot:
                 blocks = provenance_data.get("blocks", [])
                 chain_id = provenance_data.get("chain_id", "")
             block_count = len(blocks) if blocks else 0
+            chain_id_safe = html.escape(str(chain_id)) if chain_id else "N/A"
+            chain_id_short = (
+                chain_id_safe[:16] + "..." if len(chain_id_safe) > 16 else chain_id_safe
+            )
             modules_msg += (
-                "✅ *Provenance Chain Selected*\n"
+                "✅ <b>Provenance Chain Selected</b>\n"
                 f"└ {block_count} blocks in chain\n"
-                f"└ Chain ID: {chain_id[:16] if chain_id else 'N/A'}...\n\n"
+                f"└ Chain ID: {chain_id_short}\n\n"
             )
 
         if not forensics_data and not reverse_search_data and not provenance_data:
-            modules_msg += "_Only contextual analysis was selected_\n\n"
+            modules_msg += "<i>Only contextual analysis was selected</i>\n\n"
 
         await update.callback_query.message.reply_text(
-            modules_msg, parse_mode=ParseMode.MARKDOWN
+            modules_msg, parse_mode=ParseMode.HTML
         )
 
         # ========== SECTION 2: THREE-DIMENSIONAL SCORES ==========
         scores_msg = (
             "━━━━━━━━━━━━━━━━━━━━\n"
-            "*2️⃣ THREE-DIMENSIONAL SCORES*\n"
+            "<b>2️⃣ THREE-DIMENSIONAL SCORES</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n\n"
         )
 
@@ -380,26 +400,31 @@ class MedContextTelegramBot:
         if forensics_data:
             forensics_results = forensics_data.get("results", {})
             layer_1 = forensics_results.get("layer_1", {})
-            verdict = layer_1.get("verdict", "Unknown")
+            verdict = html.escape(str(layer_1.get("verdict", "Unknown")))
             confidence = layer_1.get("confidence")
-            if confidence is not None:
-                confidence_pct = round(confidence * 100)
-                emoji = "🟢" if verdict == "AUTHENTIC" else "🔴"
-                scores_msg += (
-                    f"{emoji} *Image Integrity:* {verdict}\n"
-                    f"└ {confidence_pct}% confidence\n\n"
-                )
-            else:
-                scores_msg += f"⚪ *Image Integrity:* {verdict}\n\n"
+            try:
+                if confidence is not None:
+                    confidence_pct = round(float(confidence) * 100)
+                    emoji = "🟢" if verdict == "AUTHENTIC" else "🔴"
+                    scores_msg += (
+                        f"{emoji} <b>Image Integrity:</b> {verdict}\n"
+                        f"└ {confidence_pct}% confidence\n\n"
+                    )
+                else:
+                    scores_msg += f"⚪ <b>Image Integrity:</b> {verdict}\n\n"
+            except (TypeError, ValueError):
+                scores_msg += f"⚪ <b>Image Integrity:</b> {verdict}\n\n"
         else:
-            scores_msg += "⚪ *Image Integrity:* Not assessed\n└ Module not selected\n\n"
+            scores_msg += (
+                "⚪ <b>Image Integrity:</b> Not assessed\n└ Module not selected\n\n"
+            )
 
         # Claim Veracity (from part2 or contextual_integrity)
         claim_veracity = part2.get("claim_veracity") or contextual_integrity.get(
             "claim_veracity"
         )
         if claim_veracity and isinstance(claim_veracity, dict):
-            accuracy = claim_veracity.get("factual_accuracy", "").lower()
+            accuracy = str(claim_veracity.get("factual_accuracy", "")).lower()
             if accuracy == "accurate":
                 emoji, label = "🟢", "Factually accurate"
             elif accuracy == "partially_accurate":
@@ -410,16 +435,18 @@ class MedContextTelegramBot:
                 emoji, label = "⚪", "Unverifiable"
             else:
                 emoji, label = "⚪", "Unknown"
-            scores_msg += f"{emoji} *Claim Veracity:* {label}\n"
+            scores_msg += f"{emoji} <b>Claim Veracity:</b> {label}\n"
             evidence_basis = claim_veracity.get("evidence_basis")
             if evidence_basis:
-                scores_msg += f"└ {evidence_basis[:150]}\n"
+                scores_msg += f"└ {self._safe_truncate(evidence_basis, 150)}\n"
             scores_msg += "\n"
         else:
-            scores_msg += "⚪ *Claim Veracity:* Not assessed\n\n"
+            scores_msg += "⚪ <b>Claim Veracity:</b> Not assessed\n\n"
 
         # Context Alignment (from part2.alignment)
-        alignment = part2.get("alignment", "").lower().replace("-", "_").replace(" ", "_")
+        alignment = (
+            str(part2.get("alignment", "")).lower().replace("-", "_").replace(" ", "_")
+        )
         if alignment == "aligned":
             emoji, score, label = "🟢", "3/3", "Contextually appropriate"
         elif alignment == "partially_aligned":
@@ -428,7 +455,7 @@ class MedContextTelegramBot:
             emoji, score, label = "🔴", "1/3", "Misaligned or contradicts"
         else:
             # Fallback to verdict analysis
-            verdict = part2.get("verdict", "").lower()
+            verdict = str(part2.get("verdict", "")).lower()
             if "partial" in verdict or "mixed" in verdict:
                 emoji, score, label = "🟡", "2/3", "Partially aligned"
             elif "misinformation" in verdict or "false" in verdict:
@@ -438,87 +465,101 @@ class MedContextTelegramBot:
             else:
                 emoji, score, label = "⚪", "0/3", "Undetermined"
 
-        scores_msg += f"{emoji} *Context Alignment:* {score}\n└ {label}\n\n"
+        scores_msg += f"{emoji} <b>Context Alignment:</b> {score}\n└ {label}\n\n"
 
         await update.callback_query.message.reply_text(
-            scores_msg, parse_mode=ParseMode.MARKDOWN
+            scores_msg, parse_mode=ParseMode.HTML
         )
 
         # ========== SECTION 3: ANALYSIS RATIONALE ==========
         rationale_msg = (
             "━━━━━━━━━━━━━━━━━━━━\n"
-            "*3️⃣ ANALYSIS RATIONALE*\n"
+            "<b>3️⃣ ANALYSIS RATIONALE</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n\n"
         )
 
         # Context quote
         context_quote = part2.get("context_quote")
         if context_quote:
-            rationale_msg += f"📝 *Context:*\n_{context_quote[:200]}_\n\n"
+            safe_quote = self._safe_truncate(context_quote, 200)
+            rationale_msg += f"📝 <b>Context:</b>\n<i>{safe_quote}</i>\n\n"
 
         # Image description
         image_desc = part1.get("image_description")
         if image_desc:
-            rationale_msg += f"🖼️ *Image Description:*\n{image_desc[:250]}\n\n"
+            safe_desc = self._safe_truncate(image_desc, 250)
+            rationale_msg += f"🖼️ <b>Image Description:</b>\n{safe_desc}\n\n"
 
         # Model analysis
-        if part2.get("summary"):
-            rationale_msg += f"🧠 *Model Analysis:*\n{part2['summary'][:250]}\n\n"
+        summary = part2.get("summary")
+        if summary:
+            safe_summary = self._safe_truncate(summary, 250)
+            rationale_msg += f"🧠 <b>Model Analysis:</b>\n{safe_summary}\n\n"
 
-        if part2.get("alignment_analysis"):
-            rationale_msg += f"🔍 *Alignment Analysis:*\n{part2['alignment_analysis'][:250]}\n\n"
+        alignment_analysis = part2.get("alignment_analysis")
+        if alignment_analysis:
+            safe_alignment = self._safe_truncate(alignment_analysis, 250)
+            rationale_msg += f"🔍 <b>Alignment Analysis:</b>\n{safe_alignment}\n\n"
 
-        if part2.get("rationale"):
-            rationale_msg += f"💭 *Rationale:*\n{part2['rationale'][:250]}\n\n"
+        rationale = part2.get("rationale")
+        if rationale:
+            safe_rationale = self._safe_truncate(rationale, 250)
+            rationale_msg += f"💭 <b>Rationale:</b>\n{safe_rationale}\n\n"
 
         # Evidence basis
         if claim_veracity and isinstance(claim_veracity, dict):
             evidence_basis = claim_veracity.get("evidence_basis")
             if evidence_basis:
-                rationale_msg += f"📊 *Evidence Basis:*\n{evidence_basis[:250]}\n\n"
+                safe_evidence = self._safe_truncate(evidence_basis, 250)
+                rationale_msg += f"📊 <b>Evidence Basis:</b>\n{safe_evidence}\n\n"
 
         await update.callback_query.message.reply_text(
-            rationale_msg, parse_mode=ParseMode.MARKDOWN
+            rationale_msg, parse_mode=ParseMode.HTML
         )
 
         # ========== SECTION 4: FINAL ASSESSMENT ==========
         final_msg = (
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            "*4️⃣ FINAL ASSESSMENT*\n"
-            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n<b>4️⃣ FINAL ASSESSMENT</b>\n━━━━━━━━━━━━━━━━━━━━\n\n"
         )
 
         # Check is_misinformation flag
         is_misinformation = result.is_misinformation
         if is_misinformation is True:
-            final_msg += "⚠️ *MISINFORMATION DETECTED*\n\n"
+            final_msg += "⚠️ <b>MISINFORMATION DETECTED</b>\n\n"
         elif is_misinformation is False:
-            final_msg += "✅ *NO MISINFORMATION DETECTED*\n\n"
+            final_msg += "✅ <b>NO MISINFORMATION DETECTED</b>\n\n"
 
         # Verdict
         verdict = part2.get("verdict")
         if verdict:
-            final_msg += f"*Verdict:*\n{verdict[:300]}\n\n"
+            safe_verdict = self._safe_truncate(verdict, 300)
+            final_msg += f"<b>Verdict:</b>\n{safe_verdict}\n\n"
 
         # Confidence
         confidence = part2.get("confidence")
         if confidence:
-            final_msg += f"*Confidence:* {confidence}\n\n"
+            safe_confidence = html.escape(str(confidence))
+            final_msg += f"<b>Confidence:</b> {safe_confidence}\n\n"
 
         # Overall authenticity score
         integrity_score = contextual_integrity.get("score")
         if integrity_score is not None:
-            integrity_percent = round(float(integrity_score) * 100)
-            if integrity_percent >= 70:
-                score_emoji = "🟢"
-            elif integrity_percent >= 40:
-                score_emoji = "🟡"
-            else:
-                score_emoji = "🔴"
-            final_msg += f"*Overall Authenticity:* {score_emoji} {integrity_percent}%\n"
+            try:
+                integrity_percent = round(float(integrity_score) * 100)
+                if integrity_percent >= 70:
+                    score_emoji = "🟢"
+                elif integrity_percent >= 40:
+                    score_emoji = "🟡"
+                else:
+                    score_emoji = "🔴"
+                final_msg += (
+                    f"<b>Overall Authenticity:</b> {score_emoji} {integrity_percent}%\n"
+                )
+            except (TypeError, ValueError):
+                pass
 
         await update.callback_query.message.reply_text(
-            final_msg, parse_mode=ParseMode.MARKDOWN
+            final_msg, parse_mode=ParseMode.HTML
         )
 
         # ========== DETAILED TOOL RESULTS ==========
@@ -542,7 +583,7 @@ class MedContextTelegramBot:
         """Send detailed forensics analysis."""
         forensics_msg = (
             "━━━━━━━━━━━━━━━━━━━━\n"
-            "🔍 *FORENSICS DETAILS*\n"
+            "🔍 <b>FORENSICS DETAILS</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n\n"
         )
 
@@ -551,45 +592,60 @@ class MedContextTelegramBot:
         # Layer 1: Pixel Forensics
         if "layer_1" in results:
             layer = results["layer_1"]
-            verdict = layer.get("verdict", "Unknown")
+            verdict = html.escape(str(layer.get("verdict", "Unknown")))
             confidence = layer.get("confidence")
-            forensics_msg += "📊 *Layer 1: Pixel Forensics*\n"
+            forensics_msg += "📊 <b>Layer 1: Pixel Forensics</b>\n"
             forensics_msg += f"└ Verdict: {verdict}\n"
             if confidence is not None:
-                forensics_msg += f"└ Confidence: {round(confidence * 100)}%\n"
+                try:
+                    conf_pct = round(float(confidence) * 100)
+                    forensics_msg += f"└ Confidence: {conf_pct}%\n"
+                except (TypeError, ValueError):
+                    pass
 
             details = layer.get("details", {})
             if details.get("copy_move_score") is not None:
-                forensics_msg += f"└ Copy-Move Score: {details['copy_move_score']:.4f}\n"
+                try:
+                    score = float(details["copy_move_score"])
+                    forensics_msg += f"└ Copy-Move Score: {score:.4f}\n"
+                except (TypeError, ValueError):
+                    pass
             if details.get("image_size"):
                 size = details["image_size"]
-                forensics_msg += f"└ Image Size: {size[0]}x{size[1]}\n"
+                try:
+                    forensics_msg += f"└ Image Size: {int(size[0])}x{int(size[1])}\n"
+                except (TypeError, ValueError, IndexError):
+                    pass
             forensics_msg += "\n"
 
         # Layer 2: Semantic Analysis (if available)
         if "layer_2" in results:
             layer = results["layer_2"]
-            verdict = layer.get("verdict", "Unknown")
-            forensics_msg += f"🧠 *Layer 2: Semantic*\n└ Verdict: {verdict}\n\n"
+            verdict = html.escape(str(layer.get("verdict", "Unknown")))
+            forensics_msg += f"🧠 <b>Layer 2: Semantic</b>\n└ Verdict: {verdict}\n\n"
 
         # Layer 3: Metadata (if available)
         if "layer_3" in results:
             layer = results["layer_3"]
-            verdict = layer.get("verdict", "Unknown")
+            verdict = html.escape(str(layer.get("verdict", "Unknown")))
             details = layer.get("details", {})
-            forensics_msg += "📝 *Layer 3: Metadata*\n"
+            forensics_msg += "📝 <b>Layer 3: Metadata</b>\n"
             forensics_msg += f"└ Verdict: {verdict}\n"
             if details.get("has_exif") is not None:
                 has_exif = "Present" if details["has_exif"] else "Missing"
                 forensics_msg += f"└ EXIF Data: {has_exif}\n"
             if details.get("exif_fields_count"):
-                forensics_msg += f"└ EXIF Fields: {details['exif_fields_count']}\n"
+                try:
+                    count = int(details["exif_fields_count"])
+                    forensics_msg += f"└ EXIF Fields: {count}\n"
+                except (TypeError, ValueError):
+                    pass
             if details.get("suspicious_patterns"):
                 forensics_msg += "└ ⚠️ Suspicious patterns detected\n"
             forensics_msg += "\n"
 
         await update.callback_query.message.reply_text(
-            forensics_msg, parse_mode=ParseMode.MARKDOWN
+            forensics_msg, parse_mode=ParseMode.HTML
         )
 
     async def _send_provenance_details(
@@ -597,9 +653,7 @@ class MedContextTelegramBot:
     ) -> None:
         """Send detailed provenance chain information."""
         provenance_msg = (
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            "🔗 *PROVENANCE CHAIN*\n"
-            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n🔗 <b>PROVENANCE CHAIN</b>\n━━━━━━━━━━━━━━━━━━━━\n\n"
         )
 
         # Handle both Pydantic model and dict
@@ -614,17 +668,29 @@ class MedContextTelegramBot:
             blocks = provenance_data.get("blocks", [])
             tx_hash = provenance_data.get("blockchain_tx_hash")
 
-        provenance_msg += f"*Chain ID:* `{chain_id[:24] if chain_id else 'N/A'}...`\n"
-        provenance_msg += f"*Status:* {status}\n"
-        provenance_msg += f"*Blocks:* {len(blocks)}\n\n"
+        chain_id_safe = html.escape(str(chain_id)) if chain_id else "N/A"
+        chain_id_short = (
+            chain_id_safe[:24] + "..." if len(chain_id_safe) > 24 else chain_id_safe
+        )
+        status_safe = html.escape(str(status))
+
+        provenance_msg += f"<b>Chain ID:</b> <code>{chain_id_short}</code>\n"
+        provenance_msg += f"<b>Status:</b> {status_safe}\n"
+        provenance_msg += f"<b>Blocks:</b> {len(blocks)}\n\n"
 
         if tx_hash:
-            provenance_msg += f"*Blockchain Anchor:*\n`{tx_hash[:24]}...`\n"
+            tx_hash_safe = html.escape(str(tx_hash))
+            tx_hash_short = (
+                tx_hash_safe[:24] + "..." if len(tx_hash_safe) > 24 else tx_hash_safe
+            )
+            provenance_msg += (
+                f"<b>Blockchain Anchor:</b>\n<code>{tx_hash_short}</code>\n"
+            )
             provenance_msg += "✅ Immutable chain anchored on Polygon\n\n"
 
         # Show first few blocks
         if blocks:
-            provenance_msg += "*Block Chain:*\n"
+            provenance_msg += "<b>Block Chain:</b>\n"
             for i, block in enumerate(blocks[:3]):
                 if hasattr(block, "block_number"):
                     block_num = block.block_number
@@ -635,15 +701,24 @@ class MedContextTelegramBot:
                     block_hash = block.get("block_hash", "")
                     obs_type = block.get("observation_type", "unknown")
 
-                provenance_msg += f"\n*Block #{block_num}*\n"
-                provenance_msg += f"└ Type: {obs_type}\n"
-                provenance_msg += f"└ Hash: `{block_hash[:16] if block_hash else 'N/A'}...`\n"
+                block_num_safe = html.escape(str(block_num))
+                obs_type_safe = html.escape(str(obs_type))
+                block_hash_safe = html.escape(str(block_hash)) if block_hash else "N/A"
+                block_hash_short = (
+                    block_hash_safe[:16] + "..."
+                    if len(block_hash_safe) > 16
+                    else block_hash_safe
+                )
+
+                provenance_msg += f"\n<b>Block #{block_num_safe}</b>\n"
+                provenance_msg += f"└ Type: {obs_type_safe}\n"
+                provenance_msg += f"└ Hash: <code>{block_hash_short}</code>\n"
 
             if len(blocks) > 3:
-                provenance_msg += f"\n_...and {len(blocks) - 3} more blocks_\n"
+                provenance_msg += f"\n<i>...and {len(blocks) - 3} more blocks</i>\n"
 
         await update.callback_query.message.reply_text(
-            provenance_msg, parse_mode=ParseMode.MARKDOWN
+            provenance_msg, parse_mode=ParseMode.HTML
         )
 
     async def _send_reverse_search_results(
@@ -655,33 +730,40 @@ class MedContextTelegramBot:
 
         results_msg = (
             "━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔎 *REVERSE SEARCH*\n"
+            "🔎 <b>REVERSE SEARCH</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"*{len(matches)} matches found online*\n\n"
+            f"<b>{len(matches)} matches found online</b>\n\n"
         )
 
         for i, match in enumerate(matches[:5], 1):  # Show top 5
-            title = match.get("title", "Untitled")[:60]
-            source = match.get("source", "Unknown")
+            title = self._safe_truncate(match.get("title", "Untitled"), 60)
+            source = html.escape(str(match.get("source", "Unknown")))
             url = match.get("url", "")
             snippet = match.get("snippet", "")
             confidence = match.get("confidence", 0)
 
-            results_msg += f"*{i}. {title}*\n"
+            results_msg += f"<b>{i}. {title}</b>\n"
             results_msg += f"└ Source: {source}\n"
-            if confidence > 0:
-                results_msg += f"└ Confidence: {round(confidence * 100)}%\n"
+            if confidence and confidence > 0:
+                try:
+                    conf_pct = round(float(confidence) * 100)
+                    results_msg += f"└ Confidence: {conf_pct}%\n"
+                except (TypeError, ValueError):
+                    pass
             if snippet:
-                results_msg += f"└ {snippet[:100]}...\n"
+                safe_snippet = self._safe_truncate(snippet, 100)
+                results_msg += f"└ {safe_snippet}\n"
             if url:
-                results_msg += f"└ {url[:60]}\n"
+                url_safe = html.escape(str(url))
+                url_short = url_safe[:60] + "..." if len(url_safe) > 60 else url_safe
+                results_msg += f"└ {url_short}\n"
             results_msg += "\n"
 
         if len(matches) > 5:
-            results_msg += f"_...and {len(matches) - 5} more matches_\n"
+            results_msg += f"<i>...and {len(matches) - 5} more matches</i>\n"
 
         await update.callback_query.message.reply_text(
-            results_msg, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
+            results_msg, parse_mode=ParseMode.HTML, disable_web_page_preview=True
         )
 
     @staticmethod
@@ -711,7 +793,7 @@ class MedContextTelegramBot:
             has_context = session.get("context") is not None
 
             status_msg = (
-                "📊 *Current Session Status:*\n\n"
+                "📊 <b>Current Session Status:</b>\n\n"
                 f"Image: {'✅' if has_image else '❌'}\n"
                 f"Context: {'✅' if has_context else '❌'}\n\n"
             )
@@ -724,10 +806,10 @@ class MedContextTelegramBot:
                 status_msg += "Next: Send an image"
         else:
             status_msg = (
-                "📊 *No active session*\n\nSend /start to begin a new analysis."
+                "📊 <b>No active session</b>\n\nSend /start to begin a new analysis."
             )
 
-        await update.message.reply_text(status_msg, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(status_msg, parse_mode=ParseMode.HTML)
 
     def get_handlers(self) -> list:
         """Get conversation handler for the bot."""

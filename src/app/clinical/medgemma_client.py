@@ -219,6 +219,11 @@ class MedGemmaClient:
     def _analyze_local(
         self, image_bytes: bytes, prompt: Optional[str]
     ) -> MedGemmaResult:
+        # Check if we should use the local API endpoint instead of loading the model locally
+        if settings.local_medgemma_url and settings.local_medgemma_url != "http://localhost:8001":
+            return self._analyze_local_api(image_bytes=image_bytes, prompt=prompt)
+        
+        # Use the original local model loading approach
         self._load_local_model()
         if self._local_model is None or self._local_processor is None:
             raise MedGemmaClientError("Local MedGemma model failed to load.")
@@ -308,6 +313,120 @@ class MedGemmaClient:
             output=parsed if parsed is not None else {"text": cleaned},
             raw_text=cleaned,
         )
+
+    def _analyze_local_api(
+        self, image_bytes: bytes, prompt: Optional[str]
+    ) -> MedGemmaResult:
+        """Analyze using a local API endpoint that serves the MedGemma model."""
+        import base64
+        
+        # Prepare the image for API request
+        image_format = _detect_image_format(image_bytes)
+        encoded_image = base64.b64encode(image_bytes).decode("ascii")
+        image_url = f"data:image/{image_format};base64,{encoded_image}"
+        
+        # Prepare the payload for the API request
+        # Check if we're using LM Studio API (has vision capabilities)
+        lm_studio_url = settings.local_medgemma_url.rstrip("/")
+        if "127.0.0.1:1234" in lm_studio_url or "localhost:1234" in lm_studio_url or "192.168." in lm_studio_url:
+            # LM Studio API format - use OpenAI compatible endpoint which we confirmed works
+            content = [
+                {"type": "text", "text": prompt or "Describe the medical image."},
+                {"type": "image_url", "image_url": {"url": image_url}},
+            ]
+            
+            payload = {
+                "model": settings.local_medgemma_model,
+                "messages": [{"role": "user", "content": content}],
+                "max_tokens": settings.medgemma_max_new_tokens,
+                "temperature": 0.1,  # Lower temperature for more consistent medical responses
+            }
+            
+            # Try LM Studio API endpoints in order of preference
+            candidate_urls = [
+                f"{lm_studio_url}/v1/chat/completions",  # OpenAI compatible - confirmed working
+                f"{lm_studio_url}/api/v1/chat",          # Native LM Studio endpoint
+            ]
+        else:
+            # Standard OpenAI compatible format
+            content = [
+                {"type": "text", "text": prompt or "Describe the medical image."},
+                {"type": "image_url", "image_url": {"url": image_url}},
+            ]
+            
+            payload = {
+                "model": settings.local_medgemma_model,
+                "messages": [{"role": "user", "content": content}],
+                "max_tokens": settings.medgemma_max_new_tokens,
+            }
+            
+            # Try standard OpenAI compatible endpoints
+            candidate_urls = [
+                f"{lm_studio_url}/v1/chat/completions",
+                f"{lm_studio_url}/chat/completions",
+                lm_studio_url,
+            ]
+
+        headers = {"Content-Type": "application/json"}
+        if settings.medgemma_hf_token:
+            headers["Authorization"] = f"Bearer {settings.medgemma_hf_token}"
+
+        last_error = None
+        for url in candidate_urls:
+            try:
+                timeout = httpx.Timeout(300.0, read=300.0, write=30.0, connect=10.0)
+                with httpx.Client(timeout=timeout) as client:
+                    response = client.post(url, json=payload, headers=headers)
+                    response.raise_for_status()
+                    
+                    data = response.json()
+                    
+                    # Try different ways to extract content based on API response format
+                    content = self._extract_vllm_content(data)  # Standard OpenAI format
+                    if not content:
+                        # Try LM Studio native format
+                        choices = data.get("choices", [])
+                        if choices and isinstance(choices, list):
+                            first_choice = choices[0]
+                            if isinstance(first_choice, dict):
+                                # Check for LM Studio native format
+                                if "message" in first_choice:
+                                    msg = first_choice["message"]
+                                    if isinstance(msg, dict) and "content" in msg:
+                                        content = msg["content"]
+                                elif "delta" in first_choice:
+                                    delta = first_choice["delta"]
+                                    if isinstance(delta, dict) and "content" in delta:
+                                        content = delta["content"]
+                    
+                    if not content:
+                        # Fallback: try to get content from various possible fields
+                        if "choices" in data and len(data["choices"]) > 0:
+                            choice = data["choices"][0]
+                            if "text" in choice:
+                                content = choice["text"]
+                            elif "message" in choice and "content" in choice["message"]:
+                                content = choice["message"]["content"]
+                            elif "content" in choice:
+                                content = choice["content"]
+                    
+                    cleaned = self._clean_text(content if content else str(data))
+                    parsed = self._parse_json(cleaned)
+
+                    return MedGemmaResult(
+                        provider="local_api",
+                        model=settings.local_medgemma_model,
+                        output=parsed,
+                        raw_text=cleaned,
+                    )
+            except httpx.HTTPError as exc:
+                last_error = exc
+                continue
+            except Exception as exc:
+                last_error = exc
+                continue
+        
+        raise MedGemmaClientError(f"Local API request failed for all URLs: {last_error}")
 
     def _analyze_vertex(
         self, image_bytes: bytes, prompt: Optional[str]

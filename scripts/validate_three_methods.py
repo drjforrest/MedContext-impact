@@ -310,9 +310,11 @@ Return ONLY valid JSON with this exact structure:
         strong_contextual_signals = veracity_score >= 0.8 and alignment_score >= 0.8
         low_veracity = veracity_category == "false" or veracity_score < 0.5
         low_alignment = alignment_category == "does_not_align" or alignment_score < 0.5
-        medium_veracity = veracity_category == "partially_true" and veracity_score < 0.6
+        medium_veracity = (
+            veracity_category == "partially_true" and veracity_score <= 0.6
+        )
         medium_alignment = (
-            alignment_category == "partially_aligns" and alignment_score < 0.6
+            alignment_category == "partially_aligns" and alignment_score <= 0.6
         )
 
         # DECISION LOGIC: Strong contextual signals override pixel forensics
@@ -358,7 +360,9 @@ Return ONLY valid JSON with this exact structure:
         combined_result = {
             **context_result,  # Contextual data takes precedence
             "pixel_authentic": pixel_authentic,  # Preserve pixel verdict
-            "confidence": pixel_result.get("confidence", 0.0),  # Preserve pixel confidence
+            "confidence": pixel_result.get(
+                "confidence", 0.0
+            ),  # Preserve pixel confidence
             "layer1_verdict": pixel_result.get("layer1_verdict", "UNKNOWN"),
             "layer1_details": pixel_result.get("layer1_details", {}),
             "is_misinformation": is_misinformation,
@@ -705,4 +709,5 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
     main()

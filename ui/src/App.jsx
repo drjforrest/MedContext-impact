@@ -256,6 +256,31 @@ function App() {
     const veracity =
       part2?.claim_veracity || contextualIntegrity?.claim_veracity || null
     if (!veracity || typeof veracity !== 'object') {
+      // Check if there's a direct accuracy string in part2 or contextualIntegrity
+      const directAccuracy = part2?.accuracy || contextualIntegrity?.accuracy || 
+                            (typeof part2 === 'string' ? part2 : null)
+      if (directAccuracy && typeof directAccuracy === 'string') {
+        const accuracy = directAccuracy.toLowerCase()
+        const toneMap = {
+          accurate: 'high',
+          partially_accurate: 'medium',
+          inaccurate: 'low',
+          unverifiable: 'neutral',
+        }
+        const labelMap = {
+          accurate: 'Claim is factually accurate',
+          partially_accurate: 'Claim is partially accurate',
+          inaccurate: 'Claim is factually inaccurate',
+          unverifiable: 'Claim veracity could not be determined',
+        }
+        return {
+          accuracy,
+          tone: toneMap[accuracy] || 'neutral',
+          label: labelMap[accuracy] || 'Claim veracity unknown',
+          evidenceBasis: null,
+          publicHealthContext: null,
+        }
+      }
       return null
     }
     const accuracy = typeof veracity.factual_accuracy === 'string'
@@ -280,7 +305,7 @@ function App() {
       evidenceBasis: veracity.evidence_basis || null,
       publicHealthContext: veracity.public_health_context || null,
     }
-  }, [part2?.claim_veracity, contextualIntegrity?.claim_veracity])
+  }, [part2?.claim_veracity, contextualIntegrity?.claim_veracity, part2?.accuracy, contextualIntegrity?.accuracy, part2])
   const alignmentScore = useMemo(() => {
     const alignment =
       typeof part2?.alignment === 'string' ? part2.alignment : ''

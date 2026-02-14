@@ -11,12 +11,12 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
     roc_auc_score,
 )
-from sklearn.utils import resample
 
 
 def compute_three_dimensional_metrics(
     predictions: List[Dict[str, Any]],
     ground_truth: List[Dict[str, Any]],
+    suppress_warnings: bool = False,
 ) -> Dict[str, Any]:
     """Compute metrics for each MedContext dimension.
 
@@ -28,19 +28,25 @@ def compute_three_dimensional_metrics(
     Predictions should have: pixel_authentic, claim_veracity (or veracity_score),
     alignment (or alignment_score).
     Ground truth should have: is_fake_claim, expected_misalignment.
+
+    Args:
+        predictions: List of prediction dictionaries
+        ground_truth: List of ground truth dictionaries
+        suppress_warnings: If True, suppress sample size warnings (useful for bootstrap iterations)
     """
     if len(predictions) != len(ground_truth):
         raise ValueError("predictions and ground_truth must have same length")
     if len(predictions) == 0:
         raise ValueError("predictions and ground_truth cannot be empty")
 
-    # Warn if sample size is small
-    if len(predictions) < 30:
+    # Warn if sample size is small (but allow suppression during bootstrap)
+    if not suppress_warnings and len(predictions) < 30:
         warnings.warn(
             f"Sample size n={len(predictions)} is insufficient for statistical validation. "
             "Metrics may be unreliable. Minimum recommended: n=30 for basic validation, "
             "n=100+ for publication-quality results.",
-            UserWarning
+            UserWarning,
+            stacklevel=2,
         )
 
     # Dimension 1: Pixel authenticity (rate, not classification)
@@ -148,7 +154,7 @@ def bootstrap_confidence_intervals(
         idx = rng.randint(0, n, size=n)
         pred_sub = [predictions[j] for j in idx]
         gt_sub = [ground_truth[j] for j in idx]
-        m = compute_three_dimensional_metrics(pred_sub, gt_sub)
+        m = compute_three_dimensional_metrics(pred_sub, gt_sub, suppress_warnings=True)
         veracity_acc_samples.append(m["veracity"]["accuracy"])
         alignment_acc_samples.append(m["alignment"]["accuracy"])
         veracity_f1_samples.append(m["veracity"]["f1"])

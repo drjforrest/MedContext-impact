@@ -18,6 +18,15 @@ class Settings(BaseSettings):
         default=2000,
         validation_alias=AliasChoices("MEDGEMMA_MAX_NEW_TOKENS"),
     )
+    # Local MedGemma API settings (for GGUF models served via llama.cpp, vLLM, etc.)
+    local_medgemma_url: str = Field(
+        default="http://localhost:8001",
+        validation_alias=AliasChoices("LOCAL_MEDGEMMA_URL"),
+    )
+    local_medgemma_model: str = Field(
+        default="google/medgemma-1.5-4b-it",
+        validation_alias=AliasChoices("LOCAL_MEDGEMMA_MODEL"),
+    )
     medgemma_vllm_url: str = "http://localhost:8001/v1/chat/completions"
     medgemma_vertex_project: str = ""
     medgemma_vertex_location: str = "us-central1"

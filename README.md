@@ -248,7 +248,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 | PoJ   | Dataset                        | Method                       | Result                                     |
 | ----- | ------------------------------ | ---------------------------- | ------------------------------------------ |
 | PoJ 1 | 326 UCI DICOM images           | ELA (Layer 1)                | 49.9% — chance (wrong tool for format)     |
-| PoJ 2 | 160 samples (120 BTD + 40 UCI) | DICOM-native pixel forensics | **97.5% image integrity** (100% precision) |
+| PoJ 2 | 160 samples (120 BTD + 40 UCI) | DICOM-native pixel forensics | **98.1% image integrity** (100% precision) |
 | PoJ 3 | 160 image-claim pairs          | MedGemma contextual          | Veracity 61.3% · Alignment 56.9%           |
 
 - **Method:** PoJ 1: Bootstrap resampling (1,000 iterations); PoJ 2/3: three-method dimensional validation

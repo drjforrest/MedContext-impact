@@ -34,7 +34,7 @@ We validated MedContext against the **Med-MMHL (Medical Multimodal Misinformatio
 | **Alignment Only**       | Image-claim pair alone | 71.2%     | —         | —         | —         | 163 |
 | **Combined System**      | All three dimensions   | **96.3%** | **98.1%** | **98.1%** | **0.981** | 163 |
 
-**Confusion Matrix:** TP=155, FP=4, TN=1, FN=3 (out of 158 misinformation samples, 5 legitimate samples)
+**Confusion Matrix:** TP=155, FP=3, TN=2, FN=3 (out of 158 misinformation samples, 5 legitimate samples)
 
 **Key findings:**
 

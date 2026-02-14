@@ -1,0 +1,11 @@
+{
+  "image_id": "med_mmhl_test_6_0",
+  "image_filename": "3545_1.jpg",
+  "claim_filename": "3545_1_claim.txt",
+  "ground_truth": {
+    "pixel_authentic": true,
+    "alignment": "misaligned",
+    "plausibility": "low",
+    "is_misinformation": true
+  }
+}
