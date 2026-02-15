@@ -25,27 +25,34 @@ specialized tamper detection _and_ a separate contextual analysis layer to asses
 
 We validated MedContext against the **Med-MMHL (Medical Multimodal Misinformation Benchmark)**, a research-grade dataset of real-world medical misinformation from fact-checking organizations (LeadStories, FactCheck.org, Snopes).
 
-**Validation on 163 Med-MMHL samples:**
+MedContext addresses two distinct detection tasks that require separate validation tracks — they are not directly comparable:
 
-| Method                   | Approach               | Accuracy  | Precision | Recall    | F1        | n   |
-| ------------------------ | ---------------------- | --------- | --------- | --------- | --------- | --- |
-| **Pixel Forensics Only** | Image analysis alone   | 65.0%     | —         | —         | —         | 163 |
-| **Veracity Only**        | Claim analysis alone   | 71.8%     | —         | —         | —         | 163 |
-| **Alignment Only**       | Image-claim pair alone | 71.2%     | —         | —         | —         | 163 |
-| **Combined System**      | All three dimensions   | **96.3%** | **98.1%** | **98.1%** | **0.981** | 163 |
+**Track 1 — Pixel Authenticity** (separate validation dataset, genuinely manipulated images)
+
+Pixel forensics is evaluated on images that have been pixel-manipulated. This is a different task from contextual misinformation and requires a dataset with ground-truth tampered images. Results reported separately in VALIDATION.md (PoJ 1–2).
+
+**Track 2 — Contextual Authenticity** (Med-MMHL, n=163, authentic images with misleading claims)
+
+Med-MMHL images are all authentic — misinformation resides in the claim or image-claim pairing, not in pixel manipulation. This is the dominant real-world threat (80%+ of medical misinformation). Pixel forensics has no role here.
+
+| Method              | Approach               | Accuracy  | Precision | Recall    | F1        | n   |
+| ------------------- | ---------------------- | --------- | --------- | --------- | --------- | --- |
+| **Veracity Only**   | Claim analysis alone   | 71.8%     | —         | —         | —         | 163 |
+| **Alignment Only**  | Image-claim pair alone | 71.2%     | —         | —         | —         | 163 |
+| **Combined System** | Veracity + alignment   | **96.3%** | **98.1%** | **98.1%** | **0.981** | 163 |
 
 **Confusion Matrix:** TP=155, FP=3, TN=2, FN=3 (out of 158 misinformation samples, 5 legitimate samples)
 
 **Key findings:**
 
-1. **Single-dimension methods are insufficient:** Pixel forensics alone (65.0%), veracity alone (71.8%), and alignment alone (71.2%) all fail to detect most misinformation
-2. **Combined system is necessary:** 96.3% accuracy represents a 25-31 percentage point improvement over any single method, proving all three dimensions are required
-3. **High precision (98.1%) and recall (98.1%):** The system correctly identifies 98.1% of misinformation while maintaining 98.1% precision (very few false positives)
-4. **Validates core thesis:** The most dangerous misinformation—authentic images supporting false claims—requires analyzing all three dimensions together. Single methods miss this entirely.
+1. **Veracity alone is insufficient:** 71.8% — claim plausibility without image context misses alignment failures
+2. **Alignment alone is insufficient:** 71.2% — image-claim consistency without claim assessment misses false-but-aligned pairs
+3. **Combined system is necessary:** 96.3% accuracy (+24–25 percentage points over either signal alone), proving both dimensions are required for contextual misinformation detection
+4. **High precision and recall:** 98.1% on both — the system correctly identifies nearly all misinformation with very few false positives
 
-> **Critical Insight:** Most medical misinformation (80%+) uses **authentic images in misleading context**. This is invisible to pixel forensics and difficult for text-only analysis. Only the combined 3-dimensional approach (veracity + alignment + integrity) can reliably detect contextual misinformation, achieving 96.3% accuracy vs 65-72% for single methods.
+> **Critical Insight:** The dominant medical misinformation threat (80%+) uses authentic images in misleading context — invisible to pixel forensics, which operates on a separate task. Contextual authenticity (veracity + alignment) is what Med-MMHL validates, and the combined system achieves 96.3% accuracy where either signal alone reaches only ~71%.
 >
-> **Note:** Validation used 2 of 4 contextual signals (veracity and alignment via MedGemma). Reverse image search and provenance chain were not activated. The 96.3% accuracy represents a floor, not a ceiling.
+> **Note:** Validation used 2 of 4 contextual signals (veracity and alignment via MedGemma). Reverse image search and provenance chain were not activated. The 96.3% represents a floor, not a ceiling.
 
 ### Solution (MedContext)
 
@@ -77,14 +84,14 @@ First agentic AI system optimized for real-world threat distribution:
 
 ### Contribution (Novel)
 
-**Scientific:** To our knowledge, first empirical validation proving that single-dimension methods (pixel forensics, veracity, alignment) are insufficient for medical misinformation detection, requiring a combined multi-dimensional approach (96.3% vs 65-72%)
-**Technical:** To our knowledge, first multi-modal system using specialized pixel forensics for tamper detection combined with MedGemma semantic analysis for contextual authenticity, validated on real-world medical misinformation benchmark
+**Scientific:** To our knowledge, first empirical validation proving that single contextual signals (veracity alone 71.8%, alignment alone 71.2%) are insufficient for contextual misinformation detection, requiring both dimensions combined (96.3% on Med-MMHL)
+**Technical:** To our knowledge, first multi-modal system separating pixel authenticity (format-specific forensics on manipulated-image datasets) from contextual authenticity (MedGemma veracity + alignment on authentic-image misinformation datasets), validated on the Med-MMHL benchmark
 **Practical:** To our knowledge, first system with field deployment partnership targeting under-resourced clinical settings in Africa via HERO Lab, UBC
 
 ### Why MedContext Wins
 
 ✅ **Problem understanding:** Evidence-based from ~100-source literature review documenting that 80%+ of threat is authentic images in misleading context
-✅ **Scientific rigor:** Empirical validation on Med-MMHL benchmark proving single methods (65-72%) are insufficient, combined system (96.3%) is necessary
+✅ **Scientific rigor:** Empirical validation on Med-MMHL benchmark proving single contextual signals (veracity 71.8%, alignment 71.2%) are insufficient; combined system (96.3%) is necessary. Pixel forensics validated separately on manipulated-image datasets — the two tracks address distinct threats
 ✅ **Technical quality:** Production-ready code with 51/51 tests, 4 MedGemma providers, full-stack architecture
 ✅ **Real-world path:** Field deployment partnership with HERO Lab, UBC targeting African Ministries of Health
 ✅ **Honest science:** Transparently reports limitations (2/4 signals active, 163-sample subset) that strengthen the core thesis
