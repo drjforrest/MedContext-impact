@@ -186,6 +186,12 @@ ui/dist/
 # macOS
 .DS_Store
 
+# JetBrains IDEs
+.idea/
+
+# Local sample data
+samples/
+
 # Data
 src/data/
 data/

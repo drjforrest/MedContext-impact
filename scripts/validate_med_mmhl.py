@@ -274,14 +274,14 @@ def main() -> int:
     print(f"  {m['pixel_authenticity']['mean_authentic_rate']:.1%}")
     print()
     print("Veracity (claim plausibility):")
-    print(
-        f"  Accuracy: {m['veracity']['accuracy']:.1%} | F1: {m['veracity']['f1']:.3f}"
-    )
+    v_f1 = m['veracity']['f1']
+    v_f1_str = f"{v_f1:.3f}" if v_f1 is not None else "N/A"
+    print(f"  Accuracy: {m['veracity']['accuracy']:.1%} | F1: {v_f1_str}")
     print()
     print("Alignment (image-claim consistency):")
-    print(
-        f"  Accuracy: {m['alignment']['accuracy']:.1%} | F1: {m['alignment']['f1']:.3f}"
-    )
+    a_f1 = m['alignment']['f1']
+    a_f1_str = f"{a_f1:.3f}" if a_f1 is not None else "N/A"
+    print(f"  Accuracy: {m['alignment']['accuracy']:.1%} | F1: {a_f1_str}")
     if "bootstrap_95ci" in m:
         ci = m["bootstrap_95ci"]
         print()
