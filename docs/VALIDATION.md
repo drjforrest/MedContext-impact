@@ -52,7 +52,7 @@ Proper validation on n=163 real-world image-claim pairs from the Med-MMHL datase
 | False Negatives | 10 | **3** |
 | False Positives | 2 | 3 |
 
-The 27B model cuts false negatives by 70% (10 → 3) with no meaningful increase in false positives. Both models substantially outperform pixel forensics (PoJ 1: 49.9%).
+The 27B model cuts false negatives by 70% (10 → 3) with no meaningful increase in false positives.
 
 **Weight ablation study** — optimal veracity weight α:
 
@@ -68,7 +68,7 @@ The 27B model cuts false negatives by 70% (10 → 3) with no meaningful increase
 3. **4B confidence intervals are wide; 27B intervals are tight.** At α=0.55: 4B F1=0.535 [0.447, 0.609] vs 27B F1=0.961 [0.939, 0.981]. The 27B improvements are statistically robust across 1,000 bootstrap resamples.
 4. **False positives are alignment artefacts.** Real content with loosely-related images is mis-flagged when alignment carries too much weight. Veracity correctly identifies the content as legitimate; increasing α recovers these cases.
 
-**Thesis implication:** Contextual authenticity analysis — specifically claim veracity assessed by a capable vision-language model — is the primary mechanism for medical misinformation detection. Pixel forensics are necessary for pixel-level tampering but insufficient for the dominant real-world threat: authentic images with false context.
+**Thesis implication:** Contextual authenticity analysis — specifically claim veracity assessed by a capable vision-language model — is the primary mechanism for detecting medical misinformation in the Med-MMHL setting, where images are authentic and the misinformation resides entirely in the claim or image-claim pairing. Pixel forensics address a separate and distinct task (detecting pixel-level manipulation on datasets containing genuinely altered images) and cannot be directly compared to these results.
 
 **Full results and methodology:** [Part 11 below](#part-11-med-mmhl-validation-results)
 
