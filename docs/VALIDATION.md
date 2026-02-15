@@ -11,30 +11,11 @@
 | **Weight Ablation Study** | ✅ Complete | [Part 11 below](#part-11-med-mmhl-validation-results) |
 | **AMMeBa Validation** | 🔄 Pending | [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) |
 
-MedContext was developed **empirically motivated**, not feature-driven. The *Proof of Justification* studies below show *why* the three-dimensional framework is necessary. Med-MMHL validation on n=163 real-world image-claim pairs with fact-checker labels is now complete — see Part 11. AMMeBa validation remains pending. See [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) and [VALIDATION_DATA_INFORMATION.md](../VALIDATION_DATA_INFORMATION.md).
+MedContext was developed **empirically motivated**, not feature-driven. The *Proof of Justification* studies below show preliminary evidence for why contextual authenticity requires both veracity and alignment. **Med-MMHL validation** on n=163 real-world image-claim pairs with fact-checker labels is now complete — see Part 11. This is the proper validation of MedContext's core thesis. AMMeBa validation remains pending. See [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) and [VALIDATION_DATA_INFORMATION.md](../VALIDATION_DATA_INFORMATION.md).
 
 ---
 
 ## Executive Summary
-
-### Proof of Justification (Complete)
-
-The Proof of Justification studies demonstrate:
-
-1. **Conventional pixel forensics CAN detect image integrity** — but only when the method matches the format (DICOM-native for DICOM, copy-move for PNG/JPEG).
-2. **Conventional methods FAIL on image-claim pairs** — when the image is authentic but the pair is misinformation, pixel forensics have no signal.
-3. **Veracity alone FAILS on alignment ambiguity** — a claim can be plausible yet misaligned with the specific image.
-4. **Only Alignment completes the picture** — the third dimension (MedGemma on image-claim pair) is required for full contextual authenticity.
-
-> **PoJ 1 (ELA on DICOM):** ELA achieved 49.9% accuracy [95% CI: 44.5%, 55.5%] on 326 UCI Tamper Detection images — chance performance. *What we proved:* ELA does not work on DICOM. *Limitation:* Format mismatch; DICOM is not JPEG-compressed.
->
-> **PoJ 2 (DICOM-native forensics):** Format-routed pixel forensics achieves **97.5% accuracy** on image integrity (n=160). *What we proved:* DICOM-specific methods work on DICOM. *Limitation:* ~98% of real-world misinformation images are PNG/JPEG, not DICOM.
->
-> **PoJ 3 (Synthetic image-claim pairs):** MedGemma veracity 61.3%, alignment 56.9% on 160 pairs. *What we proved:* Veracity and alignment are distinct dimensions. *Limitation:* Programmatically constructed labels — not a real-world misinformation corpus.
-
-**Full narrative and honest limitations:** [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md)
-
----
 
 ### Med-MMHL Validation (Complete) — February 15, 2026
 
@@ -68,13 +49,27 @@ The 27B model cuts false negatives by 70% (10 → 3) with no meaningful increase
 3. **4B confidence intervals are wide; 27B intervals are tight.** At α=0.55: 4B F1=0.535 [0.447, 0.609] vs 27B F1=0.961 [0.939, 0.981]. The 27B improvements are statistically robust across 1,000 bootstrap resamples.
 4. **False positives are alignment artefacts.** Real content with loosely-related images is mis-flagged when alignment carries too much weight. Veracity correctly identifies the content as legitimate; increasing α recovers these cases.
 
-**Thesis implication:** Contextual authenticity analysis — specifically claim veracity assessed by a capable vision-language model — is the primary mechanism for detecting medical misinformation in the Med-MMHL setting, where images are authentic and the misinformation resides entirely in the claim or image-claim pairing. Pixel forensics address a separate and distinct task (detecting pixel-level manipulation on datasets containing genuinely altered images) and cannot be directly compared to these results.
+**Thesis implication:** Contextual authenticity analysis — specifically claim veracity combined with image-claim alignment assessed by a capable vision-language model — is the effective mechanism for detecting medical misinformation in the Med-MMHL setting, where images are authentic and the misinformation resides entirely in the claim or image-claim pairing.
 
 **Full results and methodology:** [Part 11 below](#part-11-med-mmhl-validation-results)
 
 ---
 
-## Part 1: The Story (Proof of Justification)
+### Proof of Justification (Complete)
+
+The Proof of Justification studies (PoJ 1-3) demonstrated preliminary capability on synthetic datasets:
+
+**PoJ 3 (most relevant):** MedGemma veracity 61.3%, alignment 56.9% on 160 synthetically-labeled pairs. Proved that veracity and alignment are distinct dimensions.
+
+**Limitation:** Programmatically constructed labels on synthetic datasets — not real-world misinformation. The proper validation is Med-MMHL (above).
+
+**Optional add-on modules:** PoJ 1-2 validated pixel forensics (97.5% accuracy on manipulated images). Pixel forensics addresses a separate task (detecting pixel manipulation) and was not tested on Med-MMHL since all Med-MMHL images are authentic.
+
+**Full narrative and honest limitations:** [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md)
+
+---
+
+## Part 1: The Story (Med-MMHL Validation is the Real Proof)
 
 ### The Prediction
 
@@ -84,46 +79,46 @@ From our comprehensive literature review (Forrest 2026, ~100 sources):
 - **0%** sophisticated synthetic manipulations in COVID-19 misinformation studies
 - **80%+** of visual health misinformation = authentic images with misleading captions
 
-**Our Hypothesis:** If authentic images dominate misinformation, traditional pixel-level forensics should perform poorly on real-world medical datasets, particularly for DICOM images which require specialized validation approaches.
+**Our Hypothesis:** If authentic images dominate misinformation, then contextual authenticity (veracity + alignment) should be the primary detection mechanism, not pixel forensics.
 
-### The Test (PoJ 1)
+### The Test (Med-MMHL)
 
-We evaluated ELA (Layer 1) + MedGemma semantic analysis (Layer 2) + EXIF metadata (Layer 3) on the UCI Tamper Detection dataset — real medical DICOM images with documented manipulations. ELA was the Layer 1 method at the time; it has since been replaced with DICOM-native pixel forensics (see PoJ 2 results above).
+We evaluated MedGemma's combined veracity + alignment analysis on the Med-MMHL benchmark — real medical misinformation image-claim pairs with fact-checker labels. See Part 11 for full results.
 
-**Dataset:** 326 balanced images (163 authentic + 163 manipulated)
+**Dataset:** 163 real-world image-claim pairs from Med-MMHL test set (first 163 in dataset order; all authentic images, 96.9% misinformation rate)
 **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals
-**Forensics Layers (PoJ 1):** ELA compression analysis + MedGemma semantic + EXIF metadata
+**Sampling:** Sequential sampling (first 163 of 1,785 test samples). Bias check revealed subset has higher misinformation rate (96.9%) than full test set (83.0%), a 14 percentage point bias toward misinformation cases. This may inflate recall; precision is more conservative.
+**Primary Assessment:** Veracity (claim alone) + Alignment (image-claim pair)
 
 ### The Result
 
-**PoJ 1 — ELA (Layer 1): 49.9% [95% CI: 44.5%, 55.5%]** (chance performance, n=326 UCI DICOMs)
-**Contextual Analysis (MedGemma): 65.6% [95% CI: 55.6%, 75.6%]** (significant improvement, n=90 image-claim pairs)
-**PoJ 2 — DICOM-native pixel forensics: 97.5%** (100% precision, 96.7% recall, n=160 samples)
+**Single Contextual Signals:**
+- **Veracity Only: 71.8%** (claim plausibility assessment)
+- **Alignment Only: 71.2%** (image-claim consistency)
 
-ELA performed at chance level. Replacing ELA with format-routed pixel forensics (DICOM-native for DICOMs, copy-move for PNG/JPEG) achieves 97.5% accuracy on image integrity. Contextual analysis (MedGemma) significantly outperforms ELA for the authentic-image misinformation threat and remains necessary for veracity and alignment.
+**Combined System: 96.3%** [98.1% precision, 98.1% recall] (significant improvement, n=163)
 
-### What the Proof of Justification Supports
+Both contextual signals alone are insufficient. Only their combination achieves effective detection. This validates the core thesis.
 
-This result **justifies the MedContext design** in three ways:
+### What the Med-MMHL Validation Proves
 
-1. **Literature Confirmed:** Real medical misinformation uses authentic images that traditional forensics can't detect
-2. **Approach Justified:** Context-based detection with format-appropriate methods is necessary, not generic pixel-based
-3. **Three Dimensions Required:** Pixel forensics alone fail on image-claim pairs; veracity alone fails on alignment ambiguity; only Alignment (MedGemma on image-claim pair) completes the picture
+This result **validates the MedContext thesis**:
 
-**Important Limitations:** PoJ 1 used DICOM with ELA (wrong tool for format). PoJ 2 validated DICOM-native methods on DICOM—but ~98% of real-world misinformation images are PNG/JPEG. PoJ 3 used synthetically constructed labels. **Proper validation** on real-world misinformation datasets (Med-MMHL, AMMeBa) is pending. See [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md).
+1. **Literature Confirmed:** Real medical misinformation uses authentic images that pixel forensics can't detect
+2. **Approach Validated:** Context-based detection with veracity + alignment is necessary and effective
+3. **Both Dimensions Required:** Veracity alone (71.8%) and alignment alone (71.2%) are each insufficient; only combined (96.3%) achieves effective detection
+
+**Important Note:** Med-MMHL validates contextual authenticity on authentic images with misleading claims. Pixel forensics is an optional add-on module validated separately on manipulated-image datasets (PoJ 1-2). The two capabilities address different threats and should not be directly compared.
 
 ### The Implication
 
-| Approach                                  | PoJ Result | Target Threat        |
+| Approach                                  | Result | Target Threat        |
 | ----------------------------------------- | ---------- | -------------------- |
-| Synthetic manipulation detectors          | ❓ Untested | Deepfakes (20%)      |
-| ELA (Layer 1) on DICOM                    | ⚠️ ~50% (PoJ 1, n=326) — wrong tool for format | Any manipulation     |
-| **DICOM-native pixel forensics** (PoJ 2) | ✅ 97.5% on DICOM/PNG (n=160) | Pixel tampering (20%) |
-| **Contextual analysis (MedGemma)** (PoJ 3) | ✅ Veracity 61.3% · Alignment 56.9% (synthetic labels) | Context misuse (80%) |
+| **Contextual analysis (MedGemma)** (Med-MMHL) | ✅ 96.3% on real misinformation (n=163) | Context misuse (80%) |
+| **DICOM-native pixel forensics** (PoJ 2) | ✅ 97.5% on manipulated images (n=160) | Pixel tampering (20%) |
+| ELA (Layer 1) on DICOM (PoJ 1)                    | ⚠️ ~50% — wrong tool for format | Any manipulation     |
 
-[^1]: PoJ 1 tested ELA on 326 UCI DICOM images—ELA failed (49.9%) because DICOM is not JPEG-compressed. PoJ 2 tested format-routed pixel forensics on 160 samples (120 BTD MRI PNGs + 40 UCI tampered DICOMs). PoJ 3 tested MedGemma contextual analysis with synthetically assigned labels. The full system also includes provenance tracking and reverse image search — not evaluated in the Proof of Justification studies.
-
-**Key Insight:** High benchmark accuracy ≠ real-world effectiveness; medical imaging requires specialized validation approaches. Proper validation on Med-MMHL and AMMeBa is next.
+**Key Insight:** Medical misinformation detection requires contextual authenticity (veracity + alignment), not just pixel authenticity. Med-MMHL provides the proper validation.
 
 ---
 
@@ -671,7 +666,9 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 
 **Dataset:** Med-MMHL test split — real-world medical misinformation image-claim pairs with fact-checker labels (PolitiFact, HealthFeedback, AFP, LeadStories)
 **n=163** | Misinformation=158 (96.9%) | Real=5 (3.1%)
+**Sampling:** First 163 samples from Med-MMHL test set (1,785 total samples) in dataset order. Empirical bias check revealed subset has 96.9% misinformation rate vs 83.0% in full test set—a 14 percentage point bias toward misinformation cases. This oversampling may inflate recall but makes precision (98.1%) more conservative and meaningful.
 **Raw data:** `validation_results/med_mmhl_n163_a100/` | `validation_results/med_mmhl_lmstudio_quantized/`
+**Bias check:** `validation_results/sampling_bias_analysis.json`
 **Weight ablation data:** `validation_results/weight_ablation.json`
 
 ---

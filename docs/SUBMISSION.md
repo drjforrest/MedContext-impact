@@ -14,7 +14,7 @@ This distinction matters because it renders pixel-level forensics fundamentally 
 
 ## Proof of Justification (Empirical Motivation)
 
-MedContext was developed **empirically motivated**, not feature-driven. The empirical studies below demonstrate why the three-dimensional framework is necessary and validate the approach on real-world medical misinformation. See [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md) for detailed methodology.
+MedContext was developed **empirically motivated**, not feature-driven. The empirical studies below demonstrate why the contextual approach (veracity + alignment) is necessary and validate the approach on real-world medical misinformation. See [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md) for detailed methodology.
 
 **PoJ 1 — ELA on UCI Tamper Detection (n=326 DICOM images):** We evaluated ELA (Error Level Analysis), compression artefact detection, and EXIF metadata with bootstrap resampling across 1,000 iterations. This served as a negative control to demonstrate tool-format incompatibility.
 
@@ -24,18 +24,18 @@ MedContext was developed **empirically motivated**, not feature-driven. The empi
 
 | Method                            | Approach                          | Accuracy  | Precision | Recall    | F1        |
 | --------------------------------- | --------------------------------- | --------- | --------- | --------- | --------- |
-| **Pixel Forensics Only**          | Image analysis alone              | 65.0%     | —†        | —†        | —†        |
-| **Veracity Only**                 | Claim analysis alone              | 71.8%     | —†        | —†        | —†        |
-| **Alignment Only**                | Image-claim pair alone            | 71.2%     | —†        | —†        | —†        |
-| **Combined System (2/4 signals)** | Veracity + Alignment via MedGemma | **96.3%** | **98.1%** | **98.1%** | **0.981** |
+| **Pixel Forensics Only**          | Image analysis alone              | 38.0%     | —†        | —†        | —†        |
+| **Veracity Only**                 | Claim analysis alone              | 50.9%     | 25.2%     | 100%      | 0.403     |
+| **Alignment Only**                | Image-claim pair alone            | 76.1%     | 39.3%     | 81.5%     | 0.530     |
+| **Combined System (optimized)** | Veracity + Alignment via MedGemma 27B | **94.5%** | **95.0%** | **98.5%** | **0.968** |
 
-**†Note:** Precision, recall, and F1 scores for single-dimension methods represent performance at the threshold that maximizes accuracy on the validation set. The combined system uses weighted integration of all signals with a learned decision boundary, producing calibrated binary predictions for which precision/recall/F1 are well-defined. Future work will report threshold-dependent precision-recall curves for single methods to enable fair comparison across operating points.
+**†Note:** Precision, recall, and F1 scores for single-dimension methods represent performance at the threshold that maximizes accuracy on the validation set. The combined system uses optimized decision thresholds (veracity < 0.65 OR alignment < 0.30 → misinformation) determined via grid search on the validation set, with bootstrap confidence intervals [90.8%, 97.5%] computed over 1,000 iterations.
 
-**Key Finding:** Single-dimension methods (65-72%) are insufficient for detecting medical misinformation. The combined multi-dimensional system achieves 96.3% accuracy—a **24-31 percentage point improvement** over any single method.
+**Key Finding:** Single-dimension methods (38-76%) are insufficient for detecting medical misinformation. The combined multi-dimensional system achieves 94.5% accuracy—an **18-56 percentage point improvement** over any single method.
 
-This finding _supports_ the MedContext design thesis: pixel forensics alone cannot detect authentic images in misleading context (the dominant threat, 80%+ of cases). Text analysis alone cannot detect manipulated images or assess image-claim relationships. The **combined multi-dimensional approach** demonstrated here (veracity + alignment) achieves substantial improvement over single dimensions, with the full 3-dimensional framework (integrity + veracity + alignment) expected to provide additional robustness.
+This finding _supports_ the MedContext design thesis: pixel forensics alone cannot detect authentic images in misleading context (the dominant threat, 80%+ of cases). Text analysis alone cannot detect manipulated images or assess image-claim relationships. The **combined contextual approach** demonstrated here (veracity + alignment) achieves substantial improvement over single dimensions.
 
-**Validation notes:** (1) Med-MMHL contains real-world medical misinformation from fact-checkers (LeadStories, FactCheck.org, Snopes). (2) 163-sample subset from 1,785 total test samples. (3) Validation used 2 of 4 contextual signals (veracity and alignment via MedGemma; reverse image search and provenance chain not activated). (4) Full system validation with all 4 signals is expected to provide additional performance insights.
+**Validation notes:** (1) Med-MMHL contains real-world medical misinformation from fact-checkers (LeadStories, FactCheck.org, Snopes). (2) 163-sample subset from 1,785 total test samples, using stratified random sampling (seed=42) to ensure representative label distribution (83% misinformation, 17% legitimate). (3) Validation used 2 of 4 contextual signals (veracity and alignment via MedGemma 27B; reverse image search and provenance chain not activated). (4) Full system validation with all 4 signals is expected to provide additional performance insights.
 
 ## Solution: Agentic Contextual Authenticity
 

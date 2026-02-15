@@ -1,5 +1,7 @@
 import asyncio
 import ipaddress
+import json
+import logging
 import socket
 from urllib.parse import urlparse
 
@@ -9,9 +11,10 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.endpoints.ingestion import ingest_and_run_agentic
 from app.clinical.medgemma_client import MedGemmaClientError
+from app.db.session import get_db
 from app.orchestrator.image_scrape import extract_image_candidates, extract_page_context
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
-from app.db.session import get_db
+from app.orchestrator.tool_utils import parse_force_tools
 from app.schemas.orchestrator import (
     AgentRunResponse,
     ResolvedUrlResponse,
@@ -19,6 +22,7 @@ from app.schemas.orchestrator import (
 )
 from app.schemas.trace import TraceResponse
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -286,6 +290,10 @@ async def run_agent(
     image_url: str | None = Form(default=None),
     context: str | None = Form(default=None),
     image_id: str | None = Form(default=None),
+    force_tools: str | None = Form(default=None),
+    veracity_threshold: float = Form(default=0.65),
+    alignment_threshold: float = Form(default=0.30),
+    decision_logic: str = Form(default="OR"),
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
@@ -300,6 +308,10 @@ async def run_agent(
             image_id=None if image_id is None else image_id,
             content_type=file.content_type if file else None,
             source_url=image_url,
+            force_tools=parse_force_tools(force_tools),
+            veracity_threshold=veracity_threshold,
+            alignment_threshold=alignment_threshold,
+            decision_logic=decision_logic,
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -311,13 +323,17 @@ async def run_agent_langgraph(
     image_url: str | None = Form(default=None),
     context: str | None = Form(default=None),
     image_id: str | None = Form(default=None),
+    force_tools: str | None = Form(default=None),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, context_source = _resolve_context(context, scraped_context)
     agent = MedContextLangGraphAgent()
     try:
         result = agent.run(
-            image_bytes=image_bytes, image_id=image_id, context=context_used
+            image_bytes=image_bytes,
+            image_id=image_id,
+            context=context_used,
+            force_tools=parse_force_tools(force_tools),
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -343,13 +359,17 @@ async def run_agent_trace(
     image_url: str | None = Form(default=None),
     context: str | None = Form(default=None),
     image_id: str | None = Form(default=None),
+    force_tools: str | None = Form(default=None),
 ) -> TraceResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, _ = _resolve_context(context, scraped_context)
     agent = MedContextLangGraphAgent()
     try:
         state = agent.run_with_trace(
-            image_bytes=image_bytes, image_id=image_id, context=context_used
+            image_bytes=image_bytes,
+            image_id=image_id,
+            context=context_used,
+            force_tools=parse_force_tools(force_tools),
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -369,3 +389,46 @@ async def run_agent_trace(
         total_duration_ms=total_duration_ms,
         trace=trace_entries,
     )
+
+
+@router.post("/optimize-thresholds")
+async def optimize_thresholds(
+    dataset: UploadFile = File(...),
+) -> dict:
+    """
+    Optimize decision thresholds for contextual authenticity scoring.
+    
+    Accepts a JSON dataset with labeled image-claim pairs and returns
+    optimal thresholds via grid search with bootstrap confidence intervals.
+    
+    Expected JSON format:
+    [
+      {
+        "image_path": "/path/to/image.jpg",
+        "claim": "Medical claim text...",
+        "label": "misinformation"  // or "legitimate"
+      },
+      ...
+    ]
+    """
+    import tempfile
+    import os
+    from app.orchestrator.threshold_optimizer import optimize_thresholds_from_dataset
+    
+    # Save uploaded file to temp location
+    with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.json') as tmp:
+        content = await dataset.read()
+        tmp.write(content)
+        tmp_path = tmp.name
+    
+    try:
+        # Run optimization
+        results = await optimize_thresholds_from_dataset(tmp_path)
+        return results
+    except Exception as e:
+        logger.exception("Threshold optimization failed")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    finally:
+        # Clean up temp file
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)

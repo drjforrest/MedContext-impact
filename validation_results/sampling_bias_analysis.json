@@ -1,0 +1,66 @@
+{
+  "full_dataset": {
+    "name": "Full Dataset",
+    "n_samples": 1785,
+    "label_distribution": {
+      "misinformation": 1481,
+      "real": 304,
+      "misinformation_rate": 0.8296918767507003
+    },
+    "source_distribution": {
+      "unknown": 1785
+    },
+    "claim_length": {
+      "mean": 5148.970868347339,
+      "min": 329,
+      "max": 20612
+    },
+    "unique_images": 1785,
+    "duplicate_rate": 0.0
+  },
+  "subset": {
+    "name": "First 163",
+    "n_samples": 163,
+    "label_distribution": {
+      "misinformation": 158,
+      "real": 5,
+      "misinformation_rate": 0.9693251533742331
+    },
+    "source_distribution": {
+      "unknown": 163
+    },
+    "claim_length": {
+      "mean": 5660.40490797546,
+      "min": 847,
+      "max": 8181
+    },
+    "unique_images": 163,
+    "duplicate_rate": 0.0
+  },
+  "comparison": {
+    "label_bias": {
+      "full_misinformation_rate": 0.8296918767507003,
+      "subset_misinformation_rate": 0.9693251533742331,
+      "absolute_difference": 0.13963327662353275,
+      "difference_percentage_points": 13.963327662353276,
+      "assessment": "POTENTIAL_BIAS"
+    },
+    "source_bias": {
+      "top_source_overlap": 0.2,
+      "assessment": "POTENTIAL_BIAS"
+    },
+    "claim_length_bias": {
+      "full_mean_length": 5148.970868347339,
+      "subset_mean_length": 5660.40490797546,
+      "relative_difference_pct": 9.932742924845407,
+      "assessment": "ACCEPTABLE"
+    },
+    "duplicate_bias": {
+      "full_duplicate_rate": 0.0,
+      "subset_duplicate_rate": 0.0,
+      "absolute_difference": 0.0,
+      "assessment": "ACCEPTABLE"
+    },
+    "overall_assessment": "POTENTIAL_BIAS_DETECTED"
+  }
+}

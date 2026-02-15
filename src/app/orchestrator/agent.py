@@ -12,6 +12,7 @@ from app.clinical.medgemma_client import MedGemmaClient, MedGemmaResult
 from app.core.config import settings
 from app.forensics.service import run_forensics
 from app.metrics.integrity import compute_contextual_integrity_score
+from app.orchestrator.tool_utils import merge_tools
 from app.provenance.service import build_provenance
 from app.reverse_search.service import get_reverse_search_results, run_reverse_search
 
@@ -65,12 +66,18 @@ class MedContextAgent:
         self._logger = logging.getLogger(__name__)
 
     def run(
-        self, image_bytes: bytes, image_id=None, context: str | None = None
+        self,
+        image_bytes: bytes,
+        image_id=None,
+        context: str | None = None,
+        force_tools: list[str] | None = None,
     ) -> AgentRunResult:
         triage_result = self._triage(image_bytes, context=context)
         required_tools = self._extract_required_tools(triage_result)
+        forced = self._sanitize_tools(force_tools or [])
+        merged_tools = merge_tools(required_tools, forced)
         tool_results = self._dispatch_tools(
-            image_bytes, required_tools, image_id, triage_result
+            image_bytes, merged_tools, image_id, triage_result
         )
         synthesis_result = self._synthesize(
             image_bytes, triage_result, tool_results, context=context

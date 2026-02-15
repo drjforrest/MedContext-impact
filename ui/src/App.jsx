@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import ValidationStory from './ValidationStory'
+import ThresholdOptimization from './ThresholdOptimization'
 
 function renderTriIcon(status, cx, cy) {
   if (status === 'pass') {
@@ -70,6 +71,13 @@ function App() {
   const [result, setResult] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
   const [modules, setModules] = useState(null)
+  const [forceTools, setForceTools] = useState(new Set())
+  
+  // Threshold configuration
+  const [veracityThreshold, setVeracityThreshold] = useState(0.65)
+  const [alignmentThreshold, setAlignmentThreshold] = useState(0.30)
+  const [decisionLogic, setDecisionLogic] = useState('OR')
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
@@ -120,24 +128,37 @@ function App() {
       label: 'Image Integrity',
       detail: 'Pixel forensics, metadata, and manipulation detection.',
       toolKey: 'forensics',
+      isCore: false,
     },
     {
-      key: 'contextual_authenticity',
-      label: 'Contextual Authenticity',
-      detail: 'MedGemma evaluates claim veracity and context alignment.',
+      key: 'claim_veracity',
+      label: 'Claim Veracity',
+      detail: 'MedGemma assesses factual accuracy of the claim.',
       toolKey: null,
+      isCore: true,
+      isHalfWidth: true,
+    },
+    {
+      key: 'context_alignment',
+      label: 'Image-Context Alignment',
+      detail: 'MedGemma evaluates how well image supports the claim.',
+      toolKey: null,
+      isCore: true,
+      isHalfWidth: true,
     },
     {
       key: 'source_verification',
       label: 'Source Verification',
       detail: 'Reverse image search to find where this image appears online.',
       toolKey: 'reverse_search',
+      isCore: false,
     },
     {
       key: 'provenance',
       label: 'Provenance',
       detail: 'Immutable audit trail and usage history for the image.',
       toolKey: 'provenance',
+      isCore: false,
     },
   ]
 
@@ -161,6 +182,14 @@ function App() {
     if (context.trim()) {
       formData.append('context', context.trim())
     }
+    if (forceTools.size > 0) {
+      formData.append('force_tools', Array.from(forceTools).join(','))
+    }
+    
+    // Add threshold configuration
+    formData.append('veracity_threshold', veracityThreshold.toString())
+    formData.append('alignment_threshold', alignmentThreshold.toString())
+    formData.append('decision_logic', decisionLogic)
 
     setStatus('loading')
     try {
@@ -207,6 +236,7 @@ function App() {
   const part1 = synthesis?.part_1
   const part2 = synthesis?.part_2
   const imagePreview = synthesis?.image_preview
+  const thresholdRecommendation = result?.triage?.threshold_recommendation
   const userContextQuote =
     typeof context === 'string' && context.trim() ? context.trim() : null
   const contextQuote = userContextQuote ?? part2?.context_quote
@@ -226,15 +256,27 @@ function App() {
   const agentStepStates = useMemo(() => {
     return agentSteps.map((step) => {
       if (status === 'idle') return 'idle'
-      if (status === 'loading') return 'pending'
-      // success or error: reflect what the triage agent actually selected
-      if (step.toolKey === null) {
-        // Contextual Authenticity always runs
+      
+      // Core modules (Veracity + Alignment) always run
+      if (step.isCore) {
+        if (status === 'loading') return 'active' // Show as actively running
         return status === 'success' ? 'done' : 'idle'
       }
-      return toolActivity[step.toolKey] ? 'done' : 'skipped'
+      
+      // For optional add-on modules, check if they were selected
+      if (status === 'loading') {
+        // During loading, show as 'active' if force-enabled, otherwise 'pending'
+        return forceTools.has(step.toolKey) ? 'active' : 'pending'
+      }
+      
+      // After completion, show actual status
+      if (status === 'success' || status === 'error') {
+        return toolActivity[step.toolKey] ? 'done' : 'skipped'
+      }
+      
+      return 'idle'
     })
-  }, [agentSteps, status, toolActivity])
+  }, [agentSteps, status, toolActivity, forceTools])
   const integrityVisualization = contextualIntegrity?.visualization || null
   const integrityScore =
     typeof integrityVisualization?.overall_confidence === 'number'
@@ -621,10 +663,19 @@ function App() {
         >
           Validation Results
         </button>
+        <button
+          type="button"
+          className={`tab-button ${activeView === 'threshold' ? 'tab-active' : ''}`}
+          onClick={() => setActiveView('threshold')}
+        >
+          Threshold Optimization
+        </button>
       </nav>
 
       <main className="content">
-        {activeView === 'validation' ? (
+        {activeView === 'threshold' ? (
+          <ThresholdOptimization apiBase={apiBase} accessCode={accessCode} />
+        ) : activeView === 'validation' ? (
           <ValidationStory onNavigateBack={() => setActiveView('main')} />
         ) : activeView === 'settings' ? (
           <section className="card settings-card">
@@ -728,6 +779,173 @@ function App() {
                     onChange={(event) => setContext(event.target.value)}
                   />
                 </label>
+                {/* Force-run module overrides — only shown for enabled add-ons */}
+                {['forensics', 'reverse_search', 'provenance'].some(isAddonEnabled) ? (
+                  <div className="field">
+                    <span>Force-run modules</span>
+                    <span className="helper" style={{ marginBottom: '0.5rem', display: 'block' }}>
+                      Override agentic tool selection — always run these modules regardless of triage decision.
+                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {[
+                        { key: 'forensics', label: 'Image Integrity (pixel forensics)' },
+                        { key: 'reverse_search', label: 'Source Verification (reverse image search)' },
+                        { key: 'provenance', label: 'Provenance (audit trail)' },
+                      ]
+                        .filter(({ key }) => isAddonEnabled(key))
+                        .map(({ key, label }) => (
+                          <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 'normal', fontSize: '0.9rem', color: '#c5cad4' }}>
+                            <input
+                              type="checkbox"
+                              checked={forceTools.has(key)}
+                              onChange={(e) => {
+                                setForceTools((prev) => {
+                                  const next = new Set(prev)
+                                  if (e.target.checked) {
+                                    next.add(key)
+                                  } else {
+                                    next.delete(key)
+                                  }
+                                  return next
+                                })
+                              }}
+                              style={{ width: '1rem', height: '1rem', accentColor: '#5b8def' }}
+                            />
+                            {label}
+                          </label>
+                        ))}
+                    </div>
+                  </div>
+                ) : null}
+                
+                {/* Advanced Configuration - Threshold Settings */}
+                <div className="field">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span>Decision Thresholds</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#5b8def',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        padding: '0.25rem 0.5rem',
+                      }}
+                    >
+                      {showAdvanced ? '▼ Hide' : '▶ Show Advanced'}
+                    </button>
+                  </div>
+                  
+                  {showAdvanced && (
+                    <div style={{ 
+                      background: 'rgba(45, 184, 138, 0.05)', 
+                      padding: '1rem', 
+                      borderRadius: '8px',
+                      border: '1px solid rgba(45, 184, 138, 0.2)',
+                      marginTop: '0.5rem'
+                    }}>
+                      <span className="helper" style={{ display: 'block', marginBottom: '1rem' }}>
+                        Use optimized thresholds from the "Threshold Optimization" tab or adjust manually.
+                        Current settings: {decisionLogic} logic with veracity &lt; {veracityThreshold.toFixed(2)} OR alignment &lt; {alignmentThreshold.toFixed(2)}
+                      </span>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.9rem', color: '#c5cad4' }}>Veracity Threshold</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={veracityThreshold}
+                            onChange={(e) => setVeracityThreshold(parseFloat(e.target.value))}
+                            style={{ accentColor: '#5b8def' }}
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={veracityThreshold}
+                            onChange={(e) => setVeracityThreshold(parseFloat(e.target.value))}
+                            style={{ 
+                              padding: '0.5rem', 
+                              background: '#1c1e26', 
+                              border: '1px solid #2d3142',
+                              borderRadius: '4px',
+                              color: '#e9eef4',
+                              fontSize: '0.9rem'
+                            }}
+                          />
+                        </label>
+                        
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.9rem', color: '#c5cad4' }}>Alignment Threshold</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={alignmentThreshold}
+                            onChange={(e) => setAlignmentThreshold(parseFloat(e.target.value))}
+                            style={{ accentColor: '#5b8def' }}
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={alignmentThreshold}
+                            onChange={(e) => setAlignmentThreshold(parseFloat(e.target.value))}
+                            style={{ 
+                              padding: '0.5rem', 
+                              background: '#1c1e26', 
+                              border: '1px solid #2d3142',
+                              borderRadius: '4px',
+                              color: '#e9eef4',
+                              fontSize: '0.9rem'
+                            }}
+                          />
+                        </label>
+                      </div>
+                      
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.9rem', color: '#c5cad4' }}>Decision Logic</span>
+                        <select
+                          value={decisionLogic}
+                          onChange={(e) => setDecisionLogic(e.target.value)}
+                          style={{ 
+                            padding: '0.5rem', 
+                            background: '#1c1e26', 
+                            border: '1px solid #2d3142',
+                            borderRadius: '4px',
+                            color: '#e9eef4',
+                            fontSize: '0.9rem'
+                          }}
+                        >
+                          <option value="OR">OR — Flag if veracity OR alignment below threshold (high recall)</option>
+                          <option value="AND">AND — Flag if veracity AND alignment below threshold (high precision)</option>
+                          <option value="MIN">MIN — Flag if minimum of both below threshold (balanced)</option>
+                        </select>
+                      </label>
+                      
+                      <div style={{ 
+                        marginTop: '1rem', 
+                        padding: '0.75rem', 
+                        background: 'rgba(91, 141, 239, 0.1)',
+                        borderRadius: '4px',
+                        fontSize: '0.85rem',
+                        color: '#9ba0af'
+                      }}>
+                        💡 <strong>Tip:</strong> Use the "Threshold Optimization" tab to find optimal values for your specific use case.
+                        Default values (veracity &lt; 0.65 OR alignment &lt; 0.30) optimized for MedGemma 27B on Med-MMHL.
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
                 {(error && (error.includes('Access denied') || error.includes('403'))) || accessCode ? (
                   <label className="field">
                     <span>Demo Access Code</span>
@@ -764,6 +982,7 @@ function App() {
                       setResult(null)
                       setError('')
                       setStatus('idle')
+                      setForceTools(new Set())
                       setFileInputKey((currentKey) => currentKey + 1)
                     }}
                   >
@@ -778,24 +997,39 @@ function App() {
                 <section className="card activity-card">
                   <div className="reverse-header">
                     <div>
-                      <h2>Progress</h2>
+                      <h2>Agentic Workflow Progress</h2>
                       <p className="helper">
-                        Live status updates while we work on your request.
+                        {status === 'loading' 
+                          ? 'Running 2-dimensional contextual authenticity: Claim Veracity + Image-Context Alignment. Add-on modules shown if selected.' 
+                          : 'Workflow complete: core contextual signals (veracity + alignment) plus agent-selected add-ons.'}
                       </p>
                     </div>
                   </div>
                   <div className="activity-grid">
                     {agentSteps.map((step, index) => {
                       const state = agentStepStates[index]
+                      const stateLabels = {
+                        idle: 'Not started',
+                        pending: 'Awaiting selection',
+                        active: step.isCore ? 'Analyzing...' : 'Running...',
+                        done: 'Complete',
+                        skipped: 'Not selected'
+                      }
                       return (
                         <div
-                          className={`activity-step activity-${state}`}
+                          className={`activity-step activity-${state} ${step.isHalfWidth ? 'activity-half' : ''}`}
                           key={step.key}
                         >
                           <div className="activity-header">
-                            <span>{step.label}</span>
+                            <span>
+                              {step.label}
+                              {step.isCore && <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', opacity: 0.7 }}>(Core)</span>}
+                            </span>
                             <span className={`activity-pill activity-${state}`}>
-                              {state}
+                              {state === 'active' && '⏳ '}
+                              {state === 'done' && '✓ '}
+                              {state === 'skipped' && '○ '}
+                              {stateLabels[state] || state}
                             </span>
                           </div>
                           <p className="helper">{step.detail}</p>
@@ -809,7 +1043,9 @@ function App() {
                 <section className="card triangle-card">
                   <h2>Assessment</h2>
                   <p className="helper">
-                    Three-dimensional evaluation: image integrity, claim veracity, and contextual alignment.
+                    <strong>Contextual Authenticity</strong> (core): Claim Veracity + Image-Context Alignment = final verdict on misinformation.
+                    <br />
+                    <strong>Image Integrity</strong> (optional add-on): Separate pixel forensics assessment for detecting image manipulation.
                   </p>
                   <svg
                     className="triangle-svg"
@@ -958,25 +1194,207 @@ function App() {
               </div>
               {result ? (
                 <div className="results">
-                  {/* 1. Modules Selected and Their Results */}
-                  <div className="result-block">
-                    <h3>1. Modules Selected by Triage Agent</h3>
-                    <p className="helper">
-                      The triage agent selected the following analysis modules:
-                    </p>
-
-                    {/* Contextual Analysis - Always runs */}
-                    <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(45, 184, 138, 0.05)', borderRadius: '8px', borderLeft: '3px solid #2db88a' }}>
-                      <h4 style={{ margin: '0 0 0.5rem 0', color: '#2db88a' }}>✓ Contextual Analysis (Always Active)</h4>
-                      <p className="helper">Assesses claim veracity and image-claim alignment using MedGemma.</p>
+                  {/* Threshold Recommendation (if present) */}
+                  {thresholdRecommendation && (
+                    <div style={{
+                      background: 'rgba(245, 165, 36, 0.1)',
+                      border: '2px solid #f5a524',
+                      borderRadius: '12px',
+                      padding: '1.5rem',
+                      marginBottom: '1.5rem',
+                    }}>
+                      <h3 style={{ color: '#f5a524', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        💡 Threshold Optimization Recommended
+                      </h3>
+                      <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem' }}>
+                        {thresholdRecommendation.message}
+                      </p>
+                      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => setActiveView('threshold')}
+                          style={{
+                            padding: '0.75rem 1.5rem',
+                            background: '#f5a524',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {thresholdRecommendation.action}
+                        </button>
+                        <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.9rem', color: '#9ba0af' }}>
+                          {thresholdRecommendation.benefit}
+                        </span>
+                      </div>
                     </div>
+                  )}
+                  
+                  {/* 1. FINAL VERDICT - Most important, shown first */}
+                  <div className="result-block">
+                    <h3>Final Verdict</h3>
+                    <p className="helper" style={{ marginBottom: '1rem' }}>
+                      Based on <strong>Contextual Authenticity</strong> (Claim Veracity + Image-Context Alignment):
+                    </p>
+                    {part2?.verdict || result?.is_misinformation !== undefined ? (
+                      <div className={`quadrant-verdict ${
+                        result?.is_misinformation === true || part2?.verdict?.toLowerCase().includes('misinformation')
+                          ? 'quadrant-verdict-danger'
+                          : result?.is_misinformation === false
+                            ? 'quadrant-verdict-high'
+                            : 'quadrant-verdict-medium'
+                      }`} style={{ marginTop: '0' }}>
+                        <strong style={{ fontSize: '1.8rem', display: 'block', marginBottom: '0.5rem' }}>
+                          {result?.is_misinformation === true ? '⚠️ MISINFORMATION DETECTED' :
+                           result?.is_misinformation === false ? '✓ NO MISINFORMATION DETECTED' :
+                           part2?.verdict || 'Assessment Complete'}
+                        </strong>
+                        <p style={{ fontSize: '1.1rem' }}>
+                          {part2?.verdict ? part2.verdict :
+                           result?.is_misinformation === true ? 'The image-claim pair shows signs of misinformation.' :
+                           result?.is_misinformation === false ? 'The image-claim pair appears authentic and aligned.' :
+                           'Review the contextual authenticity scores and rationale below for details.'}
+                        </p>
+                        {part2?.confidence ? (
+                          <p style={{ marginTop: '0.75rem', opacity: 0.85, fontSize: '1rem' }}>
+                            <strong>Confidence:</strong> {part2.confidence}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="helper">Final verdict not available</p>
+                    )}
+                  </div>
 
-                    {/* Pixel Forensics */}
-                    {forensicsData ? (
-                      <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(78, 154, 52, 0.05)', borderRadius: '8px', borderLeft: '3px solid #4E9A34' }}>
-                        <h4 style={{ margin: '0 0 0.5rem 0', color: '#4E9A34' }}>✓ Pixel Forensics Selected</h4>
-                        <p className="helper" style={{ marginBottom: '1rem' }}>Detects image manipulation through pixel-level analysis.</p>
-                        {forensicsData.results?.layer_1 ? (
+                  {/* 2. Contextual Authenticity Components (Veracity + Alignment) */}
+                  <div className="result-block">
+                    <h3>Contextual Authenticity Assessment</h3>
+                    <p className="helper">
+                      The core of MedContext: combining claim veracity with image-context alignment to detect contextual misinformation.
+                    </p>
+                    <div className="assessment-duo" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                      {claimVeracity ? (
+                        <div className={`score-pill score-${claimVeracity.tone}`}>
+                          <span className="score-label">Claim Veracity</span>
+                          <span className="score-value-text">
+                            {claimVeracity.accuracy?.replace('_', ' ') || 'Unknown'}
+                          </span>
+                          <span>{claimVeracity.label}</span>
+                        </div>
+                      ) : (
+                        <div className="score-pill score-neutral">
+                          <span className="score-label">Claim Veracity</span>
+                          <span className="score-value-text">Not assessed</span>
+                        </div>
+                      )}
+
+                      {alignmentScore && alignmentScore.score > 0 ? (
+                        <div className={`score-pill score-${alignmentScore.tone}`}>
+                          <span className="score-label">Context-Image Alignment</span>
+                          <span className="score-value">
+                            {alignmentScore.score}/3
+                          </span>
+                          <span>{alignmentScore.label}</span>
+                        </div>
+                      ) : (
+                        <div className="score-pill score-neutral">
+                          <span className="score-label">Context-Image Alignment</span>
+                          <span className="score-value-text">Not assessed</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 3. Image and Context Display */}
+                  {part2 || part1 ? (
+                    <div className="result-block">
+                      <h3>Image and Claim Under Review</h3>
+                      {imagePreview ? (
+                        <img
+                          className="image-preview"
+                          src={imagePreview}
+                          alt="Reviewed upload"
+                          style={{ maxWidth: '400px', marginBottom: '1rem', borderRadius: '8px' }}
+                        />
+                      ) : null}
+                      {contextQuote ? (
+                        <>
+                          <p className="eyebrow">
+                            {isUserProvidedContext ? 'User-provided context' : 'Analyzed claim'}
+                          </p>
+                          <blockquote className="context-quote">
+                            {contextQuote}
+                          </blockquote>
+                        </>
+                      ) : null}
+                      {part1?.image_description ? (
+                        <div style={{ marginTop: '1rem' }}>
+                          <p className="eyebrow">Image description (MedGemma)</p>
+                          <p className="summary-text">{part1.image_description}</p>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {/* 4. Model Rationale */}
+                  {part2?.summary || part2?.alignment_analysis || part2?.rationale ? (
+                    <div className="result-block">
+                      <h3>Analysis Rationale</h3>
+                      <p className="helper">How the model arrived at its verdict:</p>
+                      <div style={{ marginTop: '1rem' }}>
+                        {part2.summary ? <p className="summary-text">{part2.summary}</p> : null}
+                        {part2.alignment_analysis ? (
+                          <div style={{ marginTop: '0.75rem' }}>
+                            <p className="eyebrow">Alignment Analysis</p>
+                            <p className="summary-text">{part2.alignment_analysis}</p>
+                          </div>
+                        ) : null}
+                        {part2.rationale ? (
+                          <div style={{ marginTop: '0.75rem' }}>
+                            <p className="eyebrow">Rationale</p>
+                            <p className="summary-text">{part2.rationale}</p>
+                          </div>
+                        ) : null}
+                        {claimVeracity?.evidenceBasis ? (
+                          <div style={{ marginTop: '0.75rem' }}>
+                            <p className="eyebrow">Evidence Basis</p>
+                            <p className="summary-text">{claimVeracity.evidenceBasis}</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* 5. Image Integrity Assessment (Separate, Add-on) */}
+                  <div className="result-block">
+                    <h3>Image Integrity Assessment</h3>
+                    <p className="helper">
+                      Pixel forensics is an optional add-on module for detecting image manipulation (separate from contextual authenticity):
+                    </p>
+                    <div style={{ marginTop: '1rem' }}>
+                      {forensicsData ? (
+                        <div className={`score-pill ${forensicsData.results?.layer_1?.verdict === 'AUTHENTIC' ? 'score-high' : 'score-low'}`}>
+                          <span className="score-label">Image Integrity (Pixel Forensics)</span>
+                          <span className="score-value-text">
+                            {forensicsData.results?.layer_1?.verdict || 'Unknown'}
+                          </span>
+                          <span>
+                            {forensicsData.results?.layer_1?.confidence != null
+                              ? `${Math.round(forensicsData.results.layer_1.confidence * 100)}% confidence`
+                              : 'Confidence N/A'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="score-pill score-neutral">
+                          <span className="score-label">Image Integrity (Pixel Forensics)</span>
+                          <span className="score-value-text">Not assessed</span>
+                          <span>{isAddonEnabled('forensics') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</span>
+                        </div>
+                      )}
+                      {forensicsData?.results?.layer_1 ? (
+                        <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(78, 154, 52, 0.05)', borderRadius: '8px', borderLeft: '3px solid #4E9A34' }}>
+                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#4E9A34' }}>Forensics Details</h4>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                             <div>
                               <strong>Verdict:</strong> <span className={`pill ${forensicsData.results.layer_1.verdict === 'AUTHENTIC' ? 'pill-success' : 'pill-error'}`}>
@@ -994,197 +1412,77 @@ function App() {
                               </div>
                             ) : null}
                           </div>
-                        ) : (
-                          <p className="helper">Forensics analysis completed.</p>
-                        )}
-                      </div>
-                    ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* 6. Additional Tool Results (Reverse Search, Provenance) */}
+                  <div className="result-block">
+                    <h3>Additional Module Results</h3>
+                    <p className="helper">
+                      Status of optional add-on modules for source verification and provenance tracking:
+                    </p>
 
                     {/* Reverse Search */}
-                    {orchestratorReverseSearch ? (
-                      <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(91, 141, 239, 0.05)', borderRadius: '8px', borderLeft: '3px solid #5b8def' }}>
-                        <h4 style={{ margin: '0 0 0.5rem 0', color: '#5b8def' }}>✓ Reverse Image Search Selected</h4>
-                        <p className="helper" style={{ marginBottom: '1rem' }}>Finds where this image appears online.</p>
-                        {orchestratorReverseSearch.matches?.length > 0 ? (
-                          <div>
-                            <strong>{orchestratorReverseSearch.matches.length} matches found</strong>
-                            <div style={{ marginTop: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
-                              {orchestratorReverseSearch.matches.slice(0, 3).map((match, idx) => (
-                                <div key={idx} style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                  <div><strong>{match.title || 'Untitled'}</strong></div>
-                                  {match.url ? <div style={{ fontSize: '0.85rem', opacity: 0.8 }}><a href={match.url} target="_blank" rel="noreferrer">{match.url}</a></div> : null}
-                                  {match.snippet ? <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>{match.snippet}</div> : null}
-                                </div>
-                              ))}
-                              {orchestratorReverseSearch.matches.length > 3 ? (
-                                <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>+ {orchestratorReverseSearch.matches.length - 3} more matches</div>
-                              ) : null}
+                    <div style={{ marginTop: '1rem' }}>
+                      {orchestratorReverseSearch ? (
+                        <div style={{ padding: '1rem', background: 'rgba(91, 141, 239, 0.05)', borderRadius: '8px', borderLeft: '3px solid #5b8def' }}>
+                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#5b8def' }}>✓ Reverse Image Search</h4>
+                          <p className="helper" style={{ marginBottom: '1rem' }}>Finds where this image appears online.</p>
+                          {orchestratorReverseSearch.matches?.length > 0 ? (
+                            <div>
+                              <strong>{orchestratorReverseSearch.matches.length} matches found</strong>
+                              <div style={{ marginTop: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                                {orchestratorReverseSearch.matches.slice(0, 3).map((match, idx) => (
+                                  <div key={idx} style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <div><strong>{match.title || 'Untitled'}</strong></div>
+                                    {match.url ? <div style={{ fontSize: '0.85rem', opacity: 0.8 }}><a href={match.url} target="_blank" rel="noreferrer">{match.url}</a></div> : null}
+                                    {match.snippet ? <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>{match.snippet}</div> : null}
+                                  </div>
+                                ))}
+                                {orchestratorReverseSearch.matches.length > 3 ? (
+                                  <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>+ {orchestratorReverseSearch.matches.length - 3} more matches</div>
+                                ) : null}
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <p className="helper">No matches found.</p>
-                        )}
-                      </div>
-                    ) : null}
+                          ) : (
+                            <p className="helper">No matches found.</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px', borderLeft: '3px solid rgba(255,255,255,0.2)' }}>
+                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#8891a3' }}>○ Reverse Image Search</h4>
+                          <p className="helper">{isAddonEnabled('reverse_search') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</p>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Provenance */}
-                    {provenanceData ? (
-                      <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(245, 165, 36, 0.05)', borderRadius: '8px', borderLeft: '3px solid #f5a524' }}>
-                        <h4 style={{ margin: '0 0 0.5rem 0', color: '#f5a524' }}>✓ Provenance Chain Selected</h4>
-                        <p className="helper" style={{ marginBottom: '1rem' }}>Blockchain-style immutable audit trail for image history.</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                          <div><strong>Chain ID:</strong> <code style={{ fontSize: '0.85rem' }}>{provenanceData.chain_id?.substring(0, 16)}...</code></div>
-                          <div><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</div>
-                          {provenanceData.blockchain_tx_hash ? (
-                            <>
-                              <div style={{ gridColumn: '1 / -1' }}>
-                                <strong>Blockchain Anchor:</strong> <code style={{ fontSize: '0.85rem' }}>{provenanceData.blockchain_tx_hash.substring(0, 18)}...</code>
-                              </div>
-                            </>
-                          ) : null}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {!forensicsData && !orchestratorReverseSearch && !provenanceData ? (
-                      <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px' }}>
-                        <p className="helper">Only contextual analysis was selected for this image-claim pair.</p>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {/* 2. Three-Dimensional Scores */}
-                  <div className="result-block">
-                    <h3>2. Three-Dimensional Contextual Authenticity</h3>
-                    <p className="helper">
-                      Each dimension is scored independently to assess different aspects of authenticity:
-                    </p>
-                    <div className="assessment-duo" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-                      {forensicsData ? (
-                        <div className={`score-pill ${forensicsData.results?.layer_1?.verdict === 'AUTHENTIC' ? 'score-high' : 'score-low'}`}>
-                          <span className="score-label">Image Integrity</span>
-                          <span className="score-value-text">
-                            {forensicsData.results?.layer_1?.verdict || 'Unknown'}
-                          </span>
-                          <span>
-                            {forensicsData.results?.layer_1?.confidence != null
-                              ? `${Math.round(forensicsData.results.layer_1.confidence * 100)}% confidence`
-                              : 'Confidence N/A'}
-                          </span>
+                    <div style={{ marginTop: '1rem' }}>
+                      {provenanceData ? (
+                        <div style={{ padding: '1rem', background: 'rgba(245, 165, 36, 0.05)', borderRadius: '8px', borderLeft: '3px solid #f5a524' }}>
+                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#f5a524' }}>✓ Provenance Chain</h4>
+                          <p className="helper" style={{ marginBottom: '1rem' }}>Blockchain-style immutable audit trail for image history.</p>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                            <div><strong>Chain ID:</strong> <code style={{ fontSize: '0.85rem' }}>{provenanceData.chain_id?.substring(0, 16)}...</code></div>
+                            <div><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</div>
+                            {provenanceData.blockchain_tx_hash ? (
+                              <>
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                  <strong>Blockchain Anchor:</strong> <code style={{ fontSize: '0.85rem' }}>{provenanceData.blockchain_tx_hash.substring(0, 18)}...</code>
+                                </div>
+                              </>
+                            ) : null}
+                          </div>
                         </div>
                       ) : (
-                        <div className="score-pill score-neutral">
-                          <span className="score-label">Image Integrity</span>
-                          <span className="score-value-text">Not assessed</span>
-                          <span>Module not selected</span>
-                        </div>
-                      )}
-
-                      {claimVeracity ? (
-                        <div className={`score-pill score-${claimVeracity.tone}`}>
-                          <span className="score-label">Claim Veracity</span>
-                          <span className="score-value-text">
-                            {claimVeracity.accuracy?.replace('_', ' ') || 'Unknown'}
-                          </span>
-
-                        </div>
-                      ) : (
-                        <div className="score-pill score-neutral">
-                          <span className="score-label">Claim Veracity</span>
-                          <span className="score-value-text">Not assessed</span>
-                        </div>
-                      )}
-
-                      {alignmentScore && alignmentScore.score > 0 ? (
-                        <div className={`score-pill score-${alignmentScore.tone}`}>
-                          <span className="score-label">Context Alignment</span>
-                          <span className="score-value">
-                            {alignmentScore.score}/3
-                          </span>
-                          <span>{alignmentScore.label}</span>
-                        </div>
-                      ) : (
-                        <div className="score-pill score-neutral">
-                          <span className="score-label">Context Alignment</span>
-                          <span className="score-value-text">Not assessed</span>
+                        <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px', borderLeft: '3px solid rgba(255,255,255,0.2)' }}>
+                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#8891a3' }}>○ Provenance Chain</h4>
+                          <p className="helper">{isAddonEnabled('provenance') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</p>
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* 3. Model Rationale */}
-                  {part2 || part1 ? (
-                    <div className="result-block">
-                      <h3>3. Analysis Rationale</h3>
-                      {imagePreview ? (
-                        <img
-                          className="image-preview"
-                          src={imagePreview}
-                          alt="Reviewed upload"
-                          style={{ maxWidth: '400px', marginBottom: '1rem' }}
-                        />
-                      ) : null}
-                      {contextQuote ? (
-                        <>
-                          <p className="eyebrow">
-                            {isUserProvidedContext ? 'User-provided context' : 'Analyzed claim'}
-                          </p>
-                          <blockquote className="context-quote">
-                            {contextQuote}
-                          </blockquote>
-                        </>
-                      ) : null}
-                      {part1?.image_description ? (
-                        <div style={{ marginTop: '1rem' }}>
-                          <p className="eyebrow">Image description</p>
-                          <p className="summary-text">{part1.image_description}</p>
-                        </div>
-                      ) : null}
-                      {part2?.summary || part2?.alignment_analysis || part2?.rationale ? (
-                        <div style={{ marginTop: '1rem' }}>
-                          <p className="eyebrow">Model analysis</p>
-                          {part2.summary ? <p className="summary-text">{part2.summary}</p> : null}
-                          {part2.alignment_analysis ? <p className="summary-text">{part2.alignment_analysis}</p> : null}
-                          {part2.rationale ? <p className="summary-text">{part2.rationale}</p> : null}
-                          {claimVeracity?.evidenceBasis ? (
-                            <p className="summary-text"><strong>Evidence basis:</strong> {claimVeracity.evidenceBasis}</p>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-
-                  {/* 4. Final Verdict */}
-                  <div className="result-block">
-                    <h3>4. Final Assessment</h3>
-                    {part2?.verdict || result?.is_misinformation !== undefined ? (
-                      <div className={`quadrant-verdict ${
-                        result?.is_misinformation === true || part2?.verdict?.toLowerCase().includes('misinformation')
-                          ? 'quadrant-verdict-danger'
-                          : result?.is_misinformation === false
-                            ? 'quadrant-verdict-high'
-                            : 'quadrant-verdict-medium'
-                      }`}>
-                        <strong style={{ fontSize: '1.5rem' }}>
-                          {result?.is_misinformation === true ? '⚠️ MISINFORMATION DETECTED' :
-                           result?.is_misinformation === false ? '✓ NO MISINFORMATION DETECTED' :
-                           part2?.verdict || 'Assessment Complete'}
-                        </strong>
-                        <p>
-                          {part2?.verdict ? part2.verdict :
-                           result?.is_misinformation === true ? 'The image-claim pair shows signs of misinformation.' :
-                           result?.is_misinformation === false ? 'The image-claim pair appears authentic and aligned.' :
-                           'Review the three-dimensional scores and rationale above for details.'}
-                        </p>
-                        {part2?.confidence ? (
-                          <p style={{ marginTop: '0.5rem', opacity: 0.8 }}>
-                            <strong>Confidence:</strong> {part2.confidence}
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <p className="helper">Final verdict not available</p>
-                    )}
                   </div>
                 </div>
               ) : (

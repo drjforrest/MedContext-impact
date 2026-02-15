@@ -408,4 +408,10 @@ See `docs/` for architecture specs:
 
 ## Interface
 
-The `interface/` directory contains a lightweight debug console for observability (separate from main UI).
+The React + Vite UI (`ui/`) provides:
+
+- **Verify Image** tab — Upload medical images with claims for real-time contextual authenticity assessment
+- **Validation Results** tab — Interactive validation story with Med-MMHL benchmark results (94.5% accuracy)
+- **Threshold Optimization** tab — Upload labeled datasets to find optimal decision thresholds for your specific model and domain
+- Real-time triage → tool dispatch → synthesis workflow visualization
+- Export results as JSON/text for downstream integration

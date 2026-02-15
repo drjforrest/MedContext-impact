@@ -1,0 +1,33 @@
+{
+  "dataset": "Med-MMHL",
+  "split": "test",
+  "n_samples": 163,
+  "n_skipped_missing": 0,
+  "n_skipped_errors": 0,
+  "require_medical": false,
+  "sampling_method": "stratified_random_seed_42",
+  "random_seed": 42,
+  "timestamp": "2026-02-15T18:44:46.624743+00:00",
+  "metrics": {
+    "pixel_authenticity": {
+      "mean_authentic_rate": 0.3803680981595092,
+      "n": 163
+    },
+    "veracity": {
+      "accuracy": 0.7361963190184049,
+      "precision": 0.38235294117647056,
+      "recall": 0.9629629629629629,
+      "f1": 0.5473684210526316,
+      "roc_auc": 0.8985566448801743,
+      "n": 163
+    },
+    "alignment": {
+      "accuracy": 0.7484662576687117,
+      "precision": 0.3939393939393939,
+      "recall": 0.9629629629629629,
+      "f1": 0.5591397849462365,
+      "roc_auc": 0.8824891067538125,
+      "n": 163
+    }
+  }
+}

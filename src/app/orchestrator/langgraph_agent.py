@@ -18,6 +18,7 @@ from app.clinical.medgemma_client import MedGemmaClient, MedGemmaResult
 from app.core.config import settings
 from app.forensics.service import run_forensics
 from app.metrics.integrity import compute_contextual_integrity_score
+from app.orchestrator.tool_utils import merge_tools
 from app.provenance.service import build_provenance
 from app.reverse_search.service import get_reverse_search_results, run_reverse_search
 
@@ -32,9 +33,14 @@ class AgentState(TypedDict, total=False):
     medical_analysis: Any  # MedGemma's medical assessment
     triage: Any  # Combined triage result (for backwards compatibility)
     required_tools: list[str]
+    force_tools: list[str]  # User-requested tool override — merged with required_tools
     tool_results: dict[str, Any]
     synthesis: Any
     trace: list[dict[str, Any]]
+    # Threshold configuration
+    veracity_threshold: float
+    alignment_threshold: float
+    decision_logic: str
 
 
 @dataclass
@@ -67,13 +73,21 @@ class MedContextLangGraphAgent:
         image_bytes: bytes,
         image_id: str | None = None,
         context: str | None = None,
+        force_tools: list[str] | None = None,
+        veracity_threshold: float = 0.65,
+        alignment_threshold: float = 0.30,
+        decision_logic: str = "OR",
     ) -> LangGraphRunResult:
         state: AgentState = {
             "image_bytes": image_bytes,
             "image_id": image_id,
             "context": context,
             "trace_id": self._generate_trace_id(),
+            "force_tools": force_tools or [],
             "trace": [],
+            "veracity_threshold": veracity_threshold,
+            "alignment_threshold": alignment_threshold,
+            "decision_logic": decision_logic,
         }
         final_state = self.graph.invoke(state)
         return LangGraphRunResult(
@@ -87,13 +101,21 @@ class MedContextLangGraphAgent:
         image_bytes: bytes,
         image_id: str | None = None,
         context: str | None = None,
+        force_tools: list[str] | None = None,
+        veracity_threshold: float = 0.65,
+        alignment_threshold: float = 0.30,
+        decision_logic: str = "OR",
     ) -> AgentState:
         state: AgentState = {
             "image_bytes": image_bytes,
             "image_id": image_id,
             "context": context,
             "trace_id": self._generate_trace_id(),
+            "force_tools": force_tools or [],
             "trace": [],
+            "veracity_threshold": veracity_threshold,
+            "alignment_threshold": alignment_threshold,
+            "decision_logic": decision_logic,
         }
         return self.graph.invoke(state)
 
@@ -137,6 +159,13 @@ class MedContextLangGraphAgent:
         tool_selection = self._orchestrate_tool_approval(
             medical_analysis, context, pre_screen, medgemma_tool_recommendations
         )
+
+        # Check if user might benefit from threshold optimization
+        threshold_recommendation = self._check_threshold_optimization_recommendation(
+            context, state.get("veracity_threshold"), state.get("alignment_threshold")
+        )
+        if threshold_recommendation:
+            combined_triage["threshold_recommendation"] = threshold_recommendation
 
         # Combine for backwards compatibility and downstream use
         combined_triage = {
@@ -730,7 +759,9 @@ class MedContextLangGraphAgent:
         image_bytes = state["image_bytes"]
         image_id = state.get("image_id")
         required = state.get("required_tools", [])
-        state["tool_results"] = self._dispatch_tools(image_bytes, required, image_id)
+        forced = self._sanitize_tools(state.get("force_tools") or [])
+        merged = merge_tools(required, forced)
+        state["tool_results"] = self._dispatch_tools(image_bytes, merged, image_id)
         duration_ms = int((perf_counter() - start) * 1000)
         self._append_trace(
             state,
@@ -953,7 +984,7 @@ class MedContextLangGraphAgent:
         # Do not auto-inject user context into context_quote; keep it model-derived.
         synthesis_output.setdefault("image_id", image_id)
         contextual_integrity = self._build_contextual_integrity(
-            synthesis_output, triage, tool_results, context
+            synthesis_output, triage, tool_results, context, state
         )
         synthesis_output.setdefault("contextual_integrity", contextual_integrity)
         preview = self._build_image_preview(image_bytes)
@@ -967,6 +998,7 @@ class MedContextLangGraphAgent:
         triage: Any,
         tool_results: dict[str, Any],
         context: str | None = None,
+        state: AgentState | None = None,
     ) -> dict[str, Any]:
         alignment_score, alignment_label = self._extract_alignment_signal(
             synthesis_output
@@ -974,6 +1006,11 @@ class MedContextLangGraphAgent:
         plausibility_score = self._extract_plausibility(triage, context)
         source_reputation = self._derive_source_reputation(tool_results)
         genealogy_consistency = self._derive_genealogy_consistency(tool_results)
+
+        # Get configurable thresholds from state
+        veracity_threshold = state.get("veracity_threshold", 0.65) if state else 0.65
+        alignment_threshold = state.get("alignment_threshold", 0.30) if state else 0.30
+        decision_logic = state.get("decision_logic", "OR") if state else "OR"
 
         score = compute_contextual_integrity_score(
             alignment=alignment_score,
@@ -986,12 +1023,35 @@ class MedContextLangGraphAgent:
             return None if value is None else float(value)
 
         claim_veracity = self._extract_claim_veracity(synthesis_output)
+        
+        # Apply configurable decision logic
+        veracity_value = claim_veracity.get("score", 0.5) if claim_veracity else 0.5
+        alignment_value = alignment_score if alignment_score is not None else 0.5
+        
+        # Determine final verdict based on decision logic
+        if decision_logic == "OR":
+            is_misinformation = veracity_value < veracity_threshold or alignment_value < alignment_threshold
+        elif decision_logic == "AND":
+            is_misinformation = veracity_value < veracity_threshold and alignment_value < alignment_threshold
+        elif decision_logic == "MIN":
+            min_score = min(veracity_value, alignment_value)
+            min_threshold = min(veracity_threshold, alignment_threshold)
+            is_misinformation = min_score < min_threshold
+        else:
+            # Default to OR logic
+            is_misinformation = veracity_value < veracity_threshold or alignment_value < alignment_threshold
 
         return {
             "score": score,
             "alignment": alignment_label,
             "usage_assessment": alignment_label or "unknown",
             "claim_veracity": claim_veracity,
+            "is_misinformation": is_misinformation,
+            "decision_logic": decision_logic,
+            "thresholds": {
+                "veracity": veracity_threshold,
+                "alignment": alignment_threshold,
+            },
             "signals": {
                 "alignment": alignment_score,
                 "plausibility": plausibility_score,
@@ -1296,3 +1356,37 @@ class MedContextLangGraphAgent:
                 "data": data,
             }
         )
+
+    def _check_threshold_optimization_recommendation(
+        self,
+        context: str | None,
+        current_veracity: float | None,
+        current_alignment: float | None,
+    ) -> dict[str, Any] | None:
+        """
+        Check if user might benefit from threshold optimization.
+        
+        Returns recommendation dict if:
+        - User is using default thresholds (0.65/0.30)
+        - Context suggests this is a batch/validation scenario
+        """
+        # Only recommend if using defaults
+        if current_veracity != 0.65 or current_alignment != 0.30:
+            return None
+            
+        # Check for keywords suggesting validation/batch scenario
+        if context and any(keyword in context.lower() for keyword in [
+            "validation", "test set", "evaluation", "dataset", 
+            "benchmark", "batch", "multiple images"
+        ]):
+            return {
+                "message": (
+                    "💡 Detected validation/evaluation scenario. For optimal performance, "
+                    "consider using the 'Threshold Optimization' tab to find optimal decision "
+                    "thresholds for your specific dataset before running batch verification."
+                ),
+                "action": "Navigate to Threshold Optimization tab",
+                "benefit": "Can improve accuracy by 5-10 percentage points over default thresholds",
+            }
+        
+        return None

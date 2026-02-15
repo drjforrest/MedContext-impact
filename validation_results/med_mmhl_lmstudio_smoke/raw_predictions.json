@@ -1,0 +1,176 @@
+[
+  {
+    "image_id": "med_mmhl_test_6_0",
+    "claim": "\"POSITIVITY RATE SHOWS HERD IMMUNTIY HAS BEEN REACHED.\n\nIn fact, it was probably reached in May.\n\nIn this graph from Johns Hopkins University, we can see two distinct bumps in the positivity rate. The initial bump occurred earlier this year during the actual COVID surge, when testing was limited to the population of hospitalized individuals. This is why the bump is so severe: when you're only testing sick people, you get higher rates of sick people. The virus, of course, was still out in the public.\n\nBut that second bump is where the action is. In June, testing became more widely available, meaning people who had milder symptoms were now being added to the counts.\n\nImportant: This second bump includes the wider population of at-risk people (tested in hospitals) and non-at-risk people (tested outside hospitals). It's basically reflective of the population, although in reality the bump is lower because the curve is skewed up from sick individuals being tested more than healthy individuals. (Let's not talk about the accuracy of the tests. It makes my head hurt.)\n\nBut we're not looking at the raw positivity percentage, because it's skewed up. Instead, we're looking at the downward trend of that second bump.\n\nAsk any biostatistican what it means when you test hundreds of thousands of people a day for an infectious disease and return a consistently lowering positivity rate. I'll give you a clue: it means heard immunity has been reached and the virus is dying out.\n\nOf course, this second bump is being used for political reasons to extend the shutdowns and require continuing mask use. Incredibly, the desire among some leaders to persist in the illusion of a \"second COVID wave\" is so strong that the use of masks in some areas is now even required outdoors in the middle of summer! You can't make this up, folks. Desperation makes people do crazy things.\n\nThe data, naturally, says this \"second COVID wave\" is bunk - it's clear from the first bump's drastic reduction in positivity at the beginning of May that the virus has largely moved through the at-risk population, and COVID is now petering out.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": true,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0,
+          "image_size": [
+            56,
+            56
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "pixel_authentic": true,
+        "confidence": 0.85,
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0,
+          "image_size": [
+            56,
+            56
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_6_1",
+    "claim": "\"POSITIVITY RATE SHOWS HERD IMMUNTIY HAS BEEN REACHED.\n\nIn fact, it was probably reached in May.\n\nIn this graph from Johns Hopkins University, we can see two distinct bumps in the positivity rate. The initial bump occurred earlier this year during the actual COVID surge, when testing was limited to the population of hospitalized individuals. This is why the bump is so severe: when you're only testing sick people, you get higher rates of sick people. The virus, of course, was still out in the public.\n\nBut that second bump is where the action is. In June, testing became more widely available, meaning people who had milder symptoms were now being added to the counts.\n\nImportant: This second bump includes the wider population of at-risk people (tested in hospitals) and non-at-risk people (tested outside hospitals). It's basically reflective of the population, although in reality the bump is lower because the curve is skewed up from sick individuals being tested more than healthy individuals. (Let's not talk about the accuracy of the tests. It makes my head hurt.)\n\nBut we're not looking at the raw positivity percentage, because it's skewed up. Instead, we're looking at the downward trend of that second bump.\n\nAsk any biostatistican what it means when you test hundreds of thousands of people a day for an infectious disease and return a consistently lowering positivity rate. I'll give you a clue: it means heard immunity has been reached and the virus is dying out.\n\nOf course, this second bump is being used for political reasons to extend the shutdowns and require continuing mask use. Incredibly, the desire among some leaders to persist in the illusion of a \"second COVID wave\" is so strong that the use of masks in some areas is now even required outdoors in the middle of summer! You can't make this up, folks. Desperation makes people do crazy things.\n\nThe data, naturally, says this \"second COVID wave\" is bunk - it's clear from the first bump's drastic reduction in positivity at the beginning of May that the virus has largely moved through the at-risk population, and COVID is now petering out.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": true,
+        "confidence": 0.826,
+        "method": "pixel_forensics",
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0024,
+          "image_size": [
+            56,
+            56
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "pixel_authentic": true,
+        "confidence": 0.826,
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0024,
+          "image_size": [
+            56,
+            56
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_6_2",
+    "claim": "\"POSITIVITY RATE SHOWS HERD IMMUNTIY HAS BEEN REACHED.\n\nIn fact, it was probably reached in May.\n\nIn this graph from Johns Hopkins University, we can see two distinct bumps in the positivity rate. The initial bump occurred earlier this year during the actual COVID surge, when testing was limited to the population of hospitalized individuals. This is why the bump is so severe: when you're only testing sick people, you get higher rates of sick people. The virus, of course, was still out in the public.\n\nBut that second bump is where the action is. In June, testing became more widely available, meaning people who had milder symptoms were now being added to the counts.\n\nImportant: This second bump includes the wider population of at-risk people (tested in hospitals) and non-at-risk people (tested outside hospitals). It's basically reflective of the population, although in reality the bump is lower because the curve is skewed up from sick individuals being tested more than healthy individuals. (Let's not talk about the accuracy of the tests. It makes my head hurt.)\n\nBut we're not looking at the raw positivity percentage, because it's skewed up. Instead, we're looking at the downward trend of that second bump.\n\nAsk any biostatistican what it means when you test hundreds of thousands of people a day for an infectious disease and return a consistently lowering positivity rate. I'll give you a clue: it means heard immunity has been reached and the virus is dying out.\n\nOf course, this second bump is being used for political reasons to extend the shutdowns and require continuing mask use. Incredibly, the desire among some leaders to persist in the illusion of a \"second COVID wave\" is so strong that the use of masks in some areas is now even required outdoors in the middle of summer! You can't make this up, folks. Desperation makes people do crazy things.\n\nThe data, naturally, says this \"second COVID wave\" is bunk - it's clear from the first bump's drastic reduction in positivity at the beginning of May that the virus has largely moved through the at-risk population, and COVID is now petering out.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0678,
+          "image_size": [
+            56,
+            56
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0678,
+          "image_size": [
+            56,
+            56
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": true
+      }
+    }
+  }
+]

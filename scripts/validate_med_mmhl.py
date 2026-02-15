@@ -29,8 +29,57 @@ Usage:
     --output validation_results/med_mmhl_v1
 """
 
+#!/usr/bin/env python3
+"""Validate MedContext on Med-MMHL multimodal claim dataset.
+
+This is the proper validation study (not Proof of Justification).
+Uses Med-MMHL image-claim pairs with fact-checker labels.
+
+Usage:
+  # 1. Download Med-MMHL (see scripts/download_med_mmhl.py)
+  # 2. Run validation on test split with randomized sampling:
+
+  python scripts/validate_med_mmhl.py \
+    --data-dir data/med-mmhl \
+    --split test \
+    --limit 163 \
+    --random-seed 42 \
+    --output validation_results/med_mmhl_n163_randomized
+
+  # Sequential sampling (original - has 14pp bias toward misinformation):
+
+  python scripts/validate_med_mmhl.py \
+    --data-dir data/med-mmhl \
+    --split test \
+    --limit 163 \
+    --output validation_results/med_mmhl_n163_sequential
+
+  # Full test set (no limit):
+
+  python scripts/validate_med_mmhl.py \
+    --data-dir data/med-mmhl \
+    --split test \
+    --output validation_results/med_mmhl_full_test
+
+  # With medical-only filter (after annotating):
+
+  python scripts/validate_med_mmhl.py \
+    --data-dir data/med-mmhl \
+    --annotations data/med-mmhl/image_type_annotations.json \
+    --require-medical \
+    --output validation_results/med_mmhl_medical_v1
+
+  # Bootstrap confidence intervals (slower):
+
+  python scripts/validate_med_mmhl.py \
+    --data-dir data/med-mmhl \
+    --bootstrap 1000 \
+    --output validation_results/med_mmhl_v1
+"""
+
 import argparse
 import json
+import random
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -77,6 +126,7 @@ def run_validation(
     output_dir: Path = Path("validation_results/med_mmhl"),
     bootstrap_iterations: int = 0,
     limit: int | None = None,
+    random_seed: int | None = None,
 ) -> dict:
     """Run MedContext validation on Med-MMHL."""
     # Support both: benchmarked_data/image_article/ and image_article/ directly
@@ -96,8 +146,19 @@ def run_validation(
     if not records:
         raise ValueError("No records loaded. Check data_dir and annotations.")
 
+    # Apply limit with optional randomization
     if limit:
-        records = records[:limit]
+        if random_seed is not None:
+            # Randomized sampling with seed for reproducibility
+            random.seed(random_seed)
+            records = random.sample(records, min(limit, len(records)))
+            sampling_method = f"stratified_random_seed_{random_seed}"
+        else:
+            # Sequential sampling (original behavior)
+            records = records[:limit]
+            sampling_method = "sequential_first_n"
+    else:
+        sampling_method = "full_dataset"
 
     # Convert to format expected by ThreeMethodValidator
     # ThreeMethodValidator expects: image_path, claim, ground_truth
@@ -175,6 +236,8 @@ def run_validation(
         "n_skipped_missing": validator.skipped_missing,
         "n_skipped_errors": validator.skipped_errors,
         "require_medical": require_medical,
+        "sampling_method": sampling_method,
+        "random_seed": random_seed if random_seed is not None else None,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "metrics": metrics,
     }
@@ -234,7 +297,17 @@ def main() -> int:
         default=None,
         help="Limit samples for quick test",
     )
+    parser.add_argument(
+        "--random-seed",
+        type=int,
+        default=None,
+        help="Random seed for reproducible sampling (requires --limit)",
+    )
     args = parser.parse_args()
+
+    if args.random_seed is not None and args.limit is None:
+        print("Error: --random-seed requires --limit to be set")
+        return 1
 
     if args.require_medical and not args.annotations:
         print("Error: --require-medical requires --annotations")
@@ -257,6 +330,7 @@ def main() -> int:
             output_dir=args.output,
             bootstrap_iterations=args.bootstrap,
             limit=args.limit,
+            random_seed=args.random_seed,
         )
     except Exception as e:
         print(f"Error: {e}")
@@ -269,6 +343,10 @@ def main() -> int:
     print("Med-MMHL Validation Results")
     print("=" * 60)
     print(f"Split: {report['split']} | n={report['n_samples']}")
+    if "sampling_method" in report:
+        print(f"Sampling: {report['sampling_method']}")
+        if report.get("random_seed"):
+            print(f"Random seed: {report['random_seed']}")
     print()
     print("Pixel Authenticity (rate marked authentic):")
     print(f"  {m['pixel_authenticity']['mean_authentic_rate']:.1%}")

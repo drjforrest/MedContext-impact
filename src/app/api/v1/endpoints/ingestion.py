@@ -59,6 +59,10 @@ def ingest_and_run_agentic(
     image_id: UUID | str | None = None,
     content_type: str | None = None,
     source_url: str | None = None,
+    force_tools: list[str] | None = None,
+    veracity_threshold: float = 0.65,
+    alignment_threshold: float = 0.30,
+    decision_logic: str = "OR",
 ) -> AgentRunResponse:
     if image_id is None:
         resolved_image_id = uuid4()
@@ -192,6 +196,10 @@ def ingest_and_run_agentic(
                 image_bytes=image_bytes,
                 image_id=str(resolved_image_id),
                 context=context,
+                force_tools=force_tools,
+                veracity_threshold=veracity_threshold,
+                alignment_threshold=alignment_threshold,
+                decision_logic=decision_logic,
             )
 
             triage_payload = result.triage
@@ -224,8 +232,10 @@ def ingest_and_run_agentic(
 async def ingest_and_run_agent(
     file: UploadFile = File(...),
     context: str = Form(...),
+    force_tools: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
+    from app.orchestrator.tool_utils import parse_force_tools
     image_bytes = await file.read()
     return ingest_and_run_agentic(
         image_bytes=image_bytes,
@@ -234,4 +244,5 @@ async def ingest_and_run_agent(
         db=db,
         source_channel="agentic",
         content_type=file.content_type,
+        force_tools=parse_force_tools(force_tools),
     )
