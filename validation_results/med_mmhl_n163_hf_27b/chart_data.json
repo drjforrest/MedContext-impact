@@ -68,11 +68,6 @@
       "label": "TN"
     }
   ],
-  "classification_info": {
-    "positive_class": "Misinformation (is_misinformation=True)",
-    "negative_class": "Legitimate (is_misinformation=False)",
-    "threshold_note": "Default threshold: 0.5 (see threshold_analysis/ for optimization)"
-  },
   "veracity_distribution": [
     {
       "score": 0.9,

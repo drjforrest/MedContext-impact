@@ -91,7 +91,7 @@ avg_ci_margin = (ci1_margin + ci2_margin) / 2  # Average CI margin
 ci_overlap = ci1_upper >= ci2_lower and ci2_upper >= ci1_lower  # Boolean for overlap
 
 print("Comparison:")
-print(f"  Difference: {acc1 - acc2:.1%} ({diff} sample)")
+print(f"  Difference: {acc1 - acc2:.1%} ({diff} sample{'s' if abs(diff) != 1 else ''})")
 print(f"  Overlap in CIs: {'YES' if ci_overlap else 'NO'}")
 print(f"  Two-proportion z-test p-value: {p_value:.3f}")
 print("  Note: Using non-paired test (paired test requires per-sample predictions)")
@@ -111,7 +111,9 @@ if p_value > 0.05:
     )
     print()
     print("Conclusion: The models perform equivalently.")
-    print(f"The difference of {diff} sample could easily flip with a different")
+    print(
+        f"The difference of {diff} sample{'s' if abs(diff) != 1 else ''} could easily flip with a different"
+    )
     print("random seed or subset selection.")
 else:
     print("❌ STATISTICALLY SIGNIFICANT (p < 0.05)")

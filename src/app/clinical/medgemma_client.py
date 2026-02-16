@@ -105,8 +105,8 @@ class MedGemmaClient:
                 from PIL import Image
 
                 img = Image.open(io.BytesIO(image_bytes))
-                # Resize to max 768px on longest side to reduce memory
-                max_size = 768
+                # Resize to max 384px on longest side to reduce GPU memory
+                max_size = 384
                 if max(img.size) > max_size:
                     ratio = max_size / max(img.size)
                     new_size = tuple(int(dim * ratio) for dim in img.size)

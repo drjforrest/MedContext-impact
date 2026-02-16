@@ -1042,14 +1042,25 @@ class MedContextLangGraphAgent:
             return None if value is None else float(value)
 
         claim_veracity = self._extract_claim_veracity(synthesis_output)
-
         # Apply configurable decision logic
-        veracity_value = claim_veracity.get("score", 0.5) if claim_veracity else 0.5
-        veracity_category = (
-            claim_veracity.get("category", "partially_true")
-            if claim_veracity
-            else "partially_true"
+        # Map factual_accuracy to numeric score and category
+        factual_accuracy = (
+            claim_veracity.get("factual_accuracy") if claim_veracity else None
         )
+        accuracy_to_score = {
+            "accurate": 0.9,
+            "partially_accurate": 0.6,
+            "inaccurate": 0.2,
+            "unverifiable": 0.5,
+        }
+        accuracy_to_category = {
+            "accurate": "true",
+            "partially_accurate": "partially_true",
+            "inaccurate": "false",
+            "unverifiable": "partially_true",
+        }
+        veracity_value = accuracy_to_score.get(factual_accuracy, 0.5)
+        veracity_category = accuracy_to_category.get(factual_accuracy, "partially_true")
         alignment_value = alignment_score if alignment_score is not None else 0.5
 
         # Determine final verdict based on decision logic
@@ -1460,4 +1471,5 @@ class MedContextLangGraphAgent:
                 ),
             }
 
+        return None
         return None

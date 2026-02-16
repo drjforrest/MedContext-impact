@@ -139,9 +139,11 @@ def test_source_extraction_from_real_data():
     print(f"  - Loaded {len(records)} records from Med-MMHL test set")
     print(f"  - Found {len(source_counts)} unique sources")
     print(f"  - Unknown rate: {unknown_pct:.1f}%")
-    print(
-        f"  - Top source: {source_counts.most_common(1)[0][0]} ({source_counts.most_common(1)[0][1]} records, {source_counts.most_common(1)[0][1]/len(records)*100:.1f}%)"
-    )
+    if source_counts:
+        top_source, top_count = source_counts.most_common(1)[0]
+        print(
+            f"  - Top source: {top_source} ({top_count} records, {top_count / len(records) * 100:.1f}%)"
+        )
 
     return True
 

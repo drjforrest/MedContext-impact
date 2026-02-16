@@ -81,7 +81,7 @@ Copy `.env.example` to `.env` and configure:
 _HuggingFace (recommended for development):_
 
 - `MEDGEMMA_HF_TOKEN`: Get from https://huggingface.co/settings/tokens
-- `MEDGEMMA_HF_MODEL`: Default is `google/medgemma-1.5-4b-it`
+- `MEDGEMMA_HF_MODEL`: Default is `google/medgemma-4b-it`
 
 _Vertex AI (production):_
 

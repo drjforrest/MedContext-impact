@@ -1,6 +1,8 @@
 #!/bin/bash
 # Monitor validation progress
 
+TERMINAL_FILE="${1:?Usage: $0 <terminal_file> <output_dir> <pid>}"
+
 #!/bin/bash
 # Monitor validation progress
 

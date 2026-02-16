@@ -1,4 +1,4 @@
-"""Tests for the MedContext Contextual Integrity Score calculation."""
+"""Tests for the MedContext Contextual Authenticity Score calculation."""
 
 import pytest
 
@@ -47,7 +47,7 @@ class TestContextualIntegrityScore:
 
     @pytest.mark.unit
     def test_compute_with_custom_weights(self):
-        """Custom weights should shift the contextual integrity score."""
+        """Custom weights should shift the contextual authenticity score."""
         weights = ContextualIntegrityWeights(
             alignment=0.3,
             plausibility=0.4,

@@ -28,14 +28,7 @@ if phase1_ids != phase2_ids:
 # Compute actual sample count
 sample_count = len(phase1_predictions)
 
-# Extract seed from filename if present (e.g., "med_mmhl_n163_..." pattern)
-# Fallback to "unknown" if not found
-seed_match = re.search(r"n(\d+)", str(phase1_path))
-seed = seed_match.group(1) if seed_match else "unknown"
-
-print(
-    f"✅ Confirmed: Both models evaluated on SAME {sample_count} samples (seed={seed})"
-)
+print(f"✅ Confirmed: Both models evaluated on SAME {sample_count} samples")
 print()
 
 # Compare predictions sample by sample

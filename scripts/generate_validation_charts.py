@@ -101,11 +101,6 @@ def generate_confusion_matrix(predictions):
                 "label": "TN",
             },
         ],
-        "classification_info": {
-            "positive_class": "Misinformation (is_misinformation=True)",
-            "negative_class": "Legitimate (is_misinformation=False)",
-            "threshold_note": "Default threshold: 0.5 (see threshold_analysis/ for optimization)",
-        },
     }
 
 
@@ -400,7 +395,7 @@ def generate_charts(results_dir: Path) -> None:
     print(f"  - Accuracy: {chart_data['raw_metrics']['accuracy'] * 100:.1f}%")
     print(f"  - Precision: {chart_data['raw_metrics']['precision'] * 100:.1f}%")
     print(f"  - Recall: {chart_data['raw_metrics']['recall'] * 100:.1f}%")
-    print(f"  - F1 Score: {chart_data['raw_metrics']['f1']:.3f}")
+    print(f"  - F1 Score: {chart_data['raw_metrics']['f1'] * 100:.1f}%")
     print("\nClassification Info:")
     print("  - Positive class: Misinformation")
     print("  - Threshold: 0.5 (combined decision logic)")

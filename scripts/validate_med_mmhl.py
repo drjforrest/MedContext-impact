@@ -246,7 +246,7 @@ def run_validation(
             "misinformation": {
                 "positive_class": "Misinformation",
                 "negative_class": "Legitimate",
-                "decision_logic": "Combined veracity-first logic (see validate_three_methods.py lines 284-348)",
+                "decision_logic": "Combined veracity-first logic (see ThreeMethodValidator._compute_final_verdict)",
             },
         },
         "metrics": metrics,

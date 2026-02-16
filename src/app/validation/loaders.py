@@ -7,9 +7,6 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import pandas as pd
-
-
 def load_med_mmhl_dataset(
     benchmark_path: Path,
     split: str = "test",
@@ -57,6 +54,8 @@ def load_med_mmhl_dataset(
                 f"Med-MMHL {split} split not found: {csv_path}\n"
                 "Download from: https://www.dropbox.com/scl/fo/zvud6ta0uaqm2j1liupts/h?rlkey=zhychubvhspdxramyjdqjteqd&dl=0"
             )
+
+    import pandas as pd
 
     df = pd.read_csv(csv_path, header=0, sep=",")
     if (

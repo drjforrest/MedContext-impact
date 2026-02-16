@@ -25,15 +25,14 @@ Proper validation on n=163 real-world image-claim pairs from the Med-MMHL datase
 
 | Metric | 4B Quantized (LM Studio) | 27B (A100) |
 |---|---|---|
-| Accuracy | 92.6% | **94.5%** |
-| Precision | 98.7% | **95.0%** |
-| Recall | 93.7% | **98.5%** |
-| F1 | 0.961 | **0.967** |
-| ROC-AUC | 0.691 | **0.771** |
-| False Negatives | 10 | **~2** |
-| False Positives | 2 | **~7** |
+| Accuracy | 90.8% | **94.5%** |
+| Precision | **99.2%** | 95.0% |
+| Recall | 89.7% | **98.5%** |
+| F1 | 0.942 | **0.967** |
+| False Negatives | 14 | **~2** |
+| False Positives | **1** | ~7 |
 
-The 27B model cuts false negatives by 80% (10 → ~2) with a small increase in false positives (2 → ~7). Metrics reported as means across 5-fold cross-validation.
+Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). The 27B model has higher recall (fewer missed misinformation) while the 4B model has higher precision (fewer false alarms). Bootstrap 95% CI: 4B [85.9%, 95.1%], 27B [90.8%, 97.5%].
 
 **Weight ablation study** — optimal veracity weight α:
 
@@ -77,17 +76,17 @@ From our comprehensive literature review (Forrest 2026, ~100 sources):
 
 - **87%** of social media posts mention benefits vs 15% harms
 - **0%** sophisticated synthetic manipulations in COVID-19 misinformation studies
-- **80%+** of visual health misinformation = authentic images with misleading captions
+- **Majority** of visual health misinformation = authentic images with misleading captions
 
-**Our Hypothesis:** If authentic images dominate misinformation, then contextual authenticity (veracity + alignment) should be the primary detection mechanism, not pixel forensics.
+**Our Hypothesis:** If authentic images dominate misinformation, then contextual authenticity (veracity + alignment) should be the primary detection mechanism, not pixel forensics or claim veracity (text) alone.
 
 ### The Test (Med-MMHL)
 
 We evaluated MedGemma's combined veracity + alignment analysis on the Med-MMHL benchmark — real medical misinformation image-claim pairs with fact-checker labels. See Part 11 for full results.
 
-**Dataset:** 163 real-world image-claim pairs from Med-MMHL test set (first 163 in dataset order; all authentic images, 96.9% misinformation rate)
+**Dataset:** 163 real-world image-claim pairs from Med-MMHL test set (stratified random sample, seed=42; all authentic images, 83.4% misinformation rate)
 **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals
-**Sampling:** Sequential sampling (first 163 of 1,785 test samples). Bias check revealed subset has higher misinformation rate (96.9%) than full test set (83.0%), a 14 percentage point bias toward misinformation cases. This may inflate recall; precision is more conservative.
+**Sampling:** Stratified random sampling (seed=42) of 163 from 1,785 test samples (83.4% misinformation rate, matching 83.0% base rate in full test set).
 **Primary Assessment:** Veracity (claim alone) + Alignment (image-claim pair)
 
 ### The Result
@@ -667,7 +666,7 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 
 **Dataset:** Med-MMHL test split — real-world medical misinformation image-claim pairs with fact-checker labels (PolitiFact, HealthFeedback, AFP, LeadStories)
 **n=163** | Misinformation=136 (83.4%) | Real=27 (16.6%)
-**Sampling:** First 163 samples from Med-MMHL test set (1,785 total samples) in dataset order. Empirical bias check revealed subset has 96.9% misinformation rate vs 83.0% in full test set—a 14 percentage point bias toward misinformation cases. Sequential sampling limits generalizability.
+**Sampling:** Stratified random sampling (seed=42) of 163 from 1,785 test samples (83.4% misinformation rate, matching 83.0% base rate in full test set).
 **Threshold Selection:** 5-fold stratified cross-validation (seed=42) to avoid test-set contamination. Thresholds (veracity < 0.65, alignment < 0.30) optimized on training folds, with performance evaluated on held-out validation folds.
 **Raw data:** `validation_results/med_mmhl_n163_hf_27b/` | `validation_results/med_mmhl_n163_quantized_4b/`
 **Threshold optimization:** `validation_results/med_mmhl_n163_hf_27b/threshold_analysis_cv/cv_optimization_or.json`
@@ -682,15 +681,16 @@ The primary metric is the model's binary verdict on whether each image-claim pai
 
 | Metric | **4B Quantized** (LM Studio) | **27B** (A100, 5-fold CV) |
 |---|---|---|
-| Accuracy | 92.6% | **94.5% ± 4.4%** |
-| Precision | 98.7% | **95.0% ± 3.5%** |
-| Recall | 93.7% | **98.5% ± 1.8%** |
-| **F1** | 0.961 | **0.968 ± 0.026** |
-| ROC-AUC | 0.691 | **0.771** |
-| False Negatives (avg) | 10 | **~2** |
-| False Positives (avg) | 2 | **~7** |
+| Accuracy | 90.8% [85.9%, 95.1%] | **94.5% ± 4.4%** |
+| Precision | **99.2%** [97.4%, 100.0%] | 95.0% ± 3.5% |
+| Recall | 89.7% [84.3%, 94.8%] | **98.5% ± 1.8%** |
+| **F1** | 0.942 [90.9%, 97.0%] | **0.968 ± 0.026** |
+| False Negatives | 14 | **~2** |
+| False Positives | **1** | ~7 |
 | Runtime | ~24 min | ~18 min |
 | Infrastructure | Local LM Studio (GGUF quantized) | A100 GPU |
+
+Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). 4B confusion matrix: TP=122, FP=1, TN=26, FN=14.
 
 **Bootstrap 95% CI (27B model, full dataset with CV thresholds):**
 - Accuracy: 94.4% [90.8%, 98.2%]

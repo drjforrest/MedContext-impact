@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     medgemma_url: str = "http://localhost:8001"
     medgemma_provider: str = "huggingface"  # huggingface | local | vllm | vertex
-    medgemma_hf_model: str = "google/medgemma-1.5-4b-it"
+    medgemma_hf_model: str = "google/medgemma-4b-it"
     medgemma_hf_token: str = Field(
         default="",
         validation_alias=AliasChoices("MEDGEMMA_HF_TOKEN"),

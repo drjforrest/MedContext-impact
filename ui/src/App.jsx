@@ -260,7 +260,8 @@ function App() {
       // Core modules (Veracity + Alignment) always run
       if (step.isCore) {
         if (status === 'loading') return 'active' // Show as actively running
-        return status === 'success' ? 'done' : 'idle'
+        if (status === 'success' || status === 'error') return 'done'
+        return 'idle'
       }
       
       // For optional add-on modules, check if they were selected
@@ -1226,7 +1227,7 @@ function App() {
                           onClick={() => setActiveView('threshold')}
                           style={{
                             padding: '0.75rem 1.5rem',
-                            background: '#f5a524',
+                            background: '#c85a00',
                             color: '#fff',
                             border: 'none',
                             borderRadius: '8px',

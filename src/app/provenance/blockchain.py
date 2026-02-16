@@ -18,9 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from eth_account import Account
 from sqlalchemy.orm import Session
-from web3 import Web3
 
 from app.core.config import settings
 
@@ -42,6 +40,9 @@ class BlockchainAnchorService:
     def __init__(
         self, rpc_url: str, private_key: str, network: str, contract_address: str
     ) -> None:
+        from eth_account import Account
+        from web3 import Web3
+
         self._w3 = Web3(Web3.HTTPProvider(rpc_url))
         self._account = Account.from_key(private_key)
         self._network = network

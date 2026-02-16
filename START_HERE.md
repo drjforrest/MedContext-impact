@@ -101,7 +101,7 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 **Why All Three Dimensions Are Necessary:**
 
-- **Pixel forensics alone (65.0%) is insufficient** — misses authentic images in misleading context (the most common type, 80%+ of threat)
+- **Pixel forensics alone (65.0%) is insufficient** — misses authentic images in misleading context (the most common threat type)
 - **Text analysis alone (71.8% veracity, 71.2% alignment) is insufficient** — cannot detect manipulated images or assess image-claim relationships
 - **Combined system (96.3%) is necessary** — 25-31 percentage point improvement proves all three dimensions must work together
 

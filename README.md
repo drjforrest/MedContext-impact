@@ -27,7 +27,7 @@ From our comprehensive literature review of ~100 sources, we discovered the real
 - **87%** of social media posts mention benefits vs 15% harms
 - **68%** of influencers have undisclosed financial conflicts
 - **0%** sophisticated deepfakes in COVID-19 misinformation
-- **80%+** of threat = authentic images with misleading context
+- **Majority** of threat = authentic images with misleading context
 
 **The real problem:** Authentic medical images repeatedly reused with false or misleading captions.
 

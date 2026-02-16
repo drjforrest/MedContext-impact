@@ -21,7 +21,7 @@ import './ValidationStory.css'
 // Primary validation: MedGemma 4B multimodal (production model, processes actual JPEG/PNG images)
 // Secondary validation: MedGemma 27B text-only (superior text reasoning, image-blind)
 // Dataset: Med-MMHL medical multimodal misinformation benchmark (authentic images, misleading claims)
-// Key finding: Single signals ~72-73% (4B) insufficient; combined system 90.8% (4B) / 94.5% (27B)
+// Key finding: Single signals ~74% (4B) insufficient; combined system 90.8% (4B) / 94.5% (27B)
 // NOTE: Pixel forensics validated on a SEPARATE dataset (manipulated images) — different task.
 //       Med-MMHL images are all authentic; pixel forensics has no role in this contextual track.
 //
@@ -34,15 +34,15 @@ const VALIDATION_DATA = {
     model: "MedGemma 4B Multimodal",
     model_note: "Production model — processes JPEG/PNG web images",
     dimensions: {
-      veracity:  { binary_accuracy: 0.718, n: 163 },
-      alignment: { binary_accuracy: 0.730, n: 163 },
+      veracity:  { binary_accuracy: 0.736, n: 163 },
+      alignment: { binary_accuracy: 0.748, n: 163 },
     },
     combined: {
       accuracy: 0.908,
-      precision: 0.968,
+      precision: 0.992,
       recall: 0.897,
-      f1: 0.931,
-      tp: 122, fp: 4, tn: 23, fn: 14,
+      f1: 0.942,
+      tp: 122, fp: 1, tn: 26, fn: 14,
       ci_lower: 0.859, ci_upper: 0.951,
       threshold_logic: "OR",
       veracity_threshold: 0.65,
@@ -183,8 +183,8 @@ function ValidationStory({ onNavigateBack }) {
               <strong style={{ color: '#2db88a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                 <CheckIcon style={{ fontSize: '1rem' }} /> Validation Complete:
               </strong>{' '}
-              Med-MMHL results prove the contextual approach: veracity alone (71.8%) and alignment alone (73.0%)
-              are each insufficient—but the <strong>combined system achieves 90.8% accuracy</strong> with 96.8%
+              Med-MMHL results prove the contextual approach: veracity alone (73.6%) and alignment alone (74.8%)
+              are each insufficient—but the <strong>combined system achieves 90.8% accuracy</strong> with 99.2%
               precision using MedGemma 4B multimodal (production model). Pixel forensics addresses a separate task on a separate dataset.
             </p>
           )}
@@ -204,7 +204,7 @@ function ValidationStory({ onNavigateBack }) {
           <div className="step-content">
             <h3>The Validation: Why Contextual Authenticity Requires Two Signals</h3>
             <p>
-              The dominant real-world threat (80%+ of medical misinformation) uses <strong>authentic images in
+              The dominant real-world threat (the majority of medical misinformation) uses <strong>authentic images in
               misleading context</strong>. We validated on the Med-MMHL benchmark that both contextual signals
               are individually insufficient and only their combination achieves effective detection.
             </p>
@@ -223,7 +223,7 @@ function ValidationStory({ onNavigateBack }) {
               <p className="helper" style={{ marginTop: '1rem', background: 'rgba(229, 72, 77, 0.1)', padding: '0.75rem', borderRadius: '4px', color: '#c5cad4' }}>
                 <strong style={{ color: '#e5484d' }}>Key finding:</strong>{' '}
                 Both contextual signals have blind spots for the other. Only the <strong>combined approach
-                achieves 90.8% accuracy</strong> (+18–19 pp over individual signals), proving both veracity and alignment are necessary
+                achieves 90.8% accuracy</strong> (+16–17 pp over individual signals), proving both veracity and alignment are necessary
                 for contextual misinformation detection.
               </p>
               <p className="helper" style={{ marginTop: '0.5rem', background: 'rgba(78, 154, 52, 0.08)', padding: '0.75rem', borderRadius: '4px', color: '#9ba0af', fontSize: '0.82rem' }}>
@@ -334,7 +334,7 @@ function ValidationStory({ onNavigateBack }) {
                   <div style={{ padding: '2rem', textAlign: 'center' }}>
                     <div style={{ fontSize: '4rem', fontWeight: 'bold', color: '#e5484d', marginBottom: '0.5rem' }}>163</div>
                     <div style={{ fontSize: '1.2rem', color: '#c5cad4' }}>Test Samples</div>
-                    <div style={{ marginTop: '2rem', fontSize: '2.5rem', fontWeight: 'bold', color: '#2db88a' }}>96.9%</div>
+                    <div style={{ marginTop: '2rem', fontSize: '2.5rem', fontWeight: 'bold', color: '#2db88a' }}>83.4%</div>
                     <div style={{ fontSize: '1rem', color: '#c5cad4' }}>Misinformation Rate</div>
                   </div>
                 </div>
@@ -342,11 +342,11 @@ function ValidationStory({ onNavigateBack }) {
                   <ul className="dataset-list">
                     <li>
                       <span className="list-dot" style={{ background: '#e5484d' }} />
-                      <strong>158 Misinformation samples:</strong> Real-world medical misinformation from fact-checkers
+                      <strong>136 Misinformation samples:</strong> Real-world medical misinformation from fact-checkers
                     </li>
                     <li>
                       <span className="list-dot" style={{ background: '#2db88a' }} />
-                      <strong>5 Legitimate samples:</strong> Verified medical image-claim pairs
+                      <strong>27 Legitimate samples:</strong> Verified medical image-claim pairs
                     </li>
                     <li>
                       <span className="list-dot" style={{ background: '#5b8def' }} />
@@ -461,7 +461,7 @@ function ValidationStory({ onNavigateBack }) {
                   </ResponsiveContainer>
                   <p className="helper" style={{ marginTop: '1rem', color: '#c5cad4', textAlign: 'center' }}>
                     The <strong style={{ color: '#e5484d' }}>combined system (90.8%)</strong> outperforms
-                    either contextual signal alone (71.8% / 73.0%), proving that veracity and alignment are
+                    either contextual signal alone (73.6% / 74.8%), proving that veracity and alignment are
                     both necessary for contextual misinformation detection (MedGemma 4B multimodal).
                   </p>
 
@@ -680,9 +680,9 @@ function ValidationStory({ onNavigateBack }) {
                   {isPending ? <><PendingIcon /> Preliminary</> : <><CheckIcon /> Key Findings</>}
                 </h4>
                 <ul>
-                  <li>Med-MMHL validation proves <strong>single contextual signals are insufficient</strong>: veracity alone (71.8%), alignment alone (73.0%) with MedGemma 4B multimodal</li>
-                  <li>Combined contextual system achieves <strong>90.8% accuracy</strong> [95% CI: 85.9%–95.1%] with 96.8% precision using MedGemma 4B multimodal (n=163)</li>
-                  <li>The +18–19 pp improvement validates the thesis: effective contextual misinformation detection requires <strong>both veracity and alignment together</strong></li>
+                  <li>Med-MMHL validation proves <strong>single contextual signals are insufficient</strong>: veracity alone (73.6%), alignment alone (74.8%) with MedGemma 4B multimodal</li>
+                  <li>Combined contextual system achieves <strong>90.8% accuracy</strong> [95% CI: 85.9%–95.1%] with 99.2% precision using MedGemma 4B multimodal (n=163)</li>
+                  <li>The +16–17 pp improvement validates the thesis: effective contextual misinformation detection requires <strong>both veracity and alignment together</strong></li>
                   {isPending ? (
                     <li>Quantitative results pending completion of Med-MMHL validation run</li>
                   ) : (
@@ -700,10 +700,10 @@ function ValidationStory({ onNavigateBack }) {
                 </h4>
                 <ul>
                   <li><strong>Subset size:</strong> 163 samples (9.1% of 1,785 Med-MMHL test set) provides moderate statistical power; full dataset validation pending</li>
-                  <li><strong>Sequential sampling bias:</strong> First 163 samples have 96.9% misinformation rate vs 83.0% in full test set (14 pp bias toward misinformation cases). This may inflate recall performance; precision results are more conservative.</li>
+                  <li><strong>Sampling:</strong> Stratified random sample (seed=42) with 83.4% misinformation rate (136/163), approximating the full test set distribution (83.0%). Precision results may be conservative given the imbalance.</li>
                   <li><strong>Threshold optimization:</strong> Decision thresholds optimized via grid search on validation set. See VALIDATION.md Part 11 for bootstrap confidence intervals computed over 1,000 iterations.</li>
                   <li><strong>Model-dependent results:</strong> Primary validation uses MedGemma 4B multimodal (90.8%)—the only MedGemma variant supporting JPEG/PNG web images. MedGemma 27B is text-only on HuggingFace; its 27B multimodal (Vertex AI) accepts DICOM only.</li>
-                  <li><strong>Dataset imbalance:</strong> 96.9% misinformation rate (158/163) in subset is higher than full dataset (83.0%), potentially overstating recall on balanced sets</li>
+                  <li><strong>Dataset imbalance:</strong> 83.4% misinformation rate (136/163) in stratified subset mirrors full dataset (83.0%); recall on balanced sets may differ</li>
                   <li><strong>Ground truth:</strong> Med-MMHL labels from fact-checkers, not medical expert annotations</li>
                   <li><strong>Scope:</strong> Validates contextual authenticity only; pixel forensics add-on validated separately</li>
                 </ul>

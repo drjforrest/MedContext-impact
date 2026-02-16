@@ -44,7 +44,7 @@ Inference API, A100 GPU)
 **Why this is correct:**
 
 - Med-MMHL misinformation resides primarily in the claim or image-claim pairing, not
-  in the image itself (80%+ authentic images with misleading context)
+  in the image itself (majority are authentic images with misleading context)
 - The dominant analytical task is **claim veracity** and **contextual alignment** —
   both are text reasoning tasks
 - The 27B model provides superior text reasoning over the 4B model
@@ -69,7 +69,7 @@ Inference API, A100 GPU)
 - **Deployment:** HuggingFace Inference API
 - **Rationale:** Only MedGemma variant that handles standard web images with multimodal
   encoding AND is cost-efficient for production workloads
-- **Performance:** 92.6% accuracy on Med-MMHL (quantized 4B, local LM Studio)
+- **Performance:** 90.8% accuracy on Med-MMHL (quantized 4B, local LM Studio, threshold-optimized)
 
 ---
 

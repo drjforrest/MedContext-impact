@@ -15,24 +15,40 @@ dependencies = [
   "python-multipart==0.0.21",
   "alembic==1.13.3",
   "httpx==0.28.1",
-  "google-cloud-aiplatform>=1.105.0",
-  "google-cloud-storage>=3.0.0",
   "langgraph==1.0.5",
   "pillow==11.1.0",
   "c2pa-python",
-  "torch==2.9.1",
-  "transformers==4.57.3",
-  "accelerate>=1.12.0",
   "psycopg2-binary>=2.9.11",
   "cachetools>=6.2.4",
-  "pydicom>=3.0.0",
-  # Blockchain provenance anchoring (optional feature)
-  "web3==6.15.1",
-  "eth-account==0.11.0",
-  "py-solc-x==2.0.2",
+  "huggingface-hub>=0.36.0",
+  "google-search-results>=2.4.2",
+  "python-telegram-bot>=22.6",
+  "python-dotenv>=1.2.1",
+  "numpy>=2.4.0",
 ]
 
 [project.optional-dependencies]
+local = [
+  # For local MedGemma inference (requires GPU)
+  "torch>=2.9.0",
+  "transformers>=4.57.0",
+  "accelerate>=1.12.0",
+]
+vertex = [
+  # For Vertex AI deployment
+  "google-cloud-aiplatform>=1.105.0",
+  "google-cloud-storage>=3.0.0",
+]
+blockchain = [
+  # For blockchain provenance anchoring
+  "web3>=6.15.0",
+  "eth-account>=0.11.0",
+  "py-solc-x>=2.0.2",
+]
+dicom = [
+  # For DICOM image analysis
+  "pydicom>=3.0.0",
+]
 dev = [
   "pytest>=8.0.0",
   "pytest-mock>=3.12.0",

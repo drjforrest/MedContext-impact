@@ -17,7 +17,10 @@ sys.path.insert(0, str(repo_root / "scripts"))
 
 # Import after adding to path
 import pytest  # noqa: E402
-from check_sampling_bias import compare_distributions, compute_distribution_stats  # noqa: E402
+from check_sampling_bias import (
+    compare_distributions,  # noqa: E402
+    compute_distribution_stats,
+)
 
 
 class TestSourceOverlapCalculation:
@@ -42,9 +45,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert (
-            result["source_bias"]["top_source_overlap"] == 1.0
-        ), "Identical single-source distributions should have 1.0 overlap"
+        assert result["source_bias"]["top_source_overlap"] == 1.0, (
+            "Identical single-source distributions should have 1.0 overlap"
+        )
         assert result["source_bias"]["assessment"] == "ACCEPTABLE"
 
     def test_identical_multiple_sources_returns_1_0(self):
@@ -74,9 +77,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert (
-            result["source_bias"]["top_source_overlap"] == 1.0
-        ), "Identical multi-source distributions should have 1.0 overlap"
+        assert result["source_bias"]["top_source_overlap"] == 1.0, (
+            "Identical multi-source distributions should have 1.0 overlap"
+        )
         assert result["source_bias"]["assessment"] == "ACCEPTABLE"
 
     def test_completely_disjoint_sources_returns_0_0(self):
@@ -106,9 +109,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert (
-            result["source_bias"]["top_source_overlap"] == 0.0
-        ), "Completely disjoint source distributions should have 0.0 overlap"
+        assert result["source_bias"]["top_source_overlap"] == 0.0, (
+            "Completely disjoint source distributions should have 0.0 overlap"
+        )
         assert result["source_bias"]["assessment"] == "POTENTIAL_BIAS"
 
     def test_partial_overlap_returns_correct_jaccard(self):
@@ -148,7 +151,9 @@ class TestSourceOverlapCalculation:
 
         assert (
             abs(result["source_bias"]["top_source_overlap"] - expected_overlap) < 0.001
-        ), f"Expected Jaccard similarity {expected_overlap:.3f}, got {result['source_bias']['top_source_overlap']:.3f}"
+        ), (
+            f"Expected Jaccard similarity {expected_overlap:.3f}, got {result['source_bias']['top_source_overlap']:.3f}"
+        )
         assert (
             result["source_bias"]["assessment"] == "POTENTIAL_BIAS"
         )  # < 0.6 threshold
@@ -214,9 +219,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert (
-            result["source_bias"]["top_source_overlap"] is None
-        ), "When all sources are 'unknown', overlap should be None"
+        assert result["source_bias"]["top_source_overlap"] is None, (
+            "When all sources are 'unknown', overlap should be None"
+        )
         assert result["source_bias"]["assessment"] == "UNAVAILABLE"
 
     def test_empty_source_distribution_returns_1_0(self):
@@ -238,9 +243,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert (
-            result["source_bias"]["top_source_overlap"] == 1.0
-        ), "Empty source sets should have 1.0 overlap (both empty = identical)"
+        assert result["source_bias"]["top_source_overlap"] == 1.0, (
+            "Empty source sets should have 1.0 overlap (both empty = identical)"
+        )
 
     def test_top_5_sources_only(self):
         """Only top 5 sources should be considered for overlap calculation."""
@@ -267,7 +272,7 @@ class TestSourceOverlapCalculation:
                 "source_3": 40,
                 "source_4": 35,
                 "source_5": 30,
-                "source_6": 25,  # Top 5 includes this, not source_7
+                "source_6": 25,  # Not in top 5 (6th by count)
             },
             "source_metadata": {"all_unknown": False},
             "claim_length": {"mean": 1000},
@@ -378,6 +383,10 @@ class TestComputeDistributionStats:
         assert stats["unique_images"] == 2
         assert abs(stats["duplicate_rate"] - 1 / 3) < 0.001  # 1 duplicate out of 3
 
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
+    pytest.main([__file__, "-v"])
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
