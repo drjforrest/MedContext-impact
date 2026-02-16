@@ -45,12 +45,12 @@ Analyze this medical image and the claim: "This shows COVID-19 test results"
         print("\nSending request to HuggingFace endpoint...")
         result = client.analyze_image(image_bytes=image_bytes, prompt=prompt)
 
-        print(f"\nResponse received:")
+        print("\nResponse received:")
         print(f"  Provider: {result.provider}")
         print(f"  Model: {result.model}")
-        print(f"\nRaw text response (first 500 chars):")
+        print("\nRaw text response (first 500 chars):")
         print(result.raw_text[:500] if result.raw_text else "None")
-        print(f"\nParsed output:")
+        print("\nParsed output:")
         print(json.dumps(result.output, indent=2))
 
     except Exception as e:

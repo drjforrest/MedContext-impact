@@ -1,4 +1,5 @@
 """Shared orchestrator utilities."""
+
 from __future__ import annotations
 
 import json
@@ -22,14 +23,18 @@ def parse_force_tools(raw: str | None) -> list[str]:
     if stripped.startswith("["):
         try:
             parsed = json.loads(stripped)
-            names = [t for t in parsed if isinstance(t, str)] if isinstance(parsed, list) else []
+            names = (
+                [t for t in parsed if isinstance(t, str)]
+                if isinstance(parsed, list)
+                else []
+            )
         except json.JSONDecodeError:
             logger.warning("force_tools JSON parse error: %r", stripped)
             names = []
     else:
         names = [t.strip() for t in stripped.split(",") if t.strip()]
-    enabled = settings.get_enabled_addons()
-    return [t for t in names if t in enabled]
+    enabled_set = set(settings.get_enabled_addons())
+    return [t for t in names if t in enabled_set]
 
 
 def merge_tools(

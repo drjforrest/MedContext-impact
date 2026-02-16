@@ -32,11 +32,11 @@ try:
     result = client.analyze_image(image_bytes=test_image, prompt=prompt)
     print(f"\nProvider used: {result.provider}")
     print(f"Model: {result.model}")
-    print(f"\nRaw text response:")
+    print("\nRaw text response:")
     print("=" * 60)
     print(result.raw_text if result.raw_text else "(no raw text)")
     print("=" * 60)
-    print(f"\nParsed output:")
+    print("\nParsed output:")
     print(result.output)
 except Exception as e:
     print(f"ERROR: {e}")

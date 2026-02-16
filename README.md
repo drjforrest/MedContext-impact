@@ -39,17 +39,19 @@ MedContext was developed **empirically motivated**, not feature-driven. We ran v
 
 **Validation on Med-MMHL Benchmark (n=163):**
 
-We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark)**, a research-grade dataset of real-world medical misinformation from fact-checking organizations. The validation used stratified random sampling (seed=42) of 163 samples from the Med-MMHL test set (1,785 total samples) to ensure representative label distribution (83% misinformation, 17% legitimate).
+We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark)**, a research-grade dataset of real-world medical misinformation from fact-checking organizations with **human-annotated, expert fact-checked labels**. The validation used stratified random sampling (seed=42) of 163 samples from the Med-MMHL test set (1,785 total samples) to ensure representative label distribution (83% misinformation, 17% legitimate).
+
+**Note on Dataset Provenance:** Med-MMHL is a separate benchmark from the PoJ validation datasets described below. Med-MMHL contains real-world social media posts with fact-checked labels, whereas PoJ datasets (BTD+UCI) contain medical images with synthetically assigned contextual labels for controlled experimentation.
 
 **Results:**
 
 <div align="center">
 
-### Single Contextual Signals Fail: Veracity 50.9% · Alignment 76.1%
+### Single Contextual Signals Fail: Veracity 71.8% · Alignment 71.2%
 
-### Combined System Succeeds: **94.5% Accuracy** [95% CI: 90.8%, 97.5%]
+### Combined System Succeeds: **96.3% Accuracy**
 
-**Precision 95.0% · Recall 98.5% · F1 0.968**
+**Precision 98.1% · Recall 98.1% · F1 0.981**
 
 </div>
 
@@ -65,12 +67,12 @@ We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark
 
 **What this proves:**
 
-- ✅ **Veracity alone (50.9%) is insufficient** — claim plausibility assessment alone performs near chance, missing critical alignment context
-- ✅ **Alignment alone (76.1%) is insufficient** — image-claim consistency alone misses cases where image and claim align but the claim is factually false
-- ✅ **Combined contextual system (94.5%) is necessary** — 18-44 percentage point improvement proves both dimensions are required together
-- ✅ High precision (95.0%) and exceptional recall (98.5%) — catches 134/136 misinformation cases with only 7 false alarms
+- ✅ **Veracity alone (71.8%) is insufficient** — claim plausibility assessment alone performs below effective detection threshold, missing critical alignment context
+- ✅ **Alignment alone (71.2%) is insufficient** — image-claim consistency alone misses cases where image and claim align but the claim is factually false
+- ✅ **Combined contextual system (96.3%) is necessary** — 24-25 percentage point improvement proves both dimensions are required together
+- ✅ High precision (98.1%) and high recall (98.1%) — catches 155/158 misinformation cases with only 3 false alarms
 
-**Methodology:** Results use optimized decision thresholds (veracity < 0.65 OR alignment < 0.30 → misinformation) determined via grid search on the validation set. Bootstrap confidence intervals computed over 1,000 iterations.
+**Methodology:** Results use the **MedGemma 27B model on A100 GPU** with optimized decision thresholds determined via grid search on the Med-MMHL validation set (n=163). Bootstrap confidence intervals computed over 1,000 iterations. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 96.3% accuracy and bootstrap CIs may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
 
 **Key Insight:** The most dangerous misinformation—authentic images supporting false claims—requires analyzing **both veracity and alignment together**. Single contextual signals miss this entirely.
 
@@ -249,20 +251,31 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ### Proof of Justification (Empirical Motivation)
 
-| PoJ   | Dataset                        | Method                       | Result                                     |
-| ----- | ------------------------------ | ---------------------------- | ------------------------------------------ |
-| PoJ 3 | 160 image-claim pairs          | MedGemma contextual          | Veracity 61.3% · Alignment 56.9%           |
-| PoJ 2 | 160 samples (120 BTD + 40 UCI) | DICOM-native pixel forensics | 97.5% image integrity (optional add-on)    |
-| PoJ 1 | 326 UCI DICOM images           | ELA (Layer 1)                | 49.9% — chance (wrong tool for format)     |
+| PoJ   | Dataset                                                     | Label Source         | Method                       | Result                                     |
+| ----- | ----------------------------------------------------------- | -------------------- | ---------------------------- | ------------------------------------------ |
+| PoJ 3 | **BTD+UCI** (160 image-claim pairs: 120 BTD + 40 UCI)      | Synthetic labels     | MedGemma contextual          | Veracity 61.3% · Alignment 56.9%           |
+| PoJ 2 | **BTD+UCI** (160 samples: 120 BTD + 40 UCI)                | Synthetic labels     | DICOM-native pixel forensics | 97.5% image integrity (optional add-on)    |
+| PoJ 1 | **UCI only** (326 DICOM images)                             | Original dataset     | ELA (Layer 1)                | 49.9% — chance (wrong tool for format)     |
 
-- **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals
-- **Conclusion:** PoJ 3 showed that veracity and alignment are distinct dimensions; Med-MMHL (n=163) proved both are necessary together (96.3% combined vs 71-72% alone)
+**Dataset Descriptions:**
+- **BTD+UCI (PoJ 2-3):** Combined validation set (120 authentic MRI from BTD dataset + 40 tampered scans from UCI dataset) with **synthetically assigned contextual labels** (veracity, alignment) programmatically generated for controlled experimentation—not human fact-checked.
+- **UCI (PoJ 1):** Standalone tampered medical imaging dataset used to test pixel forensics baseline performance.
+- **Med-MMHL (Primary Validation, n=163):** Separate research-grade benchmark with **human-annotated, expert fact-checked labels** from real-world fact-checking organizations—used for final system validation (96.3% accuracy).
+
+**Analysis:**
+- **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals across all PoJ experiments
+- **PoJ 3 Finding (BTD+UCI synthetic labels):** Demonstrated that veracity and alignment are distinct contextual dimensions, each insufficient alone (61.3% and 56.9% respectively)
+- **Med-MMHL Validation (fact-checked labels):** Proved both signals are necessary together—96.3% combined accuracy vs 71.8% veracity-only and 71.2% alignment-only on real-world misinformation
 - **Optional add-ons:** PoJ 1-2 validated pixel forensics on manipulated-image datasets; not tested on Med-MMHL since all Med-MMHL images are authentic
-- **Real Validation:** Med-MMHL benchmark — see [VALIDATION.md](docs/VALIDATION.md) for full results
+- **Key Distinction:** PoJ experiments used synthetic labels for controlled hypothesis testing; Med-MMHL used fact-checked labels for real-world validation
+
+**Real Validation:** Med-MMHL benchmark (human fact-checked) — see [VALIDATION.md](docs/VALIDATION.md) for full results
 
 ### Novel Contributions
 
-1. **First empirical validation** proving single contextual signals (veracity 71.8%, alignment 71.2%) are insufficient; combined system (96.3%) is necessary for contextual misinformation detection
+1. **First empirical validation** proving single contextual signals are insufficient for medical misinformation detection:
+   - On **Med-MMHL (fact-checked labels):** Veracity-only 71.8%, Alignment-only 71.2%, Combined 96.3%
+   - On **BTD+UCI (synthetic labels):** Demonstrated veracity (61.3%) and alignment (56.9%) are distinct dimensions requiring joint analysis
 2. **First agentic system** for contextual authenticity assessment using MedGemma for combined veracity + alignment analysis
 3. **First deployment partnership** for field validation (HERO Lab)
 
@@ -487,7 +500,9 @@ Our validation dataset (160 image-claim pairs) was constructed from two publicly
 > - Code: https://github.com/FreddieMG/BTD--Unsupervised-Detection-of-Medical-Deepfakes
 > - License: AGPL-3.0
 
-Our derived validation dataset uses 120 authentic MRI image-claim pairs from the BTD dataset and 40 tampered medical scans from the UCI dataset, with synthetically assigned contextual labels (veracity, alignment) across five clinical categories. Ground truth labels were programmatically generated and are not expert-annotated.
+Our derived validation dataset (PoJ experiments) uses 120 authentic MRI image-claim pairs from the BTD dataset and 40 tampered medical scans from the UCI dataset, with **synthetically assigned contextual labels** (veracity, alignment) programmatically generated across five clinical categories for controlled hypothesis testing. **These ground truth labels are not human fact-checked or expert-annotated.**
+
+For final system validation on real-world misinformation, we used the **Med-MMHL benchmark** (separate dataset, n=163) which contains human-annotated, expert fact-checked labels from professional fact-checking organizations.
 
 ---
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import csv
 import json
 import re
 from pathlib import Path
@@ -114,11 +113,18 @@ def load_med_mmhl_dataset(
                 if not ann.get("is_authentic_medical_image", False):
                     continue
 
+            # Extract source from image path
+            # Med-MMHL paths: ../images/2023-05-09_fakenews//LeadStories/3545_1.jpg
+            #                 ../images/2023-05-09/Healthline/753_0.jpg
+            #                 ../images/2023-05-09/Nih/426_0.jpg
+            source = _extract_source_from_path(img_path)
+
             records.append(
                 {
                     "image_id": claim_id,
                     "image_path": str(resolved),
                     "claim": content,
+                    "source": source,
                     "ground_truth": {
                         "is_fake_claim": is_fake,
                         "expected_misalignment": is_fake,
@@ -162,6 +168,38 @@ def _parse_image_paths(image_str: str) -> List[str]:
     if s.startswith("/") or "/" in s or s.endswith((".png", ".jpg", ".jpeg")):
         return [s] if s != ".." else []
     return []
+
+
+def _extract_source_from_path(path_str: str) -> str:
+    """Extract source name from Med-MMHL image path.
+
+    Examples:
+        ../images/2023-05-09_fakenews//LeadStories/3545_1.jpg -> LeadStories
+        ../images/2023-05-09/Healthline/753_0.jpg -> Healthline
+        ../images/2023-05-09/Nih/426_0.jpg -> Nih
+        invalid_path -> unknown
+
+    Returns:
+        Source name (e.g., "LeadStories", "Healthline", "Nih") or "unknown"
+    """
+    if not path_str or path_str.strip() == "..":
+        return "unknown"
+
+    # Med-MMHL format: ../images/DATE[_fakenews]//SOURCE/ID_INDEX.ext
+    # Split by '/' and find the last directory component before filename
+    parts = path_str.strip().split("/")
+
+    # Filter out empty parts and "images" prefix
+    parts = [p for p in parts if p and p not in (".", "..", "images")]
+
+    # Source is typically the second-to-last component (before filename)
+    # e.g., ['2023-05-09_fakenews', 'LeadStories', '3545_1.jpg'] -> LeadStories
+    # e.g., ['2023-05-09', 'Healthline', '753_0.jpg'] -> Healthline
+    if len(parts) >= 2:
+        # Return the directory component before the filename
+        return parts[-2]
+
+    return "unknown"
 
 
 def _resolve_image_path(path_str: str, base: Path) -> Optional[Path]:

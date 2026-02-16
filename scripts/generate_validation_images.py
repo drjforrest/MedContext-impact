@@ -39,11 +39,13 @@ def generate_confusion_matrix(chart_data: dict, output_dir: Path):
     )
     plt.xlabel("Predicted", fontsize=12, fontweight="bold")
     plt.ylabel("Actual", fontsize=12, fontweight="bold")
-    plt.title("Confusion Matrix - Misinformation Detection", fontsize=14, fontweight="bold")
+    plt.title(
+        "Confusion Matrix - Misinformation Detection", fontsize=14, fontweight="bold"
+    )
     plt.tight_layout()
     plt.savefig(output_dir / "confusion_matrix.png", dpi=300, bbox_inches="tight")
     plt.close()
-    print(f"✅ Generated: confusion_matrix.png")
+    print("✅ Generated: confusion_matrix.png")
 
 
 def generate_roc_curve(chart_data: dict, output_dir: Path):
@@ -65,7 +67,13 @@ def generate_roc_curve(chart_data: dict, output_dir: Path):
     plt.plot([0, 1], [0, 1], "k--", label="Random Classifier (AUC=0.5)", linewidth=2)
 
     # Plot our point
-    plt.plot(fpr, tpr, "ro", markersize=12, label=f"MedContext (TPR={tpr:.3f}, FPR={fpr:.3f})")
+    plt.plot(
+        fpr,
+        tpr,
+        "ro",
+        markersize=12,
+        label=f"MedContext (TPR={tpr:.3f}, FPR={fpr:.3f})",
+    )
 
     # Plot line from origin to our point
     plt.plot([0, fpr], [0, tpr], "r-", linewidth=2, alpha=0.5)
@@ -80,7 +88,7 @@ def generate_roc_curve(chart_data: dict, output_dir: Path):
     plt.tight_layout()
     plt.savefig(output_dir / "roc_curve.png", dpi=300, bbox_inches="tight")
     plt.close()
-    print(f"✅ Generated: roc_curve.png")
+    print("✅ Generated: roc_curve.png")
 
 
 def generate_confidence_intervals(chart_data: dict, output_dir: Path):
@@ -98,8 +106,10 @@ def generate_confidence_intervals(chart_data: dict, output_dir: Path):
     # In practice, these would come from bootstrap analysis
     ci_lower = [max(0, v - 2) for v in values]
     ci_upper = [min(100, v + 2) for v in values]
-    errors = [[v - l for v, l in zip(values, ci_lower)],
-              [u - v for v, u in zip(values, ci_upper)]]
+    errors = [
+        [v - lower for v, lower in zip(values, ci_lower)],
+        [upper - v for v, upper in zip(values, ci_upper)],
+    ]
 
     plt.figure(figsize=(10, 6))
     x_pos = np.arange(len(metrics))
@@ -118,7 +128,9 @@ def generate_confidence_intervals(chart_data: dict, output_dir: Path):
 
     plt.xlabel("Metric", fontsize=12, fontweight="bold")
     plt.ylabel("Value (%)", fontsize=12, fontweight="bold")
-    plt.title("Performance Metrics with Confidence Intervals", fontsize=14, fontweight="bold")
+    plt.title(
+        "Performance Metrics with Confidence Intervals", fontsize=14, fontweight="bold"
+    )
     plt.xticks(x_pos, metrics, rotation=0)
     plt.ylim([0, 105])
     plt.legend(loc="lower right")
@@ -126,7 +138,7 @@ def generate_confidence_intervals(chart_data: dict, output_dir: Path):
     plt.tight_layout()
     plt.savefig(output_dir / "confidence_intervals.png", dpi=300, bbox_inches="tight")
     plt.close()
-    print(f"✅ Generated: confidence_intervals.png")
+    print("✅ Generated: confidence_intervals.png")
 
 
 def generate_method_comparison(chart_data: dict, output_dir: Path):
@@ -163,9 +175,11 @@ def generate_method_comparison(chart_data: dict, output_dir: Path):
     plt.ylim([0, 105])
     plt.grid(True, axis="y", alpha=0.3)
     plt.tight_layout()
-    plt.savefig(output_dir / "contextual_signals_performance.png", dpi=300, bbox_inches="tight")
+    plt.savefig(
+        output_dir / "contextual_signals_performance.png", dpi=300, bbox_inches="tight"
+    )
     plt.close()
-    print(f"✅ Generated: contextual_signals_performance.png")
+    print("✅ Generated: contextual_signals_performance.png")
 
 
 def generate_score_distributions(chart_data: dict, output_dir: Path):
@@ -187,11 +201,17 @@ def generate_score_distributions(chart_data: dict, output_dir: Path):
     ]
 
     veracity_data = {
-        "Misinformation": [s for s, l in zip(veracity_scores, veracity_labels) if l == "Misinformation"],
-        "Legitimate": [s for s, l in zip(veracity_scores, veracity_labels) if l == "Legitimate"],
+        "Misinformation": [
+            s for s, label in zip(veracity_scores, veracity_labels) if label == "Misinformation"
+        ],
+        "Legitimate": [
+            s for s, label in zip(veracity_scores, veracity_labels) if label == "Legitimate"
+        ],
     }
 
-    sns.violinplot(data=[veracity_data["Misinformation"], veracity_data["Legitimate"]], ax=ax1)
+    sns.violinplot(
+        data=[veracity_data["Misinformation"], veracity_data["Legitimate"]], ax=ax1
+    )
     ax1.set_xticks([0, 1])
     ax1.set_xticklabels(["Misinformation", "Legitimate"])
     ax1.set_ylabel("Veracity Score", fontweight="bold")
@@ -207,11 +227,19 @@ def generate_score_distributions(chart_data: dict, output_dir: Path):
     ]
 
     alignment_data = {
-        "Misinformation": [s for s, l in zip(alignment_scores, alignment_labels) if l == "Misinformation"],
-        "Legitimate": [s for s, l in zip(alignment_scores, alignment_labels) if l == "Legitimate"],
+        "Misinformation": [
+            s
+            for s, label in zip(alignment_scores, alignment_labels)
+            if label == "Misinformation"
+        ],
+        "Legitimate": [
+            s for s, label in zip(alignment_scores, alignment_labels) if label == "Legitimate"
+        ],
     }
 
-    sns.violinplot(data=[alignment_data["Misinformation"], alignment_data["Legitimate"]], ax=ax2)
+    sns.violinplot(
+        data=[alignment_data["Misinformation"], alignment_data["Legitimate"]], ax=ax2
+    )
     ax2.set_xticks([0, 1])
     ax2.set_xticklabels(["Misinformation", "Legitimate"])
     ax2.set_ylabel("Alignment Score", fontweight="bold")
@@ -222,7 +250,7 @@ def generate_score_distributions(chart_data: dict, output_dir: Path):
     plt.tight_layout()
     plt.savefig(output_dir / "score_distributions.png", dpi=300, bbox_inches="tight")
     plt.close()
-    print(f"✅ Generated: score_distributions.png")
+    print("✅ Generated: score_distributions.png")
 
 
 def main():
@@ -252,7 +280,7 @@ def main():
     generate_method_comparison(chart_data, output_dir)
     generate_score_distributions(chart_data, output_dir)
 
-    print(f"\n✅ All validation images generated successfully!")
+    print("\n✅ All validation images generated successfully!")
     print(f"Output directory: {output_dir}")
 
 

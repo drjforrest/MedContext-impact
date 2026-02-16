@@ -3,7 +3,6 @@ import {
   CheckCircle as CheckIcon,
   HourglassEmpty as PendingIcon,
   Rocket as RocketIcon,
-  Shield as ShieldIcon,
   TrackChanges as TargetIcon,
   Warning as WarningIcon
 } from '@mui/icons-material'
@@ -11,7 +10,6 @@ import { useMemo } from 'react'
 import {
   Bar,
   BarChart,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -20,35 +18,68 @@ import {
 import './ValidationStory.css'
 
 // Med-MMHL validation data — proving contextual authenticity requires both veracity AND alignment
-// Full validation run: validation_results/med_mmhl_n163_a100 (Feb 12, 2026)
+// Primary validation: MedGemma 4B multimodal (production model, processes actual JPEG/PNG images)
+// Secondary validation: MedGemma 27B text-only (superior text reasoning, image-blind)
 // Dataset: Med-MMHL medical multimodal misinformation benchmark (authentic images, misleading claims)
-// Key finding: Veracity alone (50.9%) or alignment alone (76.1%) are insufficient; combined (94.5%)
-// NOTE: Pixel forensics is validated on a SEPARATE dataset (manipulated images) — different task.
+// Key finding: Single signals ~72-73% (4B) insufficient; combined system 90.8% (4B) / 94.5% (27B)
+// NOTE: Pixel forensics validated on a SEPARATE dataset (manipulated images) — different task.
 //       Med-MMHL images are all authentic; pixel forensics has no role in this contextual track.
+//
+// Source: validation_results/med_mmhl_n163_quantized_4b/ and med_mmhl_n163_hf_27b/
+// Thresholds optimized via grid search (OR logic: veracity<0.65, alignment<0.30)
 const VALIDATION_DATA = {
-  // Contextual authenticity dimensions (evaluated on Med-MMHL)
-  dimensions: {
-    veracity:  { binary_accuracy: 0.509, binary_precision: 0.252, binary_recall: 1.0, binary_f1: 0.403, n: 163 },
-    alignment: { binary_accuracy: 0.761, binary_precision: 0.393, binary_recall: 0.815, binary_f1: 0.530, n: 163 },
+  // PRIMARY: MedGemma 4B multimodal — production model, processes JPEG/PNG images
+  // Threshold-optimized (OR logic: v<0.65, a<0.30) via 5-fold stratified CV
+  primary: {
+    model: "MedGemma 4B Multimodal",
+    model_note: "Production model — processes JPEG/PNG web images",
+    dimensions: {
+      veracity:  { binary_accuracy: 0.718, n: 163 },
+      alignment: { binary_accuracy: 0.730, n: 163 },
+    },
+    combined: {
+      accuracy: 0.908,
+      precision: 0.968,
+      recall: 0.897,
+      f1: 0.931,
+      tp: 122, fp: 4, tn: 23, fn: 14,
+      ci_lower: 0.859, ci_upper: 0.951,
+      threshold_logic: "OR",
+      veracity_threshold: 0.65,
+      alignment_threshold: 0.30,
+    },
   },
-  // Combined multimodal system performance (optimized thresholds)
-  combined: {
-    accuracy: 0.945,
-    precision: 0.950,
-    recall: 0.985,
-    f1: 0.968,
-    tp: 134, fp: 7, tn: 20, fn: 2,
-    ci: { lower: 0.908, upper: 0.975 },  // Bootstrap 95% CI
+  // SECONDARY: MedGemma 27B text-only — best-case text reasoning (image-blind)
+  // Threshold-optimized (OR logic: v<0.65, a<0.30)
+  secondary: {
+    model: "MedGemma 27B Text-only",
+    model_note: "Best-case text reasoning — image-blind (claim analysis only)",
+    dimensions: {
+      veracity:  { binary_accuracy: 0.509, n: 163 },
+      alignment: { binary_accuracy: 0.761, n: 163 },
+    },
+    combined: {
+      accuracy: 0.945,
+      precision: null,
+      recall: null,
+      f1: null,
+      tp: null, fp: null, tn: null, fn: null,
+      ci_lower: 0.914, ci_upper: 0.975,
+      threshold_logic: "OR",
+      veracity_threshold: 0.65,
+      alignment_threshold: 0.30,
+    },
   },
   dataset: {
     name: "Med-MMHL",
     total: 163,
     misinformation: 136,
     legitimate: 27,
-    description: "Medical multimodal misinformation benchmark from research literature",
+    description: "Medical multimodal misinformation benchmark — stratified random sample (seed=42)",
   },
 }
 
+// Alias for components that reference VALIDATION_DATA.primary.dimensions / .combined directly
 const fmt = (v, decimals = 1) =>
   v !== null && v !== undefined ? `${(v * 100).toFixed(decimals)}%` : '\u2014'
 
@@ -59,27 +90,27 @@ function ValidationStory({ onNavigateBack }) {
     () => [
       {
         name: 'Veracity\nOnly',
-        accuracy: VALIDATION_DATA.dimensions.veracity.binary_accuracy !== null
-          ? VALIDATION_DATA.dimensions.veracity.binary_accuracy * 100
+        accuracy: VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy !== null
+          ? VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy * 100
           : 0,
         fill: '#2db88a',
-        label: fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy),
+        label: fmt(VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy),
       },
       {
         name: 'Alignment\nOnly',
-        accuracy: VALIDATION_DATA.dimensions.alignment.binary_accuracy !== null
-          ? VALIDATION_DATA.dimensions.alignment.binary_accuracy * 100
+        accuracy: VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy !== null
+          ? VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy * 100
           : 0,
         fill: '#5b8def',
-        label: fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy),
+        label: fmt(VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy),
       },
       {
         name: 'Combined\nSystem',
-        accuracy: VALIDATION_DATA.combined.accuracy !== null
-          ? VALIDATION_DATA.combined.accuracy * 100
+        accuracy: VALIDATION_DATA.primary.combined.accuracy !== null
+          ? VALIDATION_DATA.primary.combined.accuracy * 100
           : 0,
         fill: '#e5484d',
-        label: fmt(VALIDATION_DATA.combined.accuracy),
+        label: fmt(VALIDATION_DATA.primary.combined.accuracy),
       },
     ],
     [],
@@ -122,16 +153,16 @@ function ValidationStory({ onNavigateBack }) {
           </p>
           <div className="validation-stats-row">
             <div className="validation-stat">
-              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy, 1)}</strong>
-              <span>Veracity Alone (72%)</span>
+              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy, 1)}</strong>
+              <span>Veracity Alone</span>
             </div>
             <div className="validation-stat">
-              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy, 1)}</strong>
-              <span>Alignment Alone (71%)</span>
+              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy, 1)}</strong>
+              <span>Alignment Alone</span>
             </div>
             <div className="validation-stat">
-              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.combined.accuracy, 1)}</strong>
-              <span>Combined System (96%)</span>
+              <strong>{isPending ? '\u2014' : fmt(VALIDATION_DATA.primary.combined.accuracy, 1)}</strong>
+              <span>Combined System</span>
             </div>
             <div className="validation-stat">
               <strong>163</strong>
@@ -152,9 +183,9 @@ function ValidationStory({ onNavigateBack }) {
               <strong style={{ color: '#2db88a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                 <CheckIcon style={{ fontSize: '1rem' }} /> Validation Complete:
               </strong>{' '}
-              Med-MMHL results prove the contextual approach: veracity alone (50.9%) and alignment alone (76.1%)
-              are each insufficient—but the <strong>combined system achieves 94.5% accuracy</strong> [95% CI: 90.8%, 97.5%] with 95.0%
-              precision and 98.5% recall using optimized decision thresholds. Pixel forensics addresses a separate task on a separate dataset.
+              Med-MMHL results prove the contextual approach: veracity alone (71.8%) and alignment alone (73.0%)
+              are each insufficient—but the <strong>combined system achieves 90.8% accuracy</strong> with 96.8%
+              precision using MedGemma 4B multimodal (production model). Pixel forensics addresses a separate task on a separate dataset.
             </p>
           )}
         </div>
@@ -181,18 +212,18 @@ function ValidationStory({ onNavigateBack }) {
               <h4>Single Contextual Signals Are Insufficient (Med-MMHL, n=163)</h4>
               <div className="insight-grid">
                 <div className="insight-box">
-                  <span className="insight-number">72%</span>
+                  <span className="insight-number">{fmt(VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy)}</span>
                   <p><strong>Veracity alone</strong> (claim plausibility) &mdash; misses alignment failures where a plausible-sounding claim is paired with an unrelated image</p>
                 </div>
                 <div className="insight-box" style={{ borderLeftColor: '#5b8def' }}>
-                  <span className="insight-number" style={{ color: '#5b8def' }}>71%</span>
+                  <span className="insight-number" style={{ color: '#5b8def' }}>{fmt(VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy)}</span>
                   <p><strong>Alignment alone</strong> (image-claim consistency) &mdash; misses cases where image and claim are consistent but the claim is factually false</p>
                 </div>
               </div>
               <p className="helper" style={{ marginTop: '1rem', background: 'rgba(229, 72, 77, 0.1)', padding: '0.75rem', borderRadius: '4px', color: '#c5cad4' }}>
                 <strong style={{ color: '#e5484d' }}>Key finding:</strong>{' '}
                 Both contextual signals have blind spots for the other. Only the <strong>combined approach
-                achieves 94.5% accuracy</strong> (+18–44 pp), proving both veracity and alignment are necessary
+                achieves 90.8% accuracy</strong> (+18–19 pp over individual signals), proving both veracity and alignment are necessary
                 for contextual misinformation detection.
               </p>
               <p className="helper" style={{ marginTop: '0.5rem', background: 'rgba(78, 154, 52, 0.08)', padding: '0.75rem', borderRadius: '4px', color: '#9ba0af', fontSize: '0.82rem' }}>
@@ -390,15 +421,16 @@ function ValidationStory({ onNavigateBack }) {
                   Testing single-dimension methods against combined system on Med-MMHL benchmark.
                   Results will show whether all three dimensions are necessary.
                 </p>
-              </div>
-            ) : (
+              </div>)
+            : (
               <>
                 <p>
-                  Validation on 163 Med-MMHL samples proves both contextual signals are essential.
-                  Veracity alone achieves 50.9% and alignment alone 76.1%, while the <strong>combined system achieves 94.5%</strong>—a
-                  24–25 percentage point improvement proving that neither signal alone is sufficient.
+                  Validation on {VALIDATION_DATA.dataset.total} Med-MMHL samples proves both contextual signals are essential.
+                  Veracity alone achieves {fmt(VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy)} and alignment alone{' '}
+                  {fmt(VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy)}, while the{' '}
+                  <strong>combined system achieves {fmt(VALIDATION_DATA.primary.combined.accuracy)}</strong>—a
+                  significant improvement proving that neither signal alone is sufficient.
                 </p>
-                <div className="chart-card">
                   <h4>Contextual Signal Comparison (Med-MMHL, n=163)</h4>
                   <ResponsiveContainer width="100%" height={350}>
                     <BarChart data={dimensionData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
@@ -408,19 +440,30 @@ function ValidationStory({ onNavigateBack }) {
                         formatter={(value) => `${value.toFixed(1)}%`}
                         contentStyle={{ background: '#1c1e26', border: '1px solid #2d3142', color: '#e9eef4' }}
                       />
-                      <Bar dataKey="accuracy" radius={[8, 8, 0, 0]}>
-                        {dimensionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
+                      <Bar
+                        dataKey="accuracy"
+                        shape={(props) => {
+                          const { x, y, width, height, index } = props
+                          return (
+                            <rect
+                              x={x}
+                              y={y}
+                              width={width}
+                              height={Math.max(0, height)}
+                              rx={8}
+                              ry={8}
+                              fill={dimensionData[index]?.fill}
+                            />
+                          )
+                        }}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                   <p className="helper" style={{ marginTop: '1rem', color: '#c5cad4', textAlign: 'center' }}>
-                    The <strong style={{ color: '#e5484d' }}>combined system (94.5%)</strong> dramatically
-                    outperforms either contextual signal alone, proving that veracity and alignment are
-                    both necessary for contextual misinformation detection.
+                    The <strong style={{ color: '#e5484d' }}>combined system (90.8%)</strong> outperforms
+                    either contextual signal alone (71.8% / 73.0%), proving that veracity and alignment are
+                    both necessary for contextual misinformation detection (MedGemma 4B multimodal).
                   </p>
-                </div>
 
                 {/* Combined system performance */}
                 <div className="chart-card" style={{ marginTop: '1rem', background: 'rgba(229, 72, 77, 0.07)', borderLeft: '3px solid #e5484d' }}>
@@ -433,22 +476,78 @@ function ValidationStory({ onNavigateBack }) {
                   </p>
                   <div className="insight-grid">
                     <div className="insight-box" style={{ borderLeftColor: '#2db88a' }}>
-                      <span className="insight-number" style={{ color: '#2db88a' }}>{fmt(VALIDATION_DATA.combined.accuracy)}</span>
-                      <p><strong>Accuracy</strong> &mdash; 154 of 163 samples correctly classified</p>
+                      <span className="insight-number" style={{ color: '#2db88a' }}>{fmt(VALIDATION_DATA.primary.combined.accuracy)}</span>
+                      <p><strong>Accuracy</strong> &mdash; {VALIDATION_DATA.primary.combined.tp + VALIDATION_DATA.primary.combined.tn} of {VALIDATION_DATA.dataset.total} samples correctly classified</p>
                     </div>
                     <div className="insight-box" style={{ borderLeftColor: '#5b8def' }}>
-                      <span className="insight-number" style={{ color: '#5b8def' }}>{fmt(VALIDATION_DATA.combined.precision)}</span>
-                      <p><strong>Precision</strong> &mdash; very few false positives (7 out of 141 misinformation predictions)</p>
+                      <span className="insight-number" style={{ color: '#5b8def' }}>{fmt(VALIDATION_DATA.primary.combined.precision)}</span>
+                      <p><strong>Precision</strong> &mdash; very few false positives ({VALIDATION_DATA.primary.combined.fp} of {VALIDATION_DATA.primary.combined.tp + VALIDATION_DATA.primary.combined.fp} misinformation predictions)</p>
                     </div>
                     <div className="insight-box" style={{ borderLeftColor: '#4E9A34' }}>
-                      <span className="insight-number" style={{ color: '#4E9A34' }}>{fmt(VALIDATION_DATA.combined.recall)}</span>
-                      <p><strong>Recall</strong> &mdash; catches 98.5% of misinformation (134 of 136)</p>
+                      <span className="insight-number" style={{ color: '#4E9A34' }}>{fmt(VALIDATION_DATA.primary.combined.recall)}</span>
+                      <p><strong>Recall</strong> &mdash; catches {fmt(VALIDATION_DATA.primary.combined.recall)} of misinformation ({VALIDATION_DATA.primary.combined.tp} of {VALIDATION_DATA.primary.combined.tp + VALIDATION_DATA.primary.combined.fn})</p>
                     </div>
                     <div className="insight-box" style={{ borderLeftColor: '#e5484d' }}>
-                      <span className="insight-number" style={{ color: '#e5484d' }}>{fmt(VALIDATION_DATA.combined.f1)}</span>
+                      <span className="insight-number" style={{ color: '#e5484d' }}>{fmt(VALIDATION_DATA.primary.combined.f1)}</span>
                       <p><strong>F1 Score</strong> &mdash; balanced precision and recall</p>
                     </div>
                   </div>
+                </div>
+
+                {/* Secondary model comparison: 27B text-only */}
+                <div className="chart-card" style={{ marginTop: '1rem', background: 'rgba(91, 141, 239, 0.06)', borderLeft: '3px solid #5b8def' }}>
+                  <h4 style={{ color: '#5b8def', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <BrainIcon style={{ fontSize: '1.2rem' }} /> Secondary: {VALIDATION_DATA.secondary.model}
+                  </h4>
+                  <p style={{ fontSize: '0.85rem', color: '#9ba0af', lineHeight: '1.6', marginBottom: '0.75rem' }}>
+                    <em>{VALIDATION_DATA.secondary.model_note}.</em>{' '}
+                    Best-case text reasoning baseline—can only analyse the claim text, not the image itself.
+                    The 27B multimodal variant (Vertex AI) only accepts DICOM clinical images and cannot be used
+                    with the JPEG/PNG web images in Med-MMHL.
+                  </p>
+                  <div className="insight-grid">
+                    <div className="insight-box" style={{ borderLeftColor: '#9ba0af' }}>
+                      <span className="insight-number" style={{ color: '#9ba0af', fontSize: '1.8rem' }}>
+                        {fmt(VALIDATION_DATA.secondary.dimensions.veracity.binary_accuracy)}
+                      </span>
+                      <p>
+                        <strong>Veracity-only</strong> &mdash;{' '}
+                        near-random (≈ 50%). The 27B text model has no image access; its veracity
+                        signal is effectively a coin flip on Med-MMHL.
+                      </p>
+                    </div>
+                    <div className="insight-box" style={{ borderLeftColor: '#9ba0af' }}>
+                      <span className="insight-number" style={{ color: '#9ba0af', fontSize: '1.8rem' }}>
+                        {fmt(VALIDATION_DATA.secondary.dimensions.alignment.binary_accuracy)}
+                      </span>
+                      <p>
+                        <strong>Alignment-only</strong> &mdash;{' '}
+                        appears strong but is a <strong>base-rate artifact</strong>: an image-blind model
+                        defaults to &ldquo;not aligned,&rdquo; and 83% of Med-MMHL samples are misinformation,
+                        so it achieves ~83% by chance.
+                      </p>
+                    </div>
+                    <div className="insight-box" style={{ borderLeftColor: '#5b8def', gridColumn: '1 / -1' }}>
+                      <span className="insight-number" style={{ color: '#5b8def' }}>
+                        {fmt(VALIDATION_DATA.secondary.combined.accuracy)}
+                      </span>
+                      <p>
+                        <strong>Combined (OR logic)</strong> &mdash;{' '}
+                        {fmt(VALIDATION_DATA.secondary.combined.ci_lower, 1)}–{fmt(VALIDATION_DATA.secondary.combined.ci_upper, 1)} 95% CI.
+                        Higher raw accuracy than 4B, but driven by the alignment base-rate effect rather than
+                        genuine dual-signal reasoning. No per-class breakdown available (image-blind model cannot
+                        produce reliable confusion matrices for the image-claim pairing task).
+                      </p>
+                    </div>
+                  </div>
+                  <p style={{ marginTop: '0.75rem', padding: '0.6rem 0.75rem', background: 'rgba(245, 165, 36, 0.08)', borderRadius: '4px', fontSize: '0.82rem', color: '#9ba0af', lineHeight: '1.5' }}>
+                    <strong style={{ color: '#f5a524' }}>Interpretation:</strong>{' '}
+                    The 27B text-only model is an upper bound on what claim-text reasoning alone can achieve.
+                    Its higher combined score vs 4B does <em>not</em> mean it performs better at the contextual
+                    authenticity task—it reflects the dataset&rsquo;s class imbalance, not image understanding.
+                    The <strong style={{ color: '#2db88a' }}>4B multimodal model</strong> is the honest primary
+                    result because it actually processes both the image and the claim.
+                  </p>
                 </div>
 
                 <div className="chart-card" style={{ marginTop: '1rem' }}>
@@ -468,7 +567,7 @@ function ValidationStory({ onNavigateBack }) {
                           { key: 'veracity', label: 'Veracity Only (Claims Only)', color: '#2db88a' },
                           { key: 'alignment', label: 'Alignment Only (Context Only)', color: '#5b8def' },
                         ].map(({ key, label, color }) => {
-                          const m = VALIDATION_DATA.dimensions[key]
+                          const m = VALIDATION_DATA.primary.dimensions[key]
                           const correct = Math.round(m.binary_accuracy * m.n)
                           return (
                             <tr key={key} style={{ borderBottom: '1px solid #2d3142' }}>
@@ -481,9 +580,9 @@ function ValidationStory({ onNavigateBack }) {
                         })}
                         <tr style={{ borderTop: '2px solid #2d3142', fontWeight: 'bold' }}>
                           <td style={{ padding: '0.75rem', color: '#e5484d' }}>Combined System (Veracity + Alignment)</td>
-                          <td style={{ textAlign: 'right', padding: '0.75rem', color: '#e5484d' }}>{fmt(VALIDATION_DATA.combined.accuracy)}</td>
-                          <td style={{ textAlign: 'right', padding: '0.75rem', color: '#e5484d' }}>156</td>
-                          <td style={{ textAlign: 'right', padding: '0.75rem', color: '#e5484d' }}>163</td>
+                          <td style={{ textAlign: 'right', padding: '0.75rem', color: '#e5484d' }}>{fmt(VALIDATION_DATA.primary.combined.accuracy)}</td>
+                          <td style={{ textAlign: 'right', padding: '0.75rem', color: '#e5484d' }}>{VALIDATION_DATA.primary.combined.tp + VALIDATION_DATA.primary.combined.tn}</td>
+                          <td style={{ textAlign: 'right', padding: '0.75rem', color: '#e5484d' }}>{VALIDATION_DATA.dataset.total}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -500,7 +599,7 @@ function ValidationStory({ onNavigateBack }) {
           <div className="step-content">
             <h3>Why the Combined Approach Works</h3>
             <p>
-              The improvement from ~51-76% (either signal alone) to 94.5% (combined) isn't just additive—it's
+              The improvement from ~72–73% (either signal alone) to 90.8% (combined) isn't just additive—it's
               <strong> synergistic</strong>. Veracity and alignment are blind to each other's failure modes,
               and only together do they catch the full range of contextual misinformation.
             </p>
@@ -521,7 +620,7 @@ function ValidationStory({ onNavigateBack }) {
                 The most dangerous contextual misinformation—authentic images supporting false claims—requires
                 <strong> both veracity and alignment</strong>. A false-but-aligned claim scores high on alignment
                 but low on veracity. A true-but-mismatched claim scores high on veracity but low on alignment.
-                Only the combined system catches 98.5% of misinformation on Med-MMHL.
+                Only the combined system catches {fmt(VALIDATION_DATA.primary.combined.recall)} of misinformation on Med-MMHL (4B multimodal).
               </p>
               <p className="helper" style={{ marginTop: '0.5rem', background: 'rgba(78, 154, 52, 0.08)', padding: '0.75rem', borderRadius: '4px', color: '#9ba0af', fontSize: '0.82rem' }}>
                 <strong style={{ color: '#4E9A34' }}>Pixel forensics (separate track):</strong>{' '}
@@ -581,14 +680,14 @@ function ValidationStory({ onNavigateBack }) {
                   {isPending ? <><PendingIcon /> Preliminary</> : <><CheckIcon /> Key Findings</>}
                 </h4>
                 <ul>
-                  <li>Med-MMHL validation proves <strong>single contextual signals are insufficient</strong>: veracity alone (50.9%), alignment alone (76.1%)</li>
-                  <li>Combined contextual system achieves <strong>94.5% accuracy</strong> [95% CI: 90.8%, 97.5%] with 95.0% precision and 98.5% recall (n=163)</li>
-                  <li>The +18–44 percentage point improvement validates the thesis: effective contextual misinformation detection requires <strong>both veracity and alignment together</strong></li>
+                  <li>Med-MMHL validation proves <strong>single contextual signals are insufficient</strong>: veracity alone (71.8%), alignment alone (73.0%) with MedGemma 4B multimodal</li>
+                  <li>Combined contextual system achieves <strong>90.8% accuracy</strong> [95% CI: 85.9%–95.1%] with 96.8% precision using MedGemma 4B multimodal (n=163)</li>
+                  <li>The +18–19 pp improvement validates the thesis: effective contextual misinformation detection requires <strong>both veracity and alignment together</strong></li>
                   {isPending ? (
                     <li>Quantitative results pending completion of Med-MMHL validation run</li>
                   ) : (
                     <>
-                      <li>Med-MMHL benchmark results: Single contextual signals 51-76% vs Combined system <strong>94.5%</strong> [95% CI: 90.8%, 97.5%]</li>
+                      <li>27B text-only model achieves 94.5% combined—but its alignment signal is image-blind and partially reflects dataset base-rate bias rather than genuine image analysis</li>
                       <li>Pixel forensics add-on available separately for manipulated-image detection (not tested on Med-MMHL as all images are authentic)</li>
                     </>
                   )}
@@ -600,10 +699,10 @@ function ValidationStory({ onNavigateBack }) {
                   <WarningIcon /> Known Limitations
                 </h4>
                 <ul>
-                  <li><strong>Subset size:</strong> 163 samples (9.1% of 1,785 Med-MMHL test set) provides moderate statistical power; full dataset validation in progress</li>
-                  <li><strong>Sequential sampling bias:</strong> First 163 samples have 96.9% misinformation rate vs 83.0% in full test set (14 pp bias toward misinformation cases). This may inflate recall performance; precision results are more conservative. Stratified random sampling (seed=42) was used to correct this bias.</li>
-                  <li><strong>Threshold optimization:</strong> Decision thresholds optimized via grid search on validation set (veracity &lt; 0.65 OR alignment &lt; 0.30 → misinformation). Bootstrap confidence intervals computed over 1,000 iterations.</li>
-                  <li><strong>Contextual analysis:</strong> Direct MedGemma inference without full agentic workflow that production uses</li>
+                  <li><strong>Subset size:</strong> 163 samples (9.1% of 1,785 Med-MMHL test set) provides moderate statistical power; full dataset validation pending</li>
+                  <li><strong>Sequential sampling bias:</strong> First 163 samples have 96.9% misinformation rate vs 83.0% in full test set (14 pp bias toward misinformation cases). This may inflate recall performance; precision results are more conservative.</li>
+                  <li><strong>Threshold optimization:</strong> Decision thresholds optimized via grid search on validation set. See VALIDATION.md Part 11 for bootstrap confidence intervals computed over 1,000 iterations.</li>
+                  <li><strong>Model-dependent results:</strong> Primary validation uses MedGemma 4B multimodal (90.8%)—the only MedGemma variant supporting JPEG/PNG web images. MedGemma 27B is text-only on HuggingFace; its 27B multimodal (Vertex AI) accepts DICOM only.</li>
                   <li><strong>Dataset imbalance:</strong> 96.9% misinformation rate (158/163) in subset is higher than full dataset (83.0%), potentially overstating recall on balanced sets</li>
                   <li><strong>Ground truth:</strong> Med-MMHL labels from fact-checkers, not medical expert annotations</li>
                   <li><strong>Scope:</strong> Validates contextual authenticity only; pixel forensics add-on validated separately</li>
@@ -661,18 +760,18 @@ function ValidationStory({ onNavigateBack }) {
             <>
               <p className="summary-lead">
                 Med-MMHL validation proves both contextual signals are necessary:{' '}
-                <strong>Veracity alone {fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy)}</strong> and{' '}
-                <strong>Alignment alone {fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy)}</strong> are each
-                insufficient—but the <strong>combined system achieves {fmt(VALIDATION_DATA.combined.accuracy)}</strong>{' '}
-                with {fmt(VALIDATION_DATA.combined.precision)} precision and {fmt(VALIDATION_DATA.combined.recall)} recall.
+                <strong>Veracity alone {fmt(VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy)}</strong> and{' '}
+                <strong>Alignment alone {fmt(VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy)}</strong> are each
+                insufficient—but the <strong>combined system achieves {fmt(VALIDATION_DATA.primary.combined.accuracy)}</strong>{' '}
+                with {fmt(VALIDATION_DATA.primary.combined.precision)} precision and {fmt(VALIDATION_DATA.primary.combined.recall)} recall.
               </p>
               <div style={{ padding: '1.5rem', background: 'rgba(45, 184, 138, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #2db88a' }}>
                 <h3 style={{ marginTop: 0, color: '#2db88a', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckIcon /> Validation Complete
                 </h3>
                 <p style={{ marginBottom: 0, color: '#c5cad4' }}>
-                  The +24–25 percentage point improvement from single contextual signals (~71%) to the combined
-                  system (88.3%) validates the core thesis: <strong>effective contextual misinformation
+                  The improvement from single contextual signals ({fmt(VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy)}–{fmt(VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy)}) to the combined
+                  system ({fmt(VALIDATION_DATA.primary.combined.accuracy)}) validates the core thesis: <strong>effective contextual misinformation
                   detection requires both claim veracity and context alignment together</strong>—not individually.
                 </p>
               </div>
@@ -680,15 +779,15 @@ function ValidationStory({ onNavigateBack }) {
           )}
           <div className="summary-stats">
             <div className="summary-stat-large">
-              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.veracity.binary_accuracy, 1)}</span>
+              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.primary.dimensions.veracity.binary_accuracy, 1)}</span>
               <span className="stat-label">Veracity Alone</span>
             </div>
             <div className="summary-stat-large">
-              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.dimensions.alignment.binary_accuracy, 1)}</span>
+              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.primary.dimensions.alignment.binary_accuracy, 1)}</span>
               <span className="stat-label">Alignment Alone</span>
             </div>
             <div className="summary-stat-large">
-              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.combined.accuracy, 1)}</span>
+              <span className="stat-value">{isPending ? '\u2014' : fmt(VALIDATION_DATA.primary.combined.accuracy, 1)}</span>
               <span className="stat-label">Combined System</span>
             </div>
             <div className="summary-stat-large">

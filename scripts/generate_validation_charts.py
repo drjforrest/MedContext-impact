@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Generate Recharts-compatible data from validation results."""
+
 import json
 import sys
 from pathlib import Path
-from collections import defaultdict
 
 
 def load_validation_results(results_dir: Path):
@@ -21,7 +21,16 @@ def load_validation_results(results_dir: Path):
 
 
 def generate_confusion_matrix(predictions):
-    """Generate confusion matrix data for misinformation detection."""
+    """Generate confusion matrix data for misinformation detection.
+
+    Classification Logic:
+    - Positive class: Misinformation (is_misinformation=True)
+    - Negative class: Legitimate (is_misinformation=False)
+    - TP: Correctly flagged misinformation
+    - FP: Legitimate content incorrectly flagged as misinformation
+    - TN: Legitimate content correctly identified as legitimate
+    - FN: Misinformation incorrectly marked as legitimate (missed)
+    """
     tp = fp = tn = fn = 0
 
     for pred in predictions:
@@ -41,50 +50,134 @@ def generate_confusion_matrix(predictions):
 
     return {
         "confusion_matrix": [
-            {"name": "True Positive", "value": tp},
-            {"name": "False Positive", "value": fp},
-            {"name": "True Negative", "value": tn},
-            {"name": "False Negative", "value": fn},
+            {
+                "name": "True Positive (Correctly Flagged Misinformation)",
+                "short_name": "True Positive",
+                "value": tp,
+                "description": "Misinformation correctly identified as misinformation",
+            },
+            {
+                "name": "False Positive (Legitimate Flagged as Misinformation)",
+                "short_name": "False Positive",
+                "value": fp,
+                "description": "Legitimate content incorrectly flagged as misinformation",
+            },
+            {
+                "name": "True Negative (Correctly Identified Legitimate)",
+                "short_name": "True Negative",
+                "value": tn,
+                "description": "Legitimate content correctly identified as legitimate",
+            },
+            {
+                "name": "False Negative (Missed Misinformation)",
+                "short_name": "False Negative",
+                "value": fn,
+                "description": "Misinformation incorrectly marked as legitimate (missed detection)",
+            },
         ],
         "matrix_grid": [
-            {"actual": "Misinformation", "predicted": "Misinformation", "count": tp},
-            {"actual": "Misinformation", "predicted": "Legitimate", "count": fn},
-            {"actual": "Legitimate", "predicted": "Misinformation", "count": fp},
-            {"actual": "Legitimate", "predicted": "Legitimate", "count": tn},
+            {
+                "actual": "Misinformation (Positive)",
+                "predicted": "Misinformation (Positive)",
+                "count": tp,
+                "label": "TP",
+            },
+            {
+                "actual": "Misinformation (Positive)",
+                "predicted": "Legitimate (Negative)",
+                "count": fn,
+                "label": "FN",
+            },
+            {
+                "actual": "Legitimate (Negative)",
+                "predicted": "Misinformation (Positive)",
+                "count": fp,
+                "label": "FP",
+            },
+            {
+                "actual": "Legitimate (Negative)",
+                "predicted": "Legitimate (Negative)",
+                "count": tn,
+                "label": "TN",
+            },
         ],
+        "classification_info": {
+            "positive_class": "Misinformation (is_misinformation=True)",
+            "negative_class": "Legitimate (is_misinformation=False)",
+            "threshold_note": "Default threshold: 0.5 (see threshold_analysis/ for optimization)",
+        },
     }
 
 
 def generate_score_distributions(predictions):
-    """Generate score distribution data."""
+    """Generate score distribution data with semantic category labels.
+
+    Veracity Categories:
+    - true (0.9): Claim is factually and medically well-supported
+    - partially_true (0.6): Claim has some basis but contains inaccuracies
+    - false (0.1): Claim is factually unsupported or medically incorrect
+
+    Alignment Categories:
+    - aligns_fully (0.9): Image directly supports/illustrates the claim
+    - partially_aligns (0.6): Image relates to claim but doesn't fully support it
+    - does_not_align (0.1): Image is unrelated or contradicts the claim
+
+    Classification Threshold: score > 0.5 = positive (plausible/aligned)
+    """
     veracity_scores = []
     alignment_scores = []
+
+    # Category label mappings for better readability
+    veracity_labels = {
+        "true": "True (0.9) - Well-supported claim",
+        "partially_true": "Partially True (0.6) - Mixed accuracy",
+        "false": "False (0.1) - Unsupported claim",
+    }
+
+    alignment_labels = {
+        "aligns_fully": "Fully Aligned (0.9) - Image supports claim",
+        "partially_aligns": "Partially Aligned (0.6) - Image relates but doesn't support",
+        "does_not_align": "Does Not Align (0.1) - Image unrelated/contradicts",
+    }
 
     for pred in predictions:
         context = pred["predictions"]["contextual_analysis"]
         gt = pred["ground_truth"]
 
+        veracity_cat = context.get("veracity_category", "unknown")
+        alignment_cat = context.get("alignment_category", "unknown")
+
         veracity_scores.append(
             {
                 "score": context.get("veracity_score", 0.5),
-                "category": context.get("veracity_category", "unknown"),
+                "category": veracity_cat,
+                "category_label": veracity_labels.get(veracity_cat, veracity_cat),
                 "ground_truth": gt.get("plausibility", "unknown"),
                 "is_misinformation": gt.get("is_misinformation", False),
+                "predicted_positive": context.get("veracity_score", 0.5) > 0.5,
             }
         )
 
         alignment_scores.append(
             {
                 "score": context.get("alignment_score", 0.5),
-                "category": context.get("alignment_category", "unknown"),
+                "category": alignment_cat,
+                "category_label": alignment_labels.get(alignment_cat, alignment_cat),
                 "ground_truth": gt.get("alignment", "unknown"),
                 "is_misinformation": gt.get("is_misinformation", False),
+                "predicted_positive": context.get("alignment_score", 0.5) > 0.5,
             }
         )
 
     return {
         "veracity_distribution": veracity_scores,
         "alignment_distribution": alignment_scores,
+        "score_metadata": {
+            "veracity_mapping": veracity_labels,
+            "alignment_mapping": alignment_labels,
+            "threshold": 0.5,
+            "threshold_note": "score > 0.5 classified as positive (plausible/aligned)",
+        },
     }
 
 
@@ -244,28 +337,50 @@ def generate_metric_summary(predictions):
     }
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python generate_validation_charts.py <results_dir>")
-        sys.exit(1)
+def generate_charts(results_dir: Path) -> None:
+    """Generate chart_data.json from a completed validation results directory.
 
-    results_dir = Path(sys.argv[1])
-
+    Can be called programmatically (e.g. from validate_med_mmhl.py) or via CLI.
+    """
+    results_dir = Path(results_dir)
     if not results_dir.exists():
-        print(f"Error: Directory not found: {results_dir}")
-        sys.exit(1)
+        raise FileNotFoundError(f"Results directory not found: {results_dir}")
 
     print(f"Loading validation results from {results_dir}...")
     predictions, report = load_validation_results(results_dir)
 
     print(f"Generating chart data for {len(predictions)} samples...")
 
-    # Generate all chart data
+    model_name = results_dir.name
+    model_label = "Unknown Model"
+    if "vertex" in model_name.lower() and "27b" in model_name.lower():
+        model_label = "MedGemma 27B Multimodal (Vertex AI)"
+    elif "27b" in model_name.lower():
+        model_label = "MedGemma 27B (HuggingFace Inference API)"
+    elif "4b" in model_name.lower():
+        model_label = "MedGemma 4B (Quantized Local)"
+    elif "quantized" in model_name.lower():
+        model_label = "MedGemma Quantized Model"
+    elif "hf" in model_name.lower():
+        model_label = "MedGemma HuggingFace Model"
+
     chart_data = {
         "metadata": {
             "total_samples": len(predictions),
             "dataset": report.get("dataset", "Unknown"),
             "timestamp": report.get("timestamp", ""),
+            "model_name": model_name,
+            "model_label": model_label,
+            "sampling_method": report.get("sampling_method", "unknown"),
+            "random_seed": report.get("random_seed", None),
+            "classification_info": {
+                "positive_class": "Misinformation (is_misinformation=True)",
+                "negative_class": "Legitimate (is_misinformation=False)",
+                "veracity_threshold": 0.5,
+                "alignment_threshold": 0.5,
+                "threshold_note": "Veracity score > 0.5 = plausible (not fake). Alignment score > 0.5 = aligned.",
+                "optimization_available": "See threshold_analysis/ subdirectory for optimized thresholds",
+            },
         }
     }
 
@@ -275,17 +390,36 @@ def main():
     chart_data.update(generate_sample_details(predictions))
     chart_data.update(generate_metric_summary(predictions))
 
-    # Save chart data
     output_file = results_dir / "chart_data.json"
     with open(output_file, "w") as f:
         json.dump(chart_data, f, indent=2)
 
     print(f"\n✅ Chart data generated: {output_file}")
-    print(f"\nSummary:")
-    print(f"  - Accuracy: {chart_data['raw_metrics']['accuracy']*100:.1f}%")
-    print(f"  - Precision: {chart_data['raw_metrics']['precision']*100:.1f}%")
-    print(f"  - Recall: {chart_data['raw_metrics']['recall']*100:.1f}%")
+    print(f"\nModel: {model_label}")
+    print("Summary:")
+    print(f"  - Accuracy: {chart_data['raw_metrics']['accuracy'] * 100:.1f}%")
+    print(f"  - Precision: {chart_data['raw_metrics']['precision'] * 100:.1f}%")
+    print(f"  - Recall: {chart_data['raw_metrics']['recall'] * 100:.1f}%")
     print(f"  - F1 Score: {chart_data['raw_metrics']['f1']:.3f}")
+    print("\nClassification Info:")
+    print("  - Positive class: Misinformation")
+    print("  - Threshold: 0.5 (combined decision logic)")
+    print(
+        "  - Optimization: See threshold_analysis/ for model-specific optimal thresholds"
+    )
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python generate_validation_charts.py <results_dir>")
+        sys.exit(1)
+
+    results_dir = Path(sys.argv[1])
+    try:
+        generate_charts(results_dir)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

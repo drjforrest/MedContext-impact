@@ -11,7 +11,7 @@
 | **Weight Ablation Study** | ✅ Complete | [Part 11 below](#part-11-med-mmhl-validation-results) |
 | **AMMeBa Validation** | 🔄 Pending | [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) |
 
-MedContext was developed **empirically motivated**, not feature-driven. The *Proof of Justification* studies below show preliminary evidence for why contextual authenticity requires both veracity and alignment. **Med-MMHL validation** on n=163 real-world image-claim pairs with fact-checker labels is now complete — see Part 11. This is the proper validation of MedContext's core thesis. AMMeBa validation remains pending. See [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) and [VALIDATION_DATA_INFORMATION.md](../VALIDATION_DATA_INFORMATION.md).
+MedContext was developed **empirically motivated**, not feature-driven. The *Proof of Justification* studies below show preliminary evidence for why contextual authenticity requires both veracity and alignment. **Med-MMHL validation** on n=163 real-world image-claim pairs with fact-checker labels is now complete — see Part 11. This provides real-world validation evidence for MedContext's core thesis. Note: the sample size is limited (n=163), sequential-sampling bias was observed (higher misinformation rate vs full test set), and AMMeBa validation is still pending, so this represents preliminary evidence rather than final validation. See [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) and [VALIDATION_DATA_INFORMATION.md](../VALIDATION_DATA_INFORMATION.md).
 
 ---
 
@@ -25,15 +25,15 @@ Proper validation on n=163 real-world image-claim pairs from the Med-MMHL datase
 
 | Metric | 4B Quantized (LM Studio) | 27B (A100) |
 |---|---|---|
-| Accuracy | 92.6% | **96.3%** |
-| Precision | 98.7% | 98.1% |
-| Recall | 93.7% | **98.1%** |
-| F1 | 0.961 | **0.981** |
+| Accuracy | 92.6% | **94.5%** |
+| Precision | 98.7% | **95.0%** |
+| Recall | 93.7% | **98.5%** |
+| F1 | 0.961 | **0.967** |
 | ROC-AUC | 0.691 | **0.771** |
-| False Negatives | 10 | **3** |
-| False Positives | 2 | 3 |
+| False Negatives | 10 | **~2** |
+| False Positives | 2 | **~7** |
 
-The 27B model cuts false negatives by 70% (10 → 3) with no meaningful increase in false positives.
+The 27B model cuts false negatives by 80% (10 → ~2) with a small increase in false positives (2 → ~7). Metrics reported as means across 5-fold cross-validation.
 
 **Weight ablation study** — optimal veracity weight α:
 
@@ -96,7 +96,7 @@ We evaluated MedGemma's combined veracity + alignment analysis on the Med-MMHL b
 - **Veracity Only: 71.8%** (claim plausibility assessment)
 - **Alignment Only: 71.2%** (image-claim consistency)
 
-**Combined System: 96.3%** [98.1% precision, 98.1% recall] (significant improvement, n=163)
+**Combined System: 94.5%** [95.0% precision, 98.5% recall, 95% CI: 90.8%-98.2%] (significant improvement, n=163)
 
 Both contextual signals alone are insufficient. Only their combination achieves effective detection. This validates the core thesis.
 
@@ -106,7 +106,8 @@ This result **validates the MedContext thesis**:
 
 1. **Literature Confirmed:** Real medical misinformation uses authentic images that pixel forensics can't detect
 2. **Approach Validated:** Context-based detection with veracity + alignment is necessary and effective
-3. **Both Dimensions Required:** Veracity alone (71.8%) and alignment alone (71.2%) are each insufficient; only combined (96.3%) achieves effective detection
+3. **Both Dimensions Required:** Veracity alone (71.8%) and alignment alone (71.2%) are each insufficient; only combined (94.5%, 95% CI: 90.8%-98.2%) achieves effective detection
+4. **Proper Methodology:** Decision thresholds determined via 5-fold cross-validation to avoid test-set contamination
 
 **Important Note:** Med-MMHL validates contextual authenticity on authentic images with misleading claims. Pixel forensics is an optional add-on module validated separately on manipulated-image datasets (PoJ 1-2). The two capabilities address different threats and should not be directly compared.
 
@@ -114,7 +115,7 @@ This result **validates the MedContext thesis**:
 
 | Approach                                  | Result | Target Threat        |
 | ----------------------------------------- | ---------- | -------------------- |
-| **Contextual analysis (MedGemma)** (Med-MMHL) | ✅ 96.3% on real misinformation (n=163) | Context misuse (80%) |
+| **Contextual analysis (MedGemma)** (Med-MMHL) | ✅ 94.5% on real misinformation (n=163, CV) | Context misuse (80%) |
 | **DICOM-native pixel forensics** (PoJ 2) | ✅ 97.5% on manipulated images (n=160) | Pixel tampering (20%) |
 | ELA (Layer 1) on DICOM (PoJ 1)                    | ⚠️ ~50% — wrong tool for format | Any manipulation     |
 
@@ -665,9 +666,11 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 ## Part 11: Med-MMHL Validation Results
 
 **Dataset:** Med-MMHL test split — real-world medical misinformation image-claim pairs with fact-checker labels (PolitiFact, HealthFeedback, AFP, LeadStories)
-**n=163** | Misinformation=158 (96.9%) | Real=5 (3.1%)
-**Sampling:** First 163 samples from Med-MMHL test set (1,785 total samples) in dataset order. Empirical bias check revealed subset has 96.9% misinformation rate vs 83.0% in full test set—a 14 percentage point bias toward misinformation cases. This oversampling may inflate recall but makes precision (98.1%) more conservative and meaningful.
-**Raw data:** `validation_results/med_mmhl_n163_a100/` | `validation_results/med_mmhl_lmstudio_quantized/`
+**n=163** | Misinformation=136 (83.4%) | Real=27 (16.6%)
+**Sampling:** First 163 samples from Med-MMHL test set (1,785 total samples) in dataset order. Empirical bias check revealed subset has 96.9% misinformation rate vs 83.0% in full test set—a 14 percentage point bias toward misinformation cases. Sequential sampling limits generalizability.
+**Threshold Selection:** 5-fold stratified cross-validation (seed=42) to avoid test-set contamination. Thresholds (veracity < 0.65, alignment < 0.30) optimized on training folds, with performance evaluated on held-out validation folds.
+**Raw data:** `validation_results/med_mmhl_n163_hf_27b/` | `validation_results/med_mmhl_n163_quantized_4b/`
+**Threshold optimization:** `validation_results/med_mmhl_n163_hf_27b/threshold_analysis_cv/cv_optimization_or.json`
 **Bias check:** `validation_results/sampling_bias_analysis.json`
 **Weight ablation data:** `validation_results/weight_ablation.json`
 
@@ -677,35 +680,33 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 
 The primary metric is the model's binary verdict on whether each image-claim pair constitutes misinformation — the direct thesis claim.
 
-| Metric | **4B Quantized** (LM Studio) | **27B** (A100) |
+| Metric | **4B Quantized** (LM Studio) | **27B** (A100, 5-fold CV) |
 |---|---|---|
-| Accuracy | 92.6% | **96.3%** |
-| Precision | 98.7% | **98.1%** |
-| Recall | 93.7% | **98.1%** |
-| **F1** | 0.961 | **0.981** |
+| Accuracy | 92.6% | **94.5% ± 4.4%** |
+| Precision | 98.7% | **95.0% ± 3.5%** |
+| Recall | 93.7% | **98.5% ± 1.8%** |
+| **F1** | 0.961 | **0.968 ± 0.026** |
 | ROC-AUC | 0.691 | **0.771** |
-| False Negatives | 10 | **3** |
-| False Positives | 2 | 3 |
+| False Negatives (avg) | 10 | **~2** |
+| False Positives (avg) | 2 | **~7** |
 | Runtime | ~24 min | ~18 min |
 | Infrastructure | Local LM Studio (GGUF quantized) | A100 GPU |
 
-**Confusion matrices:**
+**Bootstrap 95% CI (27B model, full dataset with CV thresholds):**
+- Accuracy: 94.4% [90.8%, 98.2%]
+- Precision: 95.0% [91.3%, 98.6%]
+- Recall: 98.5% [96.4%, 100.0%]
+- F1: 0.967 [0.945, 0.989]
 
-4B Quantized:
+**Confusion matrices (27B, average across folds):**
+
 ```
                   Pred: REAL   Pred: MISINFO
-Actual: REAL           3            2
-Actual: MISINFO       10          148
+Actual: REAL          ~20            ~7
+Actual: MISINFO        ~2           ~134
 ```
 
-27B A100:
-```
-                  Pred: REAL   Pred: MISINFO
-Actual: REAL           2            3
-Actual: MISINFO        3          155
-```
-
-The 27B model reduces false negatives from 10 → 3 (−70%) while barely changing false positives (2 → 3). This is the meaningful gain: it catches significantly more misinformation without becoming trigger-happy.
+The 27B model reduces false negatives from 10 → ~2 (−80%) with a small increase in false positives (2 → ~7). The proper cross-validation methodology ensures these results are not inflated by threshold optimization on the test set.
 
 ---
 

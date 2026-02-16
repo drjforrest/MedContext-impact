@@ -9,6 +9,7 @@ Added a new **Threshold Optimization** tab to the MedContext UI that allows user
 ### 1. Frontend Component (`ui/src/ThresholdOptimization.jsx`)
 
 **Features:**
+
 - File upload for labeled JSON datasets (image-claim pairs with ground truth labels)
 - Real-time optimization with progress indicator
 - Comprehensive results visualization with multiple charts and tables:
@@ -21,6 +22,7 @@ Added a new **Threshold Optimization** tab to the MedContext UI that allows user
   - **Configuration Instructions** — Copy-paste code snippet with optimized thresholds
 
 **Integration:**
+
 - Added as third tab in main App.jsx navigation
 - Uses Recharts for all visualizations (BarChart for metrics comparison, confusion matrix, logic comparison)
 - Consistent styling with existing UI theme
@@ -28,6 +30,7 @@ Added a new **Threshold Optimization** tab to the MedContext UI that allows user
 ### 2. Backend API Endpoint (`src/app/api/v1/endpoints/orchestrator.py`)
 
 **New Endpoint:**
+
 ```
 POST /api/v1/orchestrator/optimize-thresholds
 ```
@@ -35,6 +38,7 @@ POST /api/v1/orchestrator/optimize-thresholds
 **Accepts:** Multipart form data with JSON dataset file
 
 **Returns:** Comprehensive optimization results including:
+
 - Optimal configuration (logic, thresholds, metrics)
 - Bootstrap 95% confidence intervals (1,000 iterations)
 - Per-logic optimal configurations (OR, AND, MIN)
@@ -52,25 +56,29 @@ POST /api/v1/orchestrator/optimize-thresholds
 6. **`optimize_thresholds_from_dataset`** — Full pipeline orchestrator
 
 **Decision Logics:**
-- **OR:** Flag if `veracity < threshold OR alignment < threshold` (best for recall-critical applications)
-- **AND:** Flag if `veracity < threshold AND alignment < threshold` (best for precision-critical applications)
-- **MIN:** Flag if `min(veracity, alignment) < threshold` (balanced approach)
+
+- **OR:** Flag if `veracity < veracity_threshold OR alignment < alignment_threshold` (21×21=441 combinations, best for recall-critical applications)
+- **AND:** Flag if `veracity < veracity_threshold AND alignment < alignment_threshold` (21×21=441 combinations, best for precision-critical applications)
+- **MIN:** Flag if `min(veracity, alignment) < average(veracity_threshold, alignment_threshold)` (21×21=441 combinations, balanced approach that uses both thresholds)
 
 ### 4. Documentation Updates
 
 **`THRESHOLD_OPTIMIZATION.md`:**
+
 - Added new subsection: "Model-Specific Threshold Behavior"
 - Documented 27B vs 4B model comparison (identical thresholds, different signal weighting)
 - Added "Recommendation: Domain-Specific Threshold Optimization" section
 - Emphasized that thresholds are not universal constants
 
 **`CLAUDE.md`:**
+
 - Updated "Interface" section to document three-tab UI structure
 - Added description of Threshold Optimization tab functionality
 
 ### 5. CSS Styles (`ui/src/App.css`)
 
 Added styles for:
+
 - `.reset-button` — Secondary action button
 - `.file-upload-zone` and `.file-upload-label` — Drag-and-drop file upload styling
 - `.spinner` — Loading animation for optimization progress
@@ -93,16 +101,24 @@ Added styles for:
 ]
 ```
 
+**Valid label values:**
+
+- The `label` field accepts **only two case-sensitive string values**: `"misinformation"` and `"legitimate"`
+- Case-sensitivity: Labels are **case-sensitive** — `"Misinformation"`, `"MISINFORMATION"`, or `"Legitimate"` will be rejected
+- Alternate encodings are **not supported**: Numeric labels (`0`/`1`) and boolean labels (`true`/`false`) are not accepted
+- Any dataset with invalid label values will be rejected with a validation error before optimization begins
+
 ## Key Scientific Finding Documented
 
 The validation revealed that **MedGemma 27B and 4B converge to identical optimal thresholds** (veracity < 0.65 OR alignment < 0.30) but use them **very differently**:
 
-| Model | Precision | Recall | Interpretation |
-|-------|-----------|--------|----------------|
-| **27B** | 95.0% | 98.5% | **Alignment-driven:** High recall, sensitive to alignment failures |
-| **4B** | 99.2% | 89.7% | **Veracity-driven:** Ultra-high precision, conservative flagging |
+| Model   | Precision | Recall | Interpretation                                                     |
+| ------- | --------- | ------ | ------------------------------------------------------------------ |
+| **27B** | 95.0%     | 98.5%  | **Alignment-driven:** High recall, sensitive to alignment failures |
+| **4B**  | 99.2%     | 89.7%  | **Veracity-driven:** Ultra-high precision, conservative flagging   |
 
 This demonstrates that **optimal thresholds depend on**:
+
 1. Model architecture and scale
 2. Dataset characteristics (label distribution, domain)
 3. Deployment context (risk tolerance for FP vs FN)
@@ -128,7 +144,7 @@ This demonstrates that **optimal thresholds depend on**:
 ✅ **Model-agnostic** — Works with any MedGemma model or configuration  
 ✅ **Scientifically rigorous** — Bootstrap CIs provide statistical robustness  
 ✅ **User-friendly** — No coding required, visual results with clear next steps  
-✅ **Transparent** — Shows all logic options and their trade-offs  
+✅ **Transparent** — Shows all logic options and their trade-offs
 
 ## Next Steps (Future Enhancements)
 

@@ -8,7 +8,18 @@
       "misinformation_rate": 0.8296918767507003
     },
     "source_distribution": {
-      "unknown": 1785
+      "LeadStories": 1454,
+      "Nih": 141,
+      "Healthline": 84,
+      "Mayo": 41,
+      "ClevelandClinic": 38,
+      "CheckYourFact": 27
+    },
+    "source_metadata": {
+      "total_sources": 6,
+      "all_unknown": false,
+      "unknown_count": 0,
+      "unknown_rate": 0.0
     },
     "claim_length": {
       "mean": 5148.970868347339,
@@ -19,40 +30,62 @@
     "duplicate_rate": 0.0
   },
   "subset": {
-    "name": "First 163",
+    "name": "Stratified Sample (n=163)",
     "n_samples": 163,
     "label_distribution": {
-      "misinformation": 158,
-      "real": 5,
-      "misinformation_rate": 0.9693251533742331
+      "misinformation": 135,
+      "real": 28,
+      "misinformation_rate": 0.8282208588957055
     },
     "source_distribution": {
-      "unknown": 163
+      "LeadStories": 131,
+      "Nih": 14,
+      "Healthline": 7,
+      "Mayo": 5,
+      "CheckYourFact": 4,
+      "ClevelandClinic": 2
+    },
+    "source_metadata": {
+      "total_sources": 6,
+      "all_unknown": false,
+      "unknown_count": 0,
+      "unknown_rate": 0.0
     },
     "claim_length": {
-      "mean": 5660.40490797546,
-      "min": 847,
-      "max": 8181
+      "mean": 5298.441717791411,
+      "min": 329,
+      "max": 13093
     },
     "unique_images": 163,
-    "duplicate_rate": 0.0
+    "duplicate_rate": 0.0,
+    "sampling": {
+      "strategy": "stratified",
+      "seed": 42,
+      "target_size": 163,
+      "actual_size": 163,
+      "full_misinformation_rate": 0.8296918767507003,
+      "target_misinformation_count": 135,
+      "target_real_count": 28,
+      "actual_misinformation_count": 135,
+      "actual_real_count": 28
+    }
   },
   "comparison": {
     "label_bias": {
       "full_misinformation_rate": 0.8296918767507003,
-      "subset_misinformation_rate": 0.9693251533742331,
-      "absolute_difference": 0.13963327662353275,
-      "difference_percentage_points": 13.963327662353276,
-      "assessment": "POTENTIAL_BIAS"
+      "subset_misinformation_rate": 0.8282208588957055,
+      "absolute_difference": 0.001471017854994816,
+      "difference_percentage_points": 0.1471017854994816,
+      "assessment": "ACCEPTABLE"
     },
     "source_bias": {
-      "top_source_overlap": 0.2,
-      "assessment": "POTENTIAL_BIAS"
+      "top_source_overlap": 0.6666666666666666,
+      "assessment": "ACCEPTABLE"
     },
     "claim_length_bias": {
       "full_mean_length": 5148.970868347339,
-      "subset_mean_length": 5660.40490797546,
-      "relative_difference_pct": 9.932742924845407,
+      "subset_mean_length": 5298.441717791411,
+      "relative_difference_pct": 2.902926687018672,
       "assessment": "ACCEPTABLE"
     },
     "duplicate_bias": {
@@ -61,6 +94,6 @@
       "absolute_difference": 0.0,
       "assessment": "ACCEPTABLE"
     },
-    "overall_assessment": "POTENTIAL_BIAS_DETECTED"
+    "overall_assessment": "NO_SIGNIFICANT_BIAS"
   }
 }

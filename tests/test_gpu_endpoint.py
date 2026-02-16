@@ -40,7 +40,7 @@ try:
     print(f"✅ Success! Response time: {elapsed:.1f}s\n")
     print(f"Provider: {result.provider}")
     print(f"Model: {result.model}")
-    print(f"\nParsed output:")
+    print("\nParsed output:")
     import json
 
     print(json.dumps(result.output, indent=2))

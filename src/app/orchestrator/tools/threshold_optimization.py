@@ -5,8 +5,8 @@ Allows the agent to automatically optimize decision thresholds when
 validation data is provided.
 """
 
-from typing import Any
 import logging
+from typing import Any
 
 from app.orchestrator.threshold_optimizer import optimize_thresholds_from_dataset
 
@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 async def optimize_thresholds_tool(dataset_path: str) -> dict[str, Any]:
     """
     Tool for agent to optimize decision thresholds on a validation dataset.
-    
+
     Args:
         dataset_path: Path to validation dataset JSON file
-        
+
     Returns:
         Dict with optimal configuration:
         {
@@ -39,17 +39,17 @@ async def optimize_thresholds_tool(dataset_path: str) -> dict[str, Any]:
     try:
         logger.info(f"Agent invoking threshold optimization tool for {dataset_path}")
         results = await optimize_thresholds_from_dataset(dataset_path)
-        
+
         logger.info(
             f"Threshold optimization complete: {results['optimal']['logic']} logic, "
             f"veracity<{results['optimal']['veracity_threshold']:.2f}, "
             f"alignment<{results['optimal']['alignment_threshold']:.2f}, "
             f"accuracy={results['optimal']['accuracy']:.1%}"
         )
-        
+
         return results
     except Exception as e:
-        logger.error(f"Threshold optimization tool failed: {e}")
+        logger.exception("Threshold optimization tool failed")
         return {
             "error": str(e),
             "optimal": None,
@@ -76,9 +76,9 @@ def get_tool_description() -> dict[str, Any]:
             "properties": {
                 "dataset_path": {
                     "type": "string",
-                    "description": "Path to validation dataset JSON file with format: [{\"image_path\": str, \"claim\": str, \"label\": \"misinformation\" | \"legitimate\"}]"
+                    "description": 'Path to validation dataset JSON file with format: [{"image_path": str, "claim": str, "label": "misinformation" | "legitimate"}]',
                 }
             },
-            "required": ["dataset_path"]
-        }
+            "required": ["dataset_path"],
+        },
     }

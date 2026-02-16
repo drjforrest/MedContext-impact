@@ -6,37 +6,6 @@ Uses Med-MMHL image-claim pairs with fact-checker labels.
 
 Usage:
   # 1. Download Med-MMHL (see scripts/download_med_mmhl.py)
-  # 2. Run validation on test split:
-
-  python scripts/validate_med_mmhl.py \
-    --data-dir data/med-mmhl \
-    --split test \
-    --output validation_results/med_mmhl_v1
-
-  # With medical-only filter (after annotating):
-
-  python scripts/validate_med_mmhl.py \
-    --data-dir data/med-mmhl \
-    --annotations data/med-mmhl/image_type_annotations.json \
-    --require-medical \
-    --output validation_results/med_mmhl_medical_v1
-
-  # Bootstrap confidence intervals (slower):
-
-  python scripts/validate_med_mmhl.py \
-    --data-dir data/med-mmhl \
-    --bootstrap 1000 \
-    --output validation_results/med_mmhl_v1
-"""
-
-#!/usr/bin/env python3
-"""Validate MedContext on Med-MMHL multimodal claim dataset.
-
-This is the proper validation study (not Proof of Justification).
-Uses Med-MMHL image-claim pairs with fact-checker labels.
-
-Usage:
-  # 1. Download Med-MMHL (see scripts/download_med_mmhl.py)
   # 2. Run validation on test split with randomized sampling:
 
   python scripts/validate_med_mmhl.py \
@@ -78,6 +47,7 @@ Usage:
 """
 
 import argparse
+import importlib.util
 import json
 import random
 import sys
@@ -90,13 +60,11 @@ scripts_dir = Path(__file__).parent
 sys.path.insert(0, str(repo_root / "src"))
 sys.path.insert(0, str(scripts_dir))
 
-from app.validation.loaders import load_med_mmhl_dataset
-from app.validation.metrics import (
-    compute_three_dimensional_metrics,
+from app.validation.loaders import load_med_mmhl_dataset  # noqa: E402
+from app.validation.metrics import (  # noqa: E402
     bootstrap_confidence_intervals,
+    compute_three_dimensional_metrics,
 )
-
-import importlib.util
 
 target_path = scripts_dir / "validate_three_methods.py"
 _spec = importlib.util.spec_from_file_location(
@@ -135,6 +103,20 @@ def run_validation(
         benchmark_path = data_dir
     base_image_dir = data_dir
 
+    # Detect model from output directory name
+    model_name = output_dir.name
+    model_label = "Unknown Model"
+    if "27b" in model_name.lower():
+        model_label = "MedGemma 27B (HuggingFace Inference API)"
+    elif "4b" in model_name.lower() and "quantized" in model_name.lower():
+        model_label = "MedGemma 4B (Quantized Local)"
+    elif "4b" in model_name.lower():
+        model_label = "MedGemma 4B"
+    elif "quantized" in model_name.lower():
+        model_label = "MedGemma Quantized Model"
+    elif "hf" in model_name.lower():
+        model_label = "MedGemma HuggingFace Model"
+
     records = load_med_mmhl_dataset(
         benchmark_path=benchmark_path,
         split=split,
@@ -152,7 +134,7 @@ def run_validation(
             # Randomized sampling with seed for reproducibility
             random.seed(random_seed)
             records = random.sample(records, min(limit, len(records)))
-            sampling_method = f"stratified_random_seed_{random_seed}"
+            sampling_method = f"simple_random_seed_{random_seed}"
         else:
             # Sequential sampling (original behavior)
             records = records[:limit]
@@ -232,6 +214,8 @@ def run_validation(
     report = {
         "dataset": "Med-MMHL",
         "split": split,
+        "model_name": model_name,
+        "model_label": model_label,
         "n_samples": len(validator.results),
         "n_skipped_missing": validator.skipped_missing,
         "n_skipped_errors": validator.skipped_errors,
@@ -239,6 +223,32 @@ def run_validation(
         "sampling_method": sampling_method,
         "random_seed": random_seed if random_seed is not None else None,
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "classification_info": {
+            "veracity": {
+                "threshold": 0.5,
+                "positive_class": "Plausible (not fake)",
+                "negative_class": "Fake claim",
+                "decision_rule": "veracity_score > 0.5 = plausible",
+                "score_mapping": {"true": 0.9, "partially_true": 0.6, "false": 0.1},
+                "note": "High recall/low precision suggests threshold=0.65 may be optimal (excludes partially_true)",
+            },
+            "alignment": {
+                "threshold": 0.5,
+                "positive_class": "Aligned",
+                "negative_class": "Misaligned",
+                "decision_rule": "alignment_score > 0.5 = aligned",
+                "score_mapping": {
+                    "aligns_fully": 0.9,
+                    "partially_aligns": 0.6,
+                    "does_not_align": 0.1,
+                },
+            },
+            "misinformation": {
+                "positive_class": "Misinformation",
+                "negative_class": "Legitimate",
+                "decision_logic": "Combined veracity-first logic (see validate_three_methods.py lines 284-348)",
+            },
+        },
         "metrics": metrics,
     }
 
@@ -336,30 +346,62 @@ def main() -> int:
         print(f"Error: {e}")
         return 1
 
+    # Auto-generate chart data for UI
+    try:
+        import importlib.util as _ilu
+
+        _charts_path = Path(__file__).parent / "generate_validation_charts.py"
+        _spec = _ilu.spec_from_file_location("generate_validation_charts", _charts_path)
+        if _spec and _spec.loader:
+            _charts_mod = _ilu.module_from_spec(_spec)
+            _spec.loader.exec_module(_charts_mod)
+            _charts_mod.generate_charts(args.output)
+            print(f"\nChart data: {args.output / 'chart_data.json'}")
+    except Exception as chart_err:
+        print(f"\nWarning: Chart generation failed: {chart_err}")
+
     # Print summary
     m = report["metrics"]
     print()
     print("=" * 60)
     print("Med-MMHL Validation Results")
     print("=" * 60)
+    print(f"Model: {report.get('model_label', 'Unknown')}")
     print(f"Split: {report['split']} | n={report['n_samples']}")
     if "sampling_method" in report:
         print(f"Sampling: {report['sampling_method']}")
         if report.get("random_seed"):
             print(f"Random seed: {report['random_seed']}")
     print()
+    print("Classification Info:")
+    print(
+        f"  Veracity threshold: {report['classification_info']['veracity']['threshold']}"
+    )
+    print(
+        f"  Positive class: {report['classification_info']['veracity']['positive_class']}"
+    )
+    print("  Score mapping: true=0.9, partially_true=0.6, false=0.1")
+    print()
     print("Pixel Authenticity (rate marked authentic):")
     print(f"  {m['pixel_authenticity']['mean_authentic_rate']:.1%}")
     print()
     print("Veracity (claim plausibility):")
-    v_f1 = m['veracity']['f1']
+    v_f1 = m["veracity"]["f1"]
     v_f1_str = f"{v_f1:.3f}" if v_f1 is not None else "N/A"
     print(f"  Accuracy: {m['veracity']['accuracy']:.1%} | F1: {v_f1_str}")
+    if m["veracity"].get("precision") and m["veracity"].get("recall"):
+        print(
+            f"  Precision: {m['veracity']['precision']:.1%} | Recall: {m['veracity']['recall']:.1%}"
+        )
     print()
     print("Alignment (image-claim consistency):")
-    a_f1 = m['alignment']['f1']
+    a_f1 = m["alignment"]["f1"]
     a_f1_str = f"{a_f1:.3f}" if a_f1 is not None else "N/A"
     print(f"  Accuracy: {m['alignment']['accuracy']:.1%} | F1: {a_f1_str}")
+    if m["alignment"].get("precision") and m["alignment"].get("recall"):
+        print(
+            f"  Precision: {m['alignment']['precision']:.1%} | Recall: {m['alignment']['recall']:.1%}"
+        )
     if "bootstrap_95ci" in m:
         ci = m["bootstrap_95ci"]
         print()

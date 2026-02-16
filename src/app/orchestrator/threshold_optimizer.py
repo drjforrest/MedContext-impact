@@ -11,9 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from PIL import Image
 
-from app.clinical.medgemma_client import get_medgemma_client
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
 
 logger = logging.getLogger(__name__)
@@ -29,7 +27,11 @@ def compute_metrics(y_true: list[int], y_pred: list[int]) -> dict[str, float]:
     accuracy = (tp + tn) / len(y_true) if len(y_true) > 0 else 0.0
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+    f1 = (
+        2 * precision * recall / (precision + recall)
+        if (precision + recall) > 0
+        else 0.0
+    )
 
     return {
         "accuracy": accuracy,
@@ -52,9 +54,9 @@ def apply_threshold_logic(
 ) -> list[int]:
     """
     Apply threshold logic to scores.
-    
+
     Returns binary predictions (1 = misinformation, 0 = legitimate).
-    
+
     Logic options:
     - "OR": Flag if veracity < threshold OR alignment < threshold
     - "AND": Flag if veracity < threshold AND alignment < threshold
@@ -74,10 +76,33 @@ def apply_threshold_logic(
     return predictions
 
 
+_ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+_MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _safe_image_path(raw_path: str, base_dir: Path) -> Path:
+    """
+    Resolve image_path from dataset JSON against a trusted base directory.
+
+    Raises ValueError if the resolved path escapes the base directory or
+    does not have an allowed image extension.
+    """
+    resolved = (base_dir / raw_path).resolve()
+    if not resolved.is_relative_to(base_dir.resolve()):
+        raise ValueError(
+            f"image_path '{raw_path}' escapes allowed directory '{base_dir}'"
+        )
+    if resolved.suffix.lower() not in _ALLOWED_IMAGE_EXTENSIONS:
+        raise ValueError(
+            f"image_path '{raw_path}' has disallowed extension '{resolved.suffix}'"
+        )
+    return resolved
+
+
 async def run_agent_on_dataset(dataset_path: str) -> dict[str, Any]:
     """
     Run MedContext agent on a dataset and extract raw scores.
-    
+
     Returns dict with:
     - veracity_scores: list[float]
     - alignment_scores: list[float]
@@ -85,6 +110,10 @@ async def run_agent_on_dataset(dataset_path: str) -> dict[str, Any]:
     """
     with open(dataset_path, "r") as f:
         dataset = json.load(f)
+
+    # Image paths in the dataset must be relative and resolved against the
+    # dataset's own directory — prevents path traversal via user-uploaded JSON.
+    dataset_dir = Path(dataset_path).parent
 
     agent = MedContextLangGraphAgent()
     veracity_scores = []
@@ -94,27 +123,41 @@ async def run_agent_on_dataset(dataset_path: str) -> dict[str, Any]:
     logger.info(f"Running agent on {len(dataset)} samples for threshold optimization")
 
     for i, sample in enumerate(dataset):
-        image_path = sample["image_path"]
+        raw_image_path = sample["image_path"]
         claim = sample["claim"]
         label = sample["label"]
 
-        # Load image
+        # Validate and resolve image path against dataset directory
+        try:
+            image_path = _safe_image_path(raw_image_path, dataset_dir)
+        except ValueError as e:
+            logger.warning(f"Skipping sample {i} — invalid image_path: {e}")
+            continue
+
+        # Load image (size-limited to prevent memory exhaustion)
         with open(image_path, "rb") as img_file:
-            image_bytes = img_file.read()
+            image_bytes = img_file.read(_MAX_IMAGE_SIZE_BYTES)
 
         # Run agent
         try:
-            state = agent.run(
+            run_result = agent.run(
                 image_bytes=image_bytes,
                 image_id=f"opt_{i}",
                 context=claim,
                 force_tools=[],
             )
 
-            # Extract scores from triage
-            triage = state.get("triage", {})
-            veracity_score = triage.get("veracity_score", 0.5)
-            alignment_score = triage.get("alignment_score", 0.5)
+            # Extract scores from synthesis's contextual_integrity block
+            synthesis = run_result.synthesis or {}
+            contextual_integrity = synthesis.get("contextual_integrity", {})
+
+            # Extract veracity score from claim_veracity
+            claim_veracity = contextual_integrity.get("claim_veracity", {})
+            veracity_score = claim_veracity.get("score", 0.5) if claim_veracity else 0.5
+
+            # Extract alignment score from signals
+            signals = contextual_integrity.get("signals", {})
+            alignment_score = signals.get("alignment", 0.5) if signals else 0.5
 
             veracity_scores.append(veracity_score)
             alignment_scores.append(alignment_score)
@@ -142,7 +185,7 @@ def grid_search_thresholds(
 ) -> dict[str, Any]:
     """
     Grid search over threshold combinations.
-    
+
     Returns dict with optimal thresholds and performance for each logic type.
     """
     if threshold_range is None:
@@ -250,11 +293,11 @@ def bootstrap_confidence_intervals(
 async def optimize_thresholds_from_dataset(dataset_path: str) -> dict[str, Any]:
     """
     Full threshold optimization pipeline.
-    
+
     1. Run agent on dataset to get raw scores
     2. Grid search for optimal thresholds
     3. Compute bootstrap confidence intervals
-    
+
     Returns comprehensive results dict.
     """
     logger.info(f"Starting threshold optimization for dataset: {dataset_path}")

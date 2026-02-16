@@ -231,17 +231,40 @@ Return ONLY valid JSON with this exact structure:
             output = result.output if hasattr(result, "output") else {}
 
             # Get categorical assessments with defaults
-            veracity_cat = output.get("veracity", "partially_true")
-            alignment_cat = output.get("alignment", "partially_aligns")
+            veracity_cat_raw = output.get("veracity", "partially_true")
+            alignment_cat_raw = output.get("alignment", "partially_aligns")
+
+            # Normalize pipe-separated categories to single discrete values
+            # When MedGemma returns multiple options (e.g., "true|partially_true|false"),
+            # it indicates uncertainty - resolve to "uncertain" or middle category
+            def normalize_category(
+                raw_value: str, valid_options: dict, middle_option: str
+            ) -> str:
+                """Normalize potentially pipe-separated category to single value."""
+                if "|" in raw_value:
+                    # Multiple options indicate uncertainty - use middle/uncertain category
+                    return middle_option
+                elif raw_value in valid_options:
+                    return raw_value
+                else:
+                    # Invalid/unknown category - default to middle
+                    return middle_option
 
             # Map categorical assessments to scores (clear, defined mapping)
             veracity_scores = {"true": 0.9, "partially_true": 0.6, "false": 0.1}
-
             alignment_scores = {
                 "aligns_fully": 0.9,
                 "partially_aligns": 0.6,
                 "does_not_align": 0.1,
             }
+
+            # Normalize categories
+            veracity_cat = normalize_category(
+                veracity_cat_raw, veracity_scores, "partially_true"
+            )
+            alignment_cat = normalize_category(
+                alignment_cat_raw, alignment_scores, "partially_aligns"
+            )
 
             veracity_score = veracity_scores.get(veracity_cat, 0.5)
             alignment_score = alignment_scores.get(alignment_cat, 0.5)
@@ -281,82 +304,76 @@ Return ONLY valid JSON with this exact structure:
     def combined_analysis(
         self, pixel_result: Dict, context_result: Dict
     ) -> Dict[str, Any]:
-        """Combine pixel + contextual predictions with contextual priority.
+        """Combine pixel + contextual predictions with veracity-first decision logic.
 
-        DECISION HIERARCHY:
-        1. Strong contextual signals (veracity >= 0.8 AND alignment >= 0.8) are DECISIVE
-           → is_misinformation = false regardless of pixel forensics
-        2. Weak contextual signals defer to combined evidence
-           → Misinformation if pixels tampered OR context misleading
+        IS_MISINFORMATION DECISION RULE (applied in order):
+        ────────────────────────────────────────────────────────────────────────
+        Primary Signal: VERACITY (claim factual correctness)
+          • veracity_category = "false" OR veracity_score < 0.5
+            → is_misinformation = TRUE (false claim is always misinformation)
+          • veracity_category = "true" AND veracity_score >= 0.8
+            → is_misinformation = FALSE (high-confidence true claim, regardless of alignment/pixels)
 
-        RATIONALE: Pixel forensics has false positives (compression artifacts, format
-        conversions). Strong contextual alignment (verified claim + matching image)
-        indicates legitimate content even if pixels show anomalies.
+        Secondary Modifier: ALIGNMENT (only when veracity is ambiguous)
+          • If veracity_category = "partially_true" OR 0.5 <= veracity_score < 0.8:
+            - alignment_category = "does_not_align" OR alignment_score < 0.5
+              → is_misinformation = TRUE (misleading context)
+            - alignment_category = "aligns_fully" OR alignment_score >= 0.8
+              → is_misinformation = FALSE (well-aligned)
+            - Otherwise: is_misinformation = TRUE (ambiguous defaults to misinformation)
+
+        Pixel Forensics: NO DIRECT INFLUENCE on is_misinformation
+          (preserved in combined_result for transparency, affects overall_score only)
+        ────────────────────────────────────────────────────────────────────────
 
         WEIGHTS: overall_score = 0.3*pixel + 0.4*veracity + 0.3*alignment
         """
         # Extract contextual signals
         veracity_score = context_result.get("veracity_score", 0.5)
         alignment_score = context_result.get("alignment_score", 0.5)
-        overall_score = context_result.get("overall_score", 0.5)
-        is_misleading = context_result.get("is_misleading", False)
         veracity_category = context_result.get("veracity_category", "partially_true")
         alignment_category = context_result.get(
             "alignment_category", "partially_aligns"
         )
         pixel_authentic = pixel_result.get("pixel_authentic", True)
 
-        # Determine contextual strength
-        strong_contextual_signals = veracity_score >= 0.8 and alignment_score >= 0.8
-        low_veracity = veracity_category == "false" or veracity_score < 0.5
-        low_alignment = alignment_category == "does_not_align" or alignment_score < 0.5
-        medium_veracity = (
-            veracity_category == "partially_true" and veracity_score <= 0.6
-        )
-        medium_alignment = (
-            alignment_category == "partially_aligns" and alignment_score <= 0.6
-        )
+        # ═══════════════════════════════════════════════════════════════════════
+        # VERACITY-FIRST DECISION LOGIC
+        # ═══════════════════════════════════════════════════════════════════════
 
-        # DECISION LOGIC: Strong contextual signals override pixel forensics
-        if strong_contextual_signals:
-            # High confidence in both veracity and alignment → NOT misinformation
-            # Even if pixel forensics detected anomalies (likely false positive)
+        # Step 1: Check for definitive veracity verdicts
+        if veracity_category == "false" or veracity_score < 0.5:
+            # FALSE CLAIM → always misinformation
+            is_misinformation = True
+            combined_is_misleading = True
+        elif veracity_category == "true" and veracity_score >= 0.8:
+            # HIGH-CONFIDENCE TRUE CLAIM → not misinformation
+            # (Poor alignment might indicate out-of-context use, but not misinformation)
             is_misinformation = False
             combined_is_misleading = False
-            # Weighted score: 30% pixel, 40% veracity, 30% alignment
-            pixel_score = 1.0 if pixel_authentic else 0.0
-            combined_overall_score = (
-                0.3 * pixel_score + 0.4 * veracity_score + 0.3 * alignment_score
-            )
         else:
-            # Weak contextual signals → use standard OR logic
-            # Misinformation if: tampered pixels OR misleading context
-            is_misinformation = (
-                not pixel_authentic  # Tampered image
-                or is_misleading  # Contextual analysis indicates misleading
-                or low_veracity  # False claim
-                or low_alignment  # Poor alignment
-                or medium_veracity  # Partially true but with low confidence
-                or medium_alignment  # Partially aligns but with low confidence
-            )
-
-            combined_is_misleading = (
-                is_misleading
-                or low_veracity
-                or low_alignment
-                or medium_veracity
-                or medium_alignment
-            )
-
-            # Reduce overall score if contextual analysis shows issues
-            if low_veracity or low_alignment or medium_veracity or medium_alignment:
-                combined_overall_score = min(
-                    overall_score, 0.3 if (low_veracity or low_alignment) else 0.5
-                )
+            # Step 2: Veracity ambiguous → use alignment as tiebreaker
+            if alignment_category == "does_not_align" or alignment_score < 0.5:
+                # Poor alignment + ambiguous veracity → misleading
+                is_misinformation = True
+                combined_is_misleading = True
+            elif alignment_category == "aligns_fully" or alignment_score >= 0.8:
+                # Strong alignment + ambiguous veracity → not misinformation
+                is_misinformation = False
+                combined_is_misleading = False
             else:
-                combined_overall_score = overall_score
+                # Both veracity and alignment are ambiguous → default to misinformation
+                # (Conservative: flag uncertain content for human review)
+                is_misinformation = True
+                combined_is_misleading = True
 
-        # Combine results preserving pixel details for transparency
+        # Compute weighted overall_score (includes pixel forensics)
+        pixel_score = 1.0 if pixel_authentic else 0.0
+        combined_overall_score = (
+            0.3 * pixel_score + 0.4 * veracity_score + 0.3 * alignment_score
+        )
+
+        # Combine results preserving all signals for transparency
         combined_result = {
             **context_result,  # Contextual data takes precedence
             "pixel_authentic": pixel_authentic,  # Preserve pixel verdict
@@ -709,5 +726,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     main()

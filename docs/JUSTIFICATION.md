@@ -6,19 +6,19 @@
 
 ## Executive Summary
 
-MedContext was developed **empirically motivated**, not feature-driven. This document describes the *Proof of Justification* studies that show **why** contextual authenticity requires both veracity and alignment together—and why conventional methods fail at the dominant real-world threat.
+MedContext was developed **empirically motivated**, not feature-driven. This document describes the _Proof of Justification_ studies that show **why** contextual authenticity requires both veracity and alignment together—and why conventional methods fail at the dominant real-world threat.
 
 **Key Thesis:** Full contextual authenticity cannot be judged by veracity alone or alignment alone. Only by combining **both Veracity and Alignment**—requiring multimodal medical AI (MedGemma)—can we effectively detect contextual misinformation.
 
 ---
 
-## The Two Core Propositions We Sought to Prove
+## Core Framework: Failure Modes and Solution
 
-| Proposition | Conventional Methods | Failure Mode |
-|------------|---------------------|--------------|
-| **1. Veracity alone FAILS on alignment ambiguity** | Claim plausibility assessment | ❌ A claim can be plausible yet misaligned with the specific image |
-| **2. Alignment alone FAILS on claim accuracy** | Image-claim consistency | ❌ Image and claim can be consistent but the claim itself is factually false |
-| **3. Combined approach is necessary** | MedGemma veracity + alignment | ✅ Both dimensions required for full contextual authenticity |
+| Proposition                                        | Conventional Methods          | Failure Mode                                                                 |
+| -------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |
+| **1. Veracity alone FAILS on alignment ambiguity** | Claim plausibility assessment | ❌ A claim can be plausible yet misaligned with the specific image           |
+| **2. Alignment alone FAILS on claim accuracy**     | Image-claim consistency       | ❌ Image and claim can be consistent but the claim itself is factually false |
+| **3. Combined approach is necessary**              | MedGemma veracity + alignment | ✅ Both dimensions required for full contextual authenticity                 |
 
 ---
 
@@ -33,6 +33,7 @@ MedContext was developed **empirically motivated**, not feature-driven. This doc
 **Method:** Validation of contextual signals—veracity (claim alone), alignment (image-claim pair).
 
 **Results:**
+
 - **Veracity (claim alone):** 61.3% accuracy
 - **Alignment (image-claim pair):** 56.9% accuracy
 - **Contextual combined:** 65.6% on a subset of 90 pairs
@@ -59,12 +60,12 @@ MedContext was developed **empirically motivated**, not feature-driven. This doc
 
 ## Honest Summary of Proof of Justification
 
-| Study | What We Proved | What We Did Not Prove |
-|-------|----------------|------------------------|
-| **PoJ 3** | Veracity and alignment are distinct, measurable dimensions; MedGemma can assess both | Performance on real misinformation; reliability of synthetic labels |
+| Study         | What We Proved                                                                                | What We Did Not Prove                                                               |
+| ------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **PoJ 3**     | Veracity and alignment are distinct, measurable dimensions; MedGemma can assess both          | Performance on real misinformation; reliability of synthetic labels                 |
 | **PoJ 1 & 2** | Pixel forensics work when format-appropriate (DICOM-native for DICOM, copy-move for PNG/JPEG) | Relevance to contextual misinformation (98% uses authentic images, not manipulated) |
 
-**Conclusion:** These studies justify the *design* of MedContext's contextual authenticity approach—that both veracity and alignment are necessary. They do **not** validate MedContext's performance on real-world medical misinformation. For proper validation on real misinformation, see Med-MMHL results in [VALIDATION.md](./VALIDATION.md).
+**Conclusion:** These studies justify the _design_ of MedContext's contextual authenticity approach—that both veracity and alignment are necessary. They do **not** validate MedContext's performance on real-world medical misinformation. For proper validation on real misinformation, see Med-MMHL results in [VALIDATION.md](./VALIDATION.md).
 
 ---
 
@@ -85,7 +86,7 @@ To validate MedContext rigorously, we need:
 - **UCI Tamper Detection:** Mirsky et al. (2019). CT-GAN: Malicious Tampering of 3D Medical Imagery. USENIX Security.
 - **BTD Dataset:** Graboski, Mirsky (2024). Back-in-Time Diffusion. ACM TIST.
 - **Literature:** Brennen et al. (2021). Over half of visual misinformation = authentic images with false context.
-- **Med-MMHL:** Medical Multimodal Misinformation Benchmark—real-world fact-checked medical misinformation.
+- **Med-MMHL:** Sun, Y., He, J., Lei, S., Cui, L., & Lu, C.-T. (2023). Med-MMHL: A Multi-Modal Dataset for Detecting Human- and LLM-Generated Misinformation in the Medical Domain. arXiv preprint arXiv:2306.08871. https://arxiv.org/abs/2306.08871 | Dataset: https://github.com/styxsys0927/Med-MMHL
 
 ---
 

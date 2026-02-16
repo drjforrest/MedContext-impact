@@ -3,6 +3,10 @@ from __future__ import annotations
 from pydantic import AliasChoices, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
+# Default threshold values for contextual authenticity assessment
+DEFAULT_VERACITY_THRESHOLD = 0.65  # High threshold for claim veracity
+DEFAULT_ALIGNMENT_THRESHOLD = 0.30  # Low threshold for context-claim alignment
+
 
 class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/medcontext"

@@ -1,20 +1,30 @@
 #!/bin/bash
 # Monitor validation progress
 
-TERMINAL_FILE="/Users/drjforrest/.cursor/projects/Users-drjforrest-dev-projects-hero-counterforce-medcontext/terminals/18174.txt"
-OUTPUT_DIR="validation_results/med_mmhl_n163_quantized_4b"
+#!/bin/bash
+# Monitor validation progress
+
+TERMINAL_FILE="${1:?Usage: $0 <terminal_file> <output_dir> <pid>}"
+OUTPUT_DIR="${2:?Usage: $0 <terminal_file> <output_dir> <pid>}"
+PID="${3:?Usage: $0 <terminal_file> <output_dir> <pid>}"
+
+# Validate PID is numeric
+if ! [[ "$PID" =~ ^[0-9]+$ ]]; then
+    echo "Error: PID must be a numeric value (got: '$PID')" >&2
+    exit 1
+fi
 
 echo "==================================="
 echo "Phase 1 Validation Monitor"
 echo "==================================="
 echo ""
-echo "PID: 39838"
+echo "PID: $PID"
 echo "Expected runtime: ~26 minutes"
 echo "Started: $(date)"
 echo ""
 
 # Check if process is running
-if ps -p 39838 > /dev/null 2>&1; then
+if ps -p "$PID" > /dev/null 2>&1; then
     echo "✓ Validation process is running"
 else
     echo "✗ Validation process not found"

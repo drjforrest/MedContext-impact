@@ -236,6 +236,7 @@ async def ingest_and_run_agent(
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     from app.orchestrator.tool_utils import parse_force_tools
+
     image_bytes = await file.read()
     return ingest_and_run_agentic(
         image_bytes=image_bytes,

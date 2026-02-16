@@ -73,13 +73,15 @@ python scripts/compare_validation_runs.py \
 ### Usage:
 
 ```python
-# In validate_med_mmhl.py (lines 99-106)
+# In validate_med_mmhl.py (lines 119-128)
 if limit:
     if random_seed is not None:
+        # Randomized sampling with seed for reproducibility
         random.seed(random_seed)
         records = random.sample(records, min(limit, len(records)))
-        sampling_method = f"stratified_random_seed_{random_seed}"
+        sampling_method = f"simple_random_seed_{random_seed}"
     else:
+        # Sequential sampling (original behavior)
         records = records[:limit]
         sampling_method = "sequential_first_n"
 ```
@@ -91,16 +93,19 @@ if limit:
 ### Expected Changes with Randomized Sampling:
 
 **Recall:** Will likely **decrease** from 98.1%
+
 - Fewer misinformation cases (135 vs 158) means fewer chances for true positives
 - More realistic estimate of recall on balanced data
 - Expected range: 90-95%
 
-**Precision:** Will likely **hold or improve** 
+**Precision:** Will likely **hold or improve**
+
 - Similar false positive rate on ~25 real cases vs 5 real cases
 - Already conservative at 98.1%
 - Expected range: 95-99%
 
 **Overall Accuracy:** Will likely **hold steady** around 95-97%
+
 - The system's ability to classify both types correctly shouldn't change much
 - Core finding (single signals 71-72% vs combined 96%) will remain
 
@@ -135,6 +140,7 @@ If you re-run with randomized sampling, update these files with new results:
 5. `docs/SUBMISSION.md` - Validation notes
 
 Replace references to:
+
 - "sequential sampling" → "stratified random sampling (seed=42)"
 - "96.9% misinformation rate" → "83% misinformation rate (representative)"
 - "14pp bias" → "representative label distribution"

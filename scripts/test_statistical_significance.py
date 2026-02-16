@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Statistical significance test for model comparison."""
+
 import json
 from pathlib import Path
-from scipy import stats
+
 import numpy as np
+from scipy import stats
 
 # Load results
 phase1_path = Path("validation_results/med_mmhl_n163_quantized_4b/chart_data.json")
@@ -15,9 +17,12 @@ with open(phase2_path) as f:
     phase2 = json.load(f)
 
 # Extract metrics
-n = 163
-acc1 = phase1["raw_metrics"]["accuracy"]
-acc2 = phase2["raw_metrics"]["accuracy"]
+metrics1 = phase1["raw_metrics"]
+metrics2 = phase2["raw_metrics"]
+n = metrics1["tp"] + metrics1["fp"] + metrics1["tn"] + metrics1["fn"]
+acc1 = metrics1["accuracy"]
+acc2 = metrics2["accuracy"]
+
 
 # Calculate 95% confidence intervals using Wilson score interval
 def wilson_ci(p, n, confidence=0.95):
@@ -28,40 +33,40 @@ def wilson_ci(p, n, confidence=0.95):
     margin = z * np.sqrt((p * (1 - p) / n + z**2 / (4 * n**2))) / denominator
     return center - margin, center + margin
 
+
 ci1_lower, ci1_upper = wilson_ci(acc1, n)
 ci2_lower, ci2_upper = wilson_ci(acc2, n)
 
-# McNemar's test for paired samples (same data, different classifiers)
-# Need to reconstruct the contingency table
-tp1, fp1, tn1, fn1 = phase1["raw_metrics"]["tp"], phase1["raw_metrics"]["fp"], phase1["raw_metrics"]["tn"], phase1["raw_metrics"]["fn"]
-tp2, fp2, tn2, fn2 = phase2["raw_metrics"]["tp"], phase2["raw_metrics"]["fp"], phase2["raw_metrics"]["tn"], phase2["raw_metrics"]["fn"]
+# Extract confusion matrix components for aggregate statistics
+tp1, fp1, tn1, fn1 = (
+    phase1["raw_metrics"]["tp"],
+    phase1["raw_metrics"]["fp"],
+    phase1["raw_metrics"]["tn"],
+    phase1["raw_metrics"]["fn"],
+)
+tp2, fp2, tn2, fn2 = (
+    phase2["raw_metrics"]["tp"],
+    phase2["raw_metrics"]["fp"],
+    phase2["raw_metrics"]["tn"],
+    phase2["raw_metrics"]["fn"],
+)
 
-# For McNemar's test, we need:
-# b = model1 correct, model2 wrong
-# c = model1 wrong, model2 correct
+# Calculate correct counts for each model
 correct1 = tp1 + tn1  # 145
 correct2 = tp2 + tn2  # 144
-wrong1 = fp1 + fn1    # 18
-wrong2 = fp2 + fn2    # 19
 
-# The difference is 1 sample
+# Difference in correct predictions
 diff = correct1 - correct2  # Should be 1
 
-# Conservative estimate: assume the difference is in discordant pairs
-# (one model right, other wrong)
-b = max(1, diff)  # Model 1 correct, Model 2 wrong
-c = 0  # Model 2 correct, Model 1 wrong (if diff > 0)
-
-# McNemar's test
-if b + c > 0:
-    mcnemar_stat = (abs(b - c) - 1)**2 / (b + c) if b + c > 10 else None
-    if mcnemar_stat:
-        p_value = 1 - stats.chi2.cdf(mcnemar_stat, 1)
-    else:
-        # Use exact binomial test for small samples
-        p_value = stats.binomtest(b, b + c, 0.5).pvalue
-else:
-    p_value = 1.0
+# Two-proportion z-test for independent proportions
+# Note: This is a non-paired test suitable for aggregate counts
+# A paired test (McNemar) would require per-sample predictions
+p1 = correct1 / n
+p2 = correct2 / n
+p_pooled = (correct1 + correct2) / (2 * n)
+se = np.sqrt(2 * p_pooled * (1 - p_pooled) / n)
+z_stat = (p1 - p2) / se if se > 0 else 0
+p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))  # Two-tailed test
 
 print("=" * 70)
 print("STATISTICAL SIGNIFICANCE TEST")
@@ -74,14 +79,24 @@ print(f"  Accuracy: {acc1:.1%} ({correct1}/163)")
 print(f"  95% CI: [{ci1_lower:.1%}, {ci1_upper:.1%}]")
 print()
 print("Model 2 (HuggingFace 27B):")
-print(f"  Accuracy: {acc2:.1%} ({correct2}/163)")
+print(f"  Accuracy: {acc2:.1%} ({correct2}/{n})")
 print(f"  95% CI: [{ci2_lower:.1%}, {ci2_upper:.1%}]")
 print()
+
+# Compute dynamic interpretation values
+diff_pp = (acc1 - acc2) * 100  # Percentage-point difference
+ci1_margin = (ci1_upper - ci1_lower) / 2 * 100  # CI margin for model 1 in pp
+ci2_margin = (ci2_upper - ci2_lower) / 2 * 100  # CI margin for model 2 in pp
+avg_ci_margin = (ci1_margin + ci2_margin) / 2  # Average CI margin
+ci_overlap = ci1_upper >= ci2_lower and ci2_upper >= ci1_lower  # Boolean for overlap
+
 print("Comparison:")
 print(f"  Difference: {acc1 - acc2:.1%} ({diff} sample)")
-print(f"  Overlap in CIs: YES (wide overlap)")
-print(f"  McNemar's p-value: {p_value:.3f}")
+print(f"  Overlap in CIs: {'YES' if ci_overlap else 'NO'}")
+print(f"  Two-proportion z-test p-value: {p_value:.3f}")
+print("  Note: Using non-paired test (paired test requires per-sample predictions)")
 print()
+
 print("=" * 70)
 print("INTERPRETATION")
 print("=" * 70)
@@ -90,11 +105,13 @@ print()
 if p_value > 0.05:
     print("✅ NOT STATISTICALLY SIGNIFICANT (p > 0.05)")
     print()
-    print("The 0.7pp difference is well within random variation.")
-    print("With n=163, confidence intervals are ±4-5 percentage points.")
+    print(f"The {diff_pp:.1f}pp difference is well within random variation.")
+    print(
+        f"With n={n}, confidence intervals are ±{avg_ci_margin:.1f} percentage points."
+    )
     print()
     print("Conclusion: The models perform equivalently.")
-    print("The difference of 1 sample could easily flip with a different")
+    print(f"The difference of {diff} sample could easily flip with a different")
     print("random seed or subset selection.")
 else:
     print("❌ STATISTICALLY SIGNIFICANT (p < 0.05)")
@@ -106,15 +123,15 @@ print("=" * 70)
 print("WHAT IF WE USED A DIFFERENT RANDOM SEED?")
 print("=" * 70)
 print()
-print("With 163 samples from 1,785 total:")
+print(f"With {n} samples from 1,785 total:")
 print("  - Many possible subsets")
 print("  - Each subset will have different difficulty")
-print("  - Results could easily vary by ±2-5 percentage points")
+print(f"  - Results could easily vary by ±{avg_ci_margin:.0f} percentage points")
 print()
 print("Example: If the random subset had more challenging cases,")
 print("both models might score 85-87%. If easier cases, 90-92%.")
 print()
-print("The 0.7pp difference (1 sample) is MUCH smaller than the")
-print("expected variation from different random subsets (~5pp).")
+print(f"The {diff_pp:.1f}pp difference ({diff} sample) is MUCH smaller than the")
+print(f"expected variation from different random subsets (~{avg_ci_margin:.0f}pp).")
 print()
 print("=" * 70)

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ScatterChart, Scatter, ZAxis, Legend } from 'recharts'
+import { Bar, BarChart, Cell, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import './App.css'
 
 export default function ThresholdOptimization({ apiBase, accessCode }) {
@@ -215,7 +215,7 @@ export default function ThresholdOptimization({ apiBase, accessCode }) {
                       {(results.optimal.accuracy * 100).toFixed(1)}%
                     </td>
                     <td style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.85rem', color: '#9ba0af' }}>
-                      [{(results.bootstrap_ci.accuracy.ci_lower * 100).toFixed(1)}%, {(results.bootstrap_ci.accuracy.ci_upper * 100).toFixed(1)}%]
+                      [{(results.bootstrap_ci?.accuracy?.ci_lower * 100 || 0).toFixed(1)}%, {(results.bootstrap_ci?.accuracy?.ci_upper * 100 || 0).toFixed(1)}%]
                     </td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #2d3142' }}>

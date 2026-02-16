@@ -160,19 +160,19 @@ class MedContextLangGraphAgent:
             medical_analysis, context, pre_screen, medgemma_tool_recommendations
         )
 
-        # Check if user might benefit from threshold optimization
-        threshold_recommendation = self._check_threshold_optimization_recommendation(
-            context, state.get("veracity_threshold"), state.get("alignment_threshold")
-        )
-        if threshold_recommendation:
-            combined_triage["threshold_recommendation"] = threshold_recommendation
-
         # Combine for backwards compatibility and downstream use
         combined_triage = {
             "medical_analysis": medical_analysis.output,
             "tool_selection": tool_selection,
             "required_investigation": tool_selection.get("tools", []),
         }
+
+        # Check if user might benefit from threshold optimization
+        threshold_recommendation = self._check_threshold_optimization_recommendation(
+            context, state.get("veracity_threshold"), state.get("alignment_threshold")
+        )
+        if threshold_recommendation:
+            combined_triage["threshold_recommendation"] = threshold_recommendation
 
         state.update(
             {
@@ -789,6 +789,7 @@ class MedContextLangGraphAgent:
             context=state.get("context"),
             triage=triage_output,
             tool_results=tool_results,
+            state=state,
         )
         duration_ms = int((perf_counter() - start) * 1000)
         self._append_trace(
@@ -955,6 +956,7 @@ class MedContextLangGraphAgent:
         context: str | None,
         triage: Any,
         tool_results: dict[str, Any],
+        state: AgentState | None = None,
     ) -> Any:
         synthesis_output = synthesis.output
         if not isinstance(synthesis_output, dict):
@@ -1000,6 +1002,21 @@ class MedContextLangGraphAgent:
         context: str | None = None,
         state: AgentState | None = None,
     ) -> dict[str, Any]:
+        """Build contextual integrity assessment with configurable decision logic.
+
+        Decision Logic Options (set via state["decision_logic"]):
+        ─────────────────────────────────────────────────────────────────────
+        • "VERACITY_FIRST" (recommended, default):
+          Hierarchical logic matching validation methodology
+          - Primary: veracity (false claim → always misinformation)
+          - Secondary: alignment (tiebreaker when veracity ambiguous)
+          See: scripts/validate_three_methods.py:combined_analysis()
+
+        • "OR": veracity < threshold OR alignment < threshold → misinformation
+        • "AND": veracity < threshold AND alignment < threshold → misinformation
+        • "MIN": min(veracity, alignment) < min_threshold → misinformation
+        ─────────────────────────────────────────────────────────────────────
+        """
         alignment_score, alignment_label = self._extract_alignment_signal(
             synthesis_output
         )
@@ -1010,7 +1027,9 @@ class MedContextLangGraphAgent:
         # Get configurable thresholds from state
         veracity_threshold = state.get("veracity_threshold", 0.65) if state else 0.65
         alignment_threshold = state.get("alignment_threshold", 0.30) if state else 0.30
-        decision_logic = state.get("decision_logic", "OR") if state else "OR"
+        decision_logic = (
+            state.get("decision_logic", "VERACITY_FIRST") if state else "VERACITY_FIRST"
+        )
 
         score = compute_contextual_integrity_score(
             alignment=alignment_score,
@@ -1023,23 +1042,61 @@ class MedContextLangGraphAgent:
             return None if value is None else float(value)
 
         claim_veracity = self._extract_claim_veracity(synthesis_output)
-        
+
         # Apply configurable decision logic
         veracity_value = claim_veracity.get("score", 0.5) if claim_veracity else 0.5
+        veracity_category = (
+            claim_veracity.get("category", "partially_true")
+            if claim_veracity
+            else "partially_true"
+        )
         alignment_value = alignment_score if alignment_score is not None else 0.5
-        
+
         # Determine final verdict based on decision logic
-        if decision_logic == "OR":
-            is_misinformation = veracity_value < veracity_threshold or alignment_value < alignment_threshold
+        if decision_logic == "VERACITY_FIRST":
+            # Hierarchical logic matching validation methodology (recommended)
+            # Primary: veracity (false claim → always misinformation)
+            # Secondary: alignment (tiebreaker when veracity ambiguous)
+            # See: scripts/validate_three_methods.py:combined_analysis()
+            if veracity_category == "false" or veracity_value < 0.5:
+                is_misinformation = True
+            elif veracity_category == "true" and veracity_value >= 0.8:
+                is_misinformation = False
+            else:
+                # Ambiguous veracity → use alignment as tiebreaker
+                if alignment_label == "does_not_align" or alignment_value < 0.5:
+                    is_misinformation = True
+                elif alignment_label == "aligns_fully" or alignment_value >= 0.8:
+                    is_misinformation = False
+                else:
+                    is_misinformation = True  # Conservative default
+        elif decision_logic == "OR":
+            is_misinformation = (
+                veracity_value < veracity_threshold
+                or alignment_value < alignment_threshold
+            )
         elif decision_logic == "AND":
-            is_misinformation = veracity_value < veracity_threshold and alignment_value < alignment_threshold
+            is_misinformation = (
+                veracity_value < veracity_threshold
+                and alignment_value < alignment_threshold
+            )
         elif decision_logic == "MIN":
             min_score = min(veracity_value, alignment_value)
             min_threshold = min(veracity_threshold, alignment_threshold)
             is_misinformation = min_score < min_threshold
         else:
-            # Default to OR logic
-            is_misinformation = veracity_value < veracity_threshold or alignment_value < alignment_threshold
+            # Default to VERACITY_FIRST (recommended best practice)
+            if veracity_category == "false" or veracity_value < 0.5:
+                is_misinformation = True
+            elif veracity_category == "true" and veracity_value >= 0.8:
+                is_misinformation = False
+            else:
+                if alignment_label == "does_not_align" or alignment_value < 0.5:
+                    is_misinformation = True
+                elif alignment_label == "aligns_fully" or alignment_value >= 0.8:
+                    is_misinformation = False
+                else:
+                    is_misinformation = True
 
         return {
             "score": score,
@@ -1365,7 +1422,7 @@ class MedContextLangGraphAgent:
     ) -> dict[str, Any] | None:
         """
         Check if user might benefit from threshold optimization.
-        
+
         Returns recommendation dict if:
         - User is using default thresholds (0.65/0.30)
         - Context suggests this is a batch/validation scenario
@@ -1373,12 +1430,20 @@ class MedContextLangGraphAgent:
         # Only recommend if using defaults
         if current_veracity != 0.65 or current_alignment != 0.30:
             return None
-            
+
         # Check for keywords suggesting validation/batch scenario
-        if context and any(keyword in context.lower() for keyword in [
-            "validation", "test set", "evaluation", "dataset", 
-            "benchmark", "batch", "multiple images"
-        ]):
+        if context and any(
+            keyword in context.lower()
+            for keyword in [
+                "validation",
+                "test set",
+                "evaluation",
+                "dataset",
+                "benchmark",
+                "batch",
+                "multiple images",
+            ]
+        ):
             return {
                 "message": (
                     "💡 Detected validation/evaluation scenario. For optimal performance, "
@@ -1386,7 +1451,13 @@ class MedContextLangGraphAgent:
                     "thresholds for your specific dataset before running batch verification."
                 ),
                 "action": "Navigate to Threshold Optimization tab",
-                "benefit": "Can improve accuracy by 5-10 percentage points over default thresholds",
+                "benefit": (
+                    "Empirical validation on Med-MMHL (n=163) shows threshold optimization "
+                    "improved accuracy by +1.8pp to +6.2pp (95% CI: [86.5%, 97.5%]) over "
+                    "heuristic defaults. Results vary by dataset and domain. This is research "
+                    "software, not a medical device—consult clinical validation specialists and "
+                    "seek regulatory review before use in clinical decision-making."
+                ),
             }
-        
+
         return None

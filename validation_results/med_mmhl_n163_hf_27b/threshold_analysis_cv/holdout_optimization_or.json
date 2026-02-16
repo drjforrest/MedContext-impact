@@ -1,0 +1,59 @@
+{
+  "method": "holdout",
+  "logic": "OR",
+  "random_seed": 42,
+  "split_config": {
+    "train_frac": 0.6,
+    "val_frac": 0.2,
+    "test_frac": 0.2
+  },
+  "split_sizes": {
+    "train": 97,
+    "val": 32,
+    "test": 34
+  },
+  "optimal_thresholds": {
+    "veracity_threshold": 0.6499999999999999,
+    "alignment_threshold": 0.3
+  },
+  "train_metrics": {
+    "accuracy": 0.9587628865979382,
+    "precision": 0.9529411764705882,
+    "recall": 1.0,
+    "f1": 0.9759036144578314
+  },
+  "val_metrics": {
+    "accuracy": 0.9375,
+    "precision": 0.9629629629629629,
+    "recall": 0.9629629629629629,
+    "f1": 0.9629629629629629
+  },
+  "test_metrics": {
+    "accuracy": 0.9117647058823529,
+    "precision": 0.9310344827586207,
+    "recall": 0.9642857142857143,
+    "f1": 0.9473684210526315
+  },
+  "test_bootstrap_ci": {
+    "accuracy": {
+      "mean": 0.9155882352941178,
+      "ci_lower": 0.8235294117647058,
+      "ci_upper": 1.0
+    },
+    "precision": {
+      "mean": 0.934618129998858,
+      "ci_lower": 0.8333333333333334,
+      "ci_upper": 1.0
+    },
+    "recall": {
+      "mean": 0.965695016190433,
+      "ci_lower": 0.8887820512820512,
+      "ci_upper": 1.0
+    },
+    "f1": {
+      "mean": 0.9490235398238167,
+      "ci_lower": 0.8846153846153846,
+      "ci_upper": 1.0
+    }
+  }
+}

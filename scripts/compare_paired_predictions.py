@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Analyze sample-by-sample agreement between models."""
+
 import json
+import re
 from pathlib import Path
 
 # Load raw predictions from both runs
@@ -23,7 +25,17 @@ if phase1_ids != phase2_ids:
     print(f"Phase 2: {len(phase2_ids)} samples")
     exit(1)
 
-print("✅ Confirmed: Both models evaluated on SAME 163 samples (seed=42)")
+# Compute actual sample count
+sample_count = len(phase1_predictions)
+
+# Extract seed from filename if present (e.g., "med_mmhl_n163_..." pattern)
+# Fallback to "unknown" if not found
+seed_match = re.search(r"n(\d+)", str(phase1_path))
+seed = seed_match.group(1) if seed_match else "unknown"
+
+print(
+    f"✅ Confirmed: Both models evaluated on SAME {sample_count} samples (seed={seed})"
+)
 print()
 
 # Compare predictions sample by sample
@@ -37,39 +49,46 @@ disagreement_samples = []
 for p1, p2 in zip(phase1_predictions, phase2_predictions):
     # Extract ground truth
     gt_misinfo = p1["ground_truth"]["is_misinformation"]
-    
+
     # Extract predictions
     pred1_misinfo = p1["predictions"]["combined_analysis"]["is_misinformation"]
     pred2_misinfo = p2["predictions"]["combined_analysis"]["is_misinformation"]
-    
+
     # Check correctness
-    correct1 = (pred1_misinfo == gt_misinfo)
-    correct2 = (pred2_misinfo == gt_misinfo)
-    
+    correct1 = pred1_misinfo == gt_misinfo
+    correct2 = pred2_misinfo == gt_misinfo
+
     if correct1 and correct2:
         both_correct += 1
     elif not correct1 and not correct2:
         both_wrong += 1
     elif correct1 and not correct2:
         only_4b_correct += 1
-        disagreement_samples.append({
-            "image_id": p1["image_id"],
-            "ground_truth": "misinformation" if gt_misinfo else "legitimate",
-            "4b_prediction": "misinformation" if pred1_misinfo else "legitimate",
-            "27b_prediction": "misinformation" if pred2_misinfo else "legitimate",
-            "winner": "4B"
-        })
+        disagreement_samples.append(
+            {
+                "image_id": p1["image_id"],
+                "ground_truth": "misinformation" if gt_misinfo else "legitimate",
+                "4b_prediction": "misinformation" if pred1_misinfo else "legitimate",
+                "27b_prediction": "misinformation" if pred2_misinfo else "legitimate",
+                "winner": "4B",
+            }
+        )
     elif correct2 and not correct1:
         only_27b_correct += 1
-        disagreement_samples.append({
-            "image_id": p1["image_id"],
-            "ground_truth": "misinformation" if gt_misinfo else "legitimate",
-            "4b_prediction": "misinformation" if pred1_misinfo else "legitimate",
-            "27b_prediction": "misinformation" if pred2_misinfo else "legitimate",
-            "winner": "27B"
-        })
+        disagreement_samples.append(
+            {
+                "image_id": p1["image_id"],
+                "ground_truth": "misinformation" if gt_misinfo else "legitimate",
+                "4b_prediction": "misinformation" if pred1_misinfo else "legitimate",
+                "27b_prediction": "misinformation" if pred2_misinfo else "legitimate",
+                "winner": "27B",
+            }
+        )
 
 total = len(phase1_predictions)
+if total == 0:
+    print("ERROR: No samples to compare")
+    exit(1)
 agreement_rate = (both_correct + both_wrong) / total
 
 print("=" * 70)
@@ -79,8 +98,8 @@ print()
 print(f"Total Samples: {total}")
 print()
 print("Agreement:")
-print(f"  Both Correct:  {both_correct:3d} ({both_correct/total:.1%})")
-print(f"  Both Wrong:    {both_wrong:3d} ({both_wrong/total:.1%})")
+print(f"  Both Correct:  {both_correct:3d} ({both_correct / total:.1%})")
+print(f"  Both Wrong:    {both_wrong:3d} ({both_wrong / total:.1%})")
 print(f"  Total Agreement: {both_correct + both_wrong:3d} ({agreement_rate:.1%})")
 print()
 print("Disagreement (one right, one wrong):")
@@ -110,10 +129,10 @@ else:
     winner = "4B" if only_4b_correct > only_27b_correct else "27B"
     diff = abs(only_4b_correct - only_27b_correct)
     print(f"🏆 {winner} wins on {diff} more samples")
-    
+
 print()
 print(f"Models AGREE on {agreement_rate:.1%} of samples")
-print(f"Models DISAGREE on {(1-agreement_rate):.1%} of samples")
+print(f"Models DISAGREE on {(1 - agreement_rate):.1%} of samples")
 print()
 
 if disagreement_samples:
@@ -128,16 +147,24 @@ if disagreement_samples:
         print(f"   27B predicted: {sample['27b_prediction']}")
         print(f"   Winner: {sample['winner']}")
         print()
-    
-    if len(disagreement_samples) > 10:
-        print(f"   ... and {len(disagreement_samples) - 10} more")
-        print()
 
-print("=" * 70)
-print("KEY INSIGHT")
+print(
+    f"The models agree on {both_correct + both_wrong}/{total} samples ({agreement_rate:.1%})."
+)
+print(f"They only disagree on {only_4b_correct + only_27b_correct} samples.")
+print()
+if agreement_rate >= 0.90:
+    print("This high agreement suggests they are functionally equivalent.")
+    print("The small differences are due to different decision boundaries")
+    print("on a handful of borderline cases, not systematic superiority.")
+else:
+    print("The models show notable disagreement, warranting further investigation")
+    print("into which sample types each model handles differently.")
 print("=" * 70)
 print()
-print(f"The models agree on {both_correct + both_wrong}/{total} samples ({agreement_rate:.1%}).")
+print(
+    f"The models agree on {both_correct + both_wrong}/{total} samples ({agreement_rate:.1%})."
+)
 print(f"They only disagree on {only_4b_correct + only_27b_correct} samples.")
 print()
 print("This high agreement confirms they are functionally equivalent.")

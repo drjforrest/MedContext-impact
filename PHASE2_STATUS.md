@@ -10,12 +10,14 @@
 ## Configuration
 
 **Model:** MedGemma 27B (HuggingFace Dedicated Endpoint)
+
 - Provider: `vllm` (OpenAI-compatible)
-- Endpoint: `https://vt5q953aaaoh81sn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions`
+- Endpoint: `$HF_ENDPOINT_URL/v1/chat/completions` (configured via environment)
 - Model: `google/medgemma-27b-it`
 - Hardware: 2x A100 80GB GPUs (inferred from endpoint)
 
 **Dataset:**
+
 - Source: Med-MMHL test set
 - Sampling: **Randomized with seed=42** (same as Phase 1)
 - n_samples: 163
@@ -55,25 +57,25 @@ cat validation_results/med_mmhl_n163_hf_27b/validation_report.json | jq '.'
 
 ### Phase 1 Results (Quantized 4B):
 
-| Metric | Value |
-|--------|-------|
+| Metric                | Value     |
+| --------------------- | --------- |
 | **Combined Accuracy** | **89.0%** |
-| **Precision** | **96.8%** |
-| **Recall** | **89.7%** |
-| **F1 Score** | **0.931** |
-| Veracity Accuracy | 73.6% |
-| Alignment Accuracy | 74.8% |
+| **Precision**         | **96.8%** |
+| **Recall**            | **89.7%** |
+| **F1 Score**          | **0.931** |
+| Veracity Accuracy     | 73.6%     |
+| Alignment Accuracy    | 74.8%     |
 
 ### Phase 2 Expected (HuggingFace 27B):
 
-| Metric | Expected Range |
-|--------|----------------|
-| Combined Accuracy | 90-95% |
-| Precision | 95-98% |
-| Recall | 90-95% |
-| F1 Score | 0.93-0.95 |
-| Veracity Accuracy | 75-80% |
-| Alignment Accuracy | 75-80% |
+| Metric             | Expected Range |
+| ------------------ | -------------- |
+| Combined Accuracy  | 90-95%         |
+| Precision          | 95-98%         |
+| Recall             | 90-95%         |
+| F1 Score           | 0.93-0.95      |
+| Veracity Accuracy  | 75-80%         |
+| Alignment Accuracy | 75-80%         |
 
 **Key Question:** Will the larger 27B model improve upon the quantized 4B's 89% accuracy?
 

@@ -1,6 +1,5 @@
 import asyncio
 import ipaddress
-import json
 import logging
 import socket
 from urllib.parse import urlparse
@@ -397,10 +396,10 @@ async def optimize_thresholds(
 ) -> dict:
     """
     Optimize decision thresholds for contextual authenticity scoring.
-    
+
     Accepts a JSON dataset with labeled image-claim pairs and returns
     optimal thresholds via grid search with bootstrap confidence intervals.
-    
+
     Expected JSON format:
     [
       {
@@ -414,13 +413,13 @@ async def optimize_thresholds(
     import tempfile
     import os
     from app.orchestrator.threshold_optimizer import optimize_thresholds_from_dataset
-    
+
     # Save uploaded file to temp location
-    with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.json') as tmp:
+    with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".json") as tmp:
         content = await dataset.read()
         tmp.write(content)
         tmp_path = tmp.name
-    
+
     try:
         # Run optimization
         results = await optimize_thresholds_from_dataset(tmp_path)

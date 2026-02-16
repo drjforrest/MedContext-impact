@@ -60,9 +60,9 @@ cat validation_results/med_mmhl_n163_quantized_4b/validation_report.json | jq '.
    ```
 
 2. **Expected Metrics:**
-   - Veracity accuracy: ~70-75% (baseline)
-   - Alignment accuracy: ~70-75% (baseline)
-   - Combined should be ~95-97%
+   - Veracity accuracy: ~70-75% (baseline single-signal performance)
+   - Alignment accuracy: ~70-75% (baseline single-signal performance)
+   - Combined accuracy: ~88-90% (integrated system using weighted combination: `combined_score = α × veracity_score + (1 − α) × alignment_score`, where α is model-dependent; 27B baseline used α≈0.65. The combined system catches misinformation missed by either signal alone, achieving higher recall while maintaining precision. See METRICS_CORRECTION_SUMMARY.md for methodology.)
 
 3. **Start Phase 2:**
    - Update `.env` to use HuggingFace provider

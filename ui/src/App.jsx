@@ -860,7 +860,10 @@ function App() {
                             max="1"
                             step="0.05"
                             value={veracityThreshold}
-                            onChange={(e) => setVeracityThreshold(parseFloat(e.target.value))}
+                            onChange={(e) => {
+                              const parsed = parseFloat(e.target.value);
+                              setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
+                            }}
                             style={{ accentColor: '#5b8def' }}
                           />
                           <input
@@ -869,7 +872,10 @@ function App() {
                             max="1"
                             step="0.05"
                             value={veracityThreshold}
-                            onChange={(e) => setVeracityThreshold(parseFloat(e.target.value))}
+                            onChange={(e) => {
+                              const parsed = parseFloat(e.target.value);
+                              setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
+                            }}
                             style={{ 
                               padding: '0.5rem', 
                               background: '#1c1e26', 
@@ -889,7 +895,10 @@ function App() {
                             max="1"
                             step="0.05"
                             value={alignmentThreshold}
-                            onChange={(e) => setAlignmentThreshold(parseFloat(e.target.value))}
+                            onChange={(e) => {
+                              const parsed = parseFloat(e.target.value);
+                              setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
+                            }}
                             style={{ accentColor: '#5b8def' }}
                           />
                           <input
@@ -898,7 +907,10 @@ function App() {
                             max="1"
                             step="0.05"
                             value={alignmentThreshold}
-                            onChange={(e) => setAlignmentThreshold(parseFloat(e.target.value))}
+                            onChange={(e) => {
+                              const parsed = parseFloat(e.target.value);
+                              setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
+                            }}
                             style={{ 
                               padding: '0.5rem', 
                               background: '#1c1e26', 

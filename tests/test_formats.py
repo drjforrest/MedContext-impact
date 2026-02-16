@@ -45,10 +45,10 @@ for name, payload in formats.items():
         if response.status_code == 200:
             try:
                 data = response.json()
-                print(f"SUCCESS! Response:")
+                print("SUCCESS! Response:")
                 print(json.dumps(data, indent=2)[:500])
                 break
-            except:
+            except Exception:
                 print(f"Response text: {response.text[:200]}")
         else:
             print(f"Error: {response.text[:200]}")

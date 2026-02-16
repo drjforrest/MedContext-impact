@@ -68,7 +68,7 @@ class MedContextAgent:
     def run(
         self,
         image_bytes: bytes,
-        image_id=None,
+        image_id: str | None = None,
         context: str | None = None,
         force_tools: list[str] | None = None,
     ) -> AgentRunResult:

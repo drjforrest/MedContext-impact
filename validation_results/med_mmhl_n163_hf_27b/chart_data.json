@@ -2,2008 +2,2703 @@
   "metadata": {
     "total_samples": 163,
     "dataset": "Med-MMHL",
-    "timestamp": "2026-02-15T19:33:54.835304+00:00"
+    "timestamp": "2026-02-15T19:33:54.835304+00:00",
+    "model_name": "med_mmhl_n163_hf_27b",
+    "model_label": "MedGemma 27B (HuggingFace Inference API)",
+    "sampling_method": "stratified_random_seed_42",
+    "random_seed": 42,
+    "classification_info": {
+      "positive_class": "Misinformation (is_misinformation=True)",
+      "negative_class": "Legitimate (is_misinformation=False)",
+      "veracity_threshold": 0.5,
+      "alignment_threshold": 0.5,
+      "threshold_note": "Veracity score > 0.5 = plausible (not fake). Alignment score > 0.5 = aligned.",
+      "optimization_available": "See threshold_analysis/ subdirectory for optimized thresholds"
+    }
   },
   "confusion_matrix": [
     {
-      "name": "True Positive",
-      "value": 134
+      "name": "True Positive (Correctly Flagged Misinformation)",
+      "short_name": "True Positive",
+      "value": 134,
+      "description": "Misinformation correctly identified as misinformation"
     },
     {
-      "name": "False Positive",
-      "value": 17
+      "name": "False Positive (Legitimate Flagged as Misinformation)",
+      "short_name": "False Positive",
+      "value": 17,
+      "description": "Legitimate content incorrectly flagged as misinformation"
     },
     {
-      "name": "True Negative",
-      "value": 10
+      "name": "True Negative (Correctly Identified Legitimate)",
+      "short_name": "True Negative",
+      "value": 10,
+      "description": "Legitimate content correctly identified as legitimate"
     },
     {
-      "name": "False Negative",
-      "value": 2
+      "name": "False Negative (Missed Misinformation)",
+      "short_name": "False Negative",
+      "value": 2,
+      "description": "Misinformation incorrectly marked as legitimate (missed detection)"
     }
   ],
   "matrix_grid": [
     {
-      "actual": "Misinformation",
-      "predicted": "Misinformation",
-      "count": 134
+      "actual": "Misinformation (Positive)",
+      "predicted": "Misinformation (Positive)",
+      "count": 134,
+      "label": "TP"
     },
     {
-      "actual": "Misinformation",
-      "predicted": "Legitimate",
-      "count": 2
+      "actual": "Misinformation (Positive)",
+      "predicted": "Legitimate (Negative)",
+      "count": 2,
+      "label": "FN"
     },
     {
-      "actual": "Legitimate",
-      "predicted": "Misinformation",
-      "count": 17
+      "actual": "Legitimate (Negative)",
+      "predicted": "Misinformation (Positive)",
+      "count": 17,
+      "label": "FP"
     },
     {
-      "actual": "Legitimate",
-      "predicted": "Legitimate",
-      "count": 10
+      "actual": "Legitimate (Negative)",
+      "predicted": "Legitimate (Negative)",
+      "count": 10,
+      "label": "TN"
     }
   ],
+  "classification_info": {
+    "positive_class": "Misinformation (is_misinformation=True)",
+    "negative_class": "Legitimate (is_misinformation=False)",
+    "threshold_note": "Default threshold: 0.5 (see threshold_analysis/ for optimization)"
+  },
   "veracity_distribution": [
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "high",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
       "ground_truth": "low",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     }
   ],
   "alignment_distribution": [
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.6,
       "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.9,
       "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
       "ground_truth": "aligned",
-      "is_misinformation": false
+      "is_misinformation": false,
+      "predicted_positive": true
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     },
     {
       "score": 0.1,
       "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
       "ground_truth": "misaligned",
-      "is_misinformation": true
+      "is_misinformation": true,
+      "predicted_positive": false
     }
   ],
+  "score_metadata": {
+    "veracity_mapping": {
+      "true": "True (0.9) - Well-supported claim",
+      "partially_true": "Partially True (0.6) - Mixed accuracy",
+      "false": "False (0.1) - Unsupported claim"
+    },
+    "alignment_mapping": {
+      "aligns_fully": "Fully Aligned (0.9) - Image supports claim",
+      "partially_aligns": "Partially Aligned (0.6) - Image relates but doesn't support",
+      "does_not_align": "Does Not Align (0.1) - Image unrelated/contradicts"
+    },
+    "threshold": 0.5,
+    "threshold_note": "score > 0.5 classified as positive (plausible/aligned)"
+  },
   "method_comparison": [
     {
       "method": "Pixel Forensics",

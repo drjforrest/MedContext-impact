@@ -64,7 +64,7 @@ def test_vllm_format():
 
                 if response.status_code == 200:
                     data = response.json()
-                    print(f"✅ Success!")
+                    print("✅ Success!")
                     print(f"Response type: {type(data)}")
                     if isinstance(data, dict):
                         print(f"Keys: {list(data.keys())}")
@@ -76,14 +76,14 @@ def test_vllm_format():
                                 print(f"\nContent (first 500 chars):\n{content[:500]}")
                     return
                 elif response.status_code == 404:
-                    print(f"❌ 404 Not Found - trying next URL...")
+                    print("❌ 404 Not Found - trying next URL...")
                     continue
                 else:
                     print(f"❌ Error {response.status_code}")
                     print(f"Response: {response.text[:500]}")
 
         except httpx.ReadTimeout:
-            print(f"❌ Timeout after 90 seconds")
+            print("❌ Timeout after 90 seconds")
         except Exception as e:
             print(f"❌ Error: {e}")
 

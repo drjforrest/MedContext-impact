@@ -43,14 +43,14 @@ def test_raw_endpoint():
     print(f"\nEndpoint URL: {url}")
     print(f"Payload keys: {list(payload.keys())}")
     print(f"Parameters keys: {list(payload['parameters'].keys())}")
-    print(f"\nSending request...")
+    print("\nSending request...")
 
     try:
         with httpx.Client(timeout=60.0) as client:
             response = client.post(url, headers=headers, json=payload)
             print(f"\nResponse status: {response.status_code}")
             print(f"Response headers: {dict(response.headers)}")
-            print(f"\nRaw response text (first 1000 chars):")
+            print("\nRaw response text (first 1000 chars):")
             print(response.text[:1000])
 
             if response.status_code == 200:

@@ -143,13 +143,39 @@ import sys
 from pathlib import Path
 
 def load_report(path: Path) -> dict:
-    with open(path / "report.json") as f:
-        return json.load(f)
+    """Load validation report from path/report.json.
+
+    Args:
+        path: Directory containing report.json
+
+    Returns:
+        Parsed report dictionary
+
+    Raises:
+        FileNotFoundError: If report.json does not exist at the specified path
+        ValueError: If report.json contains invalid JSON
+    """
+    report_path = path / "report.json"
+    try:
+        with open(report_path) as f:
+            return json.load(f)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            f"load_report: Could not find report.json at {report_path}. "
+            f"Ensure the validation run has completed successfully. "
+            f"Original error: {e}"
+        ) from e
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"load_report: Invalid JSON in report.json at {report_path}. "
+            f"The file may be corrupted or incomplete. "
+            f"Original error: {e}"
+        ) from e
 
 def compare_runs(run1_path: Path, run2_path: Path):
     r1 = load_report(run1_path)
     r2 = load_report(run2_path)
-    
+
     print("=" * 80)
     print("VALIDATION RUN COMPARISON")
     print("=" * 80)
@@ -157,41 +183,41 @@ def compare_runs(run1_path: Path, run2_path: Path):
     print(f"  Sampling: {r1.get('sampling_method', 'unknown')}")
     print(f"  Random seed: {r1.get('random_seed', 'N/A')}")
     print(f"  n_samples: {r1['n_samples']}")
-    
+
     print(f"\nRun 2: {run2_path.name}")
     print(f"  Sampling: {r2.get('sampling_method', 'unknown')}")
     print(f"  Random seed: {r2.get('random_seed', 'N/A')}")
     print(f"  n_samples: {r2['n_samples']}")
-    
+
     print("\n" + "=" * 80)
     print("METRICS COMPARISON")
     print("=" * 80)
-    
+
     m1 = r1['metrics']
     m2 = r2['metrics']
-    
+
     metrics_to_compare = ['accuracy', 'precision', 'recall', 'f1']
-    
+
     print(f"\n{'Metric':<15} {'Run 1':>12} {'Run 2':>12} {'Diff':>12}")
     print("-" * 55)
-    
+
     for metric in metrics_to_compare:
         v1 = m1.get(metric, 0)
         v2 = m2.get(metric, 0)
         diff = v2 - v1
         sign = "+" if diff > 0 else ""
         print(f"{metric:<15} {v1:>11.1%} {v2:>11.1%} {sign}{diff:>10.1%}")
-    
+
     print("\n" + "=" * 80)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: python compare_two_runs.py <run1_dir> <run2_dir>")
         sys.exit(1)
-    
+
     run1 = Path(sys.argv[1])
     run2 = Path(sys.argv[2])
-    
+
     compare_runs(run1, run2)
 EOF
 
@@ -248,6 +274,7 @@ If 27B ≈ 4B (within 2pp) → use 27B for credibility, mention 4B for reproduci
 ### 3. Key Changes:
 
 Replace:
+
 - ❌ "sequential sampling (first 163)" → ✅ "stratified random sampling (seed=42)"
 - ❌ "96.9% misinformation" → ✅ "83% misinformation (representative)"
 - ❌ "98.1% recall" → ✅ "92.4% recall" (example)
@@ -266,6 +293,7 @@ Add to all docs:
 ### Phase 1 (Quantized):
 
 **If LM Studio connection fails:**
+
 ```bash
 # Check LM Studio is running at http://192.168.1.90:1234
 curl http://192.168.1.90:1234/v1/models
@@ -275,6 +303,7 @@ LOCAL_MEDGEMMA_URL=http://localhost:1234
 ```
 
 **If model not found:**
+
 ```bash
 # Load model in LM Studio first
 # File → Download Model → Search "medgemma" → Download 4B GGUF
@@ -284,6 +313,7 @@ LOCAL_MEDGEMMA_URL=http://localhost:1234
 ### Phase 2 (HuggingFace):
 
 **If authentication fails:**
+
 ```bash
 # Verify token
 curl -H "Authorization: Bearer $MEDGEMMA_HF_TOKEN" \
@@ -294,6 +324,7 @@ curl -H "Authorization: Bearer $MEDGEMMA_HF_TOKEN" \
 ```
 
 **If rate limited:**
+
 ```bash
 # HF Inference API has rate limits on free tier
 # Consider upgrading or spacing out requests

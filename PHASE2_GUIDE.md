@@ -10,6 +10,7 @@
 ### 1. Get HuggingFace Token
 
 Visit: https://huggingface.co/settings/tokens
+
 - Click "New token"
 - Select "Read" permissions
 - Copy the token (starts with `hf_...`)
@@ -17,6 +18,7 @@ Visit: https://huggingface.co/settings/tokens
 ### 2. Accept MedGemma License
 
 Visit: https://huggingface.co/google/medgemma-27b-it
+
 - Click "Agree and access repository"
 - This grants access to the model
 
@@ -34,6 +36,9 @@ MEDGEMMA_HF_MODEL=google/medgemma-27b-it
 # Optional: Uncomment/add this if not already set
 # MEDGEMMA_HF_MODEL=google/medgemma-27b-it
 ```
+
+**⚠️ Security Warning:**  
+Your `MEDGEMMA_HF_TOKEN` is a secret credential. Ensure `.env` is listed in `.gitignore` to prevent committing tokens to version control. If your token is ever exposed (e.g., accidentally pushed to GitHub), immediately rotate it at https://huggingface.co/settings/tokens by deleting the old token and generating a new one.
 
 ### 4. Test Connection
 
@@ -80,10 +85,12 @@ ls -lh validation_results/med_mmhl_n163_hf_27b/
 ## Expected Results
 
 ### Runtime:
+
 - **Phase 1 (Quantized 4B):** 29 minutes
 - **Phase 2 (HF 27B):** ~18-25 minutes (HF Inference API is fast)
 
 ### Metrics (Expected):
+
 - **Veracity accuracy:** 75-80% (potentially better with 27B)
 - **Alignment accuracy:** 75-80% (potentially better with 27B)
 - **Precision:** 40-50% (may improve with better reasoning)
@@ -91,12 +98,12 @@ ls -lh validation_results/med_mmhl_n163_hf_27b/
 
 ### Key Comparison Points:
 
-| Metric | Phase 1 (4B) | Phase 2 (27B) | Expected Change |
-|--------|--------------|---------------|-----------------|
-| Veracity accuracy | 73.6% | 75-80% | +1-6pp |
-| Alignment accuracy | 74.8% | 75-80% | +0-5pp |
-| Veracity precision | 38.2% | 40-50% | +2-12pp |
-| Alignment precision | 39.4% | 40-50% | +1-11pp |
+| Metric              | Phase 1 (4B) | Phase 2 (27B) | Expected Change |
+| ------------------- | ------------ | ------------- | --------------- |
+| Veracity accuracy   | 73.6%        | 75-80%        | +1-6pp          |
+| Alignment accuracy  | 74.8%        | 75-80%        | +0-5pp          |
+| Veracity precision  | 38.2%        | 40-50%        | +2-12pp         |
+| Alignment precision | 39.4%        | 40-50%        | +1-11pp         |
 
 ---
 
@@ -105,18 +112,21 @@ ls -lh validation_results/med_mmhl_n163_hf_27b/
 ### If HF API fails:
 
 **Check token:**
+
 ```bash
 curl -H "Authorization: Bearer $MEDGEMMA_HF_TOKEN" \
   https://huggingface.co/api/whoami
 ```
 
 **Check model access:**
+
 ```bash
 curl -H "Authorization: Bearer $MEDGEMMA_HF_TOKEN" \
   https://huggingface.co/api/models/google/medgemma-27b-it
 ```
 
 **Common issues:**
+
 - Token expired → Generate new token
 - License not accepted → Visit model page and accept
 - Rate limited → Wait a few minutes, HF free tier has limits
@@ -152,6 +162,7 @@ cat validation_results/med_mmhl_n163_hf_27b/validation_report.json | jq '.metric
 ### 4. Update Documentation:
 
 Files to update with final results:
+
 - `docs/VALIDATION.md` - Part 11 results table
 - `docs/EXECUTIVE_SUMMARY.md` - Results summary
 - `README.md` - Validation section
