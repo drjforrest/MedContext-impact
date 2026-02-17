@@ -135,17 +135,21 @@ async def run_agent_on_dataset(dataset_path: str) -> dict[str, Any]:
             continue
 
         # Load image — reject files exceeding the size limit
-        file_size = image_path.stat().st_size
-        if file_size > _MAX_IMAGE_SIZE_BYTES:
-            logger.warning(
-                f"Skipping sample {i} — image too large "
-                f"({file_size} bytes > {_MAX_IMAGE_SIZE_BYTES} byte limit): "
-                f"{image_path}"
-            )
-            continue
+        try:
+            file_size = image_path.stat().st_size
+            if file_size > _MAX_IMAGE_SIZE_BYTES:
+                logger.warning(
+                    f"Skipping sample {i} — image too large "
+                    f"({file_size} bytes > {_MAX_IMAGE_SIZE_BYTES} byte limit): "
+                    f"{image_path}"
+                )
+                continue
 
-        with open(image_path, "rb") as img_file:
-            image_bytes = img_file.read()
+            with open(image_path, "rb") as img_file:
+                image_bytes = img_file.read()
+        except OSError as e:
+            logger.warning(f"Skipping sample {i} — failed to read {image_path}: {e}")
+            continue
 
         # Run agent
         try:

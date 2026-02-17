@@ -32,7 +32,9 @@ Proper validation on n=163 real-world image-claim pairs from the Med-MMHL datase
 | False Negatives | 14 | **~2** |
 | False Positives | **1** | ~7 |
 
-Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). The 27B model has higher recall (fewer missed misinformation) while the 4B model has higher precision (fewer false alarms). Bootstrap 95% CI: 4B [85.9%, 95.1%], 27B [90.8%, 97.5%].
+Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). The 27B model has higher recall (fewer missed misinformation) while the 4B model has higher precision (fewer false alarms). Bootstrap 95% CI: 4B [85.9%, 95.1%], 27B [90.8%, 98.2%].
+
+**Caveat:** The 27B model (`google/medgemma-27b-it`) is text-only with no vision capability. Its alignment scores are inferred from claim text alone without seeing the image, so combined threshold optimization on both veracity and alignment is unreliable for this model. The 4B multimodal model (`google/medgemma-1.5-4b-it`) is the valid combined-system result as it can assess both veracity and image-claim alignment.
 
 **Weight ablation study** — optimal veracity weight α:
 
@@ -48,7 +50,7 @@ Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). The 27B model
 3. **4B confidence intervals are wide; 27B intervals are tight.** At α=0.55: 4B F1=0.535 [0.447, 0.609] vs 27B F1=0.961 [0.939, 0.981]. The 27B improvements are statistically robust across 1,000 bootstrap resamples.
 4. **False positives are alignment artefacts.** Real content with loosely-related images is mis-flagged when alignment carries too much weight. Veracity correctly identifies the content as legitimate; increasing α recovers these cases.
 
-**Thesis implication:** Contextual authenticity analysis — specifically claim veracity combined with image-claim alignment assessed by a capable vision-language model — is the effective mechanism for detecting medical misinformation in the Med-MMHL setting, where images are authentic and the misinformation resides entirely in the claim or image-claim pairing.
+**Thesis implication:** Contextual authenticity analysis — specifically claim veracity combined with image-claim alignment assessed by a capable vision-language model — is the effective mechanism for detecting medical misinformation in the Med-MMHL setting, where images are authentic and the misinformation resides entirely in the claim or image-claim pairing. Note: the 27B model is text-only (no vision) so its alignment scores are text-inferred only; the 4B multimodal model provides the valid combined veracity + alignment evaluation.
 
 **Full results and methodology:** [Part 11 below](#part-11-med-mmhl-validation-results)
 
@@ -553,7 +555,7 @@ Most competition submissions optimize for:
 
 **MedContext optimizes for:**
 
-- Real-world threat distribution (80% authentic images with false context)
+- Real-world threat distribution (majority authentic images with false context)
 - Empirically validated approach (necessary but not sufficient validation on single dataset)
 - Prepared for pilot deployment pending broader validation
 
@@ -693,7 +695,7 @@ The primary metric is the model's binary verdict on whether each image-claim pai
 Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). 4B confusion matrix: TP=122, FP=1, TN=26, FN=14.
 
 **Bootstrap 95% CI (27B model, full dataset with CV thresholds):**
-- Accuracy: 94.4% [90.8%, 98.2%]
+- Accuracy: 94.5% [90.8%, 98.2%]
 - Precision: 95.0% [91.3%, 98.6%]
 - Recall: 98.5% [96.4%, 100.0%]
 - F1: 0.967 [0.945, 0.989]
@@ -707,6 +709,8 @@ Actual: MISINFO        ~2           ~134
 ```
 
 The 27B model reduces false negatives from 10 → ~2 (−80%) with a small increase in false positives (2 → ~7). The proper cross-validation methodology ensures these results are not inflated by threshold optimization on the test set.
+
+**Caveat:** The 27B model (`google/medgemma-27b-it`) is text-only with no vision capability. Its alignment scores are inferred from claim text alone without seeing the image, so combined threshold optimization on both veracity and alignment is unreliable for this model. The 4B multimodal model is the valid combined-system result.
 
 ---
 
@@ -817,6 +821,8 @@ Both false positive types (TB vaccine article, celebrity fact-check) scored high
 ### 11.5 Thesis Implication
 
 > *Claim veracity assessed by a capable vision-language model is the primary discriminative signal for medical misinformation detection. Image-claim alignment provides a corrective contribution for lower-capability models but becomes secondary as model scale increases. At sufficient capability (27B+), a veracity-dominant weight (α ≈ 0.65–0.75) achieves near-perfect rank-order discrimination (ROC-AUC=1.000) on the Med-MMHL benchmark. The optimal α should be treated as a calibration parameter, not a fixed architectural constant.*
+>
+> *Caveat: The 27B model is text-only (no vision). Its alignment scores are text-inferred and cannot reflect true image-claim consistency, so the 27B weight ablation results reflect veracity-dominant performance rather than a genuine veracity-alignment tradeoff.*
 
 ---
 

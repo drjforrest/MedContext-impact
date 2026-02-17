@@ -231,7 +231,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 | Most Submissions                     | MedContext                                                     |
 | ------------------------------------ | -------------------------------------------------------------- |
-| ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (80% authentic images)      |
+| ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (majority authentic images)      |
 | ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                                  |
 | ❌ Single-signal approaches          | ✅ Proved single signals fail (71-72%); combined system (96.3%) |
 | ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                          |
@@ -299,7 +299,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 **Preview (3 minutes - competition requirement):**
 
-1. The Problem (80% authentic images with false context)
+1. The Problem (majority authentic images with false context)
 2. Proof of Justification (ELA fails on DICOM; three dimensions required)
 3. The Solution + Live Demo (agentic workflow in action)
 4. Impact (HERO Lab partnership for Africa)

@@ -1472,4 +1472,3 @@ class MedContextLangGraphAgent:
             }
 
         return None
-        return None
