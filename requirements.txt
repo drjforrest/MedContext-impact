@@ -58,6 +58,13 @@ tqdm==4.67.1
 pillow==11.1.0
 numpy==2.4.1
 
+# Data analysis & validation
+pandas==3.0.0
+scikit-learn==1.8.0
+scipy==1.17.0
+joblib==1.5.3
+threadpoolctl==3.6.0
+
 # Content provenance
 c2pa-python==0.28.0
 

@@ -26,21 +26,32 @@ def _make_service(
     contract_address: str = "0x" + "b" * 40,
     contract_abi: list | None = None,
 ) -> BlockchainAnchorService:
-    """Create a BlockchainAnchorService with mocked Web3."""
+    """Create a BlockchainAnchorService with mocked Web3.
+
+    Web3 and Account are imported locally inside __init__, so we patch them
+    in their source modules (web3, eth_account) rather than on the blockchain module.
+    """
     if contract_abi is None:
         contract_abi = []
 
+    mock_web3_cls = MagicMock()
+    mock_web3 = MagicMock()
+    mock_web3_cls.return_value = mock_web3
+    mock_web3_cls.HTTPProvider = MagicMock()
+    mock_web3_cls.to_checksum_address.return_value = contract_address
+
+    mock_account_cls = MagicMock()
+    mock_account = MagicMock()
+    mock_account_cls.from_key.return_value = mock_account
+
     with (
         patch("app.provenance.blockchain._ABI_PATH") as mock_abi_path,
-        patch("app.provenance.blockchain.Web3") as mock_web3_cls,
-        patch("app.provenance.blockchain.Account") as mock_account_cls,
+        patch.dict("sys.modules", {
+            "web3": MagicMock(Web3=mock_web3_cls),
+            "eth_account": MagicMock(Account=mock_account_cls),
+        }),
     ):
         mock_abi_path.read_text.return_value = json.dumps(contract_abi)
-        mock_web3 = MagicMock()
-        mock_web3_cls.return_value = mock_web3
-        mock_web3_cls.to_checksum_address.return_value = contract_address
-        mock_account = MagicMock()
-        mock_account_cls.from_key.return_value = mock_account
 
         service = BlockchainAnchorService(
             rpc_url=rpc_url,

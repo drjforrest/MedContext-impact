@@ -48,6 +48,8 @@ class MedGemmaClient:
         provider = (value or "").strip().lower()
         if provider in {"vertexai", "vertex_ai"}:
             return "vertex"
+        if provider in {"lmstudio", "lm_studio"}:
+            return "local"
         return provider
 
     def analyze_image(
@@ -80,6 +82,48 @@ class MedGemmaClient:
                     return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
             raise exc
 
+    def _resize_image_for_api(self, image_bytes: bytes, max_size: int = 512) -> bytes:
+        """Resize image to keep base64 token count under model context limits.
+
+        A 512px max JPEG at quality 80 is typically 20-50KB, which base64-encodes
+        to ~27-67K chars (~10-25K tokens) — well within the 131K context window.
+        """
+        # Safety check: if raw bytes are small enough, skip resize
+        # ~100KB raw means ~133KB base64 which is ~50K tokens — safe
+        if len(image_bytes) < 100_000:
+            return image_bytes
+
+        try:
+            from PIL import Image
+
+            img = Image.open(io.BytesIO(image_bytes))
+            if img.mode == "RGBA":
+                img = img.convert("RGB")
+
+            if max(img.size) > max_size:
+                ratio = max_size / max(img.size)
+                new_size = tuple(int(dim * ratio) for dim in img.size)
+                img = img.resize(new_size, Image.Resampling.LANCZOS)
+
+            buffer = io.BytesIO()
+            img.save(buffer, format="JPEG", quality=80)
+            resized = buffer.getvalue()
+
+            # Verify the resize actually reduced size
+            if len(resized) < len(image_bytes):
+                return resized
+            return image_bytes
+        except Exception as exc:
+            # Log warning instead of silently swallowing
+            import logging
+            logging.getLogger(__name__).warning(
+                "Image resize failed (%s), using original (%d bytes). "
+                "Large images may cause OOM on GPU endpoints.",
+                exc,
+                len(image_bytes),
+            )
+            return image_bytes
+
     def _analyze_huggingface(
         self, image_bytes: bytes, prompt: Optional[str]
     ) -> MedGemmaResult:
@@ -98,26 +142,8 @@ class MedGemmaClient:
         headers = {"Authorization": f"Bearer {settings.medgemma_hf_token}"}
 
         # Resize image to reduce GPU memory usage for dedicated endpoints
-        if settings.medgemma_url and not settings.medgemma_url.startswith(
-            "http://localhost"
-        ):
-            try:
-                from PIL import Image
-
-                img = Image.open(io.BytesIO(image_bytes))
-                # Resize to max 384px on longest side to reduce GPU memory
-                max_size = 384
-                if max(img.size) > max_size:
-                    ratio = max_size / max(img.size)
-                    new_size = tuple(int(dim * ratio) for dim in img.size)
-                    img = img.resize(new_size, Image.Resampling.LANCZOS)
-
-                # Convert back to bytes
-                buffer = io.BytesIO()
-                img.save(buffer, format=img.format or "JPEG", quality=85)
-                image_bytes = buffer.getvalue()
-            except Exception:
-                pass  # Use original if resize fails
+        # Also applies to standard HF API when images are very large
+        image_bytes = self._resize_image_for_api(image_bytes)
 
         payload: dict[str, Any] | bytes
         encoded_image = base64.b64encode(image_bytes).decode("ascii")

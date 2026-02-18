@@ -38,8 +38,7 @@ def verify_metrics():
 
     # Load predictions
     pred_file = (
-        Path(__file__).parent.parent
-        / "validation_results"
+        Path("validation_results")
         / "med_mmhl_n163_hf_27b"
         / "raw_predictions.json"
     )

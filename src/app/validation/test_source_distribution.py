@@ -12,11 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-# Add repo root to path
-repo_root = Path(__file__).parent.parent
-sys.path.insert(0, str(repo_root / "src"))
-
-from app.validation.loaders import load_med_mmhl_dataset  # noqa: E402
+from app.validation.loaders import load_med_mmhl_dataset
 
 
 def test_source_extraction_from_real_data():
@@ -77,11 +73,11 @@ def test_source_extraction_from_real_data():
     print("Step 4: Verifying against expected distribution...")
 
     # Load the analysis results
-    analysis_file = repo_root / "validation_results" / "sampling_bias_analysis.json"
+    analysis_file = Path("validation_results") / "sampling_bias_analysis.json"
     if not analysis_file.exists():
         print(f"  ⚠️  Analysis file not found: {analysis_file}")
         print(
-            "  Run: python scripts/check_sampling_bias.py --output validation_results/sampling_bias_analysis.json"
+            "  Run: python -m app.validation.sampling_bias --output validation_results/sampling_bias_analysis.json"
         )
         # This is not a failure - just means analysis needs to be run
     else:

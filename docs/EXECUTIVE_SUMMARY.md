@@ -49,6 +49,10 @@ Med-MMHL images are predominantly authentic — misinformation resides primarily
 4. **High precision and recall:** 95.0% precision and 98.5% recall on the 27B model (5-fold cross-validation)
 5. **Model-dependent performance:** Results based on `google/medgemma-27b-it` (27B text-only variant, A100 GPU); smaller models show lower performance (90.8% with 4B quantized)
 
+**Updated 4B Quantized Validation (February 17, 2026):**
+
+The 4B quantized model was re-evaluated using the LangGraph agentic workflow with VERACITY_FIRST decision logic (veracity < 0.65 OR alignment < 0.30, 5-fold CV). Results improved from the initial 90.8% to **92.0% accuracy [87.7%, 95.7%]**, F1=0.951 [0.923, 0.975], with better recall (94.1% vs 89.7%) and balanced precision (96.2%). This demonstrates that the VERACITY_FIRST hierarchical decision logic outperforms simple α-weighted scoring for the 4B model. A three-variant comparison (IT full-precision, quantized GGUF, pre-trained base) is in progress. See [VALIDATION.md Part 12](./VALIDATION.md#part-12-three-variant-medgemma-comparison-february-2026) for details.
+
 > **Critical Insight:** The majority of medical misinformation threats use authentic images in misleading context. Contextual authenticity (veracity + alignment) is what Med-MMHL validates. With the `google/medgemma-27b-it` model (27B text-only variant), the combined system achieves 94.5% accuracy where veracity alone reaches 71.8% and alignment alone reaches 71.2%, demonstrating both dimensions contribute to detection performance.
 >
 > **Methodology:** Decision thresholds (veracity < 0.65, alignment < 0.30) were determined via 5-fold stratified cross-validation (seed=42) to avoid test-set contamination. Thresholds were optimized on training folds only, with performance evaluated on held-out validation folds. Final reported metrics (94.5% accuracy, 95.0% precision, 98.5% recall) represent the mean performance across all validation folds. Bootstrap 95% confidence intervals computed on the full dataset using CV-selected thresholds: accuracy [90.8%, 98.2%], precision [91.3%, 98.6%], recall [96.4%, 100.0%], F1 [0.945, 0.989]. 

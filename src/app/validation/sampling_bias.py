@@ -23,7 +23,7 @@ Supports two sampling strategies:
 
 Usage:
   # Stratified sampling (recommended)
-  python scripts/check_sampling_bias.py \
+  python -m app.validation.sampling_bias \
     --data-dir data/med-mmhl \
     --split test \
     --subset-size 163 \
@@ -31,7 +31,7 @@ Usage:
     --output validation_results/sampling_bias_analysis.json
 
   # Sequential sampling (for analysis only)
-  python scripts/check_sampling_bias.py \
+  python -m app.validation.sampling_bias \
     --data-dir data/med-mmhl \
     --split test \
     --subset-size 163 \
@@ -47,12 +47,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-# Add repo root to path
-repo_root = Path(__file__).parent.parent
-sys.path.insert(0, str(repo_root / "src"))
-
-# Import after adding to path
-from app.validation.loaders import load_med_mmhl_dataset  # noqa: E402
+from app.validation.loaders import load_med_mmhl_dataset
 
 
 def stratified_sample(
@@ -90,7 +85,7 @@ def stratified_sample(
     elif actual_real < target_real:
         # Not enough real samples, take more misinformation
         actual_misinfo = min(target_size - actual_real, len(misinformation))
-    
+
     # Sample the calculated amounts
     sampled_misinfo = random.sample(misinformation, actual_misinfo)
     sampled_real = random.sample(real, actual_real)

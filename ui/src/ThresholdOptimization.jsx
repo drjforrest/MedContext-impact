@@ -68,7 +68,13 @@ export default function ThresholdOptimization({ apiBase, accessCode }) {
 
   return (
     <div className="threshold-optimization-container">
-      <section className="card">
+      <section className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <img
+          src="/images/optimization-page-banner.png"
+          alt="Threshold Optimization"
+          style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
+        />
+        <div style={{ padding: '1.75rem' }}>
         <h2>Threshold Optimization</h2>
         <p className="helper" style={{ marginBottom: '1.5rem' }}>
           Optimal decision thresholds are model-specific and domain-specific. Upload a labeled validation dataset
@@ -156,6 +162,7 @@ export default function ThresholdOptimization({ apiBase, accessCode }) {
               </button>
             )}
           </div>
+        </div>
         </div>
       </section>
 

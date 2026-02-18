@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+
 def load_med_mmhl_dataset(
     benchmark_path: Path,
     split: str = "test",

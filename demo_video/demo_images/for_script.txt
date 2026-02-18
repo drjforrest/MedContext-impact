@@ -1,0 +1,7 @@
+Here are tight, script-ready lines you can read over each example while the app runs.
+Example 1 — HIV caterpillar (false context)
+“Here’s a real Facebook post from East Africa claiming this spiky object is HIV under an electron microscope. MedContext sees that both the photo and the caption look plausible, but together they don’t match — it recognises a caterpillar, not a virus.”
+Example 2 — “Most detailed human cell” (false context)
+“This viral graphic was shared as ‘the most detailed image of a human cell ever captured’ using advanced imaging. MedContext detects it’s actually a digital illustration, so the image and the claim about experimental data are inconsistent.”
+Example 3 — Malaria RDT (true context)
+“Here’s a malaria rapid test where both the photo and caption correctly describe a positive P. falciparum result. MedContext confirms the lines on the cassette match the clinical interpretation, so it treats this image–claim pair as trustworthy.”

@@ -202,10 +202,14 @@ def generate_score_distributions(chart_data: dict, output_dir: Path):
 
     veracity_data = {
         "Misinformation": [
-            s for s, label in zip(veracity_scores, veracity_labels) if label == "Misinformation"
+            s
+            for s, label in zip(veracity_scores, veracity_labels)
+            if label == "Misinformation"
         ],
         "Legitimate": [
-            s for s, label in zip(veracity_scores, veracity_labels) if label == "Legitimate"
+            s
+            for s, label in zip(veracity_scores, veracity_labels)
+            if label == "Legitimate"
         ],
     }
 
@@ -233,7 +237,9 @@ def generate_score_distributions(chart_data: dict, output_dir: Path):
             if label == "Misinformation"
         ],
         "Legitimate": [
-            s for s, label in zip(alignment_scores, alignment_labels) if label == "Legitimate"
+            s
+            for s, label in zip(alignment_scores, alignment_labels)
+            if label == "Legitimate"
         ],
     }
 

@@ -9,7 +9,7 @@ Usage:
   2. Extract to data/med-mmhl/ (or --output)
   3. Run this script to verify structure and create annotation template:
 
-     python scripts/download_med_mmhl.py --output data/med-mmhl
+     python -m app.validation.download_dataset --output data/med-mmhl
 
 Expected structure after extraction:
   data/med-mmhl/
@@ -28,9 +28,6 @@ Expected structure after extraction:
 import argparse
 import sys
 from pathlib import Path
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from app.validation.loaders import load_med_mmhl_dataset, create_annotation_template
 

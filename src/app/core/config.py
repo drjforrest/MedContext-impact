@@ -10,9 +10,10 @@ DEFAULT_ALIGNMENT_THRESHOLD = 0.30  # Low threshold for context-claim alignment
 
 class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/medcontext"
-    redis_url: str = "redis://localhost:6379"
     medgemma_url: str = "http://localhost:8001"
-    medgemma_provider: str = "huggingface"  # huggingface | local | vllm | vertex
+    medgemma_provider: str = (
+        "huggingface"  # huggingface | local | lmstudio | vllm | vertex
+    )
     medgemma_hf_model: str = "google/medgemma-4b-it"
     medgemma_hf_token: str = Field(
         default="",
@@ -36,7 +37,6 @@ class Settings(BaseSettings):
     medgemma_vertex_location: str = "us-central1"
     medgemma_vertex_endpoint: str = ""
     medgemma_vertex_dedicated_domain: str = ""
-    medgemma_vertex_ip: str = ""  # Direct IP to bypass DNS resolution
     vertexai_api_key: str = Field(
         default="",
         validation_alias=AliasChoices(
@@ -71,8 +71,6 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("SERP_API_KEY"),
     )
-    serp_api_timeout_seconds: float = 20.0
-    google_vision_api_key: str = ""
     telegram_bot_token: str = Field(
         default="",
         validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN"),
@@ -114,40 +112,11 @@ class Settings(BaseSettings):
             addons.add("forensics")
         return frozenset(addons)
 
-    jwt_secret: str = ""
-    encryption_key: str = ""
     log_level: str = "INFO"
     image_storage_dir: str = "data/images"
     demo_access_code: str = Field(
         default="",
         validation_alias=AliasChoices("DEMO_ACCESS_CODE"),
-    )
-    appwrite_project_id: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "APPWRITE_PROJECT_ID",
-            "appwrite_project_id",
-            "VITE_APPWRITE_PROJECT_ID",
-            "vite_appwrite_project_id",
-        ),
-    )
-    appwrite_project_name: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "APPWRITE_PROJECT_NAME",
-            "appwrite_project_name",
-            "VITE_APPWRITE_PROJECT_NAME",
-            "vite_appwrite_project_name",
-        ),
-    )
-    appwrite_endpoint: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "APPWRITE_ENDPOINT",
-            "appwrite_endpoint",
-            "VITE_APPWRITE_ENDPOINT",
-            "vite_appwrite_endpoint",
-        ),
     )
 
     model_config = ConfigDict(env_file=".env", extra="ignore")

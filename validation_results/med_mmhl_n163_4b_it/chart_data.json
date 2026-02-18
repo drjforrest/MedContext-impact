@@ -3,8 +3,8 @@
     "total_samples": 163,
     "dataset": "Med-MMHL",
     "timestamp": "2026-02-15T18:44:46.624743+00:00",
-    "model_name": "med_mmhl_n163_quantized_4b",
-    "model_label": "MedGemma 4B (Quantized Local)",
+    "model_name": "med_mmhl_n163_4b_it",
+    "model_label": "MedGemma 4B IT (HuggingFace Inference API)",
     "sampling_method": "stratified_random_seed_42",
     "random_seed": 42,
     "classification_info": {

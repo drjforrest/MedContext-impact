@@ -271,7 +271,7 @@ def main():
         print()
         print("Example:")
         print(
-            "  python scripts/optimize_thresholds.py validation_results/med_mmhl_n163_hf_27b"
+            "  python -m app.validation.optimize_thresholds validation_results/med_mmhl_n163_hf_27b"
         )
         sys.exit(1)
 

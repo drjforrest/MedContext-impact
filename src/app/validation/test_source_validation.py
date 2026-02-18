@@ -5,21 +5,10 @@ This script creates synthetic test data with no source information to verify
 that the warning and validation checks work correctly.
 """
 
-import importlib.util
 import sys
 from pathlib import Path
 
-# Add repo root to path
-repo_root = Path(__file__).parent.parent
-sys.path.insert(0, str(repo_root / "src"))
-
-# Import compute_distribution_stats directly from check_sampling_bias
-spec = importlib.util.spec_from_file_location(
-    "check_sampling_bias", repo_root / "scripts" / "check_sampling_bias.py"
-)
-check_sampling_bias = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(check_sampling_bias)
-compute_distribution_stats = check_sampling_bias.compute_distribution_stats
+from app.validation.sampling_bias import compute_distribution_stats
 
 
 def test_missing_source_warning():

@@ -31,15 +31,24 @@
 /* Hero Section */
 .validation-hero {
   background: linear-gradient(135deg, #1c1e26 0%, #2d3142 100%);
-  border-radius: 16px;
-  padding: 3rem 2rem;
+  border-radius: 18px;
+  padding: 0;
   margin-bottom: 3rem;
   text-align: center;
+  overflow: hidden;
+}
+
+.validation-banner {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
 }
 
 .validation-hero-content {
   max-width: 900px;
   margin: 0 auto;
+  padding: 2rem 2rem 3rem;
 }
 
 .validation-badge {

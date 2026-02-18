@@ -11,14 +11,10 @@ Tests the source overlap calculation logic to ensure:
 import sys
 from pathlib import Path
 
-# Add repo root to path
-repo_root = Path(__file__).parent.parent
-sys.path.insert(0, str(repo_root / "scripts"))
+import pytest
 
-# Import after adding to path
-import pytest  # noqa: E402
-from check_sampling_bias import (
-    compare_distributions,  # noqa: E402
+from app.validation.sampling_bias import (
+    compare_distributions,
     compute_distribution_stats,
 )
 
@@ -45,9 +41,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert result["source_bias"]["top_source_overlap"] == 1.0, (
-            "Identical single-source distributions should have 1.0 overlap"
-        )
+        assert (
+            result["source_bias"]["top_source_overlap"] == 1.0
+        ), "Identical single-source distributions should have 1.0 overlap"
         assert result["source_bias"]["assessment"] == "ACCEPTABLE"
 
     def test_identical_multiple_sources_returns_1_0(self):
@@ -77,9 +73,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert result["source_bias"]["top_source_overlap"] == 1.0, (
-            "Identical multi-source distributions should have 1.0 overlap"
-        )
+        assert (
+            result["source_bias"]["top_source_overlap"] == 1.0
+        ), "Identical multi-source distributions should have 1.0 overlap"
         assert result["source_bias"]["assessment"] == "ACCEPTABLE"
 
     def test_completely_disjoint_sources_returns_0_0(self):
@@ -109,9 +105,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert result["source_bias"]["top_source_overlap"] == 0.0, (
-            "Completely disjoint source distributions should have 0.0 overlap"
-        )
+        assert (
+            result["source_bias"]["top_source_overlap"] == 0.0
+        ), "Completely disjoint source distributions should have 0.0 overlap"
         assert result["source_bias"]["assessment"] == "POTENTIAL_BIAS"
 
     def test_partial_overlap_returns_correct_jaccard(self):
@@ -151,9 +147,7 @@ class TestSourceOverlapCalculation:
 
         assert (
             abs(result["source_bias"]["top_source_overlap"] - expected_overlap) < 0.001
-        ), (
-            f"Expected Jaccard similarity {expected_overlap:.3f}, got {result['source_bias']['top_source_overlap']:.3f}"
-        )
+        ), f"Expected Jaccard similarity {expected_overlap:.3f}, got {result['source_bias']['top_source_overlap']:.3f}"
         assert (
             result["source_bias"]["assessment"] == "POTENTIAL_BIAS"
         )  # < 0.6 threshold
@@ -219,9 +213,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert result["source_bias"]["top_source_overlap"] is None, (
-            "When all sources are 'unknown', overlap should be None"
-        )
+        assert (
+            result["source_bias"]["top_source_overlap"] is None
+        ), "When all sources are 'unknown', overlap should be None"
         assert result["source_bias"]["assessment"] == "UNAVAILABLE"
 
     def test_empty_source_distribution_returns_1_0(self):
@@ -243,9 +237,9 @@ class TestSourceOverlapCalculation:
 
         result = compare_distributions(full_stats, subset_stats)
 
-        assert result["source_bias"]["top_source_overlap"] == 1.0, (
-            "Empty source sets should have 1.0 overlap (both empty = identical)"
-        )
+        assert (
+            result["source_bias"]["top_source_overlap"] == 1.0
+        ), "Empty source sets should have 1.0 overlap (both empty = identical)"
 
     def test_top_5_sources_only(self):
         """Only top 5 sources should be considered for overlap calculation."""

@@ -315,7 +315,7 @@ Validated on UCI Tamper Detection dataset. Result: 49.9% accuracy (chance perfor
 
 See `docs/VALIDATION.md` for full results.
 
-**Contextual Signals Validation (⏳ Pending Re-run):**
+**Contextual Signals Validation (✅ Quantized Complete, 🔄 3-Variant In Progress):**
 
 Previous v1 results (65.8% accuracy) had two methodology issues:
 
@@ -330,12 +330,35 @@ Previous v1 results (65.8% accuracy) had two methodology issues:
 
 **Preliminary Finding:** ELA predicts MANIPULATED for all 30 unique BTD MRI images (ELA std 24-33, far above 0.74 threshold). Medical imaging naturally has high ELA variance, making pixel forensics a degenerate predictor for this domain.
 
-**To re-run validation:**
+**Med-MMHL Validation (Feb 15-17, 2026):**
+
+- **27B (A100):** 94.5% accuracy [90.8%, 98.2%] — see `validation_results/med_mmhl_n163_hf_27b/`
+- **4B Quantized (LM Studio, VERACITY_FIRST):** 92.0% accuracy [87.7%, 95.7%] — see `validation_results/med_mmhl_n163_4b_quantized/`
+- **4B IT (HuggingFace):** Complete, results in `validation_results/med_mmhl_n163_4b_it/`
+- **4B PT (HuggingFace):** Pending
+
+Three-variant comparison (IT vs Quantized vs PT) in progress. See `docs/VALIDATION.md` Part 12.
+
+**To run validation:**
 
 ```bash
-uv run python scripts/validate_contextual_signals.py \
-  --dataset data/contextual_validation_v1.json \
-  --output-dir validation_results/contextual_signals_v2_langgraph
+# Quantized 4B (LM Studio must be running at localhost:1234)
+MEDGEMMA_PROVIDER=lmstudio LOCAL_MEDGEMMA_URL=http://localhost:1234 \
+uv run python -m app.validation.run_validation \
+  --data-dir data/med-mmhl \
+  --output-dir validation_results/med_mmhl_n163_4b_quantized \
+  --limit 163 --seed 42
+
+# IT 4B (HuggingFace Inference API)
+MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it \
+uv run python -m app.validation.run_validation \
+  --data-dir data/med-mmhl \
+  --output-dir validation_results/med_mmhl_n163_4b_it \
+  --limit 163 --seed 42
+
+# Threshold optimization with 5-fold CV and bootstrap CIs
+uv run python -m app.validation.optimize_thresholds_cv \
+  validation_results/med_mmhl_n163_4b_quantized --method cv --n-folds 5
 ```
 
 See `docs/VALIDATION.md` for detailed methodology.

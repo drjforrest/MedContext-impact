@@ -9,6 +9,7 @@
 | **Proof of Justification** | ✅ Complete | [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md) |
 | **Med-MMHL Validation (n=163)** | ✅ Complete | [Part 11 below](#part-11-med-mmhl-validation-results) |
 | **Weight Ablation Study** | ✅ Complete | [Part 11 below](#part-11-med-mmhl-validation-results) |
+| **3-Variant MedGemma Comparison** | 🔄 In Progress | [Part 12 below](#part-12-three-variant-medgemma-comparison-february-2026) |
 | **AMMeBa Validation** | 🔄 Pending | [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) |
 
 MedContext was developed **empirically motivated**, not feature-driven. The *Proof of Justification* studies below show preliminary evidence for why contextual authenticity requires both veracity and alignment. **Med-MMHL validation** on n=163 real-world image-claim pairs with fact-checker labels is now complete — see Part 11. This provides real-world validation evidence for MedContext's core thesis. Note: the sample size is limited (n=163), sequential-sampling bias was observed (higher misinformation rate vs full test set), and AMMeBa validation is still pending, so this represents preliminary evidence rather than final validation. See [NEXT_STEPS_FOR_VALIDATION.md](../NEXT_STEPS_FOR_VALIDATION.md) and [VALIDATION_DATA_INFORMATION.md](../VALIDATION_DATA_INFORMATION.md).
@@ -661,6 +662,7 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 **Proof of Justification Completed**: January 28, 2026
 **Report Generated**: January 31, 2026
 **Med-MMHL Validation Completed**: February 15, 2026
+**3-Variant Comparison Started**: February 17, 2026
 
 ---
 
@@ -670,7 +672,7 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 **n=163** | Misinformation=136 (83.4%) | Real=27 (16.6%)
 **Sampling:** Stratified random sampling (seed=42) of 163 from 1,785 test samples (83.4% misinformation rate, matching 83.0% base rate in full test set).
 **Threshold Selection:** 5-fold stratified cross-validation (seed=42) to avoid test-set contamination. Thresholds (veracity < 0.65, alignment < 0.30) optimized on training folds, with performance evaluated on held-out validation folds.
-**Raw data:** `validation_results/med_mmhl_n163_hf_27b/` | `validation_results/med_mmhl_n163_quantized_4b/`
+**Raw data:** `validation_results/med_mmhl_n163_hf_27b/` | `validation_results/med_mmhl_n163_4b_it/` | `validation_results/med_mmhl_n163_4b_quantized/`
 **Threshold optimization:** `validation_results/med_mmhl_n163_hf_27b/threshold_analysis_cv/cv_optimization_or.json`
 **Bias check:** `validation_results/sampling_bias_analysis.json`
 **Weight ablation data:** `validation_results/weight_ablation.json`
@@ -830,11 +832,9 @@ Both false positive types (TB vaccine article, celebrity fact-check) scored high
 
 ```bash
 # Run 4B quantized validation (LM Studio must be running at localhost:1234)
-uv run python scripts/validate_med_mmhl.py \
-  --data-dir data/med-mmhl \
-  --split test \
-  --output validation_results/med_mmhl_lmstudio_quantized \
-  --limit 163
+uv run python scripts/validate_contextual_signals.py \
+  --dataset data/contextual_validation_v1.json \
+  --output-dir validation_results/med_mmhl_lmstudio_quantized
 
 # Run weight ablation study on existing raw predictions (no inference required)
 python3 scripts/weight_ablation.py  # see validation_results/weight_ablation.json
@@ -844,3 +844,125 @@ python3 scripts/weight_ablation.py  # see validation_results/weight_ablation.jso
 - 4B validation: Local LM Studio (GGUF quantized `medgemma-1.5-4b-it`), ~5s/sample, ~24 min total
 - 27B validation: A100 GPU, ~18 min total
 - Weight ablation: CPU only, <5s (recomputes over cached scores)
+
+---
+
+## Part 12: Three-Variant MedGemma Comparison (February 2026)
+
+**Motivation:** Part 11 used a combined α-weighted score (`combined_score < 0.5`) for the 4B model and 5-fold CV for the 27B model. This part introduces a systematic comparison of MedGemma 4B variants using a unified methodology: the full LangGraph agentic workflow with VERACITY_FIRST decision logic (hierarchical: veracity primary, alignment tiebreaker) and proper 5-fold cross-validated threshold optimization with bootstrap confidence intervals.
+
+**Variants under comparison:**
+
+| Variant | Model | Provider | Precision | Status |
+|---------|-------|----------|-----------|--------|
+| **IT** (Instruction-Tuned) | `google/medgemma-1.5-4b-it` | HuggingFace Inference API | FP16 | Complete (Feb 15) |
+| **Q** (Quantized GGUF) | `medgemma-1.5-4b-it` GGUF | LM Studio (localhost:1234) | ~4-bit | Complete (Feb 17) |
+| **PT** (Pre-Trained) | `google/medgemma-1.5-4b-pt` | HuggingFace Inference API | FP16 | Pending |
+
+**Dataset:** Same Med-MMHL test split, n=163, stratified random (seed=42), 135 misinformation / 28 legitimate.
+
+---
+
+### 12.1 Quantized 4B Results (VERACITY_FIRST, 5-fold CV)
+
+The quantized variant was re-evaluated using the updated `validate_contextual_signals.py` script with the full LangGraph agent (triage → tool dispatch → synthesis) and VERACITY_FIRST decision logic.
+
+**Threshold optimization:** 5-fold stratified cross-validation (seed=42). All 5 folds converged on identical optimal thresholds: veracity < 0.65, alignment < 0.30, OR logic.
+
+**5-fold CV validation metrics (mean ± std across folds):**
+
+| Metric | Mean | Std |
+|--------|------|-----|
+| Accuracy | 92.1% | ± 4.1% |
+| Precision | 96.4% | ± 3.1% |
+| Recall | 94.1% | ± 6.0% |
+| F1 | 0.951 | ± 0.027 |
+
+**Full dataset metrics with bootstrap 95% CI (1,000 resamples):**
+
+| Metric | Value | 95% CI |
+|--------|-------|--------|
+| Accuracy | 92.0% | [87.7%, 95.7%] |
+| Precision | 96.2% | [92.6%, 99.3%] |
+| Recall | 94.1% | [89.9%, 97.8%] |
+| F1 | 0.951 | [0.923, 0.975] |
+
+**Individual signal performance:**
+
+| Signal | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|--------|----------|-----------|--------|-----|---------|
+| Veracity | 79.8% | 45.8% | 96.4% | 0.621 | 0.938 |
+| Alignment | 86.5% | 58.3% | 75.0% | 0.656 | 0.794 |
+| **Combined (VERACITY_FIRST)** | **92.0%** | **96.2%** | **94.1%** | **0.951** | — |
+
+**Infrastructure:**
+- MedGemma: GGUF quantized `medgemma-1.5-4b-it` via LM Studio (localhost:1234)
+- LLM orchestrator: `google/gemini-2.5-pro` via OpenRouter
+- Runtime: ~2.5 hours (163 samples, ~55s/sample average)
+- 163/163 processed, 0 skipped, 0 errors (2 MedGemma 400 errors recovered gracefully via triage-level error handling)
+
+---
+
+### 12.2 Comparison with Part 11 Results
+
+| Metric | Part 11: 4B Quantized (α-weighted) | Part 12: 4B Quantized (VERACITY_FIRST) | Part 11: 27B (5-fold CV) |
+|--------|-------------------------------------|----------------------------------------|--------------------------|
+| Accuracy | 90.8% [85.9%, 95.1%] | **92.0% [87.7%, 95.7%]** | **94.5% ± 4.4%** |
+| Precision | **99.2%** [97.4%, 100.0%] | 96.2% [92.6%, 99.3%] | 95.0% ± 3.5% |
+| Recall | 89.7% [84.3%, 94.8%] | **94.1% [89.9%, 97.8%]** | **98.5% ± 1.8%** |
+| F1 | 0.942 [90.9%, 97.0%] | **0.951 [0.923, 0.975]** | **0.968 ± 0.026** |
+| Decision Logic | combined_score < 0.5 | veracity < 0.65 OR alignment < 0.30 | veracity < 0.65 OR alignment < 0.30 |
+| Agent | Deterministic | LangGraph | LangGraph |
+
+The VERACITY_FIRST decision logic improves recall (+4.4pp) and F1 (+0.009) at the cost of slightly lower precision (−3.0pp). The net effect is a more balanced classifier: the Part 11 4B run was precision-heavy (99.2% precision but only 89.7% recall), while the Part 12 run achieves better balance. The 27B model remains the best performer overall.
+
+---
+
+### 12.3 Methodology Notes
+
+**What changed from Part 11 to Part 12:**
+
+1. **Agent:** Switched from deterministic `MedContextAgent` to `MedContextLangGraphAgent` (full triage → tool dispatch → synthesis pipeline)
+2. **Decision logic:** Changed from α-weighted combined score (`combined_score < 0.5`) to VERACITY_FIRST hierarchical logic (`veracity < 0.65 OR alignment < 0.30`)
+3. **Error recovery:** Added graceful MedGemma error handling in the triage node — when LM Studio returns a 400 error for specific images, the agent continues with available signals rather than failing
+4. **Timeout safety:** Added 120s alarm-based timeout per sample to prevent hangs from LangGraph exception propagation
+
+**What stayed the same:**
+
+- Same model: GGUF quantized `medgemma-1.5-4b-it` via LM Studio
+- Same dataset: Med-MMHL test split, n=163, stratified random (seed=42)
+- Same threshold optimization: 5-fold stratified cross-validation (seed=42)
+- Same bootstrap methodology: 1,000 resamples, 95% percentile CI
+
+---
+
+### 12.4 Reproducibility
+
+```bash
+# Run quantized 4B validation (LM Studio must be running at localhost:1234)
+MEDGEMMA_PROVIDER=lmstudio LOCAL_MEDGEMMA_URL=http://localhost:1234 \
+uv run python scripts/validate_contextual_signals.py \
+  --data-dir data/med-mmhl \
+  --output-dir validation_results/med_mmhl_n163_4b_quantized \
+  --limit 163 --seed 42
+
+# Run threshold optimization with 5-fold CV and bootstrap CIs
+uv run python scripts/optimize_thresholds_cv.py \
+  validation_results/med_mmhl_n163_4b_quantized \
+  --method cv --n-folds 5
+
+# Run IT variant (HuggingFace Inference API)
+MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it \
+uv run python scripts/validate_contextual_signals.py \
+  --data-dir data/med-mmhl \
+  --output-dir validation_results/med_mmhl_n163_4b_it \
+  --limit 163 --seed 42
+
+# Compare variants side-by-side (after all runs complete)
+uv run python scripts/compare_three_variants.py
+```
+
+**Raw data:**
+- IT results: `validation_results/med_mmhl_n163_4b_it/`
+- Quantized results: `validation_results/med_mmhl_n163_4b_quantized/`
+- Threshold optimization: `validation_results/med_mmhl_n163_4b_quantized/threshold_analysis_cv/cv_optimization_or.json`

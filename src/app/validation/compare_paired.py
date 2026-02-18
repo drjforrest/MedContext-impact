@@ -2,7 +2,6 @@
 """Analyze sample-by-sample agreement between models."""
 
 import json
-import re
 from pathlib import Path
 
 # Load raw predictions from both runs

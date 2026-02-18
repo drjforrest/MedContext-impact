@@ -1,0 +1,160 @@
+{
+  "method": "cross_validation",
+  "logic": "OR",
+  "random_seed": 42,
+  "n_folds": 5,
+  "cv_results": {
+    "n_folds": 5,
+    "fold_results": [
+      {
+        "fold": 1,
+        "train_size": 130,
+        "val_size": 33,
+        "optimal_thresholds": {
+          "veracity_threshold": 0.6499999999999999,
+          "alignment_threshold": 0.3
+        },
+        "train_metrics": {
+          "accuracy": 0.9384615384615385,
+          "precision": 0.9629629629629629,
+          "recall": 0.9629629629629629,
+          "f1": 0.9629629629629629
+        },
+        "val_metrics": {
+          "accuracy": 0.8484848484848485,
+          "precision": 0.9583333333333334,
+          "recall": 0.8518518518518519,
+          "f1": 0.9019607843137255
+        }
+      },
+      {
+        "fold": 2,
+        "train_size": 130,
+        "val_size": 33,
+        "optimal_thresholds": {
+          "veracity_threshold": 0.6499999999999999,
+          "alignment_threshold": 0.3
+        },
+        "train_metrics": {
+          "accuracy": 0.9153846153846154,
+          "precision": 0.970873786407767,
+          "recall": 0.9259259259259259,
+          "f1": 0.9478672985781991
+        },
+        "val_metrics": {
+          "accuracy": 0.9393939393939394,
+          "precision": 0.9310344827586207,
+          "recall": 1.0,
+          "f1": 0.9642857142857143
+        }
+      },
+      {
+        "fold": 3,
+        "train_size": 130,
+        "val_size": 33,
+        "optimal_thresholds": {
+          "veracity_threshold": 0.6499999999999999,
+          "alignment_threshold": 0.3
+        },
+        "train_metrics": {
+          "accuracy": 0.9230769230769231,
+          "precision": 0.9537037037037037,
+          "recall": 0.9537037037037037,
+          "f1": 0.9537037037037037
+        },
+        "val_metrics": {
+          "accuracy": 0.9090909090909091,
+          "precision": 1.0,
+          "recall": 0.8888888888888888,
+          "f1": 0.9411764705882353
+        }
+      },
+      {
+        "fold": 4,
+        "train_size": 131,
+        "val_size": 32,
+        "optimal_thresholds": {
+          "veracity_threshold": 0.6499999999999999,
+          "alignment_threshold": 0.3
+        },
+        "train_metrics": {
+          "accuracy": 0.916030534351145,
+          "precision": 0.970873786407767,
+          "recall": 0.9259259259259259,
+          "f1": 0.9478672985781991
+        },
+        "val_metrics": {
+          "accuracy": 0.9375,
+          "precision": 0.9310344827586207,
+          "recall": 1.0,
+          "f1": 0.9642857142857143
+        }
+      },
+      {
+        "fold": 5,
+        "train_size": 131,
+        "val_size": 32,
+        "optimal_thresholds": {
+          "veracity_threshold": 0.6499999999999999,
+          "alignment_threshold": 0.3
+        },
+        "train_metrics": {
+          "accuracy": 0.9083969465648855,
+          "precision": 0.9528301886792453,
+          "recall": 0.9351851851851852,
+          "f1": 0.9439252336448598
+        },
+        "val_metrics": {
+          "accuracy": 0.96875,
+          "precision": 1.0,
+          "recall": 0.9629629629629629,
+          "f1": 0.9811320754716981
+        }
+      }
+    ],
+    "recommended_thresholds": {
+      "veracity_threshold": 0.6499999999999999,
+      "alignment_threshold": 0.3
+    },
+    "mean_val_metrics": {
+      "accuracy": 0.9206439393939394,
+      "precision": 0.9640804597701148,
+      "recall": 0.9407407407407407,
+      "f1": 0.9505681517890174
+    },
+    "std_val_metrics": {
+      "accuracy": 0.04071925651629299,
+      "precision": 0.03097589190393533,
+      "recall": 0.06017806225656267,
+      "f1": 0.0274276368695427
+    }
+  },
+  "full_dataset_metrics": {
+    "accuracy": 0.9202453987730062,
+    "precision": 0.9621212121212122,
+    "recall": 0.9407407407407408,
+    "f1": 0.951310861423221
+  },
+  "full_dataset_bootstrap_ci": {
+    "accuracy": {
+      "mean": 0.9194478527607362,
+      "ci_lower": 0.8773006134969326,
+      "ci_upper": 0.9570552147239264
+    },
+    "precision": {
+      "mean": 0.9620369489381199,
+      "ci_lower": 0.9264569716775599,
+      "ci_upper": 0.9925373134328358
+    },
+    "recall": {
+      "mean": 0.9398891674770479,
+      "ci_lower": 0.8985507246376812,
+      "ci_upper": 0.9781100666911726
+    },
+    "f1": {
+      "mean": 0.9506533490352934,
+      "ci_lower": 0.9230769230769231,
+      "ci_upper": 0.9752650176678446
+    }
+  }
+}

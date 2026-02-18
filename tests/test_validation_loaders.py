@@ -11,11 +11,21 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from app.validation.loaders import (
-    load_med_mmhl_dataset,
     _parse_image_paths,
     _resolve_image_path,
     create_annotation_template,
 )
+
+# load_med_mmhl_dataset requires pandas at call time
+try:
+    import pandas  # noqa: F401
+
+    _has_pandas = True
+except ModuleNotFoundError:
+    _has_pandas = False
+
+if _has_pandas:
+    from app.validation.loaders import load_med_mmhl_dataset
 
 
 class TestParseImagePaths:
@@ -47,6 +57,7 @@ class TestResolveImagePath:
         assert resolved.exists()
 
 
+@pytest.mark.skipif(not _has_pandas, reason="pandas not installed")
 class TestLoadMedMMHL:
     def test_loads_csv(self, tmp_path):
         """Test loader with minimal CSV."""

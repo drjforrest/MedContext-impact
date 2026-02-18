@@ -8,7 +8,42 @@
 
 1. **Download dataset:** See [data/med-mmhl/README.md](../data/med-mmhl/README.md)
 2. **Verify:** `python scripts/download_med_mmhl.py --output data/med-mmhl`
-3. **Run:** `python scripts/validate_med_mmhl.py --data-dir data/med-mmhl --split test --output validation_results/med_mmhl_v1`
+3. **Run validation** (choose variant):
+
+```bash
+# Quantized 4B via LM Studio (must be running at localhost:1234)
+MEDGEMMA_PROVIDER=lmstudio LOCAL_MEDGEMMA_URL=http://localhost:1234 \
+uv run python scripts/validate_contextual_signals.py \
+  --data-dir data/med-mmhl --output-dir validation_results/med_mmhl_n163_4b_quantized \
+  --limit 163 --seed 42
+
+# IT 4B via HuggingFace Inference API
+MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it \
+uv run python scripts/validate_contextual_signals.py \
+  --data-dir data/med-mmhl --output-dir validation_results/med_mmhl_n163_4b_it \
+  --limit 163 --seed 42
+
+# PT 4B via HuggingFace Inference API
+MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-pt \
+uv run python scripts/validate_contextual_signals.py \
+  --data-dir data/med-mmhl --output-dir validation_results/med_mmhl_n163_4b_pt \
+  --limit 163 --seed 42
+```
+
+4. **Optimize thresholds** (5-fold CV with bootstrap CIs):
+
+```bash
+uv run python scripts/optimize_thresholds_cv.py \
+  validation_results/med_mmhl_n163_4b_quantized --method cv --n-folds 5
+```
+
+5. **Compare variants** (after all runs complete):
+
+```bash
+uv run python scripts/compare_three_variants.py
+```
+
+See [docs/VALIDATION.md Part 12](../docs/VALIDATION.md#part-12-three-variant-medgemma-comparison-february-2026) for results.
 
 ---
 

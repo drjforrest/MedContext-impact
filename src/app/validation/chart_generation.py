@@ -335,7 +335,7 @@ def generate_metric_summary(predictions):
 def generate_charts(results_dir: Path) -> None:
     """Generate chart_data.json from a completed validation results directory.
 
-    Can be called programmatically (e.g. from validate_med_mmhl.py) or via CLI.
+    Can be called programmatically (e.g. from validate_contextual_signals.py) or via CLI.
     """
     results_dir = Path(results_dir)
     if not results_dir.exists():
@@ -352,8 +352,14 @@ def generate_charts(results_dir: Path) -> None:
         model_label = "MedGemma 27B Multimodal (Vertex AI)"
     elif "27b" in model_name.lower():
         model_label = "MedGemma 27B (HuggingFace Inference API)"
+    elif "4b_it" in model_name.lower():
+        model_label = "MedGemma 4B IT (HuggingFace Inference API)"
+    elif "4b_pt" in model_name.lower():
+        model_label = "MedGemma 4B PT (HuggingFace Inference API)"
+    elif "4b" in model_name.lower() and "quantized" in model_name.lower():
+        model_label = "MedGemma 4B Quantized (LM Studio)"
     elif "4b" in model_name.lower():
-        model_label = "MedGemma 4B (Quantized Local)"
+        model_label = "MedGemma 4B"
     elif "quantized" in model_name.lower():
         model_label = "MedGemma Quantized Model"
     elif "hf" in model_name.lower():

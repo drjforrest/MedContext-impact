@@ -14,7 +14,11 @@ from langgraph.graph import END, StateGraph
 from PIL import Image
 
 from app.clinical.llm_client import LlmClient, LlmClientError, LlmResult
-from app.clinical.medgemma_client import MedGemmaClient, MedGemmaResult
+from app.clinical.medgemma_client import (
+    MedGemmaClient,
+    MedGemmaClientError,
+    MedGemmaResult,
+)
 from app.core.config import settings
 from app.forensics.service import run_forensics
 from app.metrics.integrity import compute_contextual_integrity_score
@@ -148,7 +152,15 @@ class MedContextLangGraphAgent:
         pre_screen = self._pre_screen_integrity(image_bytes, context)
 
         # Get medical analysis from MedGemma
-        medical_analysis = self._get_medical_analysis(image_bytes, context)
+        try:
+            medical_analysis = self._get_medical_analysis(image_bytes, context)
+        except (MedGemmaClientError, Exception) as e:
+            logger.error("MedGemma analysis failed in triage: %s", e)
+            medical_analysis = MedGemmaResult(
+                provider="error",
+                model="none",
+                output={"error": str(e), "medical_findings": "Analysis unavailable"},
+            )
 
         # MedGemma suggests tools based on medical analysis and pre-screen results
         medgemma_tool_recommendations = self._medgemma_tool_recommendations(
@@ -1010,7 +1022,7 @@ class MedContextLangGraphAgent:
           Hierarchical logic matching validation methodology
           - Primary: veracity (false claim → always misinformation)
           - Secondary: alignment (tiebreaker when veracity ambiguous)
-          See: scripts/validate_three_methods.py:combined_analysis()
+
 
         • "OR": veracity < threshold OR alignment < threshold → misinformation
         • "AND": veracity < threshold AND alignment < threshold → misinformation
@@ -1068,7 +1080,7 @@ class MedContextLangGraphAgent:
             # Hierarchical logic matching validation methodology (recommended)
             # Primary: veracity (false claim → always misinformation)
             # Secondary: alignment (tiebreaker when veracity ambiguous)
-            # See: scripts/validate_three_methods.py:combined_analysis()
+
             if veracity_category == "false" or veracity_value < 0.5:
                 is_misinformation = True
             elif veracity_category == "true" and veracity_value >= 0.8:

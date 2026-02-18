@@ -133,7 +133,9 @@ print()
 print("Example: If the random subset had more challenging cases,")
 print("both models might score 85-87%. If easier cases, 90-92%.")
 print()
-print(f"The {diff_pp:.1f}pp difference ({diff} sample{'s' if abs(diff) != 1 else ''}) is MUCH smaller than the")
+print(
+    f"The {diff_pp:.1f}pp difference ({diff} sample{'s' if abs(diff) != 1 else ''}) is MUCH smaller than the"
+)
 print(f"expected variation from different random subsets (~{avg_ci_margin:.0f}pp).")
 print()
 print("=" * 70)

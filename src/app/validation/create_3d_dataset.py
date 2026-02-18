@@ -177,7 +177,7 @@ def create_complete_3d_dataset():
         "  2. Review sample entries: head -20 data/three_dimensional_validation_v1.json"
     )
     print(
-        "  3. Run validation: uv run python scripts/validate_three_methods.py --dataset data/three_dimensional_validation_v1.json"
+        "  3. Run validation: uv run python -m app.validation.run_validation --dataset data/three_dimensional_validation_v1.json"
     )
 
     return output_path

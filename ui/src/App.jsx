@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import SplashPage from './SplashPage'
 import ValidationStory from './ValidationStory'
 import ThresholdOptimization from './ThresholdOptimization'
 
@@ -60,7 +61,7 @@ const getStoredAccessCode = () => {
 
 
 function App() {
-  const [activeView, setActiveView] = useState('main')
+  const [activeView, setActiveView] = useState('landing')
   const [apiBase, setApiBase] = useState(getStoredApiBase)
   const [accessCode, setAccessCode] = useState(getStoredAccessCode)
   const [imageFile, setImageFile] = useState(null)
@@ -614,70 +615,57 @@ function App() {
     if (!orchestratorReverseSearch) signals.push('Source Reputation')
     return signals
   }, [provenanceData, orchestratorReverseSearch])
+  const isLanding = activeView === 'landing'
+
   return (
     <div className="page">
-      <header className="hero">
-        <div className="hero-brand">
-          <div className="hero-logo-frame">
-            <img
-              className="hero-logo"
-              src="/MedContext-banner-final.jpeg"
-              alt="MedContext - Real images can mislead. We verify the claims, not just the image."
-            />
-          </div>
-          <div>
-            <p className="eyebrow">MedContext</p>
-            <h1>Medical images don&apos;t need to be fake to cause harm.</h1>
-            <p className="subhead">
-              Check your image context with MedContext.
-            </p>
-          </div>
-        </div>
-        <div className="hero-actions">
+      {!isLanding && (
+        <nav className="tab-bar">
           <button
             type="button"
-            className="ghost"
+            className={`tab-button ${activeView === 'main' || activeView === 'settings' ? 'tab-active' : ''}`}
+            onClick={() => setActiveView('main')}
+          >
+            Verify Image
+          </button>
+          <button
+            type="button"
+            className={`tab-button ${activeView === 'validation' ? 'tab-active' : ''}`}
+            onClick={() => setActiveView('validation')}
+          >
+            Validation Results
+          </button>
+          <button
+            type="button"
+            className={`tab-button ${activeView === 'threshold' ? 'tab-active' : ''}`}
+            onClick={() => setActiveView('threshold')}
+          >
+            Threshold Optimization
+          </button>
+          <button
+            type="button"
+            className="tab-button tab-settings-btn"
             onClick={() =>
               setActiveView((current) =>
                 current === 'settings' ? 'main' : 'settings',
               )
             }
           >
-            {activeView === 'settings' ? 'Back to app' : 'Settings'}
+            {activeView === 'settings' ? 'Back' : 'Settings'}
           </button>
-        </div>
-      </header>
-
-      {/* Tab Toggle */}
-      <nav className="tab-toggle">
-        <button
-          type="button"
-          className={`tab-button ${activeView === 'main' || activeView === 'settings' ? 'tab-active' : ''}`}
-          onClick={() => setActiveView('main')}
-        >
-          Verify Image
-        </button>
-        <button
-          type="button"
-          className={`tab-button ${activeView === 'validation' ? 'tab-active' : ''}`}
-          onClick={() => setActiveView('validation')}
-        >
-          Validation Results
-        </button>
-        <button
-          type="button"
-          className={`tab-button ${activeView === 'threshold' ? 'tab-active' : ''}`}
-          onClick={() => setActiveView('threshold')}
-        >
-          Threshold Optimization
-        </button>
-      </nav>
+        </nav>
+      )}
 
       <main className="content">
-        {activeView === 'threshold' ? (
+        {isLanding ? (
+          <SplashPage
+            onNavigateToVerify={() => setActiveView('main')}
+            onNavigateToValidation={() => setActiveView('validation')}
+          />
+        ) : activeView === 'threshold' ? (
           <ThresholdOptimization apiBase={apiBase} accessCode={accessCode} />
         ) : activeView === 'validation' ? (
-          <ValidationStory onNavigateBack={() => setActiveView('main')} />
+          <ValidationStory />
         ) : activeView === 'settings' ? (
           <section className="card settings-card">
             <div className="settings-header">
@@ -724,6 +712,20 @@ function App() {
           </section>
         ) : (
           <>
+            <section className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <img
+                className="page-banner"
+                src="/images/main-app-banner.png"
+                alt="MedContext - Real images can mislead. We verify the claims, not just the image."
+              />
+              <div className="page-header">
+                <p className="eyebrow">MedContext</p>
+                <h1>Medical images don&apos;t need to be fake to cause harm.</h1>
+                <p className="subhead">
+                  Check your image context with MedContext.
+                </p>
+              </div>
+            </section>
             <div className="top-grid">
               <section
                 className={[

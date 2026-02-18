@@ -18,8 +18,6 @@ from typing import Any, Iterable, List
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from app.clinical.llm_client import LlmResult
 from app.clinical.medgemma_client import MedGemmaResult
 from app.core.config import settings
