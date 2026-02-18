@@ -262,7 +262,7 @@ button.secondary:hover {
 
 .score-fill {
   height: 100%;
-  width: 0%;
+  width: 0;
   background: #2563eb;
   transition: width 0.3s ease;
 }
@@ -311,7 +311,7 @@ button.secondary:hover {
 
 .bar-fill {
   height: 100%;
-  width: 0%;
+  width: 0;
   background: #38bdf8;
   transition: width 0.3s ease;
 }
@@ -375,7 +375,7 @@ button.secondary:hover {
 
 .consensus-fill {
   height: 100%;
-  width: 0%;
+  width: 0;
   background: #a78bfa;
   transition: width 0.3s ease;
 }

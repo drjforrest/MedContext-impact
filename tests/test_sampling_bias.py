@@ -8,8 +8,6 @@ Tests the source overlap calculation logic to ensure:
 4. Edge cases are handled correctly
 """
 
-import sys
-from pathlib import Path
 
 import pytest
 

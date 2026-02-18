@@ -48,8 +48,7 @@ echo ""
 # Variant 1: IT (Instruction-Tuned) via HuggingFace
 if [[ "$RUN_IT" == true ]]; then
     echo "--- Variant 1: MedGemma 4B IT (Instruction-Tuned) ---"
-    MEDGEMMA_PROVIDER=huggingface \
-    MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it \
+    MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
     uv run python -m app.validation.run_validation \
         --data-dir "$DATA_DIR" \
         --output-dir "${RESULTS_BASE}/med_mmhl_n163_4b_it" \
@@ -69,8 +68,7 @@ fi
 if [[ "$RUN_PT" == true ]]; then
     echo ""
     echo "--- Variant 2: MedGemma 4B PT (Pre-Trained) ---"
-    MEDGEMMA_PROVIDER=huggingface \
-    MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-pt \
+    MEDGEMMA_MODEL=google/medgemma-1.1-4b-pt \
     uv run python -m app.validation.run_validation \
         --data-dir "$DATA_DIR" \
         --output-dir "${RESULTS_BASE}/med_mmhl_n163_4b_pt" \
@@ -89,7 +87,7 @@ if [[ "$RUN_Q" == true ]]; then
         echo "  Start LM Studio and load a MedGemma GGUF model first."
         echo "  Skipping Q variant."
     else
-        MEDGEMMA_PROVIDER=lmstudio \
+        MEDGEMMA_MODEL=google/medgemma-1.1-4b-it.gguf \
         LOCAL_MEDGEMMA_URL=http://localhost:1234 \
         uv run python -m app.validation.run_validation \
             --data-dir "$DATA_DIR" \

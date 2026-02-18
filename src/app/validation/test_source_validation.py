@@ -6,7 +6,6 @@ that the warning and validation checks work correctly.
 """
 
 import sys
-from pathlib import Path
 
 from app.validation.sampling_bias import compute_distribution_stats
 

@@ -103,14 +103,13 @@ pipeline and consumes A100 quota in us-central1.
 
 **`.env` (validation):**
 ```bash
-MEDGEMMA_PROVIDER=vllm
-MEDGEMMA_HF_MODEL=google/medgemma-27b-it
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
 MEDGEMMA_VLLM_URL=https://vt5q953aaaoh81sn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions
 ```
 
 **`src/app/core/config.py` (production default):**
 ```python
-medgemma_hf_model: str = "google/medgemma-1.5-4b-it"  # 4B multimodal for web images
+medgemma_model: str = "google/medgemma-1.1-4b-it"  # 4B multimodal for web images
 ```
 
 **`validation_results/` directories:**

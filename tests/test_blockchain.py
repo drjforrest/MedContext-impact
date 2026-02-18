@@ -46,10 +46,13 @@ def _make_service(
 
     with (
         patch("app.provenance.blockchain._ABI_PATH") as mock_abi_path,
-        patch.dict("sys.modules", {
-            "web3": MagicMock(Web3=mock_web3_cls),
-            "eth_account": MagicMock(Account=mock_account_cls),
-        }),
+        patch.dict(
+            "sys.modules",
+            {
+                "web3": MagicMock(Web3=mock_web3_cls),
+                "eth_account": MagicMock(Account=mock_account_cls),
+            },
+        ),
     ):
         mock_abi_path.read_text.return_value = json.dumps(contract_abi)
 

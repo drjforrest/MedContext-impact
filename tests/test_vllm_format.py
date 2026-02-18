@@ -39,7 +39,7 @@ def test_vllm_format():
     ]
 
     payload = {
-        "model": settings.medgemma_hf_model,
+        "model": settings.medgemma_model,
         "messages": [{"role": "user", "content": content}],
         "max_tokens": 500,
     }

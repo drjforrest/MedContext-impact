@@ -38,9 +38,7 @@ def verify_metrics():
 
     # Load predictions
     pred_file = (
-        Path("validation_results")
-        / "med_mmhl_n163_hf_27b"
-        / "raw_predictions.json"
+        Path("validation_results") / "med_mmhl_n163_hf_27b" / "raw_predictions.json"
     )
     if not pred_file.exists():
         print(f"ERROR: Predictions file not found: {pred_file}")

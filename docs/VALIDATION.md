@@ -940,7 +940,8 @@ The VERACITY_FIRST decision logic improves recall (+4.4pp) and F1 (+0.009) at th
 
 ```bash
 # Run quantized 4B validation (LM Studio must be running at localhost:1234)
-MEDGEMMA_PROVIDER=lmstudio LOCAL_MEDGEMMA_URL=http://localhost:1234 \
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
+LOCAL_MEDGEMMA_URL=http://localhost:1234 \
 uv run python scripts/validate_contextual_signals.py \
   --data-dir data/med-mmhl \
   --output-dir validation_results/med_mmhl_n163_4b_quantized \
@@ -952,7 +953,7 @@ uv run python scripts/optimize_thresholds_cv.py \
   --method cv --n-folds 5
 
 # Run IT variant (HuggingFace Inference API)
-MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it \
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
 uv run python scripts/validate_contextual_signals.py \
   --data-dir data/med-mmhl \
   --output-dir validation_results/med_mmhl_n163_4b_it \

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -239,12 +238,6 @@ def main() -> None:
         help="Benchmark mode: stub (no external calls) or live (real providers).",
     )
     parser.add_argument(
-        "--fallback-provider",
-        type=str,
-        default="vertex,huggingface",
-        help="Comma-separated fallback MedGemma providers if live warmup fails.",
-    )
-    parser.add_argument(
         "--output",
         type=str,
         default="validation_results/performance",
@@ -258,7 +251,7 @@ def main() -> None:
     warmup_images = images[args.samples : args.samples + args.warmup]
 
     original_serp_api_key: str | None = None
-    original_medgemma_provider = settings.medgemma_provider
+    original_medgemma_model = settings.medgemma_model
     if args.mode != "live":
         original_serp_api_key = settings.serp_api_key
         settings.serp_api_key = ""
@@ -285,32 +278,6 @@ def main() -> None:
                 errors.append(str(exc))
                 break
 
-        if errors and args.mode == "live" and settings.medgemma_provider == "vllm":
-            candidates = [
-                entry.strip().lower()
-                for entry in args.fallback_provider.split(",")
-                if entry.strip()
-            ]
-            for fallback in candidates:
-                if fallback == "huggingface" and not settings.medgemma_hf_token:
-                    continue
-                if fallback == "vertex" and not settings.medgemma_vertex_endpoint:
-                    continue
-                settings.medgemma_provider = fallback
-                agent = MedContextAgent()
-                mode_detail = f"live_fallback_{fallback}"
-                errors.clear()
-                for image_bytes in warmup_images:
-                    try:
-                        _ = benchmark_image(agent, image_bytes, context=context)
-                    except Exception as exc:
-                        errors.append(str(exc))
-                        break
-                if not errors:
-                    break
-                fallback_attempts.append(
-                    {"provider": fallback, "error": errors[0] if errors else "unknown"}
-                )
         start_total = time.perf_counter()
         for image_bytes in benchmark_images:
             try:
@@ -338,7 +305,7 @@ def main() -> None:
                 "warmup": len(warmup_images),
                 "mode": mode_detail,
                 "serpapi_enabled": serpapi_enabled,
-                "medgemma_provider": settings.medgemma_provider,
+                "medgemma_model": settings.medgemma_model,
                 "llm_provider": settings.llm_provider,
             },
             "errors": {
@@ -379,7 +346,7 @@ def main() -> None:
     finally:
         if original_serp_api_key is not None:
             settings.serp_api_key = original_serp_api_key
-        settings.medgemma_provider = original_medgemma_provider
+        settings.medgemma_model = original_medgemma_model
 
 
 if __name__ == "__main__":

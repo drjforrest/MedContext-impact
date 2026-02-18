@@ -38,48 +38,93 @@ def _detect_image_format(image_bytes: bytes) -> str:
 
 
 class MedGemmaClient:
-    def __init__(self) -> None:
-        self.provider = self._normalize_provider(settings.medgemma_provider)
+    def __init__(self, model: Optional[str] = None) -> None:
+        self.model = model or settings.medgemma_model
+        self.provider = self._determine_provider(self.model)
         self._local_model = None
         self._local_processor = None
         self._local_device = None
+        self._llm_instance = None
 
-    def _normalize_provider(self, value: str) -> str:
-        provider = (value or "").strip().lower()
-        if provider in {"vertexai", "vertex_ai"}:
+    def _determine_provider(self, model: str) -> str:
+        model_lower = model.lower()
+
+        # Explicit provider in model name (e.g. "vertex/my-model")
+        if "/" in model_lower:
+            prefix = model_lower.split("/")[0]
+            if prefix in {"vertex", "huggingface", "vllm", "local", "lmstudio"}:
+                if prefix == "lmstudio":
+                    return "local"
+                return prefix
+
+        # If model name contains vertex, use vertex
+        if "vertex" in model_lower:
             return "vertex"
-        if provider in {"lmstudio", "lm_studio"}:
+
+        # Link LM Studio for Quantized models
+        if (
+            model_lower.endswith(".gguf")
+            or "quantized" in model_lower
+            or "gguf" in model_lower
+        ):
             return "local"
-        return provider
+
+        # Link Hugging Face for PT and IT models
+        if model_lower.endswith("-it") or model_lower.endswith("-pt"):
+            return "huggingface"
+
+        # Default to huggingface
+        return "huggingface"
 
     def analyze_image(
-        self, image_bytes: bytes, prompt: Optional[str] = None
+        self,
+        image_bytes: bytes,
+        prompt: Optional[str] = None,
+        model: Optional[str] = None,
     ) -> MedGemmaResult:
+        current_model = model or self.model
+        current_provider = (
+            self._determine_provider(current_model) if model else self.provider
+        )
         try:
-            if self.provider == "huggingface":
-                return self._analyze_huggingface(image_bytes=image_bytes, prompt=prompt)
-            if self.provider == "local":
-                return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
-            if self.provider == "vllm":
-                return self._analyze_vllm(image_bytes=image_bytes, prompt=prompt)
-            if self.provider == "vertex":
-                return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
-            raise MedGemmaClientError(f"Unsupported provider: {self.provider}")
+            if current_provider == "huggingface":
+                return self._analyze_huggingface(
+                    image_bytes=image_bytes, prompt=prompt, model=current_model
+                )
+            if current_provider == "local":
+                return self._analyze_local(
+                    image_bytes=image_bytes, prompt=prompt, model=current_model
+                )
+            if current_provider == "vllm":
+                return self._analyze_vllm(
+                    image_bytes=image_bytes, prompt=prompt, model=current_model
+                )
+            if current_provider == "vertex":
+                return self._analyze_vertex(
+                    image_bytes=image_bytes, prompt=prompt, model=current_model
+                )
+            raise MedGemmaClientError(f"Unsupported provider: {current_provider}")
         except MedGemmaClientError as exc:
-            fallback = self._normalize_provider(
-                settings.medgemma_fallback_provider or ""
-            )
-            if fallback and fallback != self.provider:
+            if not settings.medgemma_fallback_provider:
+                raise exc
+            fallback = self._determine_provider(settings.medgemma_fallback_provider)
+            if fallback and fallback != current_provider:
                 if fallback == "local":
-                    return self._analyze_local(image_bytes=image_bytes, prompt=prompt)
+                    return self._analyze_local(
+                        image_bytes=image_bytes, prompt=prompt, model=current_model
+                    )
                 if fallback == "huggingface":
                     return self._analyze_huggingface(
-                        image_bytes=image_bytes, prompt=prompt
+                        image_bytes=image_bytes, prompt=prompt, model=current_model
                     )
                 if fallback == "vllm":
-                    return self._analyze_vllm(image_bytes=image_bytes, prompt=prompt)
+                    return self._analyze_vllm(
+                        image_bytes=image_bytes, prompt=prompt, model=current_model
+                    )
                 if fallback == "vertex":
-                    return self._analyze_vertex(image_bytes=image_bytes, prompt=prompt)
+                    return self._analyze_vertex(
+                        image_bytes=image_bytes, prompt=prompt, model=current_model
+                    )
             raise exc
 
     def _resize_image_for_api(self, image_bytes: bytes, max_size: int = 512) -> bytes:
@@ -116,6 +161,7 @@ class MedGemmaClient:
         except Exception as exc:
             # Log warning instead of silently swallowing
             import logging
+
             logging.getLogger(__name__).warning(
                 "Image resize failed (%s), using original (%d bytes). "
                 "Large images may cause OOM on GPU endpoints.",
@@ -125,7 +171,7 @@ class MedGemmaClient:
             return image_bytes
 
     def _analyze_huggingface(
-        self, image_bytes: bytes, prompt: Optional[str]
+        self, image_bytes: bytes, prompt: Optional[str], model: str
     ) -> MedGemmaResult:
         if not settings.medgemma_hf_token:
             raise MedGemmaClientError(
@@ -138,7 +184,7 @@ class MedGemmaClient:
         ):
             url = settings.medgemma_url.rstrip("/")
         else:
-            url = f"https://api-inference.huggingface.co/models/{settings.medgemma_hf_model}"
+            url = f"https://api-inference.huggingface.co/models/{model}"
         headers = {"Authorization": f"Bearer {settings.medgemma_hf_token}"}
 
         # Resize image to reduce GPU memory usage for dedicated endpoints
@@ -213,12 +259,12 @@ class MedGemmaClient:
 
         return MedGemmaResult(
             provider="huggingface",
-            model=settings.medgemma_hf_model,
+            model=model,
             output=parsed,
             raw_text=raw_text,
         )
 
-    def _load_local_model(self) -> None:
+    def _load_local_model(self, model: str) -> None:
         if self._local_model is not None and self._local_processor is not None:
             return
         try:
@@ -230,30 +276,40 @@ class MedGemmaClient:
             ) from exc
 
         dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-        processor = AutoProcessor.from_pretrained(
-            settings.medgemma_hf_model, use_fast=True
-        )
-        model = AutoModelForImageTextToText.from_pretrained(
-            settings.medgemma_hf_model,
+        processor = AutoProcessor.from_pretrained(model, use_fast=True)
+        model_obj = AutoModelForImageTextToText.from_pretrained(
+            model,
             dtype=dtype,
             device_map="auto",
         )
-        self._local_model = model
+        self._local_model = model_obj
         self._local_processor = processor
-        self._local_device = model.device
+        self._local_device = model_obj.device
 
     def _analyze_local(
-        self, image_bytes: bytes, prompt: Optional[str]
+        self, image_bytes: bytes, prompt: Optional[str], model: str
     ) -> MedGemmaResult:
-        # Check if we should use the local API endpoint instead of loading the model locally
+        # Check for GGUF model being run via llama-cpp-python (Local file mode)
+        is_gguf = model.lower().endswith(".gguf") or "gguf" in model.lower()
+        if is_gguf and settings.medgemma_local_path:
+            import os
+
+            if os.path.exists(settings.medgemma_local_path):
+                return self._analyze_llama_cpp(
+                    image_bytes=image_bytes, prompt=prompt, model=model
+                )
+
+        # Check if we should use the local API endpoint instead of loading the model locally (API mode)
         if (
             settings.local_medgemma_url
             and settings.local_medgemma_url != "http://localhost:8001"
         ):
-            return self._analyze_local_api(image_bytes=image_bytes, prompt=prompt)
+            return self._analyze_local_api(
+                image_bytes=image_bytes, prompt=prompt, model=model
+            )
 
         # Use the original local model loading approach
-        self._load_local_model()
+        self._load_local_model(model)
         if self._local_model is None or self._local_processor is None:
             raise MedGemmaClientError("Local MedGemma model failed to load.")
 
@@ -338,13 +394,13 @@ class MedGemmaClient:
 
         return MedGemmaResult(
             provider="local",
-            model=settings.medgemma_hf_model,
+            model=model,
             output=parsed if parsed is not None else {"text": cleaned},
             raw_text=cleaned,
         )
 
     def _analyze_local_api(
-        self, image_bytes: bytes, prompt: Optional[str]
+        self, image_bytes: bytes, prompt: Optional[str], model: str
     ) -> MedGemmaResult:
         """Analyze using a local API endpoint that serves the MedGemma model."""
         import base64
@@ -369,7 +425,7 @@ class MedGemmaClient:
             ]
 
             payload = {
-                "model": settings.local_medgemma_model,
+                "model": model,
                 "messages": [{"role": "user", "content": content}],
                 "max_tokens": settings.medgemma_max_new_tokens,
                 "temperature": 0.1,  # Lower temperature for more consistent medical responses
@@ -388,7 +444,7 @@ class MedGemmaClient:
             ]
 
             payload = {
-                "model": settings.local_medgemma_model,
+                "model": model,
                 "messages": [{"role": "user", "content": content}],
                 "max_tokens": settings.medgemma_max_new_tokens,
             }
@@ -448,7 +504,7 @@ class MedGemmaClient:
 
                     return MedGemmaResult(
                         provider="local_api",
-                        model=settings.local_medgemma_model,
+                        model=model,
                         output=parsed,
                         raw_text=cleaned,
                     )
@@ -463,8 +519,99 @@ class MedGemmaClient:
             f"Local API request failed for all URLs: {last_error}"
         )
 
+    def _analyze_llama_cpp(
+        self, image_bytes: bytes, prompt: Optional[str], model: str
+    ) -> MedGemmaResult:
+        """Analyze using llama-cpp-python for local GGUF models."""
+        try:
+            import base64
+
+            from llama_cpp import Llama
+        except ImportError:
+            raise MedGemmaClientError(
+                "llama-cpp-python is required for local GGUF inference. "
+                "Install with: pip install llama-cpp-python"
+            )
+
+        # We should cache the LLM instance to avoid reloading
+        if self._llm_instance is None:
+            # clip_model_path is required for vision
+            if settings.medgemma_mmproj_path:
+                try:
+                    from llama_cpp.llama_chat_format import (
+                        Llava15ChatHandler,
+                        NanoLlavaChatHandler,
+                    )
+
+                    # Try to detect which handler to use, or default to Llava15
+                    # In some versions of llama-cpp-python, there's a PaliGemmaChatHandler
+                    try:
+                        from llama_cpp.llama_chat_format import PaliGemmaChatHandler
+
+                        chat_handler = PaliGemmaChatHandler(
+                            clip_model_path=settings.medgemma_mmproj_path
+                        )
+                    except ImportError:
+                        # Fallback to Llava15 which is a common base for vision models
+                        chat_handler = Llava15ChatHandler(
+                            clip_model_path=settings.medgemma_mmproj_path
+                        )
+                except ImportError:
+                    raise MedGemmaClientError(
+                        "Failed to import vision chat handlers from llama-cpp-python."
+                    )
+            else:
+                # Without mmproj, vision won't work in llama-cpp-python for these models
+                raise MedGemmaClientError(
+                    "MEDGEMMA_MMPROJ_PATH is required for vision with local GGUF models in llama-cpp-python."
+                )
+
+            try:
+                self._llm_instance = Llama(
+                    model_path=settings.medgemma_local_path,
+                    chat_handler=chat_handler,
+                    n_ctx=2048,
+                    n_gpu_layers=-1,  # Use all GPU layers if available
+                    verbose=False,
+                )
+            except Exception as e:
+                raise MedGemmaClientError(f"Failed to load GGUF model: {e}")
+
+        # Prepare image
+        image_format = _detect_image_format(image_bytes)
+        encoded_image = base64.b64encode(image_bytes).decode("ascii")
+        image_url = f"data:image/{image_format};base64,{encoded_image}"
+
+        # Create chat completion
+        try:
+            response = self._llm_instance.create_chat_completion(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt or "Analyze this image."},
+                            {"type": "image_url", "image_url": {"url": image_url}},
+                        ],
+                    }
+                ],
+                max_tokens=settings.medgemma_max_new_tokens,
+            )
+            content = response["choices"][0]["message"]["content"]
+        except Exception as e:
+            raise MedGemmaClientError(f"llama-cpp-python inference failed: {e}")
+
+        cleaned = self._clean_text(content)
+        parsed = self._parse_json(cleaned)
+
+        return MedGemmaResult(
+            provider="llama-cpp",
+            model=model,
+            output=parsed,
+            raw_text=cleaned,
+        )
+
     def _analyze_vertex(
-        self, image_bytes: bytes, prompt: Optional[str]
+        self, image_bytes: bytes, prompt: Optional[str], model: str
     ) -> MedGemmaResult:
         if not settings.medgemma_vertex_endpoint:
             raise MedGemmaClientError("Missing MEDGEMMA_VERTEX_ENDPOINT for Vertex AI.")
@@ -592,7 +739,7 @@ class MedGemmaClient:
         return url
 
     def _analyze_vllm(
-        self, image_bytes: bytes, prompt: Optional[str]
+        self, image_bytes: bytes, prompt: Optional[str], model: str
     ) -> MedGemmaResult:
         if not settings.medgemma_vllm_url:
             raise MedGemmaClientError("Missing MEDGEMMA_VLLM_URL for vLLM.")
@@ -605,7 +752,7 @@ class MedGemmaClient:
             {"type": "image_url", "image_url": {"url": image_url}},
         ]
         payload = {
-            "model": settings.medgemma_hf_model,
+            "model": model,
             "messages": [{"role": "user", "content": content}],
         }
 
@@ -672,7 +819,7 @@ class MedGemmaClient:
 
         return MedGemmaResult(
             provider="vllm",
-            model=settings.medgemma_hf_model,
+            model=model,
             output=parsed,
             raw_text=cleaned,
         )

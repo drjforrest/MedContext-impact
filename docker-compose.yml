@@ -27,7 +27,7 @@ services:
     container_name: medcontext-backend
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - MEDGEMMA_PROVIDER=${MEDGEMMA_PROVIDER:-huggingface}
+      - MEDGEMMA_MODEL=${MEDGEMMA_MODEL:-google/medgemma-1.1-4b-it}
       - MEDGEMMA_HF_TOKEN=${MEDGEMMA_HF_TOKEN}
       - MEDGEMMA_VERTEX_PROJECT=${MEDGEMMA_VERTEX_PROJECT}
       - MEDGEMMA_VERTEX_LOCATION=${MEDGEMMA_VERTEX_LOCATION}

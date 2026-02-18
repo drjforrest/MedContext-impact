@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from time import perf_counter
-from typing import Any, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict
 
 from langgraph.graph import END, StateGraph
 from PIL import Image
@@ -23,6 +23,7 @@ from app.core.config import settings
 from app.forensics.service import run_forensics
 from app.metrics.integrity import compute_contextual_integrity_score
 from app.orchestrator.tool_utils import merge_tools
+from app.orchestrator.utils import AgentError, resilient_node
 from app.provenance.service import build_provenance
 from app.reverse_search.service import get_reverse_search_results, run_reverse_search
 
@@ -39,12 +40,15 @@ class AgentState(TypedDict, total=False):
     required_tools: list[str]
     force_tools: list[str]  # User-requested tool override — merged with required_tools
     tool_results: dict[str, Any]
+    errors: list[AgentError]  # Track what went wrong
+    retry_count: dict[str, int]
     synthesis: Any
     trace: list[dict[str, Any]]
     # Threshold configuration
     veracity_threshold: float
     alignment_threshold: float
     decision_logic: str
+    medgemma_model: str | None
 
 
 @dataclass
@@ -52,6 +56,7 @@ class LangGraphRunResult:
     triage: Any
     tool_results: dict[str, Any]
     synthesis: Any
+    errors: list[AgentError] | None = None
 
 
 class MedContextLangGraphAgent:
@@ -81,6 +86,7 @@ class MedContextLangGraphAgent:
         veracity_threshold: float = 0.65,
         alignment_threshold: float = 0.30,
         decision_logic: str = "OR",
+        medgemma_model: str | None = None,
     ) -> LangGraphRunResult:
         state: AgentState = {
             "image_bytes": image_bytes,
@@ -89,15 +95,19 @@ class MedContextLangGraphAgent:
             "trace_id": self._generate_trace_id(),
             "force_tools": force_tools or [],
             "trace": [],
+            "errors": [],
+            "retry_count": {},
             "veracity_threshold": veracity_threshold,
             "alignment_threshold": alignment_threshold,
             "decision_logic": decision_logic,
+            "medgemma_model": medgemma_model or settings.medgemma_model,
         }
         final_state = self.graph.invoke(state)
         return LangGraphRunResult(
             triage=final_state.get("triage"),
             tool_results=final_state.get("tool_results", {}),
             synthesis=final_state.get("synthesis"),
+            errors=final_state.get("errors", []),
         )
 
     def run_with_trace(
@@ -109,6 +119,7 @@ class MedContextLangGraphAgent:
         veracity_threshold: float = 0.65,
         alignment_threshold: float = 0.30,
         decision_logic: str = "OR",
+        medgemma_model: str | None = None,
     ) -> AgentState:
         state: AgentState = {
             "image_bytes": image_bytes,
@@ -117,9 +128,12 @@ class MedContextLangGraphAgent:
             "trace_id": self._generate_trace_id(),
             "force_tools": force_tools or [],
             "trace": [],
+            "errors": [],
+            "retry_count": {},
             "veracity_threshold": veracity_threshold,
             "alignment_threshold": alignment_threshold,
             "decision_logic": decision_logic,
+            "medgemma_model": medgemma_model or settings.medgemma_model,
         }
         return self.graph.invoke(state)
 
@@ -134,12 +148,28 @@ class MedContextLangGraphAgent:
         graph.add_node("synthesize", self._synthesize_node)
 
         graph.set_entry_point("triage")
-        graph.add_edge("triage", "dispatch_tools")
+
+        # Conditional routing: If triage fails fatally, skip to synthesis
+        graph.add_conditional_edges(
+            "triage",
+            self._should_continue_after_triage,
+            {
+                "continue": "dispatch_tools",
+                "fatal_error": "synthesize",
+            },
+        )
+
         graph.add_edge("dispatch_tools", "synthesize")
         graph.add_edge("synthesize", END)
 
         return graph.compile()
 
+    def _should_continue_after_triage(self, state: AgentState) -> str:
+        if any(e.get("fatal") for e in state.get("errors", [])):
+            return "fatal_error"
+        return "continue"
+
+    @resilient_node(fatal=True)
     def _triage_node(self, state: AgentState) -> AgentState:
         """
         Simplified triage: Combined structural pre-screen + MedGemma medical analysis + tool recommendations with LLM orchestrator approval.
@@ -153,7 +183,9 @@ class MedContextLangGraphAgent:
 
         # Get medical analysis from MedGemma
         try:
-            medical_analysis = self._get_medical_analysis(image_bytes, context)
+            medical_analysis = self._get_medical_analysis(
+                image_bytes, context, model=state.get("medgemma_model")
+            )
         except (MedGemmaClientError, Exception) as e:
             logger.error("MedGemma analysis failed in triage: %s", e)
             medical_analysis = MedGemmaResult(
@@ -488,7 +520,7 @@ class MedContextLangGraphAgent:
         }
 
     def _get_medical_analysis(
-        self, image_bytes: bytes, context: str | None
+        self, image_bytes: bytes, context: str | None, model: str | None = None
     ) -> MedGemmaResult:
         """
         MedGemma provides medical domain expertise:
@@ -556,7 +588,9 @@ class MedContextLangGraphAgent:
 
         prompt += "Respond with ONLY the JSON object, no other text."
 
-        return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
+        return self.medgemma.analyze_image(
+            image_bytes=image_bytes, prompt=prompt, model=model
+        )
 
     def _orchestrate_tool_selection(
         self,
@@ -766,6 +800,7 @@ class MedContextLangGraphAgent:
         )
         return {"tools": self._sanitize_tools(candidates), "reasoning": reasoning}
 
+    @resilient_node(fatal=False)
     def _dispatch_node(self, state: AgentState) -> AgentState:
         start = perf_counter()
         image_bytes = state["image_bytes"]
@@ -783,6 +818,7 @@ class MedContextLangGraphAgent:
         )
         return state
 
+    @resilient_node(fatal=False)
     def _synthesize_node(self, state: AgentState) -> AgentState:
         start = perf_counter()
         image_bytes = state["image_bytes"]
@@ -793,6 +829,8 @@ class MedContextLangGraphAgent:
             triage_output,
             tool_results,
             context=state.get("context"),
+            errors=state.get("errors"),
+            medgemma_model=state.get("medgemma_model"),
         )
         state["synthesis"] = self._postprocess_synthesis(
             synth,
@@ -818,12 +856,14 @@ class MedContextLangGraphAgent:
         triage: Any,
         tool_results: dict[str, Any],
         context: str | None,
+        errors: list[AgentError] | None = None,
+        medgemma_model: str | None = None,
     ) -> MedGemmaResult | LlmResult:
         """
         LLM orchestrator synthesizes all evidence into final verdict.
         Uses MedGemma's medical analysis as authoritative medical input.
         """
-        prompt = self._build_alignment_prompt(triage, tool_results, context)
+        prompt = self._build_alignment_prompt(triage, tool_results, context, errors)
         try:
             return self.llm.generate(
                 prompt,
@@ -831,7 +871,9 @@ class MedContextLangGraphAgent:
                 model=settings.llm_orchestrator,
             )
         except LlmClientError:
-            return self.medgemma.analyze_image(image_bytes=image_bytes, prompt=prompt)
+            return self.medgemma.analyze_image(
+                image_bytes=image_bytes, prompt=prompt, model=medgemma_model
+            )
 
     def _alignment_system(self) -> str:
         return (
@@ -869,6 +911,7 @@ class MedContextLangGraphAgent:
         triage: Any,
         tool_results: dict[str, Any],
         context: str | None,
+        errors: list[AgentError] | None = None,
     ) -> str:
         def _serialize_payload(value: Any) -> str:
             if isinstance(value, MedGemmaResult):
@@ -949,6 +992,13 @@ class MedContextLangGraphAgent:
             f"\nMedical Analysis & Tool Selection: {_serialize_payload(triage)}\n"
             f"Investigative Tool Results: {_serialize_payload(tool_results)}\n"
         )
+        if errors:
+            prompt += "\nNote: Some investigative tools or processes encountered errors:\n"
+            for error in errors:
+                status = "FATAL" if error.get("fatal") else "NON-FATAL"
+                prompt += f"- {error['tool']} ({status}): {error['message']}\n"
+            prompt += "Please acknowledge these limitations in your rationale and base your verdict on the available evidence.\n"
+
         if context:
             safe_context = html.escape(context, quote=True)
             prompt += (

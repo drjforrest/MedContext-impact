@@ -63,6 +63,7 @@ def ingest_and_run_agentic(
     veracity_threshold: float = 0.65,
     alignment_threshold: float = 0.30,
     decision_logic: str = "OR",
+    medgemma_model: str | None = None,
 ) -> AgentRunResponse:
     if image_id is None:
         resolved_image_id = uuid4()
@@ -200,6 +201,7 @@ def ingest_and_run_agentic(
                 veracity_threshold=veracity_threshold,
                 alignment_threshold=alignment_threshold,
                 decision_logic=decision_logic,
+                medgemma_model=medgemma_model,
             )
 
             triage_payload = result.triage
@@ -212,7 +214,7 @@ def ingest_and_run_agentic(
                 key_findings=triage_json,
                 clinical_impression=clinical_impression,
                 claimed_condition_analyzed=bool(context),
-                model_version=settings.medgemma_hf_model,
+                model_version=medgemma_model or settings.medgemma_model,
             )
             db.add(analysis)
     except Exception:
@@ -233,6 +235,7 @@ async def ingest_and_run_agent(
     file: UploadFile = File(...),
     context: str = Form(...),
     force_tools: str | None = Form(default=None),
+    medgemma_model: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     from app.orchestrator.tool_utils import parse_force_tools
@@ -246,4 +249,5 @@ async def ingest_and_run_agent(
         source_channel="agentic",
         content_type=file.content_type,
         force_tools=parse_force_tools(force_tools),
+        medgemma_model=medgemma_model,
     )

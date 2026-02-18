@@ -12,19 +12,20 @@
 
 ```bash
 # Quantized 4B via LM Studio (must be running at localhost:1234)
-MEDGEMMA_PROVIDER=lmstudio LOCAL_MEDGEMMA_URL=http://localhost:1234 \
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
+LOCAL_MEDGEMMA_URL=http://localhost:1234 \
 uv run python scripts/validate_contextual_signals.py \
   --data-dir data/med-mmhl --output-dir validation_results/med_mmhl_n163_4b_quantized \
   --limit 163 --seed 42
 
 # IT 4B via HuggingFace Inference API
-MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it \
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
 uv run python scripts/validate_contextual_signals.py \
   --data-dir data/med-mmhl --output-dir validation_results/med_mmhl_n163_4b_it \
   --limit 163 --seed 42
 
 # PT 4B via HuggingFace Inference API
-MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-pt \
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-pt \
 uv run python scripts/validate_contextual_signals.py \
   --data-dir data/med-mmhl --output-dir validation_results/med_mmhl_n163_4b_pt \
   --limit 163 --seed 42
@@ -231,7 +232,7 @@ python scripts/validate_forensics.py \
 
 **Optional: Use MedGemma for Layer 2**
 
-Requires env configuration (e.g., `MEDGEMMA_PROVIDER` and tokens for your provider).
+Requires env configuration (e.g., `MEDGEMMA_MODEL` and tokens for your provider).
 
 ```bash
 python scripts/validate_forensics.py \

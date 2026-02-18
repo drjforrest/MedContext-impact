@@ -337,14 +337,14 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ---
 
-## 🔧 MedGemma Provider Configuration
+## 🔧 MedGemma Configuration
 
-Toggle providers with `MEDGEMMA_PROVIDER` environment variable:
+MedContext automatically routes requests based on the `MEDGEMMA_MODEL` name:
 
 ### For Competition Judges (Recommended):
 
 ```bash
-MEDGEMMA_PROVIDER=huggingface
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it
 MEDGEMMA_HF_TOKEN=hf_your_token
 ```
 
@@ -353,7 +353,7 @@ MEDGEMMA_HF_TOKEN=hf_your_token
 ### For Production Deployment:
 
 ```bash
-MEDGEMMA_PROVIDER=vertex
+MEDGEMMA_MODEL=vertex/medgemma
 MEDGEMMA_VERTEX_PROJECT=your-project
 MEDGEMMA_VERTEX_LOCATION=us-central1
 MEDGEMMA_VERTEX_ENDPOINT=your-endpoint
@@ -363,8 +363,8 @@ MEDGEMMA_VERTEX_ENDPOINT=your-endpoint
 
 ### Other Options:
 
-- `local` - Local transformers inference (requires GPU)
-- `vllm` - High-throughput OpenAI-compatible API
+- Quantized models (e.g., `google/medgemma-1.1-4b-it.gguf`) - Automatically routed to LM Studio API
+- PT and IT models (e.g., `google/medgemma-1.1-4b-it`) - Automatically routed to Hugging Face
 
 ---
 

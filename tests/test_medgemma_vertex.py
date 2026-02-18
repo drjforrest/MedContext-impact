@@ -41,11 +41,11 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
     original_endpoint = settings.medgemma_vertex_endpoint
     original_project = settings.medgemma_vertex_project
     original_key = settings.vertexai_api_key
-    original_provider = settings.medgemma_provider
+    original_model = settings.medgemma_model
     settings.medgemma_vertex_endpoint = "https://us-central1-aiplatform.googleapis.com/v1/projects/p/locations/us-central1/endpoints/123"
     settings.medgemma_vertex_project = ""
     settings.vertexai_api_key = "test-key"
-    settings.medgemma_provider = "vertexai"
+    settings.medgemma_model = "vertex/medgemma"
     try:
         # Mock response in production Vertex AI predict shape
         response = _FakeResponse(
@@ -85,7 +85,7 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
         settings.medgemma_vertex_endpoint = original_endpoint
         settings.medgemma_vertex_project = original_project
         settings.vertexai_api_key = original_key
-        settings.medgemma_provider = original_provider
+        settings.medgemma_model = original_model
 
     assert result.provider == "vertex"
     assert result.output == {"text": "This is a test response"}
@@ -96,11 +96,11 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
 def test_vertex_requires_endpoint(sample_image_bytes):
     original_endpoint = settings.medgemma_vertex_endpoint
     original_key = settings.vertexai_api_key
-    original_provider = settings.medgemma_provider
+    original_model = settings.medgemma_model
     original_fallback = settings.medgemma_fallback_provider
     settings.medgemma_vertex_endpoint = ""
     settings.vertexai_api_key = "test-key"
-    settings.medgemma_provider = "vertex"
+    settings.medgemma_model = "vertex/medgemma"
     settings.medgemma_fallback_provider = ""  # Disable fallback
     try:
         client = MedGemmaClient()
@@ -111,7 +111,7 @@ def test_vertex_requires_endpoint(sample_image_bytes):
     finally:
         settings.medgemma_vertex_endpoint = original_endpoint
         settings.vertexai_api_key = original_key
-        settings.medgemma_provider = original_provider
+        settings.medgemma_model = original_model
         settings.medgemma_fallback_provider = original_fallback
 
 
@@ -123,7 +123,7 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
     original_project = settings.medgemma_vertex_project
     original_location = settings.medgemma_vertex_location
     original_key = settings.vertexai_api_key
-    original_provider = settings.medgemma_provider
+    original_model = settings.medgemma_model
     original_dedicated_domain = settings.medgemma_vertex_dedicated_domain
     settings.medgemma_vertex_endpoint = (
         "projects/medcontext/locations/us-central1/endpoints/abc123"
@@ -131,7 +131,7 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
     settings.medgemma_vertex_project = "medcontext"
     settings.medgemma_vertex_location = "us-central1"
     settings.vertexai_api_key = "test-key"
-    settings.medgemma_provider = "vertex"
+    settings.medgemma_model = "vertex/medgemma"
     settings.medgemma_vertex_dedicated_domain = ""  # Use standard domain
     try:
         # Mock response in production Vertex AI predict shape
@@ -169,7 +169,7 @@ def test_vertex_api_key_builds_predict_url_from_resource_name(
         settings.medgemma_vertex_project = original_project
         settings.medgemma_vertex_location = original_location
         settings.vertexai_api_key = original_key
-        settings.medgemma_provider = original_provider
+        settings.medgemma_model = original_model
         settings.medgemma_vertex_dedicated_domain = original_dedicated_domain
 
     assert fake_client.last_request is not None

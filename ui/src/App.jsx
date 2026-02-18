@@ -79,6 +79,8 @@ function App() {
   const [alignmentThreshold, setAlignmentThreshold] = useState(0.30)
   const [decisionLogic, setDecisionLogic] = useState('OR')
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [availableModels, setAvailableModels] = useState([])
+  const [selectedModel, setSelectedModel] = useState('')
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
@@ -108,6 +110,34 @@ function App() {
       }
     }
     fetchModules()
+  }, [apiBase, accessCode])
+
+  // Fetch available models on mount and when API base changes
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const headers = {}
+        if (accessCode.trim()) {
+          headers['X-Demo-Access-Code'] = accessCode.trim()
+        }
+        const res = await fetch(
+          `${apiBase.replace(/\/$/, '')}/api/v1/orchestrator/providers`,
+          { headers },
+        )
+        if (res.ok) {
+          const data = await res.json()
+          setAvailableModels(data)
+          // Set default selected model to the first available one that is actually available
+          if (data.length > 0) {
+            const defaultModel = data.find(m => m.available) || data[0]
+            setSelectedModel(defaultModel.model)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch models:', err)
+      }
+    }
+    fetchModels()
   }, [apiBase, accessCode])
 
   const isAddonEnabled = (name) => {
@@ -191,6 +221,9 @@ function App() {
     formData.append('veracity_threshold', veracityThreshold.toString())
     formData.append('alignment_threshold', alignmentThreshold.toString())
     formData.append('decision_logic', decisionLogic)
+    if (selectedModel) {
+      formData.append('medgemma_model', selectedModel)
+    }
 
     setStatus('loading')
     try {
@@ -945,6 +978,48 @@ function App() {
                           <option value="MIN">MIN — Flag if minimum of both below threshold (balanced)</option>
                         </select>
                       </label>
+                      
+                      {availableModels.length > 0 && (
+                        <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
+                          <span style={{ fontSize: '0.9rem', color: '#c5cad4', display: 'block', marginBottom: '0.75rem' }}>
+                            MedGemma Model Variant
+                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {availableModels.map((m) => (
+                              <label key={m.id} style={{ 
+                                display: 'flex', 
+                                alignItems: 'flex-start', 
+                                gap: '0.75rem',
+                                cursor: m.available ? 'pointer' : 'not-allowed',
+                                opacity: m.available ? 1 : 0.5,
+                                padding: '0.75rem',
+                                background: selectedModel === m.model ? 'rgba(91, 141, 239, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                border: selectedModel === m.model ? '1px solid #5b8def' : '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: '6px',
+                                transition: 'all 0.2s ease'
+                              }}>
+                                <input
+                                  type="radio"
+                                  name="medgemma_model"
+                                  value={m.model}
+                                  checked={selectedModel === m.model}
+                                  disabled={!m.available}
+                                  onChange={(e) => setSelectedModel(e.target.value)}
+                                  style={{ marginTop: '0.2rem' }}
+                                />
+                                <div>
+                                  <div style={{ fontWeight: '600', fontSize: '0.95rem', color: m.available ? '#e9eef4' : '#9ba0af' }}>
+                                    {m.name} {!m.available && <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#ef5b5b', marginLeft: '0.5rem' }}>(Unavailable)</span>}
+                                  </div>
+                                  <div style={{ fontSize: '0.8rem', color: '#9ba0af', marginTop: '0.25rem' }}>
+                                    {m.description}
+                                  </div>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       
                       <div style={{ 
                         marginTop: '1rem', 

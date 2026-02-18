@@ -74,14 +74,14 @@ Copy `.env.example` to `.env` and configure:
 **Required Variables:**
 
 - `DATABASE_URL`: PostgreSQL connection string (format: `postgresql://user:pass@host:5432/medcontext`)
-- `MEDGEMMA_PROVIDER`: Choose provider (`huggingface`, `local`, `vllm`, or `vertex`)
+- `MEDGEMMA_MODEL`: Name of the MedGemma model (e.g., `google/medgemma-1.1-4b-it`)
 
-**MedGemma Provider Setup:**
+**MedGemma Setup:**
 
 _HuggingFace (recommended for development):_
 
 - `MEDGEMMA_HF_TOKEN`: Get from https://huggingface.co/settings/tokens
-- `MEDGEMMA_HF_MODEL`: Default is `google/medgemma-4b-it`
+- `MEDGEMMA_MODEL`: Defaults to `google/medgemma-1.1-4b-it`
 
 _Vertex AI (production):_
 
@@ -91,8 +91,11 @@ _Vertex AI (production):_
 
 _Local inference:_
 
-- Requires `torch`, `transformers`, `accelerate`, and `pillow`
-- Set `MEDGEMMA_HF_MODEL` to model path
+- Requires `torch`, `transformers`, `accelerate`, and `pillow` for `transformers` models.
+- Requires `llama-cpp-python` for `GGUF` models.
+- Set `MEDGEMMA_MODEL` to model name (e.g. `google/medgemma-1.1-4b-it.gguf`).
+- Set `MEDGEMMA_LOCAL_PATH` to the path of the `.gguf` file.
+- Set `MEDGEMMA_MMPROJ_PATH` to the path of the `mmproj` file (required for vision).
 
 **LLM Configuration:**
 
@@ -343,14 +346,15 @@ Three-variant comparison (IT vs Quantized vs PT) in progress. See `docs/VALIDATI
 
 ```bash
 # Quantized 4B (LM Studio must be running at localhost:1234)
-MEDGEMMA_PROVIDER=lmstudio LOCAL_MEDGEMMA_URL=http://localhost:1234 \
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
+LOCAL_MEDGEMMA_URL=http://localhost:1234 \
 uv run python -m app.validation.run_validation \
   --data-dir data/med-mmhl \
   --output-dir validation_results/med_mmhl_n163_4b_quantized \
   --limit 163 --seed 42
 
 # IT 4B (HuggingFace Inference API)
-MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it \
+MEDGEMMA_MODEL=google/medgemma-1.1-4b-it \
 uv run python -m app.validation.run_validation \
   --data-dir data/med-mmhl \
   --output-dir validation_results/med_mmhl_n163_4b_it \

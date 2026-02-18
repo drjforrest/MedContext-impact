@@ -11,10 +11,10 @@ DEFAULT_ALIGNMENT_THRESHOLD = 0.30  # Low threshold for context-claim alignment
 class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/medcontext"
     medgemma_url: str = "http://localhost:8001"
-    medgemma_provider: str = (
-        "huggingface"  # huggingface | local | lmstudio | vllm | vertex
+    medgemma_model: str = Field(
+        default="google/medgemma-1.1-4b-it",
+        validation_alias=AliasChoices("MEDGEMMA_MODEL", "MEDGEMMA_HF_MODEL"),
     )
-    medgemma_hf_model: str = "google/medgemma-4b-it"
     medgemma_hf_token: str = Field(
         default="",
         validation_alias=AliasChoices("MEDGEMMA_HF_TOKEN"),
@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     local_medgemma_model: str = Field(
         default="google/medgemma-1.5-4b-it",
         validation_alias=AliasChoices("LOCAL_MEDGEMMA_MODEL"),
+    )
+    medgemma_local_path: str = Field(
+        default="",
+        validation_alias=AliasChoices("MEDGEMMA_LOCAL_PATH"),
+    )
+    medgemma_mmproj_path: str = Field(
+        default="",
+        validation_alias=AliasChoices("MEDGEMMA_MMPROJ_PATH"),
     )
     medgemma_vllm_url: str = "http://localhost:8001/v1/chat/completions"
     medgemma_vertex_project: str = ""

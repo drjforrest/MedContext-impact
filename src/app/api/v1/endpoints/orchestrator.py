@@ -14,8 +14,10 @@ from app.db.session import get_db
 from app.orchestrator.image_scrape import extract_image_candidates, extract_page_context
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
 from app.orchestrator.tool_utils import parse_force_tools
+from app.core.config import settings
 from app.schemas.orchestrator import (
     AgentRunResponse,
+    MedGemmaModelAvailability,
     ResolvedUrlResponse,
     ResolveUrlRequest,
 )
@@ -293,6 +295,7 @@ async def run_agent(
     veracity_threshold: float = Form(default=0.65),
     alignment_threshold: float = Form(default=0.30),
     decision_logic: str = Form(default="OR"),
+    medgemma_model: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
@@ -311,6 +314,7 @@ async def run_agent(
             veracity_threshold=veracity_threshold,
             alignment_threshold=alignment_threshold,
             decision_logic=decision_logic,
+            medgemma_model=medgemma_model,
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -323,6 +327,7 @@ async def run_agent_langgraph(
     context: str | None = Form(default=None),
     image_id: str | None = Form(default=None),
     force_tools: str | None = Form(default=None),
+    medgemma_model: str | None = Form(default=None),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, context_source = _resolve_context(context, scraped_context)
@@ -333,6 +338,7 @@ async def run_agent_langgraph(
             image_id=image_id,
             context=context_used,
             force_tools=parse_force_tools(force_tools),
+            medgemma_model=medgemma_model,
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -359,6 +365,7 @@ async def run_agent_trace(
     context: str | None = Form(default=None),
     image_id: str | None = Form(default=None),
     force_tools: str | None = Form(default=None),
+    medgemma_model: str | None = Form(default=None),
 ) -> TraceResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, _ = _resolve_context(context, scraped_context)
@@ -369,6 +376,7 @@ async def run_agent_trace(
             image_id=image_id,
             context=context_used,
             force_tools=parse_force_tools(force_tools),
+            medgemma_model=medgemma_model,
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -388,6 +396,76 @@ async def run_agent_trace(
         total_duration_ms=total_duration_ms,
         trace=trace_entries,
     )
+
+
+@router.get("/providers", response_model=list[MedGemmaModelAvailability])
+async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
+    """
+    Get available MedGemma models and their status.
+    """
+    models = [
+        {
+            "id": "medgemma-4b-it",
+            "name": "MedGemma 4B IT",
+            "model": "google/medgemma-1.1-4b-it",
+            "description": "Instruction-tuned model via Hugging Face. High quality medical analysis.",
+            "provider": "huggingface",
+            "available": bool(settings.medgemma_hf_token),
+        },
+        {
+            "id": "medgemma-4b-pt",
+            "name": "MedGemma 4B PT",
+            "model": "google/medgemma-1.1-4b-pt",
+            "description": "Pre-trained base model via Hugging Face. Fast and effective.",
+            "provider": "huggingface",
+            "available": bool(settings.medgemma_hf_token),
+        },
+        {
+            "id": "medgemma-4b-quantized",
+            "name": "MedGemma 4B Quantized",
+            "model": "google/medgemma-1.1-4b-it.gguf",
+            "description": "Quantized GGUF model via LM Studio. Efficient local inference.",
+            "provider": "local",
+            "available": False,
+        },
+    ]
+
+    # Check LM Studio availability
+    try:
+        # Use a short timeout for the availability check
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            # Try standard /v1/models endpoint
+            url = f"{settings.local_medgemma_url.rstrip('/')}/v1/models"
+            response = await client.get(url)
+            if response.status_code == 200:
+                models[2]["available"] = True
+    except Exception:
+        pass
+
+    # Check Local File availability (llama-cpp-python)
+    if not models[2]["available"] and settings.medgemma_local_path:
+        from pathlib import Path
+
+        if Path(settings.medgemma_local_path).exists():
+            models[2]["available"] = True
+            models[2]["description"] = (
+                "Quantized GGUF model via llama-cpp-python. Optimized for local production."
+            )
+
+    # Add Vertex if configured
+    if settings.medgemma_vertex_project and settings.medgemma_vertex_endpoint:
+        models.append(
+            {
+                "id": "medgemma-vertex",
+                "name": "MedGemma (Vertex AI)",
+                "model": settings.medgemma_vertex_endpoint,
+                "description": "Enterprise-grade hosting on Google Cloud Vertex AI.",
+                "provider": "vertex",
+                "available": True,
+            }
+        )
+
+    return [MedGemmaModelAvailability(**m) for m in models]
 
 
 @router.post("/optimize-thresholds")

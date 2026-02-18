@@ -23,9 +23,9 @@ Usage:
     --output-dir validation_results/full_test
 
 Provider selection via environment variables:
-  MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-it ...
-  MEDGEMMA_PROVIDER=lmstudio LOCAL_MEDGEMMA_URL=http://localhost:1234 ...
-  MEDGEMMA_PROVIDER=huggingface MEDGEMMA_HF_MODEL=google/medgemma-1.5-4b-pt ...
+  MEDGEMMA_MODEL=google/medgemma-1.1-4b-it ...
+  LOCAL_MEDGEMMA_URL=http://localhost:1234 ...
+  MEDGEMMA_MODEL=google/medgemma-1.1-4b-pt ...
 """
 
 from __future__ import annotations
@@ -253,8 +253,7 @@ def run_validation(
 
     # Initialize LangGraph agent
     print("\nInitializing LangGraph agent...")
-    print(f"  MedGemma provider: {settings.medgemma_provider}")
-    print(f"  MedGemma model: {settings.medgemma_hf_model}")
+    print(f"  MedGemma model: {settings.medgemma_model}")
     print(f"  LLM provider: {settings.llm_provider}")
     print(f"  LLM orchestrator: {settings.llm_orchestrator}")
     agent = MedContextLangGraphAgent()
@@ -385,8 +384,10 @@ def run_validation(
 
     # Detect model label from environment
     model_name = output_dir.name
-    provider = settings.medgemma_provider.lower()
-    hf_model = settings.medgemma_hf_model
+    from app.clinical.medgemma_client import MedGemmaClient
+    client = MedGemmaClient()
+    provider = client.provider.lower()
+    hf_model = settings.medgemma_model
 
     model_label = "Unknown Model"
     # Provider-based detection first (lmstudio uses default hf_model name)

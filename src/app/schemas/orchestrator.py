@@ -19,3 +19,12 @@ class AgentRunResponse(BaseModel):
     synthesis: Any
     context_used: str | None = None
     context_source: str | None = None
+
+
+class MedGemmaModelAvailability(BaseModel):
+    id: str
+    name: str
+    model: str
+    description: str
+    provider: str
+    available: bool
