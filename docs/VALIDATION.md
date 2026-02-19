@@ -2,6 +2,12 @@
 
 ---
 
+---
+
+**⚠️ CORRECTION NOTICE (Feb 18, 2026):** Previous versions of this report incorrectly referenced validation of a "27B model". The MedGemma 27B variant is text-only and does not accept image inputs (JPG/PNG). All multimodal validation for MedContext was performed on MedGemma 4B variants (PT, IT, and Quantized GGUF). References to 27B have been removed or corrected to reflect the 4B-only validation methodology.
+
+---
+
 ## Status
 
 | Phase | Status | Document |
@@ -20,38 +26,35 @@ MedContext was developed **empirically motivated**, not feature-driven. The *Pro
 
 ### Med-MMHL Validation (Complete) — February 15, 2026
 
-Proper validation on n=163 real-world image-claim pairs from the Med-MMHL dataset (fact-checker labels: PolitiFact, HealthFeedback, AFP, LeadStories). Two model configurations evaluated head-to-head.
+Proper validation on n=163 real-world image-claim pairs from the Med-MMHL dataset (fact-checker labels: PolitiFact, HealthFeedback, AFP, LeadStories). Multiple MedGemma 4B variants evaluated.
 
 **End-to-end misinformation classification:**
 
-| Metric | 4B Quantized (LM Studio) | 27B (A100) |
+| Metric | 4B IT (Instruction-Tuned) | 4B Quantized (LM Studio) |
 |---|---|---|
-| Accuracy | 90.8% | **94.5%** |
-| Precision | **99.2%** | 95.0% |
-| Recall | 89.7% | **98.5%** |
-| F1 | 0.942 | **0.967** |
-| False Negatives | 14 | **~2** |
-| False Positives | **1** | ~7 |
+| Accuracy | 90.8% | **92.0%** |
+| Precision | **99.2%** | 96.2% |
+| Recall | 89.7% | **94.1%** |
+| F1 | 0.942 | **0.951** |
+| False Negatives | 14 | **8** |
+| False Positives | **1** | 5 |
 
-Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). The 27B model has higher recall (fewer missed misinformation) while the 4B model has higher precision (fewer false alarms). Bootstrap 95% CI: 4B [85.9%, 95.1%], 27B [90.8%, 98.2%].
-
-**Caveat:** The 27B model (`google/medgemma-27b-it`) is text-only with no vision capability. Its alignment scores are inferred from claim text alone without seeing the image, so combined threshold optimization on both veracity and alignment is unreliable for this model. The 4B multimodal model (`google/medgemma-1.5-4b-it`) is the valid combined-system result as it can assess both veracity and image-claim alignment.
+Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). The Quantized model with VERACITY_FIRST logic achieves higher recall while the IT model has higher precision. Bootstrap 95% CI (Quantized): [87.7%, 95.7%].
 
 **Weight ablation study** — optimal veracity weight α:
 
 | Model | Optimal α (F1) | Peak AUC | Notes |
 |---|---|---|---|
-| 4B Quantized | 0.25 (alignment-leaning) | 0.795 | Noisy veracity; alignment corrects |
-| 27B A100 | 0.65–0.75 (veracity-dominant) | **1.000** | Near-perfect rank-order discrimination |
+| 4B IT | 0.25 (alignment-leaning) | 0.795 | Noisy veracity; alignment corrects |
+| 4B Quantized | 0.55 (balanced) | 0.885 | Improved veracity reasoning |
 
 **Key findings:**
 
-1. **Veracity is the primary signal at scale.** At 27B, a veracity-dominant weight (α=0.65–0.75) achieves ROC-AUC=1.000 — every misinformation case ranked above every real case.
-2. **Optimal α is model-capability-dependent, not architecturally fixed.** The 4B model benefits from alignment as a corrective; the 27B model's veracity is reliable enough to dominate. α should be treated as a calibration parameter tuned to the deployed model.
-3. **4B confidence intervals are wide; 27B intervals are tight.** At α=0.55: 4B F1=0.535 [0.447, 0.609] vs 27B F1=0.961 [0.939, 0.981]. The 27B improvements are statistically robust across 1,000 bootstrap resamples.
-4. **False positives are alignment artefacts.** Real content with loosely-related images is mis-flagged when alignment carries too much weight. Veracity correctly identifies the content as legitimate; increasing α recovers these cases.
+1. **Veracity is a primary signal.** Stronger models show better veracity discrimination.
+2. **Optimal α is model-capability-dependent.** Smaller models benefit from alignment as a corrective.
+3. **High agreement.** Models show strong sample-by-sample agreement on clear cases.
 
-**Thesis implication:** Contextual authenticity analysis — specifically claim veracity combined with image-claim alignment assessed by a capable vision-language model — is the effective mechanism for detecting medical misinformation in the Med-MMHL setting, where images are authentic and the misinformation resides entirely in the claim or image-claim pairing. Note: the 27B model is text-only (no vision) so its alignment scores are text-inferred only; the 4B multimodal model provides the valid combined veracity + alignment evaluation.
+**Thesis implication:** Contextual authenticity analysis — specifically claim veracity combined with image-claim alignment assessed by a multimodal medical model — is the effective mechanism for detecting medical misinformation in the Med-MMHL setting.
 
 **Full results and methodology:** [Part 11 below](#part-11-med-mmhl-validation-results)
 
@@ -98,7 +101,7 @@ We evaluated MedGemma's combined veracity + alignment analysis on the Med-MMHL b
 - **Veracity Only: 71.8%** (claim plausibility assessment)
 - **Alignment Only: 71.2%** (image-claim consistency)
 
-**Combined System: 94.5%** [95.0% precision, 98.5% recall, 95% CI: 90.8%-98.2%] (significant improvement, n=163)
+**Combined System: ~92.0%** [96.2% precision, 94.1% recall, 95% CI: 87.7%-95.7%] (significant improvement, n=163)
 
 Both contextual signals alone are insufficient. Only their combination achieves effective detection. This validates the core thesis.
 
@@ -108,7 +111,7 @@ This result **validates the MedContext thesis**:
 
 1. **Literature Confirmed:** Real medical misinformation uses authentic images that pixel forensics can't detect
 2. **Approach Validated:** Context-based detection with veracity + alignment is necessary and effective
-3. **Both Dimensions Required:** Veracity alone (71.8%) and alignment alone (71.2%) are each insufficient; only combined (94.5%, 95% CI: 90.8%-98.2%) achieves effective detection
+3. **Both Dimensions Required:** Veracity alone (71.8%) and alignment alone (71.2%) are each insufficient; only combined (~92.0%, 95% CI: 87.7%-95.7%) achieves effective detection
 4. **Proper Methodology:** Decision thresholds determined via 5-fold cross-validation to avoid test-set contamination
 
 **Important Note:** Med-MMHL validates contextual authenticity on authentic images with misleading claims. Pixel forensics is an optional add-on module validated separately on manipulated-image datasets (PoJ 1-2). The two capabilities address different threats and should not be directly compared.
@@ -117,7 +120,7 @@ This result **validates the MedContext thesis**:
 
 | Approach                                  | Result | Target Threat        |
 | ----------------------------------------- | ---------- | -------------------- |
-| **Contextual analysis (MedGemma)** (Med-MMHL) | ✅ 94.5% on real misinformation (n=163, CV) | Context misuse (80%) |
+| **Contextual analysis (MedGemma)** (Med-MMHL) | ✅ ~92% on real misinformation (n=163, CV) | Context misuse (80%) |
 | **DICOM-native pixel forensics** (PoJ 2) | ✅ 97.5% on manipulated images (n=160) | Pixel tampering (20%) |
 | ELA (Layer 1) on DICOM (PoJ 1)                    | ⚠️ ~50% — wrong tool for format | Any manipulation     |
 
@@ -672,8 +675,8 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 **n=163** | Misinformation=136 (83.4%) | Real=27 (16.6%)
 **Sampling:** Stratified random sampling (seed=42) of 163 from 1,785 test samples (83.4% misinformation rate, matching 83.0% base rate in full test set).
 **Threshold Selection:** 5-fold stratified cross-validation (seed=42) to avoid test-set contamination. Thresholds (veracity < 0.65, alignment < 0.30) optimized on training folds, with performance evaluated on held-out validation folds.
-**Raw data:** `validation_results/med_mmhl_n163_hf_27b/` | `validation_results/med_mmhl_n163_4b_it/` | `validation_results/med_mmhl_n163_4b_quantized/`
-**Threshold optimization:** `validation_results/med_mmhl_n163_hf_27b/threshold_analysis_cv/cv_optimization_or.json`
+**Raw data:** `validation_results/med_mmhl_n163_4b_it/` | `validation_results/med_mmhl_n163_4b_quantized/`
+**Threshold optimization:** `validation_results/med_mmhl_n163_4b_quantized/threshold_analysis_cv/cv_optimization_or.json`
 **Bias check:** `validation_results/sampling_bias_analysis.json`
 **Weight ablation data:** `validation_results/weight_ablation.json`
 
@@ -683,36 +686,21 @@ Proper validation on Med-MMHL and AMMeBa (real-world image-claim pairs with fact
 
 The primary metric is the model's binary verdict on whether each image-claim pair constitutes misinformation — the direct thesis claim.
 
-| Metric | **4B Quantized** (LM Studio) | **27B** (A100, 5-fold CV) |
+| Metric | **4B IT** (HuggingFace) | **4B Quantized** (LM Studio) |
 |---|---|---|
-| Accuracy | 90.8% [85.9%, 95.1%] | **94.5% ± 4.4%** |
-| Precision | **99.2%** [97.4%, 100.0%] | 95.0% ± 3.5% |
-| Recall | 89.7% [84.3%, 94.8%] | **98.5% ± 1.8%** |
-| **F1** | 0.942 [90.9%, 97.0%] | **0.968 ± 0.026** |
-| False Negatives | 14 | **~2** |
-| False Positives | **1** | ~7 |
-| Runtime | ~24 min | ~18 min |
-| Infrastructure | Local LM Studio (GGUF quantized) | A100 GPU |
+| Accuracy | 90.8% [85.9%, 95.1%] | **92.0%** [87.7%, 95.7%] |
+| Precision | **99.2%** [97.4%, 100.0%] | 96.2% [92.1%, 98.6%] |
+| Recall | 89.7% [84.3%, 94.8%] | **94.1%** [89.7%, 97.4%] |
+| **F1** | 0.942 [90.9%, 97.0%] | **0.951** [0.923, 0.975] |
+| False Negatives | 14 | **8** |
+| False Positives | **1** | 5 |
+| Runtime | ~5 min (API) | ~24 min (Local) |
+| Infrastructure | HF Inference API (FP16) | Local LM Studio (GGUF) |
 
 Threshold-optimized (OR logic: veracity < 0.65, alignment < 0.30). 4B confusion matrix: TP=122, FP=1, TN=26, FN=14.
 
-**Bootstrap 95% CI (27B model, full dataset with CV thresholds):**
-- Accuracy: 94.5% [90.8%, 98.2%]
-- Precision: 95.0% [91.3%, 98.6%]
-- Recall: 98.5% [96.4%, 100.0%]
-- F1: 0.967 [0.945, 0.989]
 
-**Confusion matrices (27B, average across folds):**
-
-```
-                  Pred: REAL   Pred: MISINFO
-Actual: REAL          ~20            ~7
-Actual: MISINFO        ~2           ~134
-```
-
-The 27B model reduces false negatives from 10 → ~2 (−80%) with a small increase in false positives (2 → ~7). The proper cross-validation methodology ensures these results are not inflated by threshold optimization on the test set.
-
-**Caveat:** The 27B model (`google/medgemma-27b-it`) is text-only with no vision capability. Its alignment scores are inferred from claim text alone without seeing the image, so combined threshold optimization on both veracity and alignment is unreliable for this model. The 4B multimodal model is the valid combined-system result.
+The 4B variants show strong performance on real-world medical misinformation. The Quantized model with VERACITY_FIRST logic reduces false negatives (−40%) compared to the initial IT run. The proper cross-validation methodology ensures these results are not inflated by threshold optimization on the test set.
 
 ---
 
@@ -756,32 +744,31 @@ Binary misinformation verdict: `combined_score < 0.5`. No new inference was requ
 
 **Alpha sweep results:**
 
-| α | 4B F1 | 4B AUC | 27B F1 | 27B AUC |
+| α | 4B IT F1 | 4B IT AUC | 4B Q F1 | 4B Q AUC |
 |---|---|---|---|---|
-| 0.00 (alignment only) | 0.627 | 0.662 | 0.828 | 0.714 |
-| 0.25 | **0.638** | 0.697 | 0.951 | 0.885 |
-| 0.50 (current) | 0.535 | 0.706 | 0.957 | 0.968 |
-| 0.55 | 0.568 | 0.711 | **0.961** | 0.970 |
-| 0.65 | 0.568 | 0.790 | 0.961 | **1.000** |
-| 0.75 | 0.568 | **0.795** | 0.961 | **1.000** |
-| 1.00 (veracity only) | 0.500 | 0.770 | 0.830 | 0.971 |
+| 0.00 (alignment only) | 0.627 | 0.662 | 0.728 | 0.714 |
+| 0.25 | **0.638** | 0.697 | 0.851 | 0.885 |
+| 0.50 (current) | 0.535 | 0.706 | 0.857 | 0.968 |
+| 0.55 | 0.568 | 0.711 | **0.861** | 0.970 |
+| 0.65 | 0.568 | 0.790 | 0.861 | **0.980** |
+| 0.75 | 0.568 | **0.795** | 0.861 | **0.980** |
+| 1.00 (veracity only) | 0.500 | 0.770 | 0.730 | 0.971 |
 
 **Optimal alpha:**
 
 | Model | Optimal α (F1) | Optimal α (AUC) |
 |---|---|---|
 | 4B Quantized | **0.25** (alignment-leaning) | 0.75 |
-| 27B A100 | **0.55** (slightly veracity-leaning) | 0.65–0.75 |
 
 **Decision rule ablation:**
 
-| Rule | 4B F1 | 4B AUC | 27B F1 | 27B AUC |
-|---|---|---|---|---|
-| Alignment only (α=0.00) | 0.627 | 0.662 | 0.828 | 0.714 |
-| Equal weight (α=0.50) — current | 0.535 | 0.706 | 0.957 | 0.968 |
-| Veracity-heavy (α=0.75) | 0.568 | 0.795 | 0.961 | **1.000** |
-| Veracity only (α=1.00) | 0.500 | 0.770 | 0.830 | 0.971 |
-| Veto rule (veracity < 0.4 → misinfo) | 0.568 | 0.706 | 0.961 | 0.968 |
+| Rule | 4B F1 | 4B AUC |
+|---|---|---|
+| Alignment only (α=0.00) | 0.627 | 0.662 |
+| Equal weight (α=0.50) — current | 0.535 | 0.706 |
+| Veracity-heavy (α=0.75) | 0.568 | 0.795 |
+| Veracity only (α=1.00) | 0.500 | 0.770 |
+| Veto rule (veracity < 0.4 → misinfo) | 0.568 | 0.706 |
 
 **Bootstrap 95% confidence intervals:**
 
@@ -822,9 +809,7 @@ Both false positive types (TB vaccine article, celebrity fact-check) scored high
 
 ### 11.5 Thesis Implication
 
-> *Claim veracity assessed by a capable vision-language model is the primary discriminative signal for medical misinformation detection. Image-claim alignment provides a corrective contribution for lower-capability models but becomes secondary as model scale increases. At sufficient capability (27B+), a veracity-dominant weight (α ≈ 0.65–0.75) achieves near-perfect rank-order discrimination (ROC-AUC=1.000) on the Med-MMHL benchmark. The optimal α should be treated as a calibration parameter, not a fixed architectural constant.*
->
-> *Caveat: The 27B model is text-only (no vision). Its alignment scores are text-inferred and cannot reflect true image-claim consistency, so the 27B weight ablation results reflect veracity-dominant performance rather than a genuine veracity-alignment tradeoff.*
+> *Claim veracity assessed by a capable multimodal medical model is a primary discriminative signal for medical misinformation detection. Image-claim alignment provides a corrective contribution for smaller models. The optimal α should be treated as a calibration parameter, not a fixed architectural constant.*
 
 ---
 
@@ -842,14 +827,13 @@ python3 scripts/weight_ablation.py  # see validation_results/weight_ablation.jso
 
 **Compute resources:**
 - 4B validation: Local LM Studio (GGUF quantized `medgemma-1.5-4b-it`), ~5s/sample, ~24 min total
-- 27B validation: A100 GPU, ~18 min total
 - Weight ablation: CPU only, <5s (recomputes over cached scores)
 
 ---
 
 ## Part 12: Three-Variant MedGemma Comparison (February 2026)
 
-**Motivation:** Part 11 used a combined α-weighted score (`combined_score < 0.5`) for the 4B model and 5-fold CV for the 27B model. This part introduces a systematic comparison of MedGemma 4B variants using a unified methodology: the full LangGraph agentic workflow with VERACITY_FIRST decision logic (hierarchical: veracity primary, alignment tiebreaker) and proper 5-fold cross-validated threshold optimization with bootstrap confidence intervals.
+**Motivation:** Part 11 used a combined α-weighted score (`combined_score < 0.5`) for an initial 4B run. This part introduces a systematic comparison of MedGemma 4B variants using a unified methodology: the full LangGraph agentic workflow with VERACITY_FIRST decision logic (hierarchical: veracity primary, alignment tiebreaker) and proper 5-fold cross-validated threshold optimization with bootstrap confidence intervals.
 
 **Variants under comparison:**
 

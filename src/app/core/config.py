@@ -127,6 +127,9 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("DEMO_ACCESS_CODE"),
     )
 
+    # UI/Orchestration hints
+    show_threshold_recommendations: bool = False
+
     model_config = ConfigDict(env_file=".env", extra="ignore")
 
 

@@ -335,7 +335,6 @@ Previous v1 results (65.8% accuracy) had two methodology issues:
 
 **Med-MMHL Validation (Feb 15-17, 2026):**
 
-- **27B (A100):** 94.5% accuracy [90.8%, 98.2%] — see `validation_results/med_mmhl_n163_hf_27b/`
 - **4B Quantized (LM Studio, VERACITY_FIRST):** 92.0% accuracy [87.7%, 95.7%] — see `validation_results/med_mmhl_n163_4b_quantized/`
 - **4B IT (HuggingFace):** Complete, results in `validation_results/med_mmhl_n163_4b_it/`
 - **4B PT (HuggingFace):** Pending

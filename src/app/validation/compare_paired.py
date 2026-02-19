@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 
 # Load raw predictions from both runs
-phase1_path = Path("validation_results/med_mmhl_n163_quantized_4b/raw_predictions.json")
-phase2_path = Path("validation_results/med_mmhl_n163_hf_27b/raw_predictions.json")
+phase1_path = Path("validation_results/med_mmhl_n163_4b_it/raw_predictions.json")
+phase2_path = Path("validation_results/med_mmhl_n163_4b_quantized/raw_predictions.json")
 
 with open(phase1_path) as f:
     phase1_predictions = json.load(f)
@@ -33,8 +33,8 @@ print()
 # Compare predictions sample by sample
 both_correct = 0
 both_wrong = 0
-only_4b_correct = 0
-only_27b_correct = 0
+only_4b_it_correct = 0
+only_4b_q_correct = 0
 
 disagreement_samples = []
 
@@ -55,25 +55,25 @@ for p1, p2 in zip(phase1_predictions, phase2_predictions):
     elif not correct1 and not correct2:
         both_wrong += 1
     elif correct1 and not correct2:
-        only_4b_correct += 1
+        only_4b_it_correct += 1
         disagreement_samples.append(
             {
                 "image_id": p1["image_id"],
                 "ground_truth": "misinformation" if gt_misinfo else "legitimate",
-                "4b_prediction": "misinformation" if pred1_misinfo else "legitimate",
-                "27b_prediction": "misinformation" if pred2_misinfo else "legitimate",
-                "winner": "4B",
+                "it_prediction": "misinformation" if pred1_misinfo else "legitimate",
+                "q_prediction": "misinformation" if pred2_misinfo else "legitimate",
+                "winner": "4B-IT",
             }
         )
     elif correct2 and not correct1:
-        only_27b_correct += 1
+        only_4b_q_correct += 1
         disagreement_samples.append(
             {
                 "image_id": p1["image_id"],
                 "ground_truth": "misinformation" if gt_misinfo else "legitimate",
-                "4b_prediction": "misinformation" if pred1_misinfo else "legitimate",
-                "27b_prediction": "misinformation" if pred2_misinfo else "legitimate",
-                "winner": "27B",
+                "it_prediction": "misinformation" if pred1_misinfo else "legitimate",
+                "q_prediction": "misinformation" if pred2_misinfo else "legitimate",
+                "winner": "4B-Quantized",
             }
         )
 
@@ -95,31 +95,31 @@ print(f"  Both Wrong:    {both_wrong:3d} ({both_wrong / total:.1%})")
 print(f"  Total Agreement: {both_correct + both_wrong:3d} ({agreement_rate:.1%})")
 print()
 print("Disagreement (one right, one wrong):")
-print(f"  Only 4B Correct:  {only_4b_correct:3d} samples")
-print(f"  Only 27B Correct: {only_27b_correct:3d} samples")
-print(f"  Net Difference:   {only_4b_correct - only_27b_correct:3d} samples")
+print(f"  Only 4B-IT Correct:  {only_4b_it_correct:3d} samples")
+print(f"  Only 4B-Quantized Correct: {only_4b_q_correct:3d} samples")
+print(f"  Net Difference:   {only_4b_it_correct - only_4b_q_correct:3d} samples")
 print()
 print("=" * 70)
 print("INTERPRETATION")
 print("=" * 70)
 print()
 
-if only_4b_correct == only_27b_correct:
+if only_4b_it_correct == only_4b_q_correct:
     print("✅ PERFECT TIE: Models won on equal number of samples")
-    print(f"   Each model was uniquely correct on {only_4b_correct} samples")
+    print(f"   Each model was uniquely correct on {only_4b_it_correct} samples")
     print()
     print("   This means the accuracy difference is due to WHICH samples")
     print("   each model struggles with, not overall superiority.")
-elif abs(only_4b_correct - only_27b_correct) <= 2:
+elif abs(only_4b_it_correct - only_4b_q_correct) <= 2:
     print("✅ NEAR TIE: Difference is negligible")
-    print(f"   4B won {only_4b_correct} unique samples")
-    print(f"   27B won {only_27b_correct} unique samples")
-    print(f"   Difference: {abs(only_4b_correct - only_27b_correct)} samples")
+    print(f"   4B-IT won {only_4b_it_correct} unique samples")
+    print(f"   4B-Quantized won {only_4b_q_correct} unique samples")
+    print(f"   Difference: {abs(only_4b_it_correct - only_4b_q_correct)} samples")
     print()
     print("   With this small difference, neither model is clearly superior.")
 else:
-    winner = "4B" if only_4b_correct > only_27b_correct else "27B"
-    diff = abs(only_4b_correct - only_27b_correct)
+    winner = "4B-IT" if only_4b_it_correct > only_4b_q_correct else "4B-Quantized"
+    diff = abs(only_4b_it_correct - only_4b_q_correct)
     print(f"🏆 {winner} wins on {diff} more samples")
 
 print()
@@ -135,15 +135,15 @@ if disagreement_samples:
     for i, sample in enumerate(disagreement_samples[:10], 1):
         print(f"{i}. Image: {sample['image_id']}")
         print(f"   Ground Truth: {sample['ground_truth']}")
-        print(f"   4B predicted: {sample['4b_prediction']}")
-        print(f"   27B predicted: {sample['27b_prediction']}")
+        print(f"   4B-IT predicted: {sample['it_prediction']}")
+        print(f"   4B-Quantized predicted: {sample['q_prediction']}")
         print(f"   Winner: {sample['winner']}")
         print()
 
 print(
     f"The models agree on {both_correct + both_wrong}/{total} samples ({agreement_rate:.1%})."
 )
-print(f"They only disagree on {only_4b_correct + only_27b_correct} samples.")
+print(f"They only disagree on {only_4b_it_correct + only_4b_q_correct} samples.")
 print()
 if agreement_rate >= 0.90:
     print("This high agreement suggests they are functionally equivalent.")
@@ -157,7 +157,7 @@ print()
 print(
     f"The models agree on {both_correct + both_wrong}/{total} samples ({agreement_rate:.1%})."
 )
-print(f"They only disagree on {only_4b_correct + only_27b_correct} samples.")
+print(f"They only disagree on {only_4b_it_correct + only_4b_q_correct} samples.")
 print()
 print("This high agreement confirms they are functionally equivalent.")
 print("The small differences are due to different decision boundaries")

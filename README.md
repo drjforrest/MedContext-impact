@@ -6,9 +6,9 @@
 
 **Medical images don't need to be fake to cause harm.**
 
-[![Tests](https://img.shields.io/badge/tests-45%2F45%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-63%2F63%20passing-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12+-blue)](pyproject.toml)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-CC--BY--4.0-blue.svg)](LICENSE)
 
 [**📖 Start Here**](START_HERE.md) | [**📊 Validation**](docs/VALIDATION.md) | [**🏆 Submission**](docs/SUBMISSION.md) | [**🎬 Demo Video**](#demo-video)
 
@@ -49,14 +49,14 @@ We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark
 
 ### Single Contextual Signals Fail: Veracity 71.8% · Alignment 71.2%
 
-### Combined System Succeeds: **96.3% Accuracy**
+### Combined System Succeeds: **92.0% Accuracy**
 
-**Precision 98.1% · Recall 98.1% · F1 0.981**
+**Precision 96.2% · Recall 94.1% · F1 0.951**
 
 </div>
 
 <div align="center">
-<img src="ui/public/validation/roc_curve.png" width="45%" alt="ROC Curve showing AUC≈0.5"/>
+<img src="ui/public/validation/roc_curve.png" width="45%" alt="ROC Curve showing AUC≈0.8"/>
 <img src="ui/public/validation/confusion_matrix.png" width="45%" alt="Confusion matrix"/>
 </div>
 
@@ -69,10 +69,10 @@ We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark
 
 - ✅ **Veracity alone (71.8%) is insufficient** — claim plausibility assessment alone performs below effective detection threshold, missing critical alignment context
 - ✅ **Alignment alone (71.2%) is insufficient** — image-claim consistency alone misses cases where image and claim align but the claim is factually false
-- ✅ **Combined contextual system (96.3%) is necessary** — 24-25 percentage point improvement proves both dimensions are required together
-- ✅ High precision (98.1%) and high recall (98.1%) — catches 155/158 misinformation cases with only 3 false alarms
+- ✅ **Combined contextual system (92.0%) is necessary** — 20 percentage point improvement proves both dimensions are required together
+- ✅ High precision (96.2%) and recall (94.1%) — catches the vast majority of misinformation cases with very few false alarms
 
-**Methodology:** Results use the **MedGemma 27B model on A100 GPU** with optimized decision thresholds determined via grid search on the Med-MMHL validation set (n=163). Bootstrap confidence intervals computed over 1,000 iterations. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 96.3% accuracy and bootstrap CIs may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
+**Methodology:** Results use the **MedGemma 4B model** with optimized decision thresholds determined via 5-fold cross-validation on the Med-MMHL validation set (n=163). Bootstrap confidence intervals computed over 1,000 iterations. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 92.0% accuracy and bootstrap CIs may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
 
 **Key Insight:** The most dangerous misinformation—authentic images supporting false claims—requires analyzing **both veracity and alignment together**. Single contextual signals miss this entirely.
 
@@ -148,7 +148,7 @@ cd ui && npm run dev
 ```bash
 # Run test suite
 uv run pytest tests/ -v
-# Expected: 45/45 passed ✅
+# Expected: 63/63 passed ✅
 
 # Test API
 curl http://localhost:8000/health
@@ -233,9 +233,9 @@ The live demo requires an access code to prevent abuse and control API costs.
 | ------------------------------------ | -------------------------------------------------------------- |
 | ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (majority authentic images)      |
 | ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                                  |
-| ❌ Single-signal approaches          | ✅ Proved single signals fail (71-72%); combined system (96.3%) |
+| ❌ Single-signal approaches          | ✅ Proved single signals fail (71-72%); combined system (~92.0% Q, IT/PT pending) |
 | ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                          |
-| ❌ Proof of concept                  | ✅ Production-ready (45/45 tests passing)                      |
+| ❌ Proof of concept                  | ✅ Production-ready (63/63 tests passing)                      |
 
 ---
 
@@ -244,7 +244,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 ### Production-Ready Quality
 
 - **Code:** 4,100+ lines Python, 527 lines React
-- **Tests:** 45/45 unit tests passing (comprehensive test suite with mocked integrations)
+- **Tests:** 63/63 unit tests passing (comprehensive test suite with mocked integrations)
 - **Architecture:** FastAPI + React + PostgreSQL
 - **Security:** Tool whitelist, prompt injection protection, SSRF prevention
 - **Providers:** 4 MedGemma options (HuggingFace, vLLM, Vertex AI, Local)
@@ -260,12 +260,12 @@ The live demo requires an access code to prevent abuse and control API costs.
 **Dataset Descriptions:**
 - **BTD+UCI (PoJ 2-3):** Combined validation set (120 authentic MRI from BTD dataset + 40 tampered scans from UCI dataset) with **synthetically assigned contextual labels** (veracity, alignment) programmatically generated for controlled experimentation—not human fact-checked.
 - **UCI (PoJ 1):** Standalone tampered medical imaging dataset used to test pixel forensics baseline performance.
-- **Med-MMHL (Primary Validation, n=163):** Separate research-grade benchmark with **human-annotated, expert fact-checked labels** from real-world fact-checking organizations—used for final system validation (96.3% accuracy).
+- **Med-MMHL (Primary Validation, n=163):** Separate research-grade benchmark with **human-annotated, expert fact-checked labels** from real-world fact-checking organizations—used for final system validation (92.0% accuracy, Q/IT/PT average pending).
 
 **Analysis:**
 - **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals across all PoJ experiments
 - **PoJ 3 Finding (BTD+UCI synthetic labels):** Demonstrated that veracity and alignment are distinct contextual dimensions, each insufficient alone (61.3% and 56.9% respectively)
-- **Med-MMHL Validation (fact-checked labels):** Proved both signals are necessary together—96.3% combined accuracy vs 71.8% veracity-only and 71.2% alignment-only on real-world misinformation
+- **Med-MMHL Validation (fact-checked labels):** Proved both signals are necessary together—92.0% combined accuracy (Q variant, IT/PT pending) vs 71.8% veracity-only and 71.2% alignment-only on real-world misinformation
 - **Optional add-ons:** PoJ 1-2 validated pixel forensics on manipulated-image datasets; not tested on Med-MMHL since all Med-MMHL images are authentic
 - **Key Distinction:** PoJ experiments used synthetic labels for controlled hypothesis testing; Med-MMHL used fact-checked labels for real-world validation
 
@@ -274,7 +274,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 ### Novel Contributions
 
 1. **First empirical validation** proving single contextual signals are insufficient for medical misinformation detection:
-   - On **Med-MMHL (fact-checked labels):** Veracity-only 71.8%, Alignment-only 71.2%, Combined 96.3%
+   - On **Med-MMHL (fact-checked labels):** Veracity-only 71.8%, Alignment-only 71.2%, Combined ~92.0% (Q validated, IT/PT pending)
    - On **BTD+UCI (synthetic labels):** Demonstrated veracity (61.3%) and alignment (56.9%) are distinct dimensions requiring joint analysis
 2. **First agentic system** for contextual authenticity assessment using MedGemma for combined veracity + alignment analysis
 3. **First deployment partnership** for field validation (HERO Lab)
@@ -417,7 +417,7 @@ medcontext/
 │   ├── metrics/                    ← Integrity scoring
 │   └── api/v1/endpoints/           ← REST API
 ├── ui/                             ← React frontend
-├── tests/                          ← 45 passing tests
+├── tests/                          ← 63 passing tests
 └── scripts/                        ← Utilities
 ```
 
@@ -469,7 +469,7 @@ medcontext/
 
 ## 📜 License
 
-MIT License - See [LICENSE](LICENSE) file for details
+CC-BY-4.0 License - See [LICENSE](LICENSE) file for details
 
 ---
 

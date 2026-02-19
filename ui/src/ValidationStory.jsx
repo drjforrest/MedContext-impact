@@ -24,7 +24,7 @@ import './ValidationStory.css'
 // NOTE: Pixel forensics validated on a SEPARATE dataset (manipulated images) — different task.
 //       Med-MMHL images are all authentic; pixel forensics has no role in this contextual track.
 //
-// Source: validation_results/med_mmhl_n163_quantized_4b/ and med_mmhl_n163_hf_27b/
+// Source: validation_results/med_mmhl_n163_4b_it/ and validation_results/med_mmhl_n163_4b_quantized/
 // Thresholds optimized via grid search (OR logic: veracity<0.65, alignment<0.30)
 const VALIDATION_DATA = {
   // IT: MedGemma 4B Instruction-Tuned (HuggingFace Inference API, FP16)

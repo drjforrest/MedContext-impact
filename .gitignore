@@ -203,3 +203,7 @@ data/
 docker-compose.override.yml
 .dockerignore
 *.dockerfile
+docs_archive/
+.vscode/
+.idea/
+logs/

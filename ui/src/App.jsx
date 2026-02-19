@@ -81,6 +81,7 @@ function App() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [availableModels, setAvailableModels] = useState([])
   const [selectedModel, setSelectedModel] = useState('')
+  const [selectionStatus, setSelectionStatus] = useState('')
 
   const hasFile = Boolean(imageFile)
   const hasUrl = imageUrl.trim().length > 0
@@ -113,32 +114,70 @@ function App() {
   }, [apiBase, accessCode])
 
   // Fetch available models on mount and when API base changes
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const headers = {}
-        if (accessCode.trim()) {
-          headers['X-Demo-Access-Code'] = accessCode.trim()
-        }
-        const res = await fetch(
-          `${apiBase.replace(/\/$/, '')}/api/v1/orchestrator/providers`,
-          { headers },
-        )
-        if (res.ok) {
-          const data = await res.json()
-          setAvailableModels(data)
-          // Set default selected model to the first available one that is actually available
-          if (data.length > 0) {
-            const defaultModel = data.find(m => m.available) || data[0]
-            setSelectedModel(defaultModel.model)
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch models:', err)
+  const fetchModels = async () => {
+    try {
+      const headers = {}
+      if (accessCode.trim()) {
+        headers['X-Demo-Access-Code'] = accessCode.trim()
       }
+      const res = await fetch(
+        `${apiBase.replace(/\/$/, '')}/api/v1/orchestrator/providers`,
+        { headers },
+      )
+      if (res.ok) {
+        const data = await res.json()
+        setAvailableModels(data)
+        // Set default selected model to the first available one that is actually available
+        if (!selectedModel && data.length > 0) {
+          const defaultModel = data.find(m => m.available) || data[0]
+          setSelectedModel(defaultModel.model)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch models:', err)
     }
+  }
+
+  useEffect(() => {
     fetchModels()
   }, [apiBase, accessCode])
+
+  // Update thresholds when selected model changes
+  useEffect(() => {
+    if (selectedModel && availableModels.length > 0) {
+      const modelInfo = availableModels.find(m => m.model === selectedModel)
+      if (modelInfo) {
+        if (modelInfo.recommended_veracity_threshold !== undefined) {
+          setVeracityThreshold(modelInfo.recommended_veracity_threshold)
+        }
+        if (modelInfo.recommended_alignment_threshold !== undefined) {
+          setAlignmentThreshold(modelInfo.recommended_alignment_threshold)
+        }
+        if (modelInfo.recommended_decision_logic !== undefined) {
+          setDecisionLogic(modelInfo.recommended_decision_logic)
+        }
+        
+        // Add feedback for user
+        if (modelInfo.available) {
+          setSelectionStatus(`✅ ${modelInfo.name} available. Optimized thresholds loaded.`)
+        } else {
+          setSelectionStatus(`❌ ${modelInfo.name} is currently unavailable.`)
+        }
+        
+        // Clear message after 5 seconds
+        const timer = setTimeout(() => {
+          setSelectionStatus('')
+        }, 5000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [selectedModel, availableModels])
+
+  const handleModelSelect = (model) => {
+    setSelectedModel(model)
+    setSelectionStatus('⏳ Verifying model availability...')
+    fetchModels()
+  }
 
   const isAddonEnabled = (name) => {
     if (!modules) return true // backwards compat: if endpoint unavailable, show all
@@ -199,6 +238,12 @@ function App() {
 
     if ((hasFile && hasUrl) || (!hasFile && !hasUrl)) {
       setError('Provide either an image file or a public image URL.')
+      setStatus('error')
+      return
+    }
+
+    if (!context.trim()) {
+      setError('Clinical context is required to evaluate the image.')
       setStatus('error')
       return
     }
@@ -776,7 +821,40 @@ function App() {
                   ) : null}
                   <span>{statusLabel}</span>
                 </div>
-                <div className="grid">
+
+                {availableModels.length > 0 && (
+                  <div className="field" style={{ marginTop: '0.75rem' }}>
+                    <span>MedGemma Variant</span>
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                      {availableModels.map((m) => (
+                        <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: m.available ? 1 : 0.5, cursor: m.available ? 'pointer' : 'not-allowed' }}>
+                            <input
+                            type="radio"
+                            name="medgemma_model_top"
+                            value={m.model}
+                            checked={selectedModel === m.model}
+                            disabled={!m.available}
+                            onChange={(e) => handleModelSelect(e.target.value)}
+                          />
+                          <span>{m.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {selectionStatus && (
+                      <div className="status-message" style={{ 
+                        marginTop: '0.5rem', 
+                        fontSize: '0.85rem', 
+                        color: selectionStatus.includes('✅') ? '#2db88a' : '#ef5b5b',
+                        fontWeight: '500',
+                        animation: 'fadeIn 0.3s ease'
+                      }}>
+                        {selectionStatus}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.5rem' }}>
                   <label className="field">
                     <span>Image file</span>
                     <input
@@ -793,6 +871,7 @@ function App() {
                         : 'PNG, JPG, or HEIC recommended.'}
                     </span>
                   </label>
+                  
                   <label className="field">
                     <span>Public image URL</span>
                     <input
@@ -805,59 +884,26 @@ function App() {
                       Use a direct image link if possible.
                     </span>
                   </label>
-                </div>
-                <label className="field">
-                  <span>Optional context</span>
-                  <textarea
-                    rows="3"
-                    placeholder="Caption or claim about the image"
-                    value={context}
-                    onChange={(event) => setContext(event.target.value)}
-                  />
-                </label>
-                {/* Force-run module overrides — only shown for enabled add-ons */}
-                {['forensics', 'reverse_search', 'provenance'].some(isAddonEnabled) ? (
-                  <div className="field">
-                    <span>Force-run modules</span>
-                    <span className="helper" style={{ marginBottom: '0.5rem', display: 'block' }}>
-                      Override agentic tool selection — always run these modules regardless of triage decision.
+
+                  <label className="field">
+                    <span>Clinical Context</span>
+                    <textarea
+                      rows="3"
+                      placeholder="Caption or claim about the image (required)"
+                      value={context}
+                      onChange={(event) => setContext(event.target.value)}
+                      required
+                    />
+                    <span className="helper">
+                      Provide the medical claim or context exactly as it appeared. (Required)
                     </span>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                      {[
-                        { key: 'forensics', label: 'Image Integrity (pixel forensics)' },
-                        { key: 'reverse_search', label: 'Source Verification (reverse image search)' },
-                        { key: 'provenance', label: 'Provenance (audit trail)' },
-                      ]
-                        .filter(({ key }) => isAddonEnabled(key))
-                        .map(({ key, label }) => (
-                          <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 'normal', fontSize: '0.9rem', color: '#c5cad4' }}>
-                            <input
-                              type="checkbox"
-                              checked={forceTools.has(key)}
-                              onChange={(e) => {
-                                setForceTools((prev) => {
-                                  const next = new Set(prev)
-                                  if (e.target.checked) {
-                                    next.add(key)
-                                  } else {
-                                    next.delete(key)
-                                  }
-                                  return next
-                                })
-                              }}
-                              style={{ width: '1rem', height: '1rem', accentColor: '#5b8def' }}
-                            />
-                            {label}
-                          </label>
-                        ))}
-                    </div>
-                  </div>
-                ) : null}
+                  </label>
+                </div>
                 
                 {/* Advanced Configuration - Threshold Settings */}
                 <div className="field">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span>Decision Thresholds</span>
+                    <span>Advanced Settings</span>
                     <button
                       type="button"
                       onClick={() => setShowAdvanced(!showAdvanced)}
@@ -877,111 +923,160 @@ function App() {
                   {showAdvanced && (
                     <div style={{ 
                       background: 'rgba(45, 184, 138, 0.05)', 
-                      padding: '1rem', 
-                      borderRadius: '8px',
+                      padding: '1.25rem', 
+                      borderRadius: '12px',
                       border: '1px solid rgba(45, 184, 138, 0.2)',
-                      marginTop: '0.5rem'
+                      marginTop: '0.75rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1.5rem'
                     }}>
-                      <span className="helper" style={{ display: 'block', marginBottom: '1rem' }}>
-                        Use optimized thresholds from the "Threshold Optimization" tab or adjust manually.
-                        Current settings: {decisionLogic} logic with veracity &lt; {veracityThreshold.toFixed(2)} OR alignment &lt; {alignmentThreshold.toFixed(2)}
-                      </span>
-                      
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          <span style={{ fontSize: '0.9rem', color: '#c5cad4' }}>Veracity Threshold</span>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            value={veracityThreshold}
-                            onChange={(e) => {
-                              const parsed = parseFloat(e.target.value);
-                              setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
-                            }}
-                            style={{ accentColor: '#5b8def' }}
-                          />
-                          <input
-                            type="number"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            value={veracityThreshold}
-                            onChange={(e) => {
-                              const parsed = parseFloat(e.target.value);
-                              setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
-                            }}
-                            style={{ 
-                              padding: '0.5rem', 
-                              background: '#1c1e26', 
-                              border: '1px solid #2d3142',
-                              borderRadius: '4px',
-                              color: '#e9eef4',
-                              fontSize: '0.9rem'
-                            }}
-                          />
-                        </label>
+                      <div style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)', paddingBottom: '1rem' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--ink)', display: 'block', marginBottom: '0.5rem' }}>
+                          Decision Thresholds
+                        </span>
+                        <span className="helper" style={{ display: 'block', marginBottom: '1rem' }}>
+                          Use optimized thresholds from the "Threshold Optimization" tab or adjust manually.
+                          Current: {decisionLogic} logic.
+                        </span>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Veracity Threshold</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={veracityThreshold}
+                              onChange={(e) => {
+                                const parsed = parseFloat(e.target.value);
+                                setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
+                              }}
+                              style={{ accentColor: '#5b8def' }}
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={veracityThreshold}
+                              onChange={(e) => {
+                                const parsed = parseFloat(e.target.value);
+                                setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
+                              }}
+                              style={{ 
+                                padding: '0.5rem', 
+                                background: 'var(--surface-soft)', 
+                                border: '1px solid var(--border)',
+                                borderRadius: '4px',
+                                color: 'var(--ink)',
+                                fontSize: '0.9rem'
+                              }}
+                            />
+                          </label>
+                          
+                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Alignment Threshold</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={alignmentThreshold}
+                              onChange={(e) => {
+                                const parsed = parseFloat(e.target.value);
+                                setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
+                              }}
+                              style={{ accentColor: '#5b8def' }}
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={alignmentThreshold}
+                              onChange={(e) => {
+                                const parsed = parseFloat(e.target.value);
+                                setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
+                              }}
+                              style={{ 
+                                padding: '0.5rem', 
+                                background: 'var(--surface-soft)', 
+                                border: '1px solid var(--border)',
+                                borderRadius: '4px',
+                                color: 'var(--ink)',
+                                fontSize: '0.9rem'
+                              }}
+                            />
+                          </label>
+                        </div>
                         
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          <span style={{ fontSize: '0.9rem', color: '#c5cad4' }}>Alignment Threshold</span>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            value={alignmentThreshold}
-                            onChange={(e) => {
-                              const parsed = parseFloat(e.target.value);
-                              setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
-                            }}
-                            style={{ accentColor: '#5b8def' }}
-                          />
-                          <input
-                            type="number"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            value={alignmentThreshold}
-                            onChange={(e) => {
-                              const parsed = parseFloat(e.target.value);
-                              setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
-                            }}
+                          <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Decision Logic</span>
+                          <select
+                            value={decisionLogic}
+                            onChange={(e) => setDecisionLogic(e.target.value)}
                             style={{ 
                               padding: '0.5rem', 
-                              background: '#1c1e26', 
-                              border: '1px solid #2d3142',
+                              background: 'var(--surface-soft)', 
+                              border: '1px solid var(--border)',
                               borderRadius: '4px',
-                              color: '#e9eef4',
+                              color: 'var(--ink)',
                               fontSize: '0.9rem'
                             }}
-                          />
+                          >
+                            <option value="OR">OR — Flag if veracity OR alignment below threshold (high recall)</option>
+                            <option value="AND">AND — Flag if veracity AND alignment below threshold (high precision)</option>
+                            <option value="MIN">MIN — Flag if minimum of both below threshold (balanced)</option>
+                          </select>
                         </label>
                       </div>
-                      
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '0.9rem', color: '#c5cad4' }}>Decision Logic</span>
-                        <select
-                          value={decisionLogic}
-                          onChange={(e) => setDecisionLogic(e.target.value)}
-                          style={{ 
-                            padding: '0.5rem', 
-                            background: '#1c1e26', 
-                            border: '1px solid #2d3142',
-                            borderRadius: '4px',
-                            color: '#e9eef4',
-                            fontSize: '0.9rem'
-                          }}
-                        >
-                          <option value="OR">OR — Flag if veracity OR alignment below threshold (high recall)</option>
-                          <option value="AND">AND — Flag if veracity AND alignment below threshold (high precision)</option>
-                          <option value="MIN">MIN — Flag if minimum of both below threshold (balanced)</option>
-                        </select>
-                      </label>
+
+                      {/* Force-run module overrides — moved into Advanced Settings */}
+                      {['forensics', 'reverse_search', 'provenance'].some(isAddonEnabled) && (
+                        <div style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)', paddingBottom: '1rem' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--ink)', display: 'block', marginBottom: '0.5rem' }}>
+                            Module Overrides
+                          </span>
+                          <span className="helper" style={{ marginBottom: '0.75rem', display: 'block' }}>
+                            Force-run specific investigative modules regardless of agent triage decision.
+                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                            {[
+                              { key: 'forensics', label: 'Image Integrity (pixel forensics)' },
+                              { key: 'reverse_search', label: 'Source Verification (reverse image search)' },
+                              { key: 'provenance', label: 'Provenance (audit trail)' },
+                            ]
+                              .filter(({ key }) => isAddonEnabled(key))
+                              .map(({ key, label }) => (
+                                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontWeight: 'normal', fontSize: '0.9rem', color: 'var(--ink-soft)' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={forceTools.has(key)}
+                                    onChange={(e) => {
+                                      setForceTools((prev) => {
+                                        const next = new Set(prev)
+                                        if (e.target.checked) {
+                                          next.add(key)
+                                        } else {
+                                          next.delete(key)
+                                        }
+                                        return next
+                                      })
+                                    }}
+                                    style={{ width: '1.1rem', height: '1.1rem', accentColor: '#5b8def' }}
+                                  />
+                                  {label}
+                                </label>
+                              ))}
+                          </div>
+                        </div>
+                      )}
                       
                       {availableModels.length > 0 && (
                         <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
-                          <span style={{ fontSize: '0.9rem', color: '#c5cad4', display: 'block', marginBottom: '0.75rem' }}>
+                          <span style={{ fontSize: '0.9rem', color: 'var(--ink-soft)', display: 'block', marginBottom: '0.75rem' }}>
                             MedGemma Model Variant
                           </span>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -993,8 +1088,8 @@ function App() {
                                 cursor: m.available ? 'pointer' : 'not-allowed',
                                 opacity: m.available ? 1 : 0.5,
                                 padding: '0.75rem',
-                                background: selectedModel === m.model ? 'rgba(91, 141, 239, 0.15)' : 'rgba(255, 255, 255, 0.03)',
-                                border: selectedModel === m.model ? '1px solid #5b8def' : '1px solid rgba(255, 255, 255, 0.1)',
+                                background: selectedModel === m.model ? 'rgba(91, 141, 239, 0.15)' : 'rgba(0, 0, 0, 0.03)',
+                                border: selectedModel === m.model ? '1px solid #5b8def' : '1px solid rgba(0, 0, 0, 0.1)',
                                 borderRadius: '6px',
                                 transition: 'all 0.2s ease'
                               }}>
@@ -1004,20 +1099,31 @@ function App() {
                                   value={m.model}
                                   checked={selectedModel === m.model}
                                   disabled={!m.available}
-                                  onChange={(e) => setSelectedModel(e.target.value)}
+                                  onChange={(e) => handleModelSelect(e.target.value)}
                                   style={{ marginTop: '0.2rem' }}
                                 />
                                 <div>
-                                  <div style={{ fontWeight: '600', fontSize: '0.95rem', color: m.available ? '#e9eef4' : '#9ba0af' }}>
+                                  <div style={{ fontWeight: '600', fontSize: '0.95rem', color: m.available ? 'var(--ink)' : 'var(--muted)' }}>
                                     {m.name} {!m.available && <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#ef5b5b', marginLeft: '0.5rem' }}>(Unavailable)</span>}
                                   </div>
-                                  <div style={{ fontSize: '0.8rem', color: '#9ba0af', marginTop: '0.25rem' }}>
+                                  <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
                                     {m.description}
                                   </div>
                                 </div>
                               </label>
                             ))}
                           </div>
+                          {selectionStatus && (
+                            <div className="status-message" style={{ 
+                              marginTop: '0.75rem', 
+                              fontSize: '0.85rem', 
+                              color: selectionStatus.includes('✅') ? '#2db88a' : '#ef5b5b',
+                              fontWeight: '500',
+                              animation: 'fadeIn 0.3s ease'
+                            }}>
+                              {selectionStatus}
+                            </div>
+                          )}
                         </div>
                       )}
                       
@@ -1027,10 +1133,10 @@ function App() {
                         background: 'rgba(91, 141, 239, 0.1)',
                         borderRadius: '4px',
                         fontSize: '0.85rem',
-                        color: '#9ba0af'
+                        color: 'var(--muted)'
                       }}>
                         💡 <strong>Tip:</strong> Use the "Threshold Optimization" tab to find optimal values for your specific use case.
-                        Default values (veracity &lt; 0.65 OR alignment &lt; 0.30) optimized for MedGemma 27B on Med-MMHL.
+                        Default values (veracity &lt; 0.65 OR alignment &lt; 0.30) were optimized on MedGemma 4B runs for Med-MMHL.
                       </div>
                     </div>
                   )}
@@ -1341,10 +1447,9 @@ function App() {
                            part2?.verdict || 'Assessment Complete'}
                         </strong>
                         <p style={{ fontSize: '1.1rem' }}>
-                          {part2?.verdict ? part2.verdict :
-                           result?.is_misinformation === true ? 'The image-claim pair shows signs of misinformation.' :
-                           result?.is_misinformation === false ? 'The image-claim pair appears authentic and aligned.' :
-                           'Review the contextual authenticity scores and rationale below for details.'}
+                          {result?.is_misinformation === true ? 'Misinformation detected.' :
+                           result?.is_misinformation === false ? 'No misinformation detected.' :
+                           (part2?.verdict || 'Review the contextual authenticity scores and rationale below for details.')}
                         </p>
                         {part2?.confidence ? (
                           <p style={{ marginTop: '0.75rem', opacity: 0.85, fontSize: '1rem' }}>

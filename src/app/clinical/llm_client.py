@@ -7,6 +7,7 @@ from typing import Any, Optional
 import httpx
 
 from app.core.config import settings
+from app.core.utils import clean_llm_text, parse_llm_json
 
 
 class LlmClientError(RuntimeError):
@@ -125,11 +126,11 @@ class LlmClient:
                 f"Unexpected OpenRouter response format: {str(data)[:500]}"
             ) from exc
 
-        cleaned = self._clean_text(content)
+        cleaned = clean_llm_text(content)
         return LlmResult(
             provider="openrouter",
             model=model or settings.llm_orchestrator,
-            output=self._parse_json(cleaned),
+            output=parse_llm_json(cleaned),
             raw_text=cleaned,
         )
 
@@ -158,24 +159,68 @@ class LlmClient:
             "max_tokens": max_tokens,
         }
 
-        try:
-            with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
-                response = client.post(
-                    f"{settings.llm_base_url.rstrip('/')}/chat/completions",
-                    headers=headers,
-                    json=payload,
-                )
-                response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise LlmClientError(f"OpenAI-compatible request failed: {exc}") from exc
+        # Candidate endpoints for OpenAI-compatible APIs (like LM Studio or vLLM)
+        base_url = settings.llm_base_url.rstrip("/")
+        candidate_urls = []
+        
+        if base_url.endswith("/chat/completions") or base_url.endswith("/api/v1/chat"):
+            candidate_urls.append(base_url)
+        else:
+            # Standard order for LM Studio/vLLM/Local APIs
+            candidate_urls.extend([
+                f"{base_url}/v1/chat/completions",
+                f"{base_url}/api/v1/chat",  # LM Studio native v1
+                f"{base_url}/chat/completions",
+            ])
+        
+        candidate_urls = list(dict.fromkeys(candidate_urls))
 
-        try:
-            data = response.json()
-        except (json.JSONDecodeError, TypeError) as exc:
+        response_data = None
+        last_error = None
+        
+        for url in candidate_urls:
+            try:
+                with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
+                    response = client.post(
+                        url,
+                        headers=headers,
+                        json=payload,
+                    )
+                    response.raise_for_status()
+                    
+                    # Even if 200 OK, check for error in body
+                    try:
+                        data = response.json()
+                    except (json.JSONDecodeError, TypeError):
+                        last_error = f"URL {url} returned non-JSON response"
+                        continue
+
+                    if "choices" not in data and "error" in data:
+                        last_error = f"URL {url} returned an error in body: {data['error']}"
+                        continue
+                        
+                    # Successfully got content
+                    response_data = data
+                    break
+            except httpx.HTTPStatusError as exc:
+                error_detail = exc.response.text if exc.response else "No response body"
+                last_error = f"URL {url} failed with {exc.response.status_code}: {error_detail[:500]}"
+                if exc.response is not None and exc.response.status_code in (404, 405):
+                    continue
+                continue
+            except httpx.HTTPError as exc:
+                last_error = f"URL {url} failed with HTTP error: {exc}"
+                continue
+            except Exception as exc:
+                last_error = f"URL {url} failed with error: {exc}"
+                continue
+
+        if response_data is None:
             raise LlmClientError(
-                "Invalid JSON in OpenAI-compatible response: "
-                f"{exc}. Raw response: {response.text}"
-            ) from exc
+                f"OpenAI-compatible request failed for all URLs: {', '.join(candidate_urls)}. Last error: {last_error}"
+            )
+
+        data = response_data
         try:
             content = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
@@ -183,11 +228,11 @@ class LlmClient:
                 "Unexpected OpenAI-compatible response format."
             ) from exc
 
-        cleaned = self._clean_text(content)
+        cleaned = clean_llm_text(content)
         return LlmResult(
             provider="openai_compatible",
             model=model or settings.llm_orchestrator,
-            output=self._parse_json(cleaned),
+            output=parse_llm_json(cleaned),
             raw_text=cleaned,
         )
 
@@ -230,11 +275,11 @@ class LlmClient:
         except (KeyError, TypeError) as exc:
             raise LlmClientError("Unexpected Ollama response format.") from exc
 
-        cleaned = self._clean_text(content)
+        cleaned = clean_llm_text(content)
         return LlmResult(
             provider="ollama",
             model=model or settings.llm_orchestrator,
-            output=self._parse_json(cleaned),
+            output=parse_llm_json(cleaned),
             raw_text=cleaned,
         )
 
@@ -289,157 +334,13 @@ class LlmClient:
                 f"Unexpected Gemini response format: {str(data)[:500]}"
             ) from exc
 
-        cleaned = self._clean_text(content)
+        cleaned = clean_llm_text(content)
         return LlmResult(
             provider="gemini",
             model=model_name,
-            output=self._parse_json(cleaned),
+            output=parse_llm_json(cleaned),
             raw_text=cleaned,
         )
 
-    def _clean_text(self, content: str) -> str:
-        import re
 
-        cleaned = content.strip()
-        cleaned = cleaned.lstrip("|").strip()
 
-        # Remove leading "JSON" markers
-        cleaned = re.sub(r"^JSON\s*\n+", "", cleaned, flags=re.IGNORECASE)
-
-        # Remove common prefixes from model thinking/explanation
-        cleaned = re.sub(r"<unused\d+>", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(
-            r"^thought\s*:?\s*", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
-        )
-        cleaned = re.sub(
-            r"^tool_name\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
-        )
-        cleaned = re.sub(
-            r"^tool_code\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
-        )
-
-        # Try to extract JSON from markdown code fences first
-        json_fence = re.search(
-            r"```json\s*(.*?)```", cleaned, flags=re.DOTALL | re.IGNORECASE
-        )
-        if json_fence:
-            return json_fence.group(1).strip()
-
-        # Try any code fence
-        any_fence = re.search(r"```\s*(.*?)```", cleaned, flags=re.DOTALL)
-        if any_fence:
-            candidate = any_fence.group(1).strip()
-            # Try to parse the candidate as JSON
-            try:
-                import json
-
-                json.loads(candidate)
-                return candidate
-            except json.JSONDecodeError:
-                pass
-
-        # If content has reasoning before JSON, try to extract just the JSON part
-        # by finding the first { and using bracket matching
-        json_obj = self._extract_json_by_brackets(cleaned)
-        if json_obj:
-            return json_obj
-
-        cleaned = re.sub(r"\s{3,}", "  ", cleaned)
-        return cleaned.strip()
-
-    def _extract_json_by_brackets(self, content: str) -> Optional[str]:
-        """Extract JSON object using bracket counting for deeply nested structures."""
-        start_idx = content.find("{")
-        if start_idx == -1:
-            return None
-
-        depth = 0
-        in_string = False
-        escape_next = False
-        end_idx = start_idx
-
-        for i, char in enumerate(content[start_idx:], start=start_idx):
-            if escape_next:
-                escape_next = False
-                continue
-
-            if char == "\\":
-                escape_next = True
-                continue
-
-            if char == '"' and not escape_next:
-                in_string = not in_string
-                continue
-
-            if in_string:
-                continue
-
-            if char == "{":
-                depth += 1
-            elif char == "}":
-                depth -= 1
-                if depth == 0:
-                    end_idx = i
-                    break
-
-        if depth == 0 and end_idx > start_idx:
-            return content[start_idx : end_idx + 1]
-
-        return None
-
-    def _parse_json(self, content: str) -> Any:
-        import json
-        import re
-
-        def _try_load(raw: str) -> Any:
-            try:
-                return json.loads(raw)
-            except json.JSONDecodeError:
-                return None
-
-        # Try direct parsing first
-        direct = _try_load(content)
-        if direct is not None:
-            return direct
-
-        # Try to extract from markdown code fences (```json...```)
-        fenced = re.search(
-            r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE
-        )
-        if fenced:
-            candidate = fenced.group(1).strip()
-            loaded = _try_load(candidate)
-            if loaded is not None:
-                return loaded
-
-        # Try to extract from any code fence (```...```)
-        fenced_any = re.search(r"```\s*(.*?)```", content, flags=re.DOTALL)
-        if fenced_any:
-            candidate = fenced_any.group(1).strip()
-            loaded = _try_load(candidate)
-            if loaded is not None:
-                return loaded
-
-        # Use bracket matching to extract JSON from reasoning-heavy responses
-        bracket_extracted = self._extract_json_by_brackets(content)
-        if bracket_extracted:
-            loaded = _try_load(bracket_extracted)
-            if loaded is not None:
-                return loaded
-
-        # Last resort: find any {...} pattern
-        match = re.search(r"\{.*\}", content, flags=re.DOTALL)
-        if match:
-            candidate = match.group(0).strip()
-            loaded = _try_load(candidate)
-            if loaded is not None:
-                return loaded
-            # Attempt to unescape if the JSON blob was double-escaped in text.
-            unescaped = (
-                candidate.replace("\\n", "\n").replace('\\"', '"').replace("\\\\", "\\")
-            )
-            loaded = _try_load(unescaped)
-            if loaded is not None:
-                return loaded
-
-        return {"text": content}

@@ -16,75 +16,61 @@ class TestContextualIntegrityScore:
         """Test that all maximum values result in score of 1.0."""
         score = compute_contextual_integrity_score(
             alignment=1.0,
-            plausibility=1.0,
-            genealogy_consistency=1.0,
-            source_reputation=1.0,
+            veracity=1.0,
         )
-        assert score == 1.0
+        assert score == pytest.approx(1.0)
 
     @pytest.mark.unit
     def test_compute_zero_score(self):
         """Test that all minimum values result in score of 0.0."""
         score = compute_contextual_integrity_score(
             alignment=0.0,
-            plausibility=0.0,
-            genealogy_consistency=0.0,
-            source_reputation=0.0,
+            veracity=0.0,
         )
-        assert score == 0.0
+        assert score == pytest.approx(0.0)
 
     @pytest.mark.unit
     def test_compute_with_default_weights(self):
-        """Test computation with default weights (60/15/15/10)."""
+        """Test computation with default weights (50/50)."""
         score = compute_contextual_integrity_score(
             alignment=0.8,
-            plausibility=0.6,
-            genealogy_consistency=0.7,
-            source_reputation=0.5,
+            veracity=0.6,
         )
-        # Expected: 0.6*0.8 + 0.15*0.6 + 0.15*0.7 + 0.1*0.5 = 0.48 + 0.09 + 0.105 + 0.05 = 0.725
-        assert score == pytest.approx(0.725, abs=0.001)
+        # Expected: 0.5*0.8 + 0.5*0.6 = 0.4 + 0.3 = 0.7
+        assert score == pytest.approx(0.7, abs=0.001)
 
     @pytest.mark.unit
     def test_compute_with_custom_weights(self):
         """Custom weights should shift the contextual authenticity score."""
         weights = ContextualIntegrityWeights(
-            alignment=0.3,
-            plausibility=0.4,
-            genealogy_consistency=0.2,
-            source_reputation=0.1,
+            alignment=0.7,
+            veracity=0.3,
         )
         score = compute_contextual_integrity_score(
             alignment=0.2,
-            plausibility=0.9,
-            genealogy_consistency=0.5,
-            source_reputation=0.5,
+            veracity=0.9,
             weights=weights,
         )
-        # Expected: 0.3*0.2 + 0.4*0.9 + 0.2*0.5 + 0.1*0.5 = 0.06 + 0.36 + 0.10 + 0.05 = 0.57
-        assert score == pytest.approx(0.57, abs=0.001)
+        # Expected: 0.7*0.2 + 0.3*0.9 = 0.14 + 0.27 = 0.41
+        assert score == pytest.approx(0.41, abs=0.001)
 
     @pytest.mark.unit
     def test_compute_with_none_values(self):
         """Test that None values are treated as 0.0 (maintaining weight distribution)."""
         score = compute_contextual_integrity_score(
             alignment=0.8,
-            plausibility=None,
-            genealogy_consistency=None,
-            source_reputation=None,
+            veracity=None,
         )
         # None treated as 0.0, weights not renormalized:
-        # Expected: 0.6*0.8 + 0.15*0.0 + 0.15*0.0 + 0.1*0.0 = 0.48
-        assert score == pytest.approx(0.48, abs=0.001)
+        # Expected: 0.5*0.8 + 0.5*0.0 = 0.4
+        assert score == pytest.approx(0.4, abs=0.001)
 
     @pytest.mark.unit
     def test_compute_with_all_none(self):
         """Test that all None values result in 0.0."""
         score = compute_contextual_integrity_score(
             alignment=None,
-            plausibility=None,
-            genealogy_consistency=None,
-            source_reputation=None,
+            veracity=None,
         )
         assert score == 0.0
 
@@ -93,33 +79,28 @@ class TestContextualIntegrityScore:
         """Test that values > 1.0 are clamped to 1.0."""
         score = compute_contextual_integrity_score(
             alignment=1.5,
-            plausibility=2.0,
-            genealogy_consistency=1.2,
-            source_reputation=1.3,
+            veracity=2.0,
         )
-        assert score == 1.0
+        assert score == pytest.approx(1.0)
 
     @pytest.mark.unit
     def test_compute_clamps_negative_values(self):
         """Test that negative values are clamped to 0.0."""
         score = compute_contextual_integrity_score(
             alignment=-0.5,
-            plausibility=-1.0,
-            genealogy_consistency=-0.2,
-            source_reputation=-0.3,
+            veracity=-1.0,
         )
         assert score == 0.0
 
     @pytest.mark.unit
-    def test_alignment_dominates(self):
-        """Alignment should dominate contextual integrity score."""
+    def test_alignment_dominates_when_weighted(self):
+        """Alignment can be weighted to dominate contextual integrity score."""
+        weights = ContextualIntegrityWeights(alignment=0.8, veracity=0.2)
         score = compute_contextual_integrity_score(
-            alignment=0.9,
-            plausibility=0.2,
-            genealogy_consistency=0.2,
-            source_reputation=0.2,
+            alignment=0.9, veracity=0.2, weights=weights
         )
-        assert score > 0.6
+        # 0.8*0.9 + 0.2*0.2 = 0.72 + 0.04 = 0.76
+        assert score > 0.7
 
     @pytest.mark.unit
     def test_weights_immutable(self):

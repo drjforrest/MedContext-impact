@@ -1,5 +1,4 @@
 import hashlib
-import imghdr
 import io
 import json
 import logging
@@ -12,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.utils import detect_image_format
 from app.db.models import ImageSubmission, MedGemmaAnalysis, SubmissionContext
 from app.db.session import get_db
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
@@ -38,15 +38,6 @@ def _cleanup_image_file(image_path: Path) -> None:
         pass
 
 
-def _detect_image_format(image_bytes: bytes) -> str:
-    try:
-        with Image.open(io.BytesIO(image_bytes)) as image:
-            image_format = (image.format or "JPEG").lower()
-    except Exception:
-        image_format = "jpeg"
-    if image_format == "jpg":
-        image_format = "jpeg"
-    return image_format
 
 
 def ingest_and_run_agentic(
@@ -64,6 +55,7 @@ def ingest_and_run_agentic(
     alignment_threshold: float = 0.30,
     decision_logic: str = "OR",
     medgemma_model: str | None = None,
+    show_threshold_recommendations: bool = False,
 ) -> AgentRunResponse:
     if image_id is None:
         resolved_image_id = uuid4()
@@ -75,8 +67,13 @@ def ingest_and_run_agentic(
                 status_code=400, detail="Invalid image_id format."
             ) from exc
     image_hash = hashlib.sha256(image_bytes).hexdigest()
-    detected_format = imghdr.what(None, h=image_bytes)
-    if not detected_format:
+
+    try:
+        detected_format = detect_image_format(image_bytes)
+        # Verify it's actually an image (Image.open didn't fail silently)
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            pass
+    except Exception:
         logger.error(
             "Unable to detect image format for upload. image_hash=%s",
             image_hash,
@@ -85,7 +82,7 @@ def ingest_and_run_agentic(
             status_code=400, detail="Unsupported or invalid image file."
         )
 
-    image_format = detected_format.lower()
+    image_format = detected_format
     if image_format == "jpg":
         image_format = "jpeg"
 
@@ -202,6 +199,8 @@ def ingest_and_run_agentic(
                 alignment_threshold=alignment_threshold,
                 decision_logic=decision_logic,
                 medgemma_model=medgemma_model,
+                source_url=source_url,
+                show_threshold_recommendations=show_threshold_recommendations,
             )
 
             triage_payload = result.triage
@@ -221,10 +220,24 @@ def ingest_and_run_agentic(
         _cleanup_image_file(stored_image_path)
         raise
 
+    # Extract final binary verdict from synthesis.contextual_integrity if available
+    is_misinformation: bool | None = None
+    try:
+        if isinstance(result.synthesis, dict):
+            ci = result.synthesis.get("contextual_integrity")
+            if isinstance(ci, dict):
+                val = ci.get("is_misinformation")
+                if isinstance(val, bool):
+                    is_misinformation = val
+    except Exception:
+        # Be resilient: if structure changes, keep field None
+        is_misinformation = None
+
     return AgentRunResponse(
         triage=result.triage,
         tool_results=result.tool_results,
         synthesis=result.synthesis,
+        is_misinformation=is_misinformation,
         context_used=context,
         context_source=context_source,
     )
@@ -236,6 +249,7 @@ async def ingest_and_run_agent(
     context: str = Form(...),
     force_tools: str | None = Form(default=None),
     medgemma_model: str | None = Form(default=None),
+    show_threshold_recommendations: bool = Form(default=False),
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     from app.orchestrator.tool_utils import parse_force_tools
@@ -250,4 +264,5 @@ async def ingest_and_run_agent(
         content_type=file.content_type,
         force_tools=parse_force_tools(force_tools),
         medgemma_model=medgemma_model,
+        show_threshold_recommendations=show_threshold_recommendations,
     )

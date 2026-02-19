@@ -385,6 +385,7 @@ def run_validation(
     # Detect model label from environment
     model_name = output_dir.name
     from app.clinical.medgemma_client import MedGemmaClient
+
     client = MedGemmaClient()
     provider = client.provider.lower()
     hf_model = settings.medgemma_model
@@ -399,8 +400,6 @@ def run_validation(
         model_label = "MedGemma 4B PT (HuggingFace Inference API)"
     elif "4b-it" in hf_model or "4b_it" in model_name:
         model_label = "MedGemma 4B IT (HuggingFace Inference API)"
-    elif "27b" in hf_model or "27b" in model_name:
-        model_label = "MedGemma 27B (HuggingFace Inference API)"
     elif "4b" in model_name:
         model_label = f"MedGemma 4B ({provider})"
 

@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import base64
 import html
-import imghdr
+import io
 import logging
 from dataclasses import dataclass
 from typing import Any, Iterable
+
+from PIL import Image
 
 from app.clinical.llm_client import LlmClient, LlmClientError, LlmResult
 from app.clinical.medgemma_client import MedGemmaClient, MedGemmaResult
@@ -72,15 +74,14 @@ class MedContextAgent:
         context: str | None = None,
         force_tools: list[str] | None = None,
         medgemma_model: str | None = None,
+        source_url: str | None = None,
     ) -> AgentRunResult:
-        triage_result = self._triage(
-            image_bytes, context=context, model=medgemma_model
-        )
+        triage_result = self._triage(image_bytes, context=context, model=medgemma_model)
         required_tools = self._extract_required_tools(triage_result)
         forced = self._sanitize_tools(force_tools or [])
         merged_tools = merge_tools(required_tools, forced)
         tool_results = self._dispatch_tools(
-            image_bytes, merged_tools, image_id, triage_result
+            image_bytes, merged_tools, image_id, triage_result, source_url
         )
         synthesis_result = self._synthesize(
             image_bytes,
@@ -520,7 +521,12 @@ class MedContextAgent:
         )
 
     def _build_image_preview(self, image_bytes: bytes) -> str:
-        image_format = imghdr.what(None, h=image_bytes) or "jpeg"
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as img:
+                image_format = (img.format or "JPEG").lower()
+        except Exception:
+            image_format = "jpeg"
+
         if image_format == "jpg":
             image_format = "jpeg"
         if len(image_bytes) > MAX_PREVIEW_BYTES:
@@ -568,13 +574,16 @@ class MedContextAgent:
         tools: Iterable[str],
         image_id=None,
         triage: MedGemmaResult | None = None,
+        source_url: str | None = None,
     ) -> dict[str, Any]:
         results: dict[str, Any] = {}
         resolved_image_id = image_id or self._generate_image_id()
         for tool in tools:
             if tool == "reverse_search":
                 results[tool] = run_reverse_search(
-                    image_id=resolved_image_id, image_bytes=image_bytes
+                    image_id=resolved_image_id,
+                    image_bytes=image_bytes,
+                    source_url=source_url,
                 )
                 search_results = get_reverse_search_results(resolved_image_id)
                 if search_results is not None:

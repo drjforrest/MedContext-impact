@@ -8,6 +8,12 @@ from typing import Any, Optional
 import httpx
 
 from app.core.config import settings
+from app.core.utils import (
+    clean_llm_text,
+    detect_image_format,
+    parse_llm_json,
+    resize_image,
+)
 
 
 class MedGemmaClientError(RuntimeError):
@@ -22,19 +28,6 @@ class MedGemmaResult:
     raw_text: Optional[str] = None
 
 
-def _detect_image_format(image_bytes: bytes) -> str:
-    try:
-        from PIL import Image
-    except Exception:
-        return "jpeg"
-    try:
-        with Image.open(io.BytesIO(image_bytes)) as image:
-            image_format = (image.format or "JPEG").lower()
-    except Exception:
-        image_format = "jpeg"
-    if image_format == "jpg":
-        image_format = "jpeg"
-    return image_format
 
 
 class MedGemmaClient:
@@ -127,48 +120,6 @@ class MedGemmaClient:
                     )
             raise exc
 
-    def _resize_image_for_api(self, image_bytes: bytes, max_size: int = 512) -> bytes:
-        """Resize image to keep base64 token count under model context limits.
-
-        A 512px max JPEG at quality 80 is typically 20-50KB, which base64-encodes
-        to ~27-67K chars (~10-25K tokens) — well within the 131K context window.
-        """
-        # Safety check: if raw bytes are small enough, skip resize
-        # ~100KB raw means ~133KB base64 which is ~50K tokens — safe
-        if len(image_bytes) < 100_000:
-            return image_bytes
-
-        try:
-            from PIL import Image
-
-            img = Image.open(io.BytesIO(image_bytes))
-            if img.mode == "RGBA":
-                img = img.convert("RGB")
-
-            if max(img.size) > max_size:
-                ratio = max_size / max(img.size)
-                new_size = tuple(int(dim * ratio) for dim in img.size)
-                img = img.resize(new_size, Image.Resampling.LANCZOS)
-
-            buffer = io.BytesIO()
-            img.save(buffer, format="JPEG", quality=80)
-            resized = buffer.getvalue()
-
-            # Verify the resize actually reduced size
-            if len(resized) < len(image_bytes):
-                return resized
-            return image_bytes
-        except Exception as exc:
-            # Log warning instead of silently swallowing
-            import logging
-
-            logging.getLogger(__name__).warning(
-                "Image resize failed (%s), using original (%d bytes). "
-                "Large images may cause OOM on GPU endpoints.",
-                exc,
-                len(image_bytes),
-            )
-            return image_bytes
 
     def _analyze_huggingface(
         self, image_bytes: bytes, prompt: Optional[str], model: str
@@ -189,7 +140,7 @@ class MedGemmaClient:
 
         # Resize image to reduce GPU memory usage for dedicated endpoints
         # Also applies to standard HF API when images are very large
-        image_bytes = self._resize_image_for_api(image_bytes)
+        image_bytes = resize_image(image_bytes, max_size=512)
 
         payload: dict[str, Any] | bytes
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
@@ -199,8 +150,7 @@ class MedGemmaClient:
         if settings.medgemma_url and not settings.medgemma_url.startswith(
             "http://localhost"
         ):
-            # Dedicated endpoints expect image embedded in inputs string with markdown syntax
-            image_format = _detect_image_format(image_bytes)
+            image_format = detect_image_format(image_bytes)
             image_data_url = f"data:image/{image_format};base64,{encoded_image}"
             # Format: ![](image_url)prompt_text
             inputs_text = (
@@ -244,7 +194,14 @@ class MedGemmaClient:
             if isinstance(response_data, list) and response_data:
                 # TGI format: extract generated_text from first item
                 generated = response_data[0].get("generated_text", "")
-                # Remove the input from the generated text
+            elif isinstance(response_data, dict):
+                # Standard HF or other API format
+                generated = response_data.get("generated_text", "")
+            else:
+                generated = str(response_data)
+                
+            # Remove the input from the generated text
+            if generated:
                 # First try stripping inputs_text (full input with image markdown), then prompt
                 if inputs_text and generated.startswith(inputs_text):
                     generated = generated[len(inputs_text) :].strip()
@@ -269,7 +226,10 @@ class MedGemmaClient:
             return
         try:
             import torch
-            from transformers import AutoModelForImageTextToText, AutoProcessor
+            import transformers
+
+            AutoModelForImageTextToText = transformers.AutoModelForImageTextToText
+            AutoProcessor = transformers.AutoProcessor
         except Exception as exc:
             raise MedGemmaClientError(
                 "Local MedGemma requires torch, transformers, pillow, and accelerate."
@@ -389,8 +349,8 @@ class MedGemmaClient:
             generation = self._local_model.generate(**inputs, **generation_kwargs)
             generation = generation[0][input_len:]
         decoded = self._local_processor.decode(generation, skip_special_tokens=True)
-        cleaned = self._clean_text(decoded)
-        parsed = self._parse_json(cleaned)
+        cleaned = clean_llm_text(decoded)
+        parsed = parse_llm_json(cleaned)
 
         return MedGemmaResult(
             provider="local",
@@ -405,62 +365,43 @@ class MedGemmaClient:
         """Analyze using a local API endpoint that serves the MedGemma model."""
         import base64
 
+        # Resize image to reduce payload size and memory usage for local APIs
+        image_bytes = resize_image(image_bytes, max_size=512)
+
         # Prepare the image for API request
-        image_format = _detect_image_format(image_bytes)
+        image_format = detect_image_format(image_bytes)
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
         image_url = f"data:image/{image_format};base64,{encoded_image}"
 
         # Prepare the payload for the API request
-        # Check if we're using LM Studio API (has vision capabilities)
-        lm_studio_url = settings.local_medgemma_url.rstrip("/")
-        if (
-            "127.0.0.1:1234" in lm_studio_url
-            or "localhost:1234" in lm_studio_url
-            or "192.168." in lm_studio_url
-        ):
-            # LM Studio API format - use OpenAI compatible endpoint which we confirmed works
-            content = [
-                {"type": "text", "text": prompt or "Describe the medical image."},
-                {"type": "image_url", "image_url": {"url": image_url}},
-            ]
+        content = [
+            {"type": "text", "text": prompt or "Describe the medical image."},
+            {"type": "image_url", "image_url": {"url": image_url}},
+        ]
 
-            payload = {
-                "model": model,
-                "messages": [{"role": "user", "content": content}],
-                "max_tokens": settings.medgemma_max_new_tokens,
-                "temperature": 0.1,  # Lower temperature for more consistent medical responses
-            }
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": content}],
+            "max_tokens": settings.medgemma_max_new_tokens,
+            "temperature": 0.1,
+        }
 
-            # Try LM Studio API endpoints in order of preference
-            candidate_urls = [
-                f"{lm_studio_url}/v1/chat/completions",  # OpenAI compatible - confirmed working
-                f"{lm_studio_url}/api/v1/chat",  # Native LM Studio endpoint
-            ]
-        else:
-            # Standard OpenAI compatible format
-            content = [
-                {"type": "text", "text": prompt or "Describe the medical image."},
-                {"type": "image_url", "image_url": {"url": image_url}},
-            ]
-
-            payload = {
-                "model": model,
-                "messages": [{"role": "user", "content": content}],
-                "max_tokens": settings.medgemma_max_new_tokens,
-            }
-
-            # Try standard OpenAI compatible endpoints
-            candidate_urls = [
-                f"{lm_studio_url}/v1/chat/completions",
-                f"{lm_studio_url}/chat/completions",
-                lm_studio_url,
-            ]
+        # Candidate endpoints for local inference (LM Studio, vLLM, etc.)
+        local_url = settings.local_medgemma_url.rstrip("/")
+        candidate_urls = [
+            f"{local_url}/v1/chat/completions",
+            f"{local_url}/api/v1/chat",  # LM Studio native v1
+            f"{local_url}/chat/completions",
+        ]
+        # Ensure URLs are unique
+        candidate_urls = list(dict.fromkeys(candidate_urls))
 
         headers = {"Content-Type": "application/json"}
         if settings.medgemma_hf_token:
             headers["Authorization"] = f"Bearer {settings.medgemma_hf_token}"
 
         last_error = None
+        all_errors = []
         for url in candidate_urls:
             try:
                 timeout = httpx.Timeout(300.0, read=300.0, write=30.0, connect=10.0)
@@ -498,9 +439,28 @@ class MedGemmaClient:
                                 content = choice["message"]["content"]
                             elif "content" in choice:
                                 content = choice["content"]
+                            elif "delta" in choice:
+                                delta = choice["delta"]
+                                if isinstance(delta, dict) and "content" in delta:
+                                    content = delta["content"]
 
-                    cleaned = self._clean_text(content if content else str(data))
-                    parsed = self._parse_json(cleaned)
+                    # If we STILL don't have content, check if it's an error response
+                    if not content:
+                        if isinstance(data, dict) and "error" in data:
+                            err_msg = f"URL {url} returned an error in body: {data['error']}"
+                            last_error = err_msg
+                            all_errors.append(err_msg)
+                            continue
+                        
+                        # Only use raw data if it doesn't look like an error and we really want it
+                        # but for MedGemma analysis, it's better to fail if no content is found
+                        err_msg = f"URL {url} returned successful status but no content was found in JSON."
+                        last_error = err_msg
+                        all_errors.append(err_msg)
+                        continue
+
+                    cleaned = clean_llm_text(content)
+                    parsed = parse_llm_json(cleaned)
 
                     return MedGemmaResult(
                         provider="local_api",
@@ -508,15 +468,26 @@ class MedGemmaClient:
                         output=parsed,
                         raw_text=cleaned,
                     )
+            except httpx.HTTPStatusError as exc:
+                error_detail = exc.response.text if exc.response else "No response body"
+                err_msg = f"URL {url} failed with {exc.response.status_code}. Response: {error_detail[:500]}"
+                last_error = err_msg
+                all_errors.append(err_msg)
+                continue
             except httpx.HTTPError as exc:
-                last_error = exc
+                err_msg = f"URL {url} failed with HTTP error: {exc}"
+                last_error = err_msg
+                all_errors.append(err_msg)
                 continue
             except Exception as exc:
-                last_error = exc
+                err_msg = f"URL {url} failed with error: {exc}"
+                last_error = err_msg
+                all_errors.append(err_msg)
                 continue
 
+        error_summary = "\n".join(all_errors)
         raise MedGemmaClientError(
-            f"Local API request failed for all URLs: {last_error}"
+            f"Local API request failed for all URLs. Errors:\n{error_summary}"
         )
 
     def _analyze_llama_cpp(
@@ -532,6 +503,9 @@ class MedGemmaClient:
                 "llama-cpp-python is required for local GGUF inference. "
                 "Install with: pip install llama-cpp-python"
             )
+
+        # Resize image to reduce payload size and memory usage for local llama-cpp
+        image_bytes = resize_image(image_bytes, max_size=512)
 
         # We should cache the LLM instance to avoid reloading
         if self._llm_instance is None:
@@ -570,7 +544,7 @@ class MedGemmaClient:
                 self._llm_instance = Llama(
                     model_path=settings.medgemma_local_path,
                     chat_handler=chat_handler,
-                    n_ctx=2048,
+                    n_ctx=4096,  # Increased context window for vision + longer prompts
                     n_gpu_layers=-1,  # Use all GPU layers if available
                     verbose=False,
                 )
@@ -578,7 +552,7 @@ class MedGemmaClient:
                 raise MedGemmaClientError(f"Failed to load GGUF model: {e}")
 
         # Prepare image
-        image_format = _detect_image_format(image_bytes)
+        image_format = detect_image_format(image_bytes)
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
         image_url = f"data:image/{image_format};base64,{encoded_image}"
 
@@ -600,8 +574,8 @@ class MedGemmaClient:
         except Exception as e:
             raise MedGemmaClientError(f"llama-cpp-python inference failed: {e}")
 
-        cleaned = self._clean_text(content)
-        parsed = self._parse_json(cleaned)
+        cleaned = clean_llm_text(content)
+        parsed = parse_llm_json(cleaned)
 
         return MedGemmaResult(
             provider="llama-cpp",
@@ -617,6 +591,9 @@ class MedGemmaClient:
             raise MedGemmaClientError("Missing MEDGEMMA_VERTEX_ENDPOINT for Vertex AI.")
         if not settings.medgemma_vertex_project:
             raise MedGemmaClientError("Missing MEDGEMMA_VERTEX_PROJECT for Vertex AI.")
+
+        # Resize image to reduce payload size and memory usage for Vertex AI
+        image_bytes = resize_image(image_bytes, max_size=512)
 
         # Build chat completions format
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
@@ -744,7 +721,10 @@ class MedGemmaClient:
         if not settings.medgemma_vllm_url:
             raise MedGemmaClientError("Missing MEDGEMMA_VLLM_URL for vLLM.")
 
-        image_format = _detect_image_format(image_bytes)
+        # Resize image to reduce payload size and memory usage for vLLM
+        image_bytes = resize_image(image_bytes, max_size=512)
+
+        image_format = detect_image_format(image_bytes)
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
         image_url = f"data:image/{image_format};base64,{encoded_image}"
         content = [
@@ -790,13 +770,19 @@ class MedGemmaClient:
                     response.raise_for_status()
                     break
                 except httpx.HTTPStatusError as exc:
-                    last_error = exc
+                    error_detail = (
+                        exc.response.text if exc.response else "No response body"
+                    )
+                    last_error = f"{exc}. Response: {error_detail[:500]}"
                     last_status = exc.response.status_code if exc.response else None
                     last_url = url
                     if exc.response is not None and exc.response.status_code == 404:
                         continue
-                    raise MedGemmaClientError(f"vLLM request failed: {exc}") from exc
+                    raise MedGemmaClientError(
+                        f"vLLM request failed: {last_error}"
+                    ) from exc
                 except httpx.HTTPError as exc:
+                    last_error = exc
                     raise MedGemmaClientError(f"vLLM request failed: {exc}") from exc
 
         if response is None:
@@ -813,9 +799,22 @@ class MedGemmaClient:
                 f"vLLM returned non-JSON response ({response.status_code}). "
                 f"Body: {snippet}"
             ) from exc
+
         content = self._extract_vllm_content(data)
-        cleaned = self._clean_text(content)
-        parsed = self._parse_json(cleaned)
+        
+        # Check for error in response body even if 200 OK
+        if not content and isinstance(data, dict) and "error" in data:
+            raise MedGemmaClientError(
+                f"vLLM request returned an error: {data['error']}"
+            )
+
+        if not content:
+            raise MedGemmaClientError(
+                f"vLLM request succeeded but no content was found in response: {str(data)[:500]}"
+            )
+
+        cleaned = clean_llm_text(content)
+        parsed = parse_llm_json(cleaned)
 
         return MedGemmaResult(
             provider="vllm",
@@ -841,155 +840,3 @@ class MedGemmaClient:
                     return content
         return ""
 
-    def _clean_text(self, content: str) -> str:
-        import re
-
-        cleaned = content.strip()
-        cleaned = cleaned.lstrip("|").strip()
-
-        # Remove leading "JSON" markers that models sometimes add
-        cleaned = re.sub(r"^JSON\s*\n+", "", cleaned, flags=re.IGNORECASE)
-
-        # Remove <unused*> tags and thought markers
-        cleaned = re.sub(r"<unused\d+>", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(
-            r"^thought\s*:?\s*", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
-        )
-        cleaned = re.sub(
-            r"^tool_name\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
-        )
-        cleaned = re.sub(
-            r"^tool_code\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.MULTILINE
-        )
-
-        # Try to extract JSON from markdown code fences - this is critical
-        json_fence = re.search(
-            r"```json\s*(.*?)```", cleaned, flags=re.DOTALL | re.IGNORECASE
-        )
-        if json_fence:
-            return json_fence.group(1).strip()
-
-        # Try any code fence
-        any_fence = re.search(r"```\s*(.*?)```", cleaned, flags=re.DOTALL)
-        if any_fence:
-            potential = any_fence.group(1).strip()
-            # If it looks like JSON, use it
-            if potential.startswith("{"):
-                return potential
-
-        # If content has reasoning before JSON, extract just the JSON part
-        json_obj = self._extract_json_by_brackets(cleaned)
-        if json_obj:
-            return json_obj
-
-        cleaned = re.sub(r"\s{3,}", "  ", cleaned)
-        return cleaned.strip()
-
-    def _extract_json_by_brackets(self, content: str) -> Optional[str]:
-        """Extract JSON object using bracket counting for deeply nested structures."""
-        start_idx = content.find("{")
-        if start_idx == -1:
-            return None
-
-        depth = 0
-        in_string = False
-        escape_next = False
-        end_idx = start_idx
-
-        for i, char in enumerate(content[start_idx:], start=start_idx):
-            if escape_next:
-                escape_next = False
-                continue
-
-            if char == "\\":
-                escape_next = True
-                continue
-
-            if char == '"' and not escape_next:
-                in_string = not in_string
-                continue
-
-            if in_string:
-                continue
-
-            if char == "{":
-                depth += 1
-            elif char == "}":
-                depth -= 1
-                if depth == 0:
-                    end_idx = i
-                    break
-
-        if depth == 0 and end_idx > start_idx:
-            return content[start_idx : end_idx + 1]
-
-        return None
-
-    def _parse_json(self, content: str) -> Any:
-        import codecs
-        import json
-        import re
-
-        def _try_load(raw: str) -> Any:
-            try:
-                return json.loads(raw)
-            except json.JSONDecodeError:
-                return None
-
-        def _unescape_candidate(raw: str) -> str:
-            try:
-                return codecs.decode(raw, "unicode_escape")
-            except (UnicodeDecodeError, ValueError):
-                return raw
-
-        # Try direct parsing first
-        direct = _try_load(content)
-        if direct is not None:
-            return direct
-
-        # Try to extract from markdown code fences (```json...```)
-        fenced = re.search(
-            r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE
-        )
-        if fenced:
-            candidate = fenced.group(1).strip()
-            loaded = _try_load(candidate)
-            if loaded is not None:
-                return loaded
-            unescaped = _unescape_candidate(candidate)
-            loaded = _try_load(unescaped)
-            if loaded is not None:
-                return loaded
-
-        # Try to extract from any code fence (```...```)
-        fenced_any = re.search(r"```\s*(.*?)```", content, flags=re.DOTALL)
-        if fenced_any:
-            candidate = fenced_any.group(1).strip()
-            loaded = _try_load(candidate)
-            if loaded is not None:
-                return loaded
-
-        # Use bracket matching to extract JSON from reasoning-heavy responses
-        bracket_extracted = self._extract_json_by_brackets(content)
-        if bracket_extracted:
-            loaded = _try_load(bracket_extracted)
-            if loaded is not None:
-                return loaded
-            unescaped = _unescape_candidate(bracket_extracted)
-            loaded = _try_load(unescaped)
-            if loaded is not None:
-                return loaded
-
-        # Fallback: try greedy regex
-        match = re.search(r"\{.*\}", content, flags=re.DOTALL)
-        if match:
-            candidate = match.group(0).strip()
-            loaded = _try_load(candidate)
-            if loaded is not None:
-                return loaded
-            unescaped = _unescape_candidate(candidate)
-            loaded = _try_load(unescaped)
-            if loaded is not None:
-                return loaded
-
-        return {"text": content}

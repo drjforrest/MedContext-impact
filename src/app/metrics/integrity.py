@@ -5,10 +5,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ContextualIntegrityWeights:
-    alignment: float = 0.6
-    plausibility: float = 0.15
-    genealogy_consistency: float = 0.15
-    source_reputation: float = 0.1
+    alignment: float = 0.5
+    veracity: float = 0.5
 
 
 def _clamp(value: float) -> float:
@@ -33,17 +31,13 @@ def _compute_weighted_score(values: list[tuple[float, float | None]]) -> float:
 def compute_contextual_integrity_score(
     *,
     alignment: float | None,
-    plausibility: float | None,
-    genealogy_consistency: float | None,
-    source_reputation: float | None,
+    veracity: float | None,
     weights: ContextualIntegrityWeights | None = None,
 ) -> float:
-    """Compute contextual integrity score with alignment as primary signal."""
+    """Compute contextual integrity score from veracity and alignment."""
     active_weights = weights or ContextualIntegrityWeights()
     weighted_values: list[tuple[float, float | None]] = [
         (active_weights.alignment, alignment),
-        (active_weights.plausibility, plausibility),
-        (active_weights.genealogy_consistency, genealogy_consistency),
-        (active_weights.source_reputation, source_reputation),
+        (active_weights.veracity, veracity),
     ]
     return _compute_weighted_score(weighted_values)
