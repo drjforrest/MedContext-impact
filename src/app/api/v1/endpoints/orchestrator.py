@@ -463,7 +463,7 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
                         settings.medgemma_url.rstrip("/"), headers=headers
                     )
                     return resp.status_code in (200, 401, 403)
-            except:
+            except Exception:
                 return False
 
         # If no dedicated URL, check the standard Inference API for the specific model
@@ -474,7 +474,7 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
                     resp = await client.get(url, headers=headers)
                     # Standard API returns 200 if model exists and is reachable
                     return resp.status_code == 200
-            except:
+            except Exception:
                 return False
 
         return bool(settings.medgemma_hf_token)
@@ -485,7 +485,7 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
                 url = f"{settings.local_medgemma_url.rstrip('/')}/v1/models"
                 response = await client.get(url)
                 return response.status_code == 200
-        except:
+        except Exception:
             return False
 
     async def check_vertex_availability():
@@ -506,7 +506,7 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
                         403,
                         404,
                     )  # 404 might be OK for Vertex root
-            except:
+            except Exception:
                 # If connection fails, endpoint is likely not live
                 return False
         return True  # Default to True if no domain but project/endpoint set

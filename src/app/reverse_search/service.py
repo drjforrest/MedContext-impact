@@ -13,11 +13,10 @@ returns an empty match list and logs a warning.
 from __future__ import annotations
 
 import hashlib
-import io
 import logging
 import tempfile
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID, uuid4
 from urllib.parse import quote_plus
 
@@ -87,7 +86,7 @@ def _reverse_search_with_google_vision(image_bytes: bytes) -> list[ReverseSearch
 
         response = client.web_detection(image=image)
         web_detection = response.web_detection
-        
+
         if response.error.message:
             _LOGGER.error(f"Google Vision API error: {response.error.message}")
             return []
@@ -104,7 +103,11 @@ def _reverse_search_with_google_vision(image_bytes: bytes) -> list[ReverseSearch
                     snippet=f"Full image match discovered at {page.url}",
                     confidence=0.95,
                     discovered_at=datetime.now(timezone.utc),
-                    metadata={"match_type": "full", "page_url": page.url, "score": getattr(page, "score", None)},
+                    metadata={
+                        "match_type": "full",
+                        "page_url": page.url,
+                        "score": getattr(page, "score", None),
+                    },
                 )
             )
 
@@ -118,7 +121,11 @@ def _reverse_search_with_google_vision(image_bytes: bytes) -> list[ReverseSearch
                     snippet="Visually similar image found",
                     confidence=0.70,
                     discovered_at=datetime.now(timezone.utc),
-                    metadata={"match_type": "partial", "page_url": partial.url, "score": getattr(partial, "score", None)},
+                    metadata={
+                        "match_type": "partial",
+                        "page_url": partial.url,
+                        "score": getattr(partial, "score", None),
+                    },
                 )
             )
 
@@ -180,13 +187,14 @@ def _reverse_search_with_serpapi(
             # Upload local bytes via temporary file
             import os
             import requests
+
             fd, tf_path = tempfile.mkstemp(suffix=".jpg")
             try:
                 with os.fdopen(fd, "wb") as tf:
                     tf.write(image_bytes)
-                
+
                 _LOGGER.info(f"SerpAPI: searching via local file upload: {tf_path}")
-                
+
                 # The google-search-results library (v2.4.2) uses requests.get internally
                 # and doesn't support file uploads. We must use requests.post directly.
                 with open(tf_path, "rb") as f:
@@ -194,15 +202,17 @@ def _reverse_search_with_serpapi(
                         "engine": "google_lens",
                         "api_key": settings.serp_api_key,
                         "source": "python",
-                        "output": "json"
+                        "output": "json",
                     }
                     files = {"file": f}
-                    _LOGGER.info(f"SerpAPI: sending multipart POST request to https://serpapi.com/search")
+                    _LOGGER.info(
+                        "SerpAPI: sending multipart POST request to https://serpapi.com/search"
+                    )
                     response = requests.post(
                         "https://serpapi.com/search",
                         data=post_data,
                         files=files,
-                        timeout=60
+                        timeout=60,
                     )
                     response.raise_for_status()
                     results = response.json()
@@ -218,7 +228,7 @@ def _reverse_search_with_serpapi(
             match_url = match.get("link") or match.get("url")
             if not match_url:
                 continue
-                
+
             matches.append(
                 ReverseSearchMatch(
                     source="serpapi:google_lens",
@@ -243,7 +253,8 @@ def _reverse_search_with_serpapi(
                         source="serpapi:knowledge_graph",
                         url=item.get("link", "https://google.com"),
                         title=item.get("title"),
-                        snippet=item.get("subtitle") or "Knowledge Graph identification",
+                        snippet=item.get("subtitle")
+                        or "Knowledge Graph identification",
                         confidence=0.95,
                         discovered_at=datetime.now(timezone.utc),
                         metadata={"type": "knowledge_graph"},
@@ -289,7 +300,9 @@ def run_reverse_search(
         # 1. Try SerpAPI first if key is present (often more descriptive for generic objects)
         if settings.serp_api_key:
             # Pass processed_bytes or None
-            serp_matches = _reverse_search_with_serpapi(processed_bytes or b"", source_url)
+            serp_matches = _reverse_search_with_serpapi(
+                processed_bytes or b"", source_url
+            )
             if serp_matches:
                 matches.extend(serp_matches)
                 used_providers.append("serpapi")

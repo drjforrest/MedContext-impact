@@ -28,8 +28,6 @@ class MedGemmaResult:
     raw_text: Optional[str] = None
 
 
-
-
 class MedGemmaClient:
     def __init__(self, model: Optional[str] = None) -> None:
         self.model = model or settings.medgemma_model
@@ -120,7 +118,6 @@ class MedGemmaClient:
                     )
             raise exc
 
-
     def _analyze_huggingface(
         self, image_bytes: bytes, prompt: Optional[str], model: str
     ) -> MedGemmaResult:
@@ -199,7 +196,7 @@ class MedGemmaClient:
                 generated = response_data.get("generated_text", "")
             else:
                 generated = str(response_data)
-                
+
             # Remove the input from the generated text
             if generated:
                 # First try stripping inputs_text (full input with image markdown), then prompt
@@ -400,7 +397,6 @@ class MedGemmaClient:
         if settings.medgemma_hf_token:
             headers["Authorization"] = f"Bearer {settings.medgemma_hf_token}"
 
-        last_error = None
         all_errors = []
         for url in candidate_urls:
             try:
@@ -447,15 +443,15 @@ class MedGemmaClient:
                     # If we STILL don't have content, check if it's an error response
                     if not content:
                         if isinstance(data, dict) and "error" in data:
-                            err_msg = f"URL {url} returned an error in body: {data['error']}"
-                            last_error = err_msg
+                            err_msg = (
+                                f"URL {url} returned an error in body: {data['error']}"
+                            )
                             all_errors.append(err_msg)
                             continue
-                        
+
                         # Only use raw data if it doesn't look like an error and we really want it
                         # but for MedGemma analysis, it's better to fail if no content is found
                         err_msg = f"URL {url} returned successful status but no content was found in JSON."
-                        last_error = err_msg
                         all_errors.append(err_msg)
                         continue
 
@@ -471,17 +467,14 @@ class MedGemmaClient:
             except httpx.HTTPStatusError as exc:
                 error_detail = exc.response.text if exc.response else "No response body"
                 err_msg = f"URL {url} failed with {exc.response.status_code}. Response: {error_detail[:500]}"
-                last_error = err_msg
                 all_errors.append(err_msg)
                 continue
             except httpx.HTTPError as exc:
                 err_msg = f"URL {url} failed with HTTP error: {exc}"
-                last_error = err_msg
                 all_errors.append(err_msg)
                 continue
             except Exception as exc:
                 err_msg = f"URL {url} failed with error: {exc}"
-                last_error = err_msg
                 all_errors.append(err_msg)
                 continue
 
@@ -512,10 +505,7 @@ class MedGemmaClient:
             # clip_model_path is required for vision
             if settings.medgemma_mmproj_path:
                 try:
-                    from llama_cpp.llama_chat_format import (
-                        Llava15ChatHandler,
-                        NanoLlavaChatHandler,
-                    )
+                    from llama_cpp.llama_chat_format import Llava15ChatHandler
 
                     # Try to detect which handler to use, or default to Llava15
                     # In some versions of llama-cpp-python, there's a PaliGemmaChatHandler
@@ -801,7 +791,7 @@ class MedGemmaClient:
             ) from exc
 
         content = self._extract_vllm_content(data)
-        
+
         # Check for error in response body even if 200 OK
         if not content and isinstance(data, dict) and "error" in data:
             raise MedGemmaClientError(
@@ -839,4 +829,3 @@ class MedGemmaClient:
                 if isinstance(content, str):
                     return content
         return ""
-

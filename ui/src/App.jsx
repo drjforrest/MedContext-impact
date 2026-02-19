@@ -629,11 +629,27 @@ function App() {
       return 'unchecked'
     }
 
+    const getProvenanceStatus = () => {
+      if (!isAddonEnabled('provenance')) return 'addon'
+      if (!provenanceData) return 'unchecked'
+      if (provenanceData.status === 'completed' && (provenanceData.blocks?.length > 0)) return 'pass'
+      return 'unchecked'
+    }
+
+    const getSourceStatus = () => {
+      if (!isAddonEnabled('reverse_search')) return 'addon'
+      if (!orchestratorReverseSearch) return 'unchecked'
+      if (orchestratorReverseSearch.matches) return 'pass'
+      return 'unchecked'
+    }
+
     const integrity = getForensicsStatus()
     const veracity = getVeracityStatus()
     const alignment = getAlignmentStatus()
+    const provenance = getProvenanceStatus()
+    const source = getSourceStatus()
 
-    const checked = [integrity, veracity, alignment].filter(s => s !== 'unchecked' && s !== 'addon')
+    const checked = [veracity, alignment].filter(s => s !== 'unchecked' && s !== 'addon')
     let overall = 'unchecked'
     if (checked.length > 0) {
       if (checked.every(s => s === 'pass')) overall = 'pass'
@@ -641,8 +657,8 @@ function App() {
       else overall = 'partial'
     }
 
-    return { integrity, veracity, alignment, overall }
-  }, [forensicsData, claimVeracity, alignmentScore])
+    return { integrity, veracity, alignment, provenance, source, overall }
+  }, [forensicsData, claimVeracity, alignmentScore, provenanceData, orchestratorReverseSearch])
 
   // 2x2x2 matrix: which of the 8 cells is active
   const cubeMatrix = useMemo(() => {
@@ -684,15 +700,6 @@ function App() {
   const showResultsOverview = Boolean(result)
   const showProgressCard = status !== 'success'
   
-  // Compute which signals were not checked
-  const uncheckedSignals = useMemo(() => {
-    const signals = []
-    // Alignment is always checked (from synthesis)
-    // Veracity is always checked (from triage)
-    if (!provenanceData) signals.push('Genealogy')
-    if (!orchestratorReverseSearch) signals.push('Source Reputation')
-    return signals
-  }, [provenanceData, orchestratorReverseSearch])
   const isLanding = activeView === 'landing'
 
   return (
@@ -1247,12 +1254,16 @@ function App() {
                     className="triangle-svg"
                     viewBox="0 0 440 470"
                     role="img"
-                    aria-label={`Assessment: integrity ${triangleSignals.integrity}, veracity ${triangleSignals.veracity}, alignment ${triangleSignals.alignment}`}
+                    aria-label={`Assessment: integrity ${triangleSignals.integrity}, veracity ${triangleSignals.veracity}, alignment ${triangleSignals.alignment}, source ${triangleSignals.source}, provenance ${triangleSignals.provenance}`}
                   >
-                    {/* Triangle edge lines */}
-                    <line x1="220" y1="115" x2="75" y2="325" stroke="#c8d3de" strokeWidth="3" />
-                    <line x1="220" y1="115" x2="365" y2="325" stroke="#c8d3de" strokeWidth="3" />
+                    {/* Core assessment connection */}
                     <line x1="75" y1="325" x2="365" y2="325" stroke="#c8d3de" strokeWidth="3" />
+
+                    {/* Far-left vertex: Source Reputation */}
+                    <text x="60" y="45" textAnchor="middle" className="tri-label-primary">Source</text>
+                    <text x="60" y="62" textAnchor="middle" className="tri-label-secondary">Reputation</text>
+                    <circle cx="60" cy="115" r="34" className={`tri-node tri-node-${triangleSignals.source}`} />
+                    {renderTriIcon(triangleSignals.source, 60, 115)}
 
                     {/* Top vertex: Image Integrity */}
                     <text x="220" y="45" textAnchor="middle" className="tri-label-primary">Image Integrity</text>
@@ -1261,6 +1272,12 @@ function App() {
                     </text>
                     <circle cx="220" cy="115" r="38" className={`tri-node tri-node-${triangleSignals.integrity}`} />
                     {renderTriIcon(triangleSignals.integrity, 220, 115)}
+
+                    {/* Far-right vertex: Genealogy */}
+                    <text x="380" y="45" textAnchor="middle" className="tri-label-primary">Genealogy</text>
+                    <text x="380" y="62" textAnchor="middle" className="tri-label-secondary">Provenance</text>
+                    <circle cx="380" cy="115" r="34" className={`tri-node tri-node-${triangleSignals.provenance}`} />
+                    {renderTriIcon(triangleSignals.provenance, 380, 115)}
 
                     {/* Bottom-left vertex: Context Veracity */}
                     <circle cx="75" cy="325" r="38" className={`tri-node tri-node-${triangleSignals.veracity}`} />

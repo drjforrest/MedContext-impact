@@ -38,8 +38,6 @@ def _cleanup_image_file(image_path: Path) -> None:
         pass
 
 
-
-
 def ingest_and_run_agentic(
     *,
     image_bytes: bytes,
@@ -71,7 +69,7 @@ def ingest_and_run_agentic(
     try:
         detected_format = detect_image_format(image_bytes)
         # Verify it's actually an image (Image.open didn't fail silently)
-        with Image.open(io.BytesIO(image_bytes)) as img:
+        with Image.open(io.BytesIO(image_bytes)):
             pass
     except Exception:
         logger.error(

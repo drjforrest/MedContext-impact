@@ -162,22 +162,24 @@ class LlmClient:
         # Candidate endpoints for OpenAI-compatible APIs (like LM Studio or vLLM)
         base_url = settings.llm_base_url.rstrip("/")
         candidate_urls = []
-        
+
         if base_url.endswith("/chat/completions") or base_url.endswith("/api/v1/chat"):
             candidate_urls.append(base_url)
         else:
             # Standard order for LM Studio/vLLM/Local APIs
-            candidate_urls.extend([
-                f"{base_url}/v1/chat/completions",
-                f"{base_url}/api/v1/chat",  # LM Studio native v1
-                f"{base_url}/chat/completions",
-            ])
-        
+            candidate_urls.extend(
+                [
+                    f"{base_url}/v1/chat/completions",
+                    f"{base_url}/api/v1/chat",  # LM Studio native v1
+                    f"{base_url}/chat/completions",
+                ]
+            )
+
         candidate_urls = list(dict.fromkeys(candidate_urls))
 
         response_data = None
         last_error = None
-        
+
         for url in candidate_urls:
             try:
                 with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
@@ -187,7 +189,7 @@ class LlmClient:
                         json=payload,
                     )
                     response.raise_for_status()
-                    
+
                     # Even if 200 OK, check for error in body
                     try:
                         data = response.json()
@@ -196,9 +198,11 @@ class LlmClient:
                         continue
 
                     if "choices" not in data and "error" in data:
-                        last_error = f"URL {url} returned an error in body: {data['error']}"
+                        last_error = (
+                            f"URL {url} returned an error in body: {data['error']}"
+                        )
                         continue
-                        
+
                     # Successfully got content
                     response_data = data
                     break
@@ -341,6 +345,3 @@ class LlmClient:
             output=parse_llm_json(cleaned),
             raw_text=cleaned,
         )
-
-
-

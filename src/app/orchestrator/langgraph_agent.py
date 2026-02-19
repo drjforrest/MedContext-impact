@@ -167,9 +167,11 @@ class MedContextLangGraphAgent:
             "alignment_threshold": alignment_threshold,
             "decision_logic": decision_logic,
             "medgemma_model": medgemma_model or settings.medgemma_model,
-            "show_threshold_recommendations": show_threshold_recommendations
-            if show_threshold_recommendations is not None
-            else settings.show_threshold_recommendations,
+            "show_threshold_recommendations": (
+                show_threshold_recommendations
+                if show_threshold_recommendations is not None
+                else settings.show_threshold_recommendations
+            ),
         }
 
     def get_graph_mermaid(self) -> str:
@@ -314,7 +316,7 @@ class MedContextLangGraphAgent:
 
         # Extract relevant information from medical analysis to recommend tools
         medical_output = medical_analysis.output
-        
+
         # Check if vision analysis failed
         vision_failed = medical_analysis.provider == "error" or (
             isinstance(medical_output, dict) and "error" in medical_output
@@ -336,10 +338,14 @@ class MedContextLangGraphAgent:
         if vision_failed:
             if context:
                 recommendations.append("reverse_search")
-                reasoning_parts.append("vision analysis failed; reverse search required to verify claim")
+                reasoning_parts.append(
+                    "vision analysis failed; reverse search required to verify claim"
+                )
             recommendations.append("forensics")
-            reasoning_parts.append("vision analysis failed; forensics required for automated integrity check")
-        
+            reasoning_parts.append(
+                "vision analysis failed; forensics required for automated integrity check"
+            )
+
         # If claim is provided, recommend reverse search
         if context and "reverse_search" not in recommendations:
             recommendations.append("reverse_search")
@@ -430,10 +436,6 @@ class MedContextLangGraphAgent:
         tool_descriptions = self._build_tool_descriptions(enabled)
 
         # Check if vision analysis failed
-        medical_output = medical_analysis.output
-        vision_failed = medical_analysis.provider == "error" or (
-            isinstance(medical_output, dict) and "error" in medical_output
-        )
 
         # Summarise pre-screen context for the LLM
         pre_screen_summary = ""
@@ -751,10 +753,6 @@ class MedContextLangGraphAgent:
         tool_descriptions = self._build_tool_descriptions(enabled)
 
         # Check if vision analysis failed
-        medical_output = medical_analysis.output
-        vision_failed = medical_analysis.provider == "error" or (
-            isinstance(medical_output, dict) and "error" in medical_output
-        )
 
         # Summarise pre-screen context for the LLM
         pre_screen_summary = ""
@@ -1000,7 +998,9 @@ class MedContextLangGraphAgent:
                 model=settings.llm_orchestrator,
             )
         except (LlmClientError, Exception) as e:
-            logger.warning("Primary LLM synthesis failed: %s. Falling back to MedGemma.", e)
+            logger.warning(
+                "Primary LLM synthesis failed: %s. Falling back to MedGemma.", e
+            )
             try:
                 return self.medgemma.analyze_image(
                     image_bytes=image_bytes, prompt=prompt, model=medgemma_model
@@ -1011,8 +1011,11 @@ class MedContextLangGraphAgent:
                 return LlmResult(
                     provider="error",
                     model="none",
-                    output={"error": f"Synthesis failed: {str(e2)}", "text": "Medical context synthesis unavailable due to a technical error."},
-                    raw_text=str(e2)
+                    output={
+                        "error": f"Synthesis failed: {str(e2)}",
+                        "text": "Medical context synthesis unavailable due to a technical error.",
+                    },
+                    raw_text=str(e2),
                 )
 
     def _alignment_system(self) -> str:
@@ -1186,15 +1189,27 @@ class MedContextLangGraphAgent:
         # Handle explicit error signal in synthesis
         if "error" in synthesis_output:
             # Provide a minimal valid structure for the UI
-            synthesis_output.setdefault("part_1", {"image_description": "Vision analysis unavailable."})
-            synthesis_output.setdefault("part_2", {"summary": synthesis_output.get("text", "Synthesis failed.")})
-            synthesis_output.setdefault("claim_veracity", {"veracity": "unknown", "rationale": "Medical analysis failed."})
-            synthesis_output.setdefault("contextual_alignment", {"verdict": "unclear", "rationale": "Medical analysis failed."})
-            
+            synthesis_output.setdefault(
+                "part_1", {"image_description": "Vision analysis unavailable."}
+            )
+            synthesis_output.setdefault(
+                "part_2", {"summary": synthesis_output.get("text", "Synthesis failed.")}
+            )
+            synthesis_output.setdefault(
+                "claim_veracity",
+                {"veracity": "unknown", "rationale": "Medical analysis failed."},
+            )
+            synthesis_output.setdefault(
+                "contextual_alignment",
+                {"verdict": "unclear", "rationale": "Medical analysis failed."},
+            )
+
             # Still try to get the image description from triage if possible
             if triage:
-                synthesis_output["part_1"]["image_description"] = self._generate_factual_description(triage)
-                
+                synthesis_output["part_1"]["image_description"] = (
+                    self._generate_factual_description(triage)
+                )
+
             return synthesis_output
 
         # Check if "text" contains reasoning/thinking (not useful as summary)
@@ -1537,14 +1552,13 @@ class MedContextLangGraphAgent:
             return 0.8
         return 0.4
 
-
     def _generate_factual_description(self, triage: Any) -> str:
         # If triage contains an error, don't try to synthesize a description from the error message.
         if isinstance(triage, dict):
             med_analysis = triage.get("medical_analysis", {})
             if isinstance(med_analysis, dict) and "error" in med_analysis:
                 return "Vision analysis unavailable due to a technical error."
-        
+
         prompt = self._build_factual_prompt(triage)
         try:
             result = self.llm.generate(
@@ -1561,16 +1575,16 @@ class MedContextLangGraphAgent:
         except Exception:
             logger.exception("Failed to generate factual description via LLM.")
             return "The image provided appears to be a medical image."
-        
+
         if isinstance(result.output, dict):
             description = result.output.get("image_description")
             if isinstance(description, str) and description.strip():
                 return description.strip()
-        
+
         raw = result.raw_text
         if raw and raw.strip():
             return raw.strip()
-        
+
         return "The image provided appears to be a medical image."
 
     def _build_factual_prompt(self, triage: Any) -> str:

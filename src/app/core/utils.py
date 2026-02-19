@@ -116,9 +116,7 @@ def parse_llm_json(content: str) -> Any:
         return direct
 
     # Try to extract from markdown code fences (```json...```)
-    fenced = re.search(
-        r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE
-    )
+    fenced = re.search(r"```json\s*(.*?)```", content, flags=re.DOTALL | re.IGNORECASE)
     if fenced:
         candidate = fenced.group(1).strip()
         loaded = _try_load(candidate)
@@ -144,6 +142,7 @@ def resize_image(image_bytes: bytes, max_size: int = 1024, quality: int = 80) ->
     """Resize image to reduce payload size and avoid API limits."""
     try:
         from PIL import Image
+
         img = Image.open(io.BytesIO(image_bytes))
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
@@ -170,6 +169,7 @@ def detect_image_format(image_bytes: bytes) -> str:
     """Detect image format using PIL."""
     try:
         from PIL import Image
+
         with Image.open(io.BytesIO(image_bytes)) as image:
             image_format = (image.format or "JPEG").lower()
     except Exception:
