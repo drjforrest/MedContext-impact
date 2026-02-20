@@ -152,21 +152,27 @@ def _extract_contextual_scores(synthesis: dict) -> dict:
         "alignment_score": alignment_score,
         "alignment_category": alignment_cat,
         "overall_score": min(veracity_score, alignment_score),
-        "is_misleading": is_misinformation,
+        "is_misinformation": is_misinformation,
         "method": "contextual_analysis",
     }
 
 
 def _compute_combined_analysis(pixel: dict, contextual: dict, synthesis: dict) -> dict:
-    """Compute combined analysis merging pixel forensics + contextual signals."""
+    """Combine contextual authenticity with parallel image integrity assessment.
+
+    Keeps pixel forensics and contextual signals as separate sub-assessments
+    rather than flat-merging them — pixel integrity tells you whether pixels
+    were tampered with, contextual authenticity tells you whether the claim
+    is misinformation. These are independent axes.
+    """
     ci = synthesis.get("contextual_integrity", {})
     is_misinformation = (
         ci.get("is_misinformation", False) if isinstance(ci, dict) else False
     )
 
     return {
-        **contextual,
-        **pixel,
+        "contextual_authenticity": contextual,
+        "image_integrity": pixel,
         "method": "combined_analysis",
         "is_misinformation": is_misinformation,
     }

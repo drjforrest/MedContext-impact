@@ -149,7 +149,7 @@ def generate_score_distributions(predictions):
                 "category_label": veracity_labels.get(veracity_cat, veracity_cat),
                 "ground_truth": gt.get("plausibility", "unknown"),
                 "is_misinformation": gt.get("is_misinformation", False),
-                "predicted_positive": context.get("veracity_score", 0.5) > 0.5,
+                "predicted_positive": context.get("veracity_score", 0.5) < 0.5,
             }
         )
 
@@ -160,7 +160,7 @@ def generate_score_distributions(predictions):
                 "category_label": alignment_labels.get(alignment_cat, alignment_cat),
                 "ground_truth": gt.get("alignment", "unknown"),
                 "is_misinformation": gt.get("is_misinformation", False),
-                "predicted_positive": context.get("alignment_score", 0.5) > 0.5,
+                "predicted_positive": context.get("alignment_score", 0.5) < 0.5,
             }
         )
 

@@ -951,6 +951,83 @@ class MedContextLangGraphAgent:
         image_bytes = state["image_bytes"]
         triage_output = state.get("triage")
         tool_results = state.get("tool_results", {})
+
+        # Core thesis: both veracity and alignment require vision.
+        # If MedGemma failed, skip the synthesis LLM entirely — there is
+        # nothing meaningful to reason about without an image description.
+        triage_medical = (triage_output or {}).get("medical_analysis", {})
+        vision_failed = isinstance(triage_medical, dict) and "error" in triage_medical
+
+        if vision_failed:
+            logger.warning(
+                "Vision analysis failed — skipping synthesis LLM. "
+                "Returning insufficient_signals response."
+            )
+            forensics_score = self._derive_forensics_score(tool_results)
+            decision_logic = state.get("decision_logic", "VERACITY_FIRST")
+            synthesis_output = {
+                "part_1": {
+                    "image_description": (
+                        "Vision analysis unavailable due to a technical error."
+                    ),
+                },
+                "part_2": {
+                    "summary": (
+                        "Contextual authenticity could not be assessed because "
+                        "the vision model was unavailable. Both image-context "
+                        "alignment and claim veracity require a successful "
+                        "image analysis to produce a verdict."
+                    ),
+                },
+                "image_id": state.get("image_id"),
+                "contextual_integrity": {
+                    "score": None,
+                    "alignment": None,
+                    "usage_assessment": None,
+                    "claim_veracity": None,
+                    "is_misinformation": None,
+                    "decision_logic": decision_logic,
+                    "insufficient_signals": True,
+                    "reason": (
+                        "Contextual authenticity requires both veracity and "
+                        "alignment signals. Vision analysis was unavailable, "
+                        "so a verdict cannot be determined."
+                    ),
+                    "thresholds": {
+                        "veracity": state.get("veracity_threshold", 0.65),
+                        "alignment": state.get("alignment_threshold", 0.30),
+                    },
+                    "signals": {
+                        "alignment": None,
+                        "plausibility": None,
+                        "genealogy_consistency": None,
+                        "source_reputation": None,
+                    },
+                    "image_integrity": {
+                        "forensics": forensics_score,
+                    },
+                    "visualization": {
+                        "overall_confidence": None,
+                        "alignment_confidence": None,
+                        "plausibility_confidence": None,
+                        "genealogy_confidence": None,
+                        "source_confidence": None,
+                    },
+                },
+            }
+            preview = self._build_image_preview(image_bytes)
+            if preview:
+                synthesis_output["image_preview"] = preview
+            state["synthesis"] = synthesis_output
+            duration_ms = int((perf_counter() - start) * 1000)
+            self._append_trace(
+                state,
+                node="synthesize",
+                data={"status": "skipped_vision_failed"},
+                duration_ms=duration_ms,
+            )
+            return state
+
         synth = self._synthesize(
             image_bytes,
             triage_output,
@@ -1148,9 +1225,14 @@ class MedContextLangGraphAgent:
             "9. If vision analysis failed (e.g., error in Medical Analysis), you MUST state that alignment "
             "cannot be verified visually and your verdict is based on other evidence (like reverse search).\n"
         )
+        # Exclude forensics from synthesis — forensics is a parallel image integrity
+        # assessment, not an input to contextual authenticity (alignment + veracity).
+        contextual_tool_results = {
+            k: v for k, v in tool_results.items() if k != "forensics"
+        }
         prompt += (
             f"\nMedical Analysis & Tool Selection: {_serialize_payload(triage)}\n"
-            f"Investigative Tool Results: {_serialize_payload(tool_results)}\n"
+            f"Investigative Tool Results: {_serialize_payload(contextual_tool_results)}\n"
         )
         if errors:
             prompt += (
@@ -1268,6 +1350,66 @@ class MedContextLangGraphAgent:
         • "MIN": min(veracity, alignment) < min_threshold → misinformation
         ─────────────────────────────────────────────────────────────────────
         """
+        # Core thesis: BOTH veracity and alignment are required. If either
+        # sub-module failed, we cannot compute contextual authenticity.
+        vision_failed = (
+            isinstance(triage, dict)
+            and isinstance(triage.get("medical_analysis"), dict)
+            and "error" in triage["medical_analysis"]
+        )
+        synthesis_failed = "error" in synthesis_output
+
+        if vision_failed or synthesis_failed:
+            forensics_score = self._derive_forensics_score(tool_results)
+            logger.warning(
+                "Cannot compute contextual authenticity: vision_failed=%s, synthesis_failed=%s",
+                vision_failed,
+                synthesis_failed,
+            )
+            return {
+                "score": None,
+                "alignment": None,
+                "usage_assessment": None,
+                "claim_veracity": None,
+                "is_misinformation": None,
+                "decision_logic": (
+                    state.get("decision_logic", "VERACITY_FIRST")
+                    if state
+                    else "VERACITY_FIRST"
+                ),
+                "insufficient_signals": True,
+                "reason": (
+                    "Contextual authenticity requires both veracity and alignment signals. "
+                    "Vision analysis was unavailable, so a verdict cannot be determined."
+                    if vision_failed
+                    else "Synthesis failed, so a verdict cannot be determined."
+                ),
+                "thresholds": {
+                    "veracity": (
+                        state.get("veracity_threshold", 0.65) if state else 0.65
+                    ),
+                    "alignment": (
+                        state.get("alignment_threshold", 0.30) if state else 0.30
+                    ),
+                },
+                "signals": {
+                    "alignment": None,
+                    "plausibility": None,
+                    "genealogy_consistency": None,
+                    "source_reputation": None,
+                },
+                "image_integrity": {
+                    "forensics": forensics_score,
+                },
+                "visualization": {
+                    "overall_confidence": None,
+                    "alignment_confidence": None,
+                    "plausibility_confidence": None,
+                    "genealogy_confidence": None,
+                    "source_confidence": None,
+                },
+            }
+
         alignment_score, alignment_label = self._extract_alignment_signal(
             synthesis_output
         )
@@ -1374,7 +1516,7 @@ class MedContextLangGraphAgent:
                     is_misinformation = True
 
         logger.info(
-            "Verdict: logic=%s, veracity=%s (val=%s, thresh=%s), alignment=%s (val=%s, thresh=%s), forensics=%s -> is_misinformation=%s",
+            "Verdict: logic=%s, veracity=%s (val=%s, thresh=%s), alignment=%s (val=%s, thresh=%s) -> is_misinformation=%s",
             decision_logic,
             factual_accuracy,
             veracity_value,
@@ -1382,9 +1524,10 @@ class MedContextLangGraphAgent:
             alignment_label,
             alignment_value,
             alignment_threshold,
-            forensics_score,
             is_misinformation,
         )
+        if forensics_score is not None:
+            logger.info("Image integrity (parallel): forensics=%s", forensics_score)
 
         return {
             "score": score,
@@ -1402,6 +1545,8 @@ class MedContextLangGraphAgent:
                 "plausibility": plausibility_score,
                 "genealogy_consistency": genealogy_consistency,
                 "source_reputation": source_reputation,
+            },
+            "image_integrity": {
                 "forensics": forensics_score,
             },
             "visualization": {

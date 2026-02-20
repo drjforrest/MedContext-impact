@@ -55,14 +55,19 @@ class MedGemmaClient:
                 model=current_model,
             )
         except MedGemmaClientError:
-            if not settings.medgemma_fallback_provider:
+            fallback_provider = settings.medgemma_fallback_provider or None
+            if not fallback_provider or fallback_provider == current_provider:
                 raise
-            fallback_provider = determine_provider(settings.medgemma_fallback_provider)
-            if fallback_provider and fallback_provider != current_provider:
+            try:
                 fallback_client = create_client(fallback_provider)
-                return fallback_client.analyze_image(
-                    image_bytes=image_bytes,
-                    prompt=prompt,
-                    model=current_model,
+            except MedGemmaClientError:
+                logger.warning(
+                    "Invalid fallback provider %r, re-raising original error",
+                    fallback_provider,
                 )
-            raise
+                raise  # re-raises the ORIGINAL primary provider error
+            return fallback_client.analyze_image(
+                image_bytes=image_bytes,
+                prompt=prompt,
+                model=None,
+            )

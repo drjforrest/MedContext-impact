@@ -28,15 +28,15 @@ From our comprehensive literature review we discovered:
 
 ---
 
-## 🔬 Validation: Both Contextual Signals Are Necessary
+## 🔬 Both Contextual Signals Are Necessary
 
-MedContext was **empirically motivated** in its development, not feature-driven. We ran validation studies to test whether single contextual signals could detect medical visual misinformation—they cannot.
+MedContext was **empirically motivated** in its development, rather than feature-driven. We ran justification and validation studies to test whether single contextual signals could detect visual medical misinformation—they cannot.
 
 **Validation on Med-MMHL Benchmark (n=163):**
 
-We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark)**, a research-grade dataset of real-world medical misinformation from fact-checking organizations with **human-annotated, expert fact-checked labels**. The validation used stratified random sampling (seed=42) of 163 samples from the Med-MMHL test set (1,785 total samples) to ensure representative label distribution (83% misinformation, 17% legitimate).
+We validated MedContext against the **Med-MMHL (Medical Multimodal Misinformation Benchmark)**, a research-grade dataset of real-world medical misinformation in image-claim pairs curated from fact-checking organizations, with **human-annotated, expert fact-checked labels**. The validation used stratified random sampling (seed=42) of 163 samples from the Med-MMHL test set (1,785 total samples) to ensure representative label distribution (83% misinformation, 17% legitimate).
 
-**Note on Dataset Provenance:** Med-MMHL is a separate benchmark from the PoJ validation datasets described below. Med-MMHL contains real-world social media posts with fact-checked labels, whereas PoJ datasets (BTD+UCI) contain medical images with synthetically assigned contextual labels for controlled experimentation.
+**Note on Dataset Provenance:** Med-MMHL is a separate benchmark from the datasets described below used to justify the studies. Med-MMHL contains real-world social media posts with fact-checked labels, whereas justification datasets (BTD+UCI) contain medical images with synthetically assigned contextual labels for controlled experimentation, not validation.
 
 **Results:**
 
@@ -69,7 +69,7 @@ We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark
 
 **Methodology:** Results use the **MedGemma 4B model** with optimized decision thresholds determined via 5-fold cross-validation on the Med-MMHL validation set (n=163). Bootstrap confidence intervals computed over 1,000 iterations. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 92.0% accuracy and bootstrap CIs may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
 
-**Key Insight:** The most dangerous misinformation—authentic images supporting false claims—requires analyzing **both veracity and alignment together**. Single contextual signals or image integrity tests miss this when applied on their own. An image may be autherntic, and a health claim may be true without context, but together can be dangerously misleading.
+**Key Insight:** The most dangerous misinformation—authentic misaligned images supporting false claims—requires analyzing **both veracity and alignment together**. Single contextual signals and image integrity tests miss this when applied on their own. An image may be authentic and honest, and a health claim may be true without context, but together can be dangerously misleading.
 
 [**📊 Full Validation Report**](docs/VALIDATION.md) | [**📊 Validation Story (Interactive)**](ui/src/ValidationStory.jsx)
 

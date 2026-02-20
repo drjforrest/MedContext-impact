@@ -463,9 +463,13 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
     models[1]["available"] = hf_pt_ok
     models[2]["available"] = lmstudio_ok
 
-    # Use the actual loaded model ID from LM Studio instead of hardcoded name
+    # Use the actual loaded model ID from LM Studio, prefixed with "local/"
+    # so the provider factory routes to local_api (not HuggingFace via -it suffix)
     if lmstudio_model_id:
-        models[2]["model"] = lmstudio_model_id
+        if not lmstudio_model_id.startswith(("local/", "lmstudio/")):
+            models[2]["model"] = f"local/{lmstudio_model_id}"
+        else:
+            models[2]["model"] = lmstudio_model_id
 
     # Fallback to llama-cpp-python if LM Studio is down
     if not models[2]["available"] and llama_ok:

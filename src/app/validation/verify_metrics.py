@@ -83,7 +83,7 @@ def verify_metrics():
             else 1
         ),
         "combined": lambda p: (
-            1 if p["predictions"]["combined_analysis"]["is_misleading"] else 0
+            1 if p["predictions"]["combined_analysis"]["is_misinformation"] else 0
         ),
     }
 

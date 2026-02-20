@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import threading
 from typing import Any, Optional
 
 from app.core.config import settings
@@ -20,10 +21,16 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
 
     def __init__(self) -> None:
         self._llm_instance = None
+        self._model_lock = threading.Lock()
 
     def _load_model(self) -> None:
+        # Double-checked locking for thread safety
         if self._llm_instance is not None:
             return
+        
+        with self._model_lock:
+            if self._llm_instance is not None:
+                return
 
         try:
             from llama_cpp import Llama
@@ -36,6 +43,23 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
         if not settings.medgemma_mmproj_path:
             raise MedGemmaClientError(
                 "MEDGEMMA_MMPROJ_PATH is required for vision with local GGUF models."
+            )
+
+        # Validate medgemma_local_path before attempting to load model
+        if not settings.medgemma_local_path:
+            raise MedGemmaClientError(
+                "MEDGEMMA_LOCAL_PATH is required for local GGUF inference."
+            )
+
+        model_path = Path(settings.medgemma_local_path)
+        if not model_path.exists():
+            raise MedGemmaClientError(
+                f"Model file not found at {settings.medgemma_local_path}. "
+                "Please check MEDGEMMA_LOCAL_PATH setting."
+            )
+        if not model_path.is_file():
+            raise MedGemmaClientError(
+                f"MEDGEMMA_LOCAL_PATH ({settings.medgemma_local_path}) is not a file."
             )
 
         try:

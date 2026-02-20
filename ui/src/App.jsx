@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import SplashPage from './SplashPage'
 import ValidationStory from './ValidationStory'
@@ -73,7 +73,9 @@ function App() {
   const [fileInputKey, setFileInputKey] = useState(0)
   const [modules, setModules] = useState(null)
   const [forceTools, setForceTools] = useState(new Set())
-  
+  const [progressPhase, setProgressPhase] = useState(0)
+  const progressTimersRef = useRef([])
+
   // Threshold configuration
   const [veracityThreshold, setVeracityThreshold] = useState(0.65)
   const [alignmentThreshold, setAlignmentThreshold] = useState(0.30)
@@ -192,18 +194,36 @@ function App() {
     return 'Ready'
   }, [status])
 
+  // Progressive animation: stagger module activation for visual feedback
+  useEffect(() => {
+    progressTimersRef.current.forEach(clearTimeout)
+    progressTimersRef.current = []
+
+    if (status === 'loading') {
+      setProgressPhase(1)
+      const t1 = setTimeout(() => setProgressPhase(2), 1500)
+      const t2 = setTimeout(() => setProgressPhase(3), 3500)
+      progressTimersRef.current = [t1, t2]
+    } else if (status === 'success' || status === 'error') {
+      setProgressPhase(4)
+      const t3 = setTimeout(() => setProgressPhase(5), 500)
+      const t4 = setTimeout(() => setProgressPhase(6), 1500)
+      progressTimersRef.current = [t3, t4]
+    } else if (status === 'idle') {
+      setProgressPhase(0)
+    }
+
+    return () => {
+      progressTimersRef.current.forEach(clearTimeout)
+      progressTimersRef.current = []
+    }
+  }, [status])
+
   const agentSteps = [
-    {
-      key: 'image_integrity',
-      label: 'Image Integrity',
-      detail: 'Pixel forensics, metadata, and manipulation detection.',
-      toolKey: 'forensics',
-      isCore: false,
-    },
     {
       key: 'claim_veracity',
       label: 'Claim Veracity',
-      detail: 'MedGemma assesses factual accuracy of the claim.',
+      detail: 'Assesses factual accuracy of the claim against medical knowledge.',
       toolKey: null,
       isCore: true,
       isHalfWidth: true,
@@ -211,10 +231,17 @@ function App() {
     {
       key: 'context_alignment',
       label: 'Image-Context Alignment',
-      detail: 'MedGemma evaluates how well image supports the claim.',
+      detail: 'Evaluates whether the image supports the associated claim.',
       toolKey: null,
       isCore: true,
       isHalfWidth: true,
+    },
+    {
+      key: 'image_integrity',
+      label: 'Image Integrity',
+      detail: 'Pixel forensics, metadata, and manipulation detection.',
+      toolKey: 'forensics',
+      isCore: false,
     },
     {
       key: 'source_verification',
@@ -230,11 +257,20 @@ function App() {
       toolKey: 'provenance',
       isCore: false,
     },
+    {
+      key: 'synthesis',
+      label: 'Synthesis Agent',
+      detail: 'Combines all signals into a final contextual authenticity verdict.',
+      toolKey: null,
+      isCore: false,
+      isSynthesis: true,
+    },
   ]
 
   const handleRun = async () => {
     setError('')
     setResult(null)
+    setProgressPhase(0)
 
     if ((hasFile && hasUrl) || (!hasFile && !hasUrl)) {
       setError('Provide either an image file or a public image URL.')
@@ -334,29 +370,40 @@ function App() {
   )
   const agentStepStates = useMemo(() => {
     return agentSteps.map((step) => {
-      if (status === 'idle') return 'idle'
-      
-      // Core modules (Veracity + Alignment) always run
-      if (step.isCore) {
-        if (status === 'loading') return 'active' // Show as actively running
-        if (status === 'success' || status === 'error') return 'done'
+      if (progressPhase === 0) return 'idle'
+
+      // Claim Veracity: active at phase 1, done at phase 4+
+      if (step.key === 'claim_veracity') {
+        if (progressPhase >= 4) return 'done'
+        if (progressPhase >= 1) return 'active'
+        return 'pending'
+      }
+
+      // Image-Context Alignment: active at phase 2, done at phase 4+
+      if (step.key === 'context_alignment') {
+        if (progressPhase >= 4) return 'done'
+        if (progressPhase >= 2) return 'active'
+        return 'pending'
+      }
+
+      // Synthesis: active at phase 5, done at phase 6
+      if (step.isSynthesis) {
+        if (progressPhase >= 6) return 'done'
+        if (progressPhase >= 5) return 'active'
+        if (progressPhase >= 4) return 'pending'
         return 'idle'
       }
-      
-      // For optional add-on modules, check if they were selected
-      if (status === 'loading') {
-        // During loading, show as 'active' if force-enabled, otherwise 'pending'
-        return forceTools.has(step.toolKey) ? 'active' : 'pending'
-      }
-      
-      // After completion, show actual status
-      if (status === 'success' || status === 'error') {
+
+      // Add-on modules: awaiting at phase 3, resolve at phase 4+
+      if (progressPhase >= 4) {
         return toolActivity[step.toolKey] ? 'done' : 'skipped'
       }
-      
-      return 'idle'
+      if (progressPhase >= 3) {
+        return forceTools.has(step.toolKey) ? 'active' : 'awaiting'
+      }
+      return 'pending'
     })
-  }, [agentSteps, status, toolActivity, forceTools])
+  }, [agentSteps, progressPhase, toolActivity, forceTools])
   const integrityVisualization = contextualIntegrity?.visualization || null
   const integrityScore =
     typeof integrityVisualization?.overall_confidence === 'number'
@@ -698,7 +745,7 @@ function App() {
   }, [triangleSignals])
 
   const showResultsOverview = Boolean(result)
-  const showProgressCard = status !== 'success'
+  const showProgressCard = status !== 'success' || progressPhase < 6
   
   const isLanding = activeView === 'landing'
 
@@ -1200,11 +1247,11 @@ function App() {
                 <section className="card activity-card">
                   <div className="reverse-header">
                     <div>
-                      <h2>Agentic Workflow Progress</h2>
+                      <h2>Analysis Pipeline</h2>
                       <p className="helper">
-                        {status === 'loading' 
-                          ? 'Running 2-dimensional contextual authenticity: Claim Veracity + Image-Context Alignment. Add-on modules shown if selected.' 
-                          : 'Workflow complete: core contextual signals (veracity + alignment) plus agent-selected add-ons.'}
+                        {status === 'loading'
+                          ? 'Module selection and analysis in progress...'
+                          : 'All modules complete.'}
                       </p>
                     </div>
                   </div>
@@ -1213,23 +1260,34 @@ function App() {
                       const state = agentStepStates[index]
                       const stateLabels = {
                         idle: 'Not started',
-                        pending: 'Awaiting selection',
-                        active: step.isCore ? 'Analyzing...' : 'Running...',
+                        pending: step.isSynthesis ? 'Queued' : 'Pending',
+                        awaiting: 'Awaiting agent',
+                        active: step.isCore ? 'Analyzing...' : step.isSynthesis ? 'Synthesizing...' : 'Running...',
                         done: 'Complete',
-                        skipped: 'Not selected'
+                        skipped: 'Not selected',
                       }
+                      const stepClass = [
+                        'activity-step',
+                        `activity-${state}`,
+                        step.isHalfWidth ? 'activity-half' : '',
+                        step.isCore ? 'activity-core' : '',
+                        step.isSynthesis ? 'activity-synthesis' : '',
+                      ].filter(Boolean).join(' ')
                       return (
-                        <div
-                          className={`activity-step activity-${state} ${step.isHalfWidth ? 'activity-half' : ''}`}
-                          key={step.key}
-                        >
+                        <div className={stepClass} key={step.key}>
                           <div className="activity-header">
                             <span>
                               {step.label}
-                              {step.isCore && <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', opacity: 0.7 }}>(Core)</span>}
+                              {step.isCore && (
+                                <span className="badge-core">Core</span>
+                              )}
+                              {step.isSynthesis && (
+                                <span className="badge-final">Final</span>
+                              )}
                             </span>
                             <span className={`activity-pill activity-${state}`}>
                               {state === 'active' && '⏳ '}
+                              {state === 'awaiting' && '… '}
                               {state === 'done' && '✓ '}
                               {state === 'skipped' && '○ '}
                               {stateLabels[state] || state}
