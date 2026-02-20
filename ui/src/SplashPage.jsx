@@ -316,8 +316,8 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       {/* Validation Teaser */}
       <section className="card splash-teaser">
         <p className="teaser-text">
-          We tested <strong>3 MedGemma variants</strong> &mdash; 27B, 4B instruction-tuned,
-          and 4B quantized &mdash; on 163 real-world medical claims.
+          We tested <strong>3 MedGemma variants</strong> &mdash; 4B instruction-tuned,
+          4B pre-trained, and 4B quantized (Q4_KM) &mdash; on 163 real-world medical claims.
           Which model catches the most misinformation?
         </p>
         <button
@@ -333,7 +333,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       <section className="card splash-stats">
         <div className="stat-item">
           <span className="stat-value">94.5%</span>
-          <span className="stat-label">Accuracy</span>
+          <span className="stat-label">Avg. Veracity + Alignment Accuracy</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
