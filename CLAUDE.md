@@ -173,8 +173,17 @@ src/app/
 │   ├── langgraph_agent.py    # LangGraph implementation
 │   └── image_scrape.py       # Image extraction utilities
 ├── clinical/                  # MedGemma integration (CORE)
-│   ├── medgemma_client.py    # Multi-provider MedGemma client
-│   └── llm_client.py         # LLM client for orchestration
+│   ├── types.py              # MedGemmaResult, MedGemmaClientError, BaseMedGemmaClient ABC
+│   ├── factory.py            # create_client(), determine_provider()
+│   ├── medgemma_client.py    # Backward-compatible facade (delegates to factory)
+│   ├── llm_client.py         # LLM client for orchestration
+│   └── providers/
+│       ├── _utils.py         # Shared: extract_openai_chat_content()
+│       ├── huggingface.py    # HuggingFace Inference API / TGI
+│       ├── local_api.py      # LM Studio / OpenAI-compatible local servers
+│       ├── llama_cpp.py      # llama-cpp-python GGUF inference
+│       ├── vllm.py           # vLLM OpenAI-compatible API
+│       └── vertex.py         # Google Vertex AI SDK
 ├── forensics/                 # Pixel forensics (ADD-ON)
 │   └── service.py            # ELA, EXIF analysis
 ├── provenance/                # Provenance tracking (ADD-ON)
@@ -220,14 +229,21 @@ The `MedContextAgent` (`src/app/orchestrator/agent.py`) implements a determinist
 
 ### MedGemma Client
 
-`src/app/clinical/medgemma_client.py` provides a unified interface across 4 providers:
+The MedGemma subsystem uses a **provider pattern** with a factory and backward-compatible facade:
 
-- **huggingface**: Uses HF Inference API (fast, minimal setup)
-- **local**: Local inference with transformers (requires GPU/CPU resources)
-- **vllm**: OpenAI-compatible API via vLLM (high throughput)
-- **vertex**: Google Vertex AI (production-grade, low latency)
+- `types.py` — `BaseMedGemmaClient` ABC, `MedGemmaResult` (frozen dataclass), `MedGemmaClientError`
+- `factory.py` — `create_client(provider)` instantiates the right provider; `determine_provider(model)` resolves provider from model name
+- `medgemma_client.py` — `MedGemmaClient` facade delegates to the factory. All existing callers import from here unchanged.
 
-All providers return `MedGemmaResult` with structured output parsing.
+**Providers** (`src/app/clinical/providers/`):
+
+- **huggingface** — HF Inference API + TGI dedicated endpoints (fast, minimal setup)
+- **local_api** — LM Studio / OpenAI-compatible local servers. Queries `/v1/models` to resolve the actual loaded model ID.
+- **llama_cpp** — llama-cpp-python for local GGUF inference (requires `MEDGEMMA_LOCAL_PATH` + `MEDGEMMA_MMPROJ_PATH`)
+- **vllm** — OpenAI-compatible API via vLLM (high throughput)
+- **vertex** — Google Vertex AI SDK (production-grade, low latency)
+
+Each provider implements `analyze_image()`, `check_health()`, and `get_model_info()`. The `/api/v1/orchestrator/providers` endpoint delegates to these methods for health checks.
 
 ### Integrity Signals (Legacy)
 
@@ -384,12 +400,13 @@ See `docs/VALIDATION.md` for detailed methodology.
 
 ### Multi-Provider MedGemma Strategy
 
-The codebase supports 4 MedGemma providers to enable flexible deployment:
+The codebase supports 5 MedGemma providers to enable flexible deployment:
 
 - **Development:** Use `huggingface` (minimal setup, HF token only)
 - **Competition:** Use `huggingface` (reproducible, no GCP account needed)
-- **Production:** Use `vertex` (lower latency, higher scale)
-- **On-premise:** Use `local` (privacy-preserving, requires hardware)
+- **Production (cloud):** Use `vertex` (lower latency, higher scale)
+- **Production (self-hosted):** Use `local_api` via LM Studio (zero API costs, full control)
+- **On-premise / embedded:** Use `llama_cpp` (privacy-preserving, no server needed)
 
 ### LLM Orchestration vs MedGemma
 

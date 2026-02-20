@@ -52,7 +52,14 @@ _RESULTS_CACHE: cachetools.TTLCache[UUID, ReverseSearchResult] = cachetools.TTLC
 def _normalize_image_id(image_id: UUID | str) -> UUID:
     if isinstance(image_id, UUID):
         return image_id
-    return UUID(str(image_id))
+    try:
+        return UUID(str(image_id))
+    except ValueError:
+        # If not a valid UUID, create a deterministic UUID from the string
+        import hashlib
+
+        hash_bytes = hashlib.md5(str(image_id).encode()).digest()
+        return UUID(bytes=hash_bytes[:16])
 
 
 def _hash_bytes(image_bytes: bytes) -> str:

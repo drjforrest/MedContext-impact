@@ -22,20 +22,15 @@
 
 ![What People Think](ui/public/the-problem-visual.jpeg)
 
-From our comprehensive literature review of ~100 sources, we discovered the real threat:
+From our comprehensive literature review we discovered:
 
-- **87%** of social media posts mention benefits vs 15% harms
-- **68%** of influencers have undisclosed financial conflicts
-- **0%** sophisticated deepfakes in COVID-19 misinformation
-- **Majority** of threat = authentic images with misleading context
-
-**The real problem:** Authentic medical images repeatedly reused with false or misleading captions.
+**The real problem:** Authentic medical or health-related images repeatedly reused with false or misleading captions.
 
 ---
 
 ## 🔬 Validation: Both Contextual Signals Are Necessary
 
-MedContext was developed **empirically motivated**, not feature-driven. We ran validation studies to test whether single contextual signals could detect medical visual misinformation—they cannot.
+MedContext was **empirically motivated** in its development, not feature-driven. We ran validation studies to test whether single contextual signals could detect medical visual misinformation—they cannot.
 
 **Validation on Med-MMHL Benchmark (n=163):**
 
@@ -74,7 +69,7 @@ We validated against the **Med-MMHL (Medical Multimodal Misinformation Benchmark
 
 **Methodology:** Results use the **MedGemma 4B model** with optimized decision thresholds determined via 5-fold cross-validation on the Med-MMHL validation set (n=163). Bootstrap confidence intervals computed over 1,000 iterations. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 92.0% accuracy and bootstrap CIs may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
 
-**Key Insight:** The most dangerous misinformation—authentic images supporting false claims—requires analyzing **both veracity and alignment together**. Single contextual signals miss this entirely.
+**Key Insight:** The most dangerous misinformation—authentic images supporting false claims—requires analyzing **both veracity and alignment together**. Single contextual signals or image integrity tests miss this when applied on their own. An image may be autherntic, and a health claim may be true without context, but together can be dangerously misleading.
 
 [**📊 Full Validation Report**](docs/VALIDATION.md) | [**📊 Validation Story (Interactive)**](ui/src/ValidationStory.jsx)
 
@@ -93,7 +88,7 @@ MedContext uses a **3-phase agentic workflow** to assess whether image content a
 1. **TRIAGE** (Two-Step Process)
    - **Medical Analysis:** MedGemma assesses image + evaluates claim veracity and alignment
    - **Tool Selection:** LLM orchestrator decides which optional investigative tools to deploy
-2. **DYNAMIC DISPATCH** - Selectively activates only necessary add-on tools (60% faster)
+2. **DYNAMIC DISPATCH** - Selectively activates only necessary add-on tools
    - Reverse search (finds prior uses)
    - Forensics (pixel-level manipulation detection - optional add-on)
    - Provenance (blockchain-style verification)
@@ -112,9 +107,7 @@ See [AGENTIC_WORKFLOW.md](docs/AGENTIC_WORKFLOW.md) for complete pipeline visual
 ### Deployment Partner: HERO Lab, UBC
 
 - **Scientific Director:** Jamie Forrest
-- **Target:** African Ministries of Health / rural clinical settings
-- **Scale:** Millions of patients via Telegram bot integration
-- **Trust Foundation:** 81% of patients trust healthcare professionals
+- **Scale:** Potentially millions of users via Telegram bot integration
 
 [**📈 See Impact Plan**](docs/SUBMISSION.md#-educational-value--impact)
 
@@ -229,13 +222,13 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ### What Makes MedContext Different
 
-| Most Submissions                     | MedContext                                                     |
-| ------------------------------------ | -------------------------------------------------------------- |
-| ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (majority authentic images)      |
-| ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                                  |
+| Most Submissions                     | MedContext                                                                        |
+| ------------------------------------ | --------------------------------------------------------------------------------- |
+| ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (majority authentic images)                    |
+| ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                                                     |
 | ❌ Single-signal approaches          | ✅ Proved single signals fail (71-72%); combined system (~92.0% Q, IT/PT pending) |
-| ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                          |
-| ❌ Proof of concept                  | ✅ Production-ready (63/63 tests passing)                      |
+| ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                                             |
+| ❌ Proof of concept                  | ✅ Production-ready (63/63 tests passing)                                         |
 
 ---
 
@@ -247,22 +240,24 @@ The live demo requires an access code to prevent abuse and control API costs.
 - **Tests:** 63/63 unit tests passing (comprehensive test suite with mocked integrations)
 - **Architecture:** FastAPI + React + PostgreSQL
 - **Security:** Tool whitelist, prompt injection protection, SSRF prevention
-- **Providers:** 4 MedGemma options (HuggingFace, vLLM, Vertex AI, Local)
+- **Providers:** 5 MedGemma options (HuggingFace, LM Studio, llama-cpp, vLLM, Vertex AI)
 
 ### Proof of Justification (Empirical Motivation)
 
-| PoJ   | Dataset                                                     | Label Source         | Method                       | Result                                     |
-| ----- | ----------------------------------------------------------- | -------------------- | ---------------------------- | ------------------------------------------ |
-| PoJ 3 | **BTD+UCI** (160 image-claim pairs: 120 BTD + 40 UCI)      | Synthetic labels     | MedGemma contextual          | Veracity 61.3% · Alignment 56.9%           |
-| PoJ 2 | **BTD+UCI** (160 samples: 120 BTD + 40 UCI)                | Synthetic labels     | DICOM-native pixel forensics | 97.5% image integrity (optional add-on)    |
-| PoJ 1 | **UCI only** (326 DICOM images)                             | Original dataset     | ELA (Layer 1)                | 49.9% — chance (wrong tool for format)     |
+| PoJ   | Dataset                                               | Label Source     | Method                       | Result                                  |
+| ----- | ----------------------------------------------------- | ---------------- | ---------------------------- | --------------------------------------- |
+| PoJ 3 | **BTD+UCI** (160 image-claim pairs: 120 BTD + 40 UCI) | Synthetic labels | MedGemma contextual          | Veracity 61.3% · Alignment 56.9%        |
+| PoJ 2 | **BTD+UCI** (160 samples: 120 BTD + 40 UCI)           | Synthetic labels | DICOM-native pixel forensics | 97.5% image integrity (optional add-on) |
+| PoJ 1 | **UCI only** (326 DICOM images)                       | Original dataset | ELA (Layer 1)                | 49.9% — chance (wrong tool for format)  |
 
 **Dataset Descriptions:**
+
 - **BTD+UCI (PoJ 2-3):** Combined validation set (120 authentic MRI from BTD dataset + 40 tampered scans from UCI dataset) with **synthetically assigned contextual labels** (veracity, alignment) programmatically generated for controlled experimentation—not human fact-checked.
 - **UCI (PoJ 1):** Standalone tampered medical imaging dataset used to test pixel forensics baseline performance.
 - **Med-MMHL (Primary Validation, n=163):** Separate research-grade benchmark with **human-annotated, expert fact-checked labels** from real-world fact-checking organizations—used for final system validation (92.0% accuracy, Q/IT/PT average pending).
 
 **Analysis:**
+
 - **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals across all PoJ experiments
 - **PoJ 3 Finding (BTD+UCI synthetic labels):** Demonstrated that veracity and alignment are distinct contextual dimensions, each insufficient alone (61.3% and 56.9% respectively)
 - **Med-MMHL Validation (fact-checked labels):** Proved both signals are necessary together—92.0% combined accuracy (Q variant, IT/PT pending) vs 71.8% veracity-only and 71.2% alignment-only on real-world misinformation
@@ -324,10 +319,11 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 **AI/ML:**
 
-- Multi-provider MedGemma (HuggingFace, vLLM, Vertex AI, Local)
+- Multi-provider MedGemma (HuggingFace, LM Studio, llama-cpp, vLLM, Vertex AI)
 - Gemini 2.5 Pro/Flash (LLM orchestration)
 - PIL + NumPy (forensics)
-- Google Cloud Vision API (reverse image search)
+- SerpAPI + Google Cloud Vision API (reverse image search)
+- SHA-256 hash-chained provenance with optional Polygon blockchain anchoring
 
 **Infrastructure:**
 

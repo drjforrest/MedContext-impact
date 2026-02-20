@@ -1,0 +1,292 @@
+[
+  {
+    "image_id": "med_mmhl_test_452_15",
+    "claim": "\"The Office for National Statistics has revealed without meaning to that children are 82 to 303x more likely to die following Covid-19 vaccination than children who have not had the Covid-19 vaccine.\n\nThe Expos\u00e9 reports the facts the mainstream refuse to. Let\u2019s not lose touch, subscribe today to receive the latest news from The Expos\u00e9 in your inbox\u2026 Follow The Expos\u00e9 on Telegram\n\nJoin The Expos\u00e9\u2019s Telegram Discussion Group\n\nOn 16th May 2022, the Office for National Statistics (ONS) published a dataset containing details on \u2018deaths by vaccination status in England\u2019 between 1st Jan 2021 and 31st March 2022.\n\nThe dataset contains various tables showing details such as, \u2018Monthly age-standardised mortality rates by vaccination status for deaths involving COVID-19\u2019, and \u2018Monthly age-standardised mortality rates by vaccination status for non-COVID-19 deaths\u2019.\n\nHere\u2019s an example that has been taken from table 2 of the latest dataset \u2013\n\nAs you can see, the ONS has chosen not to include children in the calculated mortality rates despite the fact children as young as 5 are now eligible for Covid-19 vaccination. They also grouped young adults as a group ranging from age 18 to 39, a period of 22 years, while all other age groups are a period of 10 years (40-49, 50-59 etc).\n\nIt\u2019s things like this that make you believe they must have something to hide, and it turns out they definitely have.\n\nBecause on table 9 of the \u2018Deaths by Vaccination Status\u2019 dataset, the ONS have inadvertently provided enough details on deaths among children and teenagers by vaccination status for us to calculate the mortality rates ourselves, and they are horrendous.\n\nHere are the figures published by the ONS in table 9 for 10 to 14-year-olds \u2013\n\nAnd here are the figures published by the ONS in table 9 for 15 to 19-year-olds \u2013\n\nAs you can see, the ONS has given us both the number of deaths and person-years by vaccination status. This means we can perform simple math to calculate the mortality rates per 100K person-years ourselves.\n\nAll we need to now do is divide the person-years by 100,000, and then divide the number of deaths by the answer to that equation.\n\nSo for unvaccinated 10-14 year-olds we perform the following calculation to work out the all-cause death mortality rate \u2013\n\n2,684,874 (person-years) / 100,000 = 26.84874\n\n164 (deaths) / 26.84874 = 6.1\n\nTherefore, the all-cause mortality rate per 100,000 person-years among unvaccinated 10-14-year-olds is 4.58 deaths per 100,000 person-years between 1st Jan 21 and 31st March 22.\n\nNow all we have to do is use the same formula to calculate the mortality rates per 100K person-years for all vaccination statuses among 10 to 14-year-olds and 15 to 19-year-olds.\n\nHere are the calculated mortality rates by vaccination status among 15-19-year-olds based on the ONS calculated person-years \u2013\n\nAnd here are the calculated mortality rates by vaccination status among 10-14-year-olds based on the number of deaths and ONS calculated person-years \u2013\n\nThese figures are horrifying. The ONS data shows that between 1st Jan 21 and 31st March 22, double vaccinated children aged 10-14 were statistically up to 39 times more likely to die than unvaccinated children, and double vaccinated teenagers aged 15-19 were statistically up to 4 times more likely to die than unvaccinated teenagers.\n\nBut it\u2019s the triple vaccinated figures that are truly frightening when it comes to children.\n\nThe ONS data shows that between 1st Jan 21 and 31st March 22, triple jabbed children aged 10-14 were statistically 303 times more likely to die than unvaccinated children of Covid-19, 69x more likely to die of any cause other than Covid-19 than unvaccinated children, and 82x more likely to die of all-causes than unvaccinated children.\n\nThis suggests that three doses of a Covid-19 injection increase the risk of all-cause death for children by an average of 8,100%, and the risk of dying of Covid-19 by an average of 30,200%. Whilst two doses increase the risk of all-cause death by an average of 3,600%.\n\nBut as things currently stand it\u2019s the other way round for teenagers. Two doses of a Covid-19 injection increase the risk of all-cause death for teens aged 15 to 19 by an average of 300%. Whilst three doses increase the risk of all-cause death by an average of 100%.\n\nThe figures for children though, are in fact even worse than they first appear. This is because the unvaccinated mortality rate among 10-14-year-olds includes children aged 10 and 11 who were only offered the Covid-19 injection from the beginning of April 2022, despite the UK Medicine Regulator questionably granting emergency use authorisation for it to be administered to young children in late December 2021.\n\nWhereas the vaccinated mortality rates include only a handful of 10 and 11 year-olds. We know this from the fantastic news that only 7% of 5 to 11-year-olds have had the Covid-19 injection as of 14th May 2022.\n\nTherefore, if the Covid-19 injections were not causing the untimely deaths of children then we would actually expect to see a mortality rate that is lower among the vaccinated population than the mortality rate among the unvaccinated population, not a mortality rate that is similar, and certainly not a mortality rate between 8,100 % and 30,200% higher.\n\nThe statistics are horrendous, but it\u2019s important to remember that behind those statistics are real people who are suffering and who have lost their lives, and unfortunately this time around they are children. Children who have never been in danger of suffering serious complications due to the alleged Covid-19 disease. Therefore, children who have never, ever needed an experimental, poor-performing, deadly (these statistics prove it) Covid-19 injection.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.1168,
+          "image_size": [
+            211,
+            60
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.1168,
+          "image_size": [
+            211,
+            60
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_861_178",
+    "claim": "\"Mouthwash has the potential to protect against COVID-19 infection by killing the coronavirus before it can infect human cells, according to a new report.\n\nCoronaviruses belong to the class of 'enveloped viruses', meaning they are covered by a fatty layer that is vulnerable to certain chemicals.\n\nA team of international researchers say mouthwash could destroy the outermost layer or 'envelope' of the virus, preventing its replication in the mouth and throat.\n\nThe scientists say there is an urgent need to test the effectiveness of mouthwash in trials, although there is currently no clinical evidence that it would be successful.\n\nThe World Health Organisation has already said: 'There is no evidence that using mouthwash will protect you from infection with the new coronavirus.'\n\nThe study authors do not say that current commercially-available mouthwash prevents COVID-19, but that further research into mouthwash chemicals could be beneficial.\n\nReadily available dental mouthwashes have the potential to destroy the lipid envelope of coronaviruses, combating virus replication in the mouth and throat\n\nWriting in Function, the study authors, led by Cardiff University, say oral rinses are an \ufffd?under-researched area of major clinical need\u2019.\n\nThe team is backed by virologists, lipid specialists and healthcare experts from Cardiff University\u2019s School of Medicine, along with the universities of Nottingham, Colorado, Ottawa, Barcelona and Cambridge\u2019s Babraham Institute.\n\n'Safe use of mouthwash \u2013 as in gargling \u2013 has so far not been considered by public health bodies in the UK,' said lead author Professor O\u2019Donnell, co-director of Cardiff University\u2019s Systems Immunity Research Institute.\n\n'In test tube experiments and limited clinical studies, some mouthwashes contain enough of known virucidal ingredients to effectively target lipids in similar enveloped viruses.\n\n'What we don\u2019t know yet is whether existing mouthwashes are active against the lipid membrane of SARS-CoV-2.\n\n'Our review of the literature suggests that research is needed as a matter of urgency to determine its potential for use against this new virus.'\n\n'This is an under-researched area of major clinical need \u2013 and we hope that research projects will be quickly mobilised to further evaluate this.'\n\nCoronavirus is a type of enveloped virus, meaning it has an outer lipid membrane that could be damaged by chemicals in mouthwash. Naked viruses lack the viral envelope\n\nThe ingredients of dental mouthwashes, including chlorhexidine, cetylpyridinium chloride, hydrogen peroxide and povidone-iodine, all have the potential to prevent infection and several \ufffd?deserve clinical evaluation\u2019, according to the researchers.\n\nIn particular, these chemicals disrupt the outer lipid membrane, known as the \ufffd?viral envelope\u2019 or \ufffd?lipid envelope\u2019 of the SARS-CoV-2 virus, which causes COVID-19.\n\nThe lipid envelope helps several viruses, including coronaviruses, bind to human cells while avoiding the host immune system.\n\nSpecific spike proteins called \ufffd?glycoproteins\u2019 on the surface of the envelope identify and bind to receptor sites on the host's cell membrane, which allows infection.\n\nMouthwash chemicals could potentially modify the ability of the spike glycoproteins to interact with receptors on host cells.\n\nThe researchers said there had so far been 'no discussion' about the potential role of damaging the fatty membrane as a possible way to inactivate the virus.\n\nThe lipid envelope does not change when viruses mutate, meaning mouthwash could still work against any new coronavirus strains that emerge from this pandemic.\n\nThe WHO has previously debunked the suggestion that mouthwash can prevent infection by SARS CoV-2, the coronavirus that causes COVID-19.\n\n'Some brands of mousthwash can eliminate certain microbes for a few minutes in the saliva in your mouth,' it said.\n\n'However, this does not mean they protect you from 2019-nCoV infection.'\n\nWHO has emphatically debunked the theory that gargling mouthwash can prevent infection by the coronavirus\n\nResearch in this area appears to be largely unexplored \u2013 Listerine, one of the biggest mouthwash brands, says on its website that none of its products have been tested against any strains of coronavirus.\n\n'Listerine mouthwash is not intended to be used, nor would it be beneficial as a hand sanitizer or surface disinfectant,' it says.\n\nCommon mouthwashes contain the same key ingredient as coronavirus-killing hand santiser \u2013 alcohol.\n\nHowever, Centers for Disease Control and Prevention, the US's public health authority, recommends a hand sanitiser that contains at least 60 per cent alcohol for effective protection, and Listerine's products consist of only around 20 per cent alcohol.\n\nThe World Health Organisation (WHO) also stresses that drinking pure alcohol, along with methanol or bleach, is incredibly dangerous.\n\nThese substances do not prevent or cure COVID-19 and can lead to disability and death.\n\n'Methanol, ethanol, and bleach are sometimes used in cleaning products to kill the virus on surfaces \u2013 however you should never drink them,' WHO says on its website.\n\n'They will not kill the virus in your body and they will harm your internal organs.'\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0274,
+          "image_size": [
+            154,
+            115
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0274,
+          "image_size": [
+            154,
+            115
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_10_35",
+    "claim": "\"by Brian Shilhavy\n\nEditor, Health Impact News\n\nThe Indian Bar Association is reporting that murder charges have been filed in India\u2019s High Court against two billionaires responsible for the AstraZeneca\u2019s COVID-19 vaccine, Covishield, for the murder of a 23-year-old man who was injected with the shot.\n\nThe two named defendants are Bill Gates, and Adar Poonawalla, the CEO of Serum Institute of India (SII), reportedly the world\u2019s largest vaccine maker. According to corporate news sources, Adar Poonawalla\u2019s company produces not only the COVID-19 vaccine Covishield, but also over 50% of the world\u2019s vaccines that are injected into babies.\n\nThe unnamed defendants are \u201cother Government officials and leaders involved in the murder of a 23 year old man, who lost his life because of vaccination.\u201d\n\nThe deceased took the Covishield vaccine by believing in the false narrative that the vaccine is completely safe and also owing to the compliance requirement set by the Railways that only double vaccinated people would be allowed to travel.\n\nThe article also states that the Government of India\u2019s AEFI (Adverse Event Following Immunisation) Committee has recently admitted that the death of 33-year-old Dr. Snehal Lunawat, was due to side effects of the Covishield vaccine.\n\nThe Government of India\u2019s AEFI (Adverse Event Following Immunisation) Committee has recently admitted that the death of Dr. Snehal Lunawat, was due to side effects of the Covishield vaccine. The said report has exposed the falsity of the claim made by vaccine syndicate that vaccines are totally safe.\n\nYou can read more about Dr. Snehal Lunawat\u2019s murder by COVID-19 injection here.\n\nThe article goes on to quote case law in India which:\n\n\u201cmakes it clear that before giving a vaccine or any treatment to a person, he should be informed about the side effects of the medicine and also about the alternate remedies available. If any person is vaccinated by suppressing the facts or by telling a lie that the said vaccines are completely safe, amount to the consent being obtained under deception. In India, vaccination under deception or by force/coercion or by putting certain stifling conditions, is a civil and criminal wrong.\u201d\n\nAccording to the article, this makes Bill Gates and Adar Poonawalla co-conspirators to mass murder.\n\nBill Gates and Adar Poonawalla, the partners in manufacturing the Covishield (AstraZeneca) vaccine are made accused for their involvement in conspiracy. In India, the person allowing the false marketing of his product is also held to be guilty due to his act of commission and omission. In this regard the provisions of Section 120(B), 34, 109 etc. of IPC get attracted to make Bill Gates and Adar Poonawalla guilty of mass murders i.e. Section 302, 115, etc. of IPC.\n\nIf convicted, they face the death penalty.\n\nAs per the expert opinion, considering the proofs of sterling nature, Bill Gates and Adar Poonawalla will get death penalty.\n\nA previous case against Bill Gates for murdering 8 female children during vaccine trials for the HPV vaccine Gardasil in India is also mentioned.\n\nThe Petitioner also relied upon the criminal antecedents of Bill Gates in killing 8 female children by unauthorized trial of HPV vaccines in India and judgment of Constitution Bench of the Supreme Court in Kalpana Mehta\u2019s Case (2018) 7 SCC 1 , which is a strong proof against Bill Gates and his vaccine syndicate.\n\nThe India Polio vaccine program sponsored by Bill Gates is also referenced in the charges.\n\nPetitioner has also referred to the proofs of sinister plan of Bill Gates in polio programme which spoiled the lives of 4.5 lakh children in India as they suffered new type of paralysis. This is also an additional proof of Bill Gates\u2019 pervert and criminal mindset.\n\nThe article states that bail will be denied to Bill Gates, and that his assets in India will soon be confiscated.\n\nAs per experts, there is no chance of Bill Gates getting bail in the case and all the movable and immovable properties of the accused will be confiscated soon.\n\nCitizens of India now apparently have the authority to conduct Citizen Arrests of both Bill Gates and Adar Poonawalla to hand them over to the authorities.\n\nVarious social organizations and common people have decided to exercise citizen\u2019s right to arrest the accused as provided under section 43 of Cr.P.C. As per the said section, any citizen can arrest Bill Gates, Adar Poonawalla and other accused and handover them to the police.\n\nRead the full article at The Indian Bar Association.\n\nWhile it is encouraging to read that charges of mass murder are actually being filed against billionaire Globalists for their crimes against humanity for the gene-altering COVID-19 injections, the question remains as to whether or not this case will ever be brought to trial.\n\nDoes India have the ability to run a covert military operation to extract Bill Gates from the U.S., for example, and bring him to trial in India?\n\nComment on this article at HealthImpactNews.com.\n\nRelated:\n\nSee Also:\n\n\n\nCOVID-19 \u201cVaccine\u201d Casualties List\n\nSee Also:\n\nUnderstand the Times We are Currently Living Through\n\nHaving problems receiving our newsletters? See:\n\nWe Are Now on Minds.com, MeWe, and Telegram. Video channels at Bitchute and Rumble.\n\nIf our website is seized and shut down, find us on Minds.com, MeWe, and Telegram, as well as Bitchute and Rumble for further instructions about where to find us.\n\nIf you use the TOR Onion browser, here are the links and corresponding URLs to use in the TOR browser to find us on the Dark Web: Health Impact News, Vaccine Impact, Medical Kidnap, Created4Health, CoconutOil.com.\n\nLeaving a lucrative career as a nephrologist (kidney doctor), Dr. Suzanne Humphries is now free to actually help cure people.\n\nIn this autobiography she explains why good doctors are constrained within the current corrupt medical system from practicing real, ethical medicine.\n\nOne of the sane voices when it comes to examining the science behind modern-day vaccines, no pro-vaccine extremist doctors have ever dared to debate her in public.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.1922,
+          "image_size": [
+            811,
+            481
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.1922,
+          "image_size": [
+            811,
+            481
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_466_0",
+    "claim": "New strategy could be applied to other infectious diseases.\n\nA new approach to direct the body to make a specific antibody against HIV led to sustained production of that antibody for more than a year among participants in a National Institutes of Health clinical trial. This drug-delivery technology uses a harmless virus to deliver an antibody gene into human cells, enabling the body to generate the antibody over an extended time. With further development, such a strategy could be applied to prevent and treat a wide variety of infectious diseases, according to the study investigators.\n\nResearchers from NIH\u2019s National Institute of Allergy and Infectious Diseases (NIAID) reported the findings on March 9 in an oral presentation at the 2020 Conference on Retroviruses and Opportunistic Infections (CROI).\n\nAntibodies are immune system proteins that help prevent or clear infections. Traditional vaccines induce the immune system to generate protective antibodies. Another approach to preventing infections is to deliver monoclonal antibodies \u2014 preparations of a specific antibody designed to bind to a single target \u2014 directly into people. Monoclonal antibodies also are used therapeutically, with many already approved for treating cancer, autoimmune diseases and other conditions and others being evaluated for treatment of infectious diseases, such as Ebola virus disease.\n\nAdministering proteins to people requires periodic injections or infusions to retain protective or therapeutic levels, which can be challenging, particularly in resource-limited settings. Delivery of antibody genes using a virus as a carrier, or vector, offers a potential alternative.\n\n\u201cMonoclonal antibodies hold enormous promise for preventing and treating both established and emerging infectious diseases,\u201d said NIAID Director Anthony S. Fauci, M.D. \u201cNovel delivery platforms such as viral vectors could facilitate the future development and deployment of antibody-based prophylaxis and therapy, and these findings are a promising first step in that direction.\u201d\n\nThe drug-delivery system developed by scientists at NIAID\u2019s Vaccine Research Center (VRC) uses adeno-associated virus serotype 8 (AAV8) to deliver an antibody gene. AAVs \u2014 small viruses that do not cause disease in humans \u2014 have proven to be safe, well-tolerated vectors for gene therapy. In a previous study in animal models, VRC researchers found that using AAV8 to deliver genes for antibodies against simian immunodeficiency virus (SIV), the monkey equivalent of HIV, led monkeys to safely produce high levels of anti-SIV antibodies and protected them from acquiring SIV.\n\nBuilding on this preclinical work, researchers designed a Phase 1 clinical trial known as VRC 603. It aims to assess the safety and tolerability of an AAV8 vector carrying an anti-HIV antibody gene in adults living with well-controlled HIV, and to evaluate whether it could cause human cells to produce the antibody. The vector carries the gene for an anti-HIV monoclonal antibody called VRC07, which was originally isolated from the blood of a person with HIV.\n\nVRC07 is a broadly neutralizing antibody (bNAb), meaning it can stop a wide range of HIV strains from infecting human cells in the laboratory. Other clinical studies are underway to determine whether bNAb infusions can protect humans from acquiring HIV. Scientists also are evaluating whether combinations of HIV bNAbs can suppress the virus in people living with HIV.\n\nThe CROI presentation by Joseph P. Casazza, M.D., Ph.D., principal investigator of VRC 603, described initial results from the first eight participants in the ongoing trial, which is being conducted at the NIH Clinical Center in Bethesda, Maryland. Each of these individuals, aged 30 to 60 years, received a single dose by intramuscular injection of one of three different dose levels of AAV8-VRC07. They continued taking daily antiretroviral therapy.\n\nFollowing injection with AAV8-VRC07, all eight participants produced VRC07 at levels detectable in the blood. VRC07 production reached an early peak four to six weeks after injection, then decreased, and slowly began to increase again roughly 16 weeks after the injection. The researchers have monitored the five participants who received low or intermediate AAV8-VRC07 doses for one and a half to two years. For three of these five individuals, antibody levels one year after injection were higher than those observed at four to six weeks. The three volunteers who received the highest AAV8-VRC07 dose have so far been monitored for five months to one year. Two produced VRC07 at concentrations higher than those seen in the low and intermediate dose groups.\n\nStudy participants have not experienced any major side effects due to AAV8-VRC07. Some volunteers experienced transient mild tenderness at the injection site or mild muscle pain.\n\n\u201cTo the best of our knowledge, this marks the first time that an AAV-based technology to deliver an antibody gene has resulted in safe and sustained levels of that antibody in blood,\u201d said NIAID VRC Director John Mascola, M.D. \u201cWe hope that further development of this technology will yield a drug-delivery strategy applicable to a broad range of infectious diseases.\u201d\n\nAdministration of monoclonal antibody-based therapies sometimes results in a person\u2019s immune system developing antibodies against the therapy. Only three of the eight VRC 603 participants developed antibodies against VRC07; it is not yet clear whether these anti-drug antibodies could reduce VRC07\u2019s ability to neutralize HIV. The VRC 603 participants\u2019 HIV was kept under control with continued antiretroviral therapy during the trial.\n\nThe concentrations of VRC07 observed in the study participants were lower than the antibody concentrations observed in animal studies of the AAV8-based technology. The VRC researchers are analyzing data from VRC 603 to better understand the factors that determine how much bNAb is produced by human cells. They also are continuing to monitor the VRC 603 participants and to enroll new volunteers into the trial.\n\nAAV8-VRC07 was developed by VRC scientists in collaboration with David Baltimore, Ph.D., of the California Institute of Technology and Alejandro Balazs, Ph.D., of the Ragon Institute of MGH, MIT and Harvard. AAV8-VRC07 was manufactured by the Clinical Vector Core of the Center for Cellular and Molecular Therapeutics at the Children\u2019s Hospital of Philadelphia. More information about the VRC 603 trial is available on ClinicalTrials.gov using identifier NCT03374202.\n\nNIAID conducts and supports research \u2014 at NIH, throughout the United States, and worldwide \u2014 to study the causes of infectious and immune-mediated diseases, and to develop better means of preventing, diagnosing and treating these illnesses. News releases, fact sheets and other NIAID-related materials are available on the NIAID website.\n\nAbout the National Institutes of Health (NIH): NIH, the nation's medical research agency, includes 27 Institutes and Centers and is a component of the U.S. Department of Health and Human Services. NIH is the primary federal agency conducting and supporting basic, clinical, and translational medical research, and is investigating the causes, treatments, and cures for both common and rare diseases. For more information about NIH and its programs, visit www.nih.gov.",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "aligned",
+      "plausibility": "high",
+      "is_misinformation": false
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.5576,
+          "image_size": [
+            873,
+            582
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.36,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.36,
+        "is_misleading": false,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.36,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.36,
+        "is_misleading": false,
+        "method": "combined_analysis",
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.5576,
+          "image_size": [
+            873,
+            582
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": false
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_120_7",
+    "claim": "\"...\n\n<3\n\n<3\n\n:)\n\n:)\n\n:)\n\n:)\n\n;)\n\n<3\n\nublic of Kanata, has just deemed 'CRIMINAL' all Covid19 forceful measures requiring its people to wear masks, social distance, quarantine, or Vaccinate!!! The law was passed on Sept 8, 2020, and is part of NESARA/GESARA ( https://www.youtube.com/watch\u2026 ). The Republic of Kanata is fully in compliance with the requirements of GESARA, including forgiveness of all credit card and mortgage debts, and the abolishment of income tax!!!! We will start seeing this all across the Nation in the times to comeIt is in our destiny now and can no longer be withheld from usThe masses just have to catch up and realize our POWER. We are the 99%!!!!! Say it out loud while doing your happy dance, \"WE ARE THE 99%\"Happening right before our very eyes even though mainstream channels won't be covering thisWAY TO GO CANADA!!! Under the new Public Safety Law NCCLA Order No. 09082020-A, any attempt to impose such measures on Canadians is considered a punishable crime and can result in the arrest and trial of the offender, regardless of their office. Canadians are encouraged to actively resist COVID measures, relying on the new law and local Common Law Sheriffs. Unless WE THE PEOPLE start spreading this news far and wide, people will continue to live in IGNORANCE!! ***Do your full research and get to know all the facts before becoming spokespersons***The law was issued by the National Council of Common Law Assemblies (NCCLA), which unites more than forty such Assemblies across Canada within the jurisdiction of the Republic of Kanata. The NCCLA also issued a Stand Down Order to all government, police, and health officials that requires that they not enforce COVID measures and comply with the new law. Copies of the NCCLA documents are attached to this release and are posted at www.republicofkanata.ca under \u201cMedia\u201d. \u201cIn the absence of responsible government, we the people are defending ourselves from a corporate police state. It is now up to every Canadian to enforce this Law and use it to defend their children and their liberties and overturn this tyranny while they still can.\u201d Source: http://murderbydecree.com/\u2026/breaking-n\u2026/\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": true,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0,
+          "image_size": [
+            39,
+            40
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misleading": true,
+        "method": "combined_analysis",
+        "pixel_authentic": true,
+        "confidence": 0.85,
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0,
+          "image_size": [
+            39,
+            40
+          ],
+          "image_mode": "RGB"
+        },
+        "is_misinformation": true
+      }
+    }
+  }
+]

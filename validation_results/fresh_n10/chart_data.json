@@ -1,0 +1,485 @@
+{
+  "metadata": {
+    "total_samples": 10,
+    "dataset": "Med-MMHL",
+    "timestamp": "2026-02-19T23:27:02.511110+00:00",
+    "model_name": "fresh_n10",
+    "model_label": "Unknown Model",
+    "sampling_method": "stratified_random_seed_42",
+    "random_seed": 42,
+    "classification_info": {
+      "positive_class": "Misinformation (is_misinformation=True)",
+      "negative_class": "Legitimate (is_misinformation=False)",
+      "veracity_threshold": 0.5,
+      "alignment_threshold": 0.5,
+      "threshold_note": "Veracity score > 0.5 = plausible (not fake). Alignment score > 0.5 = aligned.",
+      "optimization_available": "See threshold_analysis/ subdirectory for optimized thresholds"
+    }
+  },
+  "confusion_matrix": [
+    {
+      "name": "True Positive (Correctly Flagged Misinformation)",
+      "short_name": "True Positive",
+      "value": 7,
+      "description": "Misinformation correctly identified as misinformation"
+    },
+    {
+      "name": "False Positive (Legitimate Flagged as Misinformation)",
+      "short_name": "False Positive",
+      "value": 1,
+      "description": "Legitimate content incorrectly flagged as misinformation"
+    },
+    {
+      "name": "True Negative (Correctly Identified Legitimate)",
+      "short_name": "True Negative",
+      "value": 1,
+      "description": "Legitimate content correctly identified as legitimate"
+    },
+    {
+      "name": "False Negative (Missed Misinformation)",
+      "short_name": "False Negative",
+      "value": 1,
+      "description": "Misinformation incorrectly marked as legitimate (missed detection)"
+    }
+  ],
+  "matrix_grid": [
+    {
+      "actual": "Misinformation (Positive)",
+      "predicted": "Misinformation (Positive)",
+      "count": 7,
+      "label": "TP"
+    },
+    {
+      "actual": "Misinformation (Positive)",
+      "predicted": "Legitimate (Negative)",
+      "count": 1,
+      "label": "FN"
+    },
+    {
+      "actual": "Legitimate (Negative)",
+      "predicted": "Misinformation (Positive)",
+      "count": 1,
+      "label": "FP"
+    },
+    {
+      "actual": "Legitimate (Negative)",
+      "predicted": "Legitimate (Negative)",
+      "count": 1,
+      "label": "TN"
+    }
+  ],
+  "veracity_distribution": [
+    {
+      "score": 0.1,
+      "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.1,
+      "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.1,
+      "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.1,
+      "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.1,
+      "category": "false",
+      "category_label": "False (0.1) - Unsupported claim",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.9,
+      "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
+      "ground_truth": "high",
+      "is_misinformation": false,
+      "predicted_positive": true
+    },
+    {
+      "score": 0.9,
+      "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": true
+    },
+    {
+      "score": 0.6,
+      "category": "partially_true",
+      "category_label": "Partially True (0.6) - Mixed accuracy",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": true
+    },
+    {
+      "score": 0.9,
+      "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
+      "ground_truth": "low",
+      "is_misinformation": true,
+      "predicted_positive": true
+    },
+    {
+      "score": 0.9,
+      "category": "true",
+      "category_label": "True (0.9) - Well-supported claim",
+      "ground_truth": "high",
+      "is_misinformation": false,
+      "predicted_positive": true
+    }
+  ],
+  "alignment_distribution": [
+    {
+      "score": 0.095,
+      "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.095,
+      "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.09000000000000001,
+      "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.9,
+      "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": true
+    },
+    {
+      "score": 0.0,
+      "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.81,
+      "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
+      "ground_truth": "aligned",
+      "is_misinformation": false,
+      "predicted_positive": true
+    },
+    {
+      "score": 0.81,
+      "category": "aligns_fully",
+      "category_label": "Fully Aligned (0.9) - Image supports claim",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": true
+    },
+    {
+      "score": 0.1,
+      "category": "partially_aligns",
+      "category_label": "Partially Aligned (0.6) - Image relates but doesn't support",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.08000000000000002,
+      "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
+      "ground_truth": "misaligned",
+      "is_misinformation": true,
+      "predicted_positive": false
+    },
+    {
+      "score": 0.06999999999999999,
+      "category": "does_not_align",
+      "category_label": "Does Not Align (0.1) - Image unrelated/contradicts",
+      "ground_truth": "aligned",
+      "is_misinformation": false,
+      "predicted_positive": false
+    }
+  ],
+  "score_metadata": {
+    "veracity_mapping": {
+      "true": "True (0.9) - Well-supported claim",
+      "partially_true": "Partially True (0.6) - Mixed accuracy",
+      "false": "False (0.1) - Unsupported claim"
+    },
+    "alignment_mapping": {
+      "aligns_fully": "Fully Aligned (0.9) - Image supports claim",
+      "partially_aligns": "Partially Aligned (0.6) - Image relates but doesn't support",
+      "does_not_align": "Does Not Align (0.1) - Image unrelated/contradicts"
+    },
+    "threshold": 0.5,
+    "threshold_note": "score > 0.5 classified as positive (plausible/aligned)"
+  },
+  "method_comparison": [
+    {
+      "method": "Pixel Forensics",
+      "accuracy": 70.0,
+      "correct": 7,
+      "total": 10
+    },
+    {
+      "method": "Veracity Only",
+      "accuracy": 70.0,
+      "correct": 7,
+      "total": 10
+    },
+    {
+      "method": "Alignment Only",
+      "accuracy": 70.0,
+      "correct": 7,
+      "total": 10
+    },
+    {
+      "method": "Combined System",
+      "accuracy": 80.0,
+      "correct": 8,
+      "total": 10
+    }
+  ],
+  "samples": [
+    {
+      "id": "med_mmhl_test_452_15",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.095,
+        "alignment_category": "does_not_align",
+        "pixel_authentic": false
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_375_21",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.095,
+        "alignment_category": "does_not_align",
+        "pixel_authentic": false
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_10_35",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.09000000000000001,
+        "alignment_category": "does_not_align",
+        "pixel_authentic": false
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_410_16",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.9,
+        "alignment_category": "aligns_fully",
+        "pixel_authentic": true
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_120_7",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.0,
+        "alignment_category": "partially_aligns",
+        "pixel_authentic": true
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_926_0",
+      "ground_truth": {
+        "is_misinformation": false,
+        "plausibility": "high",
+        "alignment": "aligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": false,
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.81,
+        "alignment_category": "aligns_fully",
+        "pixel_authentic": true
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_71_4",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": false,
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.81,
+        "alignment_category": "aligns_fully",
+        "pixel_authentic": false
+      },
+      "correct": false
+    },
+    {
+      "id": "med_mmhl_test_861_178",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "partially_aligns",
+        "pixel_authentic": false
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_251_1",
+      "ground_truth": {
+        "is_misinformation": true,
+        "plausibility": "low",
+        "alignment": "misaligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.08000000000000002,
+        "alignment_category": "does_not_align",
+        "pixel_authentic": false
+      },
+      "correct": true
+    },
+    {
+      "id": "med_mmhl_test_164_1",
+      "ground_truth": {
+        "is_misinformation": false,
+        "plausibility": "high",
+        "alignment": "aligned",
+        "pixel_authentic": true
+      },
+      "predictions": {
+        "is_misinformation": true,
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.06999999999999999,
+        "alignment_category": "does_not_align",
+        "pixel_authentic": false
+      },
+      "correct": false
+    }
+  ],
+  "summary_metrics": [
+    {
+      "metric": "Accuracy",
+      "value": 80.0
+    },
+    {
+      "metric": "Precision",
+      "value": 87.5
+    },
+    {
+      "metric": "Recall",
+      "value": 87.5
+    },
+    {
+      "metric": "F1 Score",
+      "value": 87.5
+    }
+  ],
+  "raw_metrics": {
+    "accuracy": 0.8,
+    "precision": 0.875,
+    "recall": 0.875,
+    "f1": 0.875,
+    "tp": 7,
+    "fp": 1,
+    "tn": 1,
+    "fn": 1
+  }
+}

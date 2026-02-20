@@ -400,9 +400,18 @@ async def run_agent_trace(
 
 @router.get("/providers", response_model=list[MedGemmaModelAvailability])
 async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
-    """
-    Get available MedGemma models and their status.
-    """
+    """Get available MedGemma models and their status."""
+    from app.clinical.providers.huggingface import HuggingFaceMedGemmaClient
+    from app.clinical.providers.local_api import LocalApiMedGemmaClient
+    from app.clinical.providers.llama_cpp import LlamaCppMedGemmaClient
+    from app.clinical.providers.vertex import VertexMedGemmaClient
+
+    hf_client = HuggingFaceMedGemmaClient()
+    local_api_client = LocalApiMedGemmaClient()
+    llama_cpp_client = LlamaCppMedGemmaClient()
+    vertex_client = VertexMedGemmaClient()
+
+    # Static model definitions
     models = [
         {
             "id": "medgemma-4b-it",
@@ -410,7 +419,7 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
             "model": "google/medgemma-1.1-4b-it",
             "description": "Instruction-tuned model via Hugging Face. High quality medical analysis.",
             "provider": "huggingface",
-            "available": False,  # Start as False
+            "available": False,
             "recommended_veracity_threshold": 0.65,
             "recommended_alignment_threshold": 0.30,
             "recommended_decision_logic": "VERACITY_FIRST",
@@ -421,7 +430,7 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
             "model": "google/medgemma-1.1-4b-pt",
             "description": "Pre-trained base model via Hugging Face. Fast and effective.",
             "provider": "huggingface",
-            "available": False,  # Start as False
+            "available": False,
             "recommended_veracity_threshold": 0.65,
             "recommended_alignment_threshold": 0.30,
             "recommended_decision_logic": "VERACITY_FIRST",
@@ -432,107 +441,38 @@ async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
             "model": "google/medgemma-1.1-4b-it.gguf",
             "description": "Quantized GGUF model via LM Studio. Efficient local inference.",
             "provider": "local",
-            "available": False,  # Start as False
+            "available": False,
             "recommended_veracity_threshold": 0.65,
             "recommended_alignment_threshold": 0.30,
             "recommended_decision_logic": "VERACITY_FIRST",
         },
     ]
 
-    # Health checks helper functions
-    async def check_hf_availability(model_id: str = None):
-        if not settings.medgemma_hf_token:
-            return False
-
-        headers = {"Authorization": f"Bearer {settings.medgemma_hf_token}"}
-
-        # If we have a dedicated endpoint URL, check it directly
-        if settings.medgemma_url and not settings.medgemma_url.startswith(
-            "http://localhost"
-        ):
-            try:
-                async with httpx.AsyncClient(timeout=2.0) as client:
-                    # Check health endpoint (standard for TGI)
-                    resp = await client.get(
-                        f"{settings.medgemma_url.rstrip('/')}/health", headers=headers
-                    )
-                    if resp.status_code == 200:
-                        return True
-                    # Fallback to root (some endpoints respond 200, 401, or 403 when live)
-                    resp = await client.get(
-                        settings.medgemma_url.rstrip("/"), headers=headers
-                    )
-                    return resp.status_code in (200, 401, 403)
-            except Exception:
-                return False
-
-        # If no dedicated URL, check the standard Inference API for the specific model
-        if model_id:
-            try:
-                url = f"https://api-inference.huggingface.co/models/{model_id}"
-                async with httpx.AsyncClient(timeout=2.0) as client:
-                    resp = await client.get(url, headers=headers)
-                    # Standard API returns 200 if model exists and is reachable
-                    return resp.status_code == 200
-            except Exception:
-                return False
-
-        return bool(settings.medgemma_hf_token)
-
-    async def check_lmstudio_availability():
-        try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
-                url = f"{settings.local_medgemma_url.rstrip('/')}/v1/models"
-                response = await client.get(url)
-                return response.status_code == 200
-        except Exception:
-            return False
-
-    async def check_vertex_availability():
-        if not (settings.medgemma_vertex_project and settings.medgemma_vertex_endpoint):
-            return False
-        # If we have a dedicated domain, try a reachability check
-        if settings.medgemma_vertex_dedicated_domain:
-            try:
-                domain = settings.medgemma_vertex_dedicated_domain.rstrip("/")
-                if not domain.startswith("http"):
-                    domain = f"https://{domain}"
-                async with httpx.AsyncClient(timeout=2.0) as client:
-                    # Just check if the domain is reachable
-                    resp = await client.get(domain)
-                    return resp.status_code in (
-                        200,
-                        401,
-                        403,
-                        404,
-                    )  # 404 might be OK for Vertex root
-            except Exception:
-                # If connection fails, endpoint is likely not live
-                return False
-        return True  # Default to True if no domain but project/endpoint set
-
-    # Run health checks concurrently for efficiency
-    hf_it_ok, hf_pt_ok, lmstudio_ok, vertex_ok = await asyncio.gather(
-        check_hf_availability("google/medgemma-1.1-4b-it"),
-        check_hf_availability("google/medgemma-1.1-4b-pt"),
-        check_lmstudio_availability(),
-        check_vertex_availability(),
+    # Run provider health checks concurrently
+    hf_it_ok, hf_pt_ok, lmstudio_result, llama_ok, vertex_ok = await asyncio.gather(
+        hf_client.check_model_health(model_id="google/medgemma-1.1-4b-it"),
+        hf_client.check_model_health(model_id="google/medgemma-1.1-4b-pt"),
+        local_api_client.check_health_with_model(),
+        llama_cpp_client.check_health(),
+        vertex_client.check_health(),
     )
 
-    # Apply results
+    lmstudio_ok, lmstudio_model_id = lmstudio_result
+
     models[0]["available"] = hf_it_ok
     models[1]["available"] = hf_pt_ok
     models[2]["available"] = lmstudio_ok
 
-    # Fallback check for Local File (llama-cpp-python) if LM Studio is down
-    if not models[2]["available"] and settings.medgemma_local_path:
-        from pathlib import Path
+    # Use the actual loaded model ID from LM Studio instead of hardcoded name
+    if lmstudio_model_id:
+        models[2]["model"] = lmstudio_model_id
 
-        if Path(settings.medgemma_local_path).exists():
-            models[2]["available"] = True
-            models[2][
-                "description"
-            ] = "Quantized GGUF model via llama-cpp-python. Optimized for local production."
+    # Fallback to llama-cpp-python if LM Studio is down
+    if not models[2]["available"] and llama_ok:
+        models[2]["available"] = True
+        models[2][
+            "description"
+        ] = "Quantized GGUF model via llama-cpp-python. Optimized for local production."
 
     # Add Vertex AI entry if configured
     if settings.medgemma_vertex_project and settings.medgemma_vertex_endpoint:
