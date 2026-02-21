@@ -47,6 +47,7 @@ const VALIDATION_DATA = {
     date: "February 20, 2026",
     veracity: 71.2,
     alignment: 77.9,
+    optimized: 91.4,
     combined: {
       accuracy: 91.4,
       precision: 96.9,
