@@ -310,17 +310,17 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       {/* Stats Bar with S-Curve Data */}
       <section className="card splash-stats">
         <div className="stat-item">
-          <span className="stat-value" style={{ color: '#E63946' }}>{d.veracity.toFixed(0)}%</span>
+          <span className="stat-value" style={{ color: '#E63946' }}>{(d.veracity || 0).toFixed(0)}%</span>
           <span className="stat-label">Veracity Only</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
-          <span className="stat-value" style={{ color: '#F4A261' }}>{d.alignment.toFixed(0)}%</span>
+          <span className="stat-value" style={{ color: '#F4A261' }}>{(d.alignment || 0).toFixed(0)}%</span>
           <span className="stat-label">Alignment Only</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item" style={{ background: 'rgba(42, 157, 143, 0.1)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
-          <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '2.2rem' }}>{d.optimized.toFixed(1)}%</span>
+          <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '2.2rem' }}>{(d.combined?.accuracy || 0).toFixed(1)}%</span>
           <span className="stat-label"><strong>Optimized</strong></span>
         </div>
         <div className="stat-divider" />

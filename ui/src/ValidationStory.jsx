@@ -72,15 +72,15 @@ function ValidationStory({ onNavigateBack }) {
 
           <div className="validation-stats-row">
             <div className="validation-stat">
-              <strong>{d.veracity.toFixed(1)}%</strong>
+              <strong>{d?.veracity != null ? d.veracity.toFixed(1) : '0'}%</strong>
               <span>Veracity Only</span>
             </div>
             <div className="validation-stat">
-              <strong>{d.alignment.toFixed(1)}%</strong>
+              <strong>{d?.alignment != null ? d.alignment.toFixed(1) : '0'}%</strong>
               <span>Alignment Only</span>
             </div>
             <div className="validation-stat" style={{ background: 'rgba(42, 157, 143, 0.2)' }}>
-              <strong style={{ color: '#2A9D8F' }}>{d.combined.accuracy.toFixed(1)}%</strong>
+              <strong style={{ color: '#2A9D8F' }}>{d?.combined?.accuracy != null ? d.combined.accuracy.toFixed(1) : '0.0'}%</strong>
               <span>Optimized</span>
             </div>
             <div className="validation-stat">
@@ -107,11 +107,11 @@ function ValidationStory({ onNavigateBack }) {
             <div className="chart-card">
               <div className="insight-grid">
                 <div className="insight-box">
-                  <span className="insight-number" style={{ color: '#E63946' }}>{d.veracity.toFixed(1)}%</span>
+                  <span className="insight-number" style={{ color: '#E63946' }}>{d?.veracity != null ? d.veracity.toFixed(1) : '0'}%</span>
                   <p><strong>Veracity alone</strong> misses image misuse</p>
                 </div>
                 <div className="insight-box" style={{ borderLeftColor: '#F4A261' }}>
-                  <span className="insight-number" style={{ color: '#F4A261' }}>{d.alignment.toFixed(1)}%</span>
+                  <span className="insight-number" style={{ color: '#F4A261' }}>{d?.alignment != null ? d.alignment.toFixed(1) : '0'}%</span>
                   <p><strong>Alignment alone</strong> misses false claims</p>
                 </div>
               </div>
@@ -187,19 +187,19 @@ function ValidationStory({ onNavigateBack }) {
             <div className="chart-card" style={{ background: 'rgba(42, 157, 143, 0.1)', borderLeft: '3px solid #2A9D8F' }}>
               <div className="insight-grid">
                 <div className="insight-box">
-                  <span className="insight-number" style={{ color: '#2A9D8F' }}>{d.combined.accuracy.toFixed(1)}%</span>
+                  <span className="insight-number" style={{ color: '#2A9D8F' }}>{d?.combined?.accuracy != null ? d.combined.accuracy.toFixed(1) : '0.0'}%</span>
                   <p><strong>Accuracy</strong> — 149/163 correct</p>
                 </div>
                 <div className="insight-box">
-                  <span className="insight-number" style={{ color: '#5b8def' }}>{d.combined.precision.toFixed(1)}%</span>
+                  <span className="insight-number" style={{ color: '#5b8def' }}>{d?.combined?.precision != null ? d.combined.precision.toFixed(1) : '0.0'}%</span>
                   <p><strong>Precision</strong> — Only 4 false alarms</p>
                 </div>
                 <div className="insight-box">
-                  <span className="insight-number" style={{ color: '#4E9A34' }}>{d.combined.recall.toFixed(1)}%</span>
+                  <span className="insight-number" style={{ color: '#4E9A34' }}>{d?.combined?.recall != null ? d.combined.recall.toFixed(1) : '0.0'}%</span>
                   <p><strong>Recall</strong> — Caught 125/135 misinfo</p>
                 </div>
                 <div className="insight-box">
-                  <span className="insight-number" style={{ color: '#e5484d' }}>{d.combined.f1.toFixed(1)}%</span>
+                  <span className="insight-number" style={{ color: '#e5484d' }}>{d?.combined?.f1 != null ? d.combined.f1.toFixed(1) : '0.0'}%</span>
                   <p><strong>F1 Score</strong> — Balanced performance</p>
                 </div>
               </div>
