@@ -9,6 +9,7 @@ set -euo pipefail
 # UI dist is already uploaded via rsync before this runs.
 # ─────────────────────────────────────────────────────────────────────────────
 
+export PATH="$HOME/.local/bin:$PATH"
 INSTALL_DIR="/var/www/medcontext/MedContext-impact"
 cd "${INSTALL_DIR}"
 
