@@ -29,7 +29,7 @@ set -euo pipefail
 
 DOMAIN="medcontext.drjforrest.com"
 REPO_URL="git@github.com:drjforrest/MedContext-impact.git"
-INSTALL_DIR="/opt/medcontext"
+INSTALL_DIR="/var/www/medcontext/MedContext-impact"
 SERVICE_USER="medcontext"
 
 echo "=== MedContext Server Setup ==="
@@ -116,9 +116,15 @@ fi
 
 # ── 4. Clone or update repo ─────────────────────────────────────────────────
 
-if [ -d "${INSTALL_DIR}/.git" ]; then
+cd "${INSTALL_DIR}"
+if [ -d ".git" ]; then
     echo "Updating existing repo..."
-    cd "${INSTALL_DIR}"
+    git fetch origin
+    git reset --hard origin/main
+elif [ "$(ls -A "${INSTALL_DIR}" 2>/dev/null)" ]; then
+    echo "Directory exists but is not a git repo. Initializing..."
+    git init
+    git remote add origin "${REPO_URL}"
     git fetch origin
     git reset --hard origin/main
 else

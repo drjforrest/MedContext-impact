@@ -9,7 +9,7 @@ set -euo pipefail
 # UI dist is already uploaded via rsync before this runs.
 # ─────────────────────────────────────────────────────────────────────────────
 
-INSTALL_DIR="/opt/medcontext"
+INSTALL_DIR="/var/www/medcontext/MedContext-impact"
 cd "${INSTALL_DIR}"
 
 echo "=== Server Update ==="

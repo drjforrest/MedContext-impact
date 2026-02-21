@@ -12,10 +12,10 @@ set -euo pipefail
 #   ./scripts/deploy_local.sh --env-only      # just push .env changes
 # ─────────────────────────────────────────────────────────────────────────────
 
-SERVER="medcontext.drjforrest.com"
-SSH_USER="${DEPLOY_USER:-root}"
-REMOTE_DIR="/opt/medcontext"
+SSH_HOST="${DEPLOY_SSH_HOST:-Contabo-root}"
+REMOTE_DIR="/var/www/medcontext/MedContext-impact"
 REPO_URL="git@github.com:drjforrest/MedContext-impact.git"
+DOMAIN="medcontext.drjforrest.com"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -31,7 +31,7 @@ for arg in "$@"; do
 done
 
 echo "=== MedContext Deploy ==="
-echo "  Server: ${SSH_USER}@${SERVER}"
+echo "  Server: ${SSH_HOST}"
 echo "  Remote: ${REMOTE_DIR}"
 echo ""
 
@@ -60,7 +60,7 @@ if [ "$SKIP_ENV" = false ]; then
         exit 1
     fi
     echo "Uploading .env to server..."
-    scp "${PROJECT_ROOT}/.env" "${SSH_USER}@${SERVER}:${REMOTE_DIR}/.env"
+    scp "${PROJECT_ROOT}/.env" "${SSH_HOST}:${REMOTE_DIR}/.env"
     echo ""
 fi
 
@@ -70,7 +70,7 @@ if [ "$ENV_ONLY" = false ]; then
     echo "Uploading built UI..."
     rsync -avz --delete \
         "${PROJECT_ROOT}/ui/dist/" \
-        "${SSH_USER}@${SERVER}:${REMOTE_DIR}/ui/dist/"
+        "${SSH_HOST}:${REMOTE_DIR}/ui/dist/"
     echo ""
 fi
 
@@ -78,9 +78,9 @@ fi
 
 if [ "$ENV_ONLY" = false ]; then
     echo "Running server-side update..."
-    ssh "${SSH_USER}@${SERVER}" "cd ${REMOTE_DIR} && bash scripts/server_update.sh"
+    ssh "${SSH_HOST}" "cd ${REMOTE_DIR} && bash scripts/server_update.sh"
 fi
 
 echo ""
 echo "=== Deploy complete ==="
-echo "  https://${SERVER}"
+echo "  https://${DOMAIN}"
