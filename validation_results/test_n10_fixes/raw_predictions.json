@@ -1,0 +1,642 @@
+[
+  {
+    "image_id": "med_mmhl_test_452_15",
+    "claim": "\"The Office for National Statistics has revealed without meaning to that children are 82 to 303x more likely to die following Covid-19 vaccination than children who have not had the Covid-19 vaccine.\n\nThe Expos\u00e9 reports the facts the mainstream refuse to. Let\u2019s not lose touch, subscribe today to receive the latest news from The Expos\u00e9 in your inbox\u2026 Follow The Expos\u00e9 on Telegram\n\nJoin The Expos\u00e9\u2019s Telegram Discussion Group\n\nOn 16th May 2022, the Office for National Statistics (ONS) published a dataset containing details on \u2018deaths by vaccination status in England\u2019 between 1st Jan 2021 and 31st March 2022.\n\nThe dataset contains various tables showing details such as, \u2018Monthly age-standardised mortality rates by vaccination status for deaths involving COVID-19\u2019, and \u2018Monthly age-standardised mortality rates by vaccination status for non-COVID-19 deaths\u2019.\n\nHere\u2019s an example that has been taken from table 2 of the latest dataset \u2013\n\nAs you can see, the ONS has chosen not to include children in the calculated mortality rates despite the fact children as young as 5 are now eligible for Covid-19 vaccination. They also grouped young adults as a group ranging from age 18 to 39, a period of 22 years, while all other age groups are a period of 10 years (40-49, 50-59 etc).\n\nIt\u2019s things like this that make you believe they must have something to hide, and it turns out they definitely have.\n\nBecause on table 9 of the \u2018Deaths by Vaccination Status\u2019 dataset, the ONS have inadvertently provided enough details on deaths among children and teenagers by vaccination status for us to calculate the mortality rates ourselves, and they are horrendous.\n\nHere are the figures published by the ONS in table 9 for 10 to 14-year-olds \u2013\n\nAnd here are the figures published by the ONS in table 9 for 15 to 19-year-olds \u2013\n\nAs you can see, the ONS has given us both the number of deaths and person-years by vaccination status. This means we can perform simple math to calculate the mortality rates per 100K person-years ourselves.\n\nAll we need to now do is divide the person-years by 100,000, and then divide the number of deaths by the answer to that equation.\n\nSo for unvaccinated 10-14 year-olds we perform the following calculation to work out the all-cause death mortality rate \u2013\n\n2,684,874 (person-years) / 100,000 = 26.84874\n\n164 (deaths) / 26.84874 = 6.1\n\nTherefore, the all-cause mortality rate per 100,000 person-years among unvaccinated 10-14-year-olds is 4.58 deaths per 100,000 person-years between 1st Jan 21 and 31st March 22.\n\nNow all we have to do is use the same formula to calculate the mortality rates per 100K person-years for all vaccination statuses among 10 to 14-year-olds and 15 to 19-year-olds.\n\nHere are the calculated mortality rates by vaccination status among 15-19-year-olds based on the ONS calculated person-years \u2013\n\nAnd here are the calculated mortality rates by vaccination status among 10-14-year-olds based on the number of deaths and ONS calculated person-years \u2013\n\nThese figures are horrifying. The ONS data shows that between 1st Jan 21 and 31st March 22, double vaccinated children aged 10-14 were statistically up to 39 times more likely to die than unvaccinated children, and double vaccinated teenagers aged 15-19 were statistically up to 4 times more likely to die than unvaccinated teenagers.\n\nBut it\u2019s the triple vaccinated figures that are truly frightening when it comes to children.\n\nThe ONS data shows that between 1st Jan 21 and 31st March 22, triple jabbed children aged 10-14 were statistically 303 times more likely to die than unvaccinated children of Covid-19, 69x more likely to die of any cause other than Covid-19 than unvaccinated children, and 82x more likely to die of all-causes than unvaccinated children.\n\nThis suggests that three doses of a Covid-19 injection increase the risk of all-cause death for children by an average of 8,100%, and the risk of dying of Covid-19 by an average of 30,200%. Whilst two doses increase the risk of all-cause death by an average of 3,600%.\n\nBut as things currently stand it\u2019s the other way round for teenagers. Two doses of a Covid-19 injection increase the risk of all-cause death for teens aged 15 to 19 by an average of 300%. Whilst three doses increase the risk of all-cause death by an average of 100%.\n\nThe figures for children though, are in fact even worse than they first appear. This is because the unvaccinated mortality rate among 10-14-year-olds includes children aged 10 and 11 who were only offered the Covid-19 injection from the beginning of April 2022, despite the UK Medicine Regulator questionably granting emergency use authorisation for it to be administered to young children in late December 2021.\n\nWhereas the vaccinated mortality rates include only a handful of 10 and 11 year-olds. We know this from the fantastic news that only 7% of 5 to 11-year-olds have had the Covid-19 injection as of 14th May 2022.\n\nTherefore, if the Covid-19 injections were not causing the untimely deaths of children then we would actually expect to see a mortality rate that is lower among the vaccinated population than the mortality rate among the unvaccinated population, not a mortality rate that is similar, and certainly not a mortality rate between 8,100 % and 30,200% higher.\n\nThe statistics are horrendous, but it\u2019s important to remember that behind those statistics are real people who are suffering and who have lost their lives, and unfortunately this time around they are children. Children who have never been in danger of suffering serious complications due to the alleged Covid-19 disease. Therefore, children who have never, ever needed an experimental, poor-performing, deadly (these statistics prove it) Covid-19 injection.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.1168,
+          "image_size": [
+            211,
+            60
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misinformation": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.1,
+          "veracity_category": "false",
+          "alignment_score": 0.1,
+          "alignment_category": "does_not_align",
+          "overall_score": 0.1,
+          "is_misinformation": true,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": false,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "MANIPULATED",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.1168,
+            "image_size": [
+              211,
+              60
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_375_21",
+    "claim": "\"Official figures quietly published by the U.S. Centers for Disease Control (CDC) confirm nearly half a million children and young adults have died ever since the Food & Drug Administration first granted emergency use authorisation to a Covid-19 vaccine in the USA.\n\nThis has sadly resulted in nearly 118,000 excess deaths compared to the 2015-2019 average.\n\nThe figures also reveal that there have been 7,680 more excess deaths among children and young adults in 2022 so far compared to the same time frame in 2020 at the height of the alleged Covid-19 pandemic.\n\nBut the year 2021 was by and large the worst year for deaths among 0 to 44-year-olds, with 291,461 excess deaths in total, nearly 60,000 more than occurred in 2020. And according to the official CDC figures, this was mainly due to a mysterious sudden rise in deaths among children and young adults from around week 31 onwards.\n\nUnfortunately, according to data published by the UK Government, that \u201cmysterious\u201d sudden rise which has contributed to half a million American children and young adults dying since late 2020, is most likely due to the Covid-19 injections.\n\nLet\u2019s not lose touch\u2026Your Government and Big Tech are actively trying to censor the information reported by The Expos\u00e9 to serve their own needs. Subscribe now to make sure you receive the latest uncensored news in your inbox\u2026\n\nCompared to other countries, the U.S. Government has been terrible at publishing relevant and up-to-date data allowing us to analyse the consequences of rolling out the Covid-19 injections. However, we have finally managed to stumble upon it thanks to an institution known as the Organisation for Economic Co-operation and Development (OEC).\n\nThe OEC is an intergovernmental organisation with 38 member countries founded in 1961 to stimulate economic progress and world trade. And for some reason, they host a wealth of data on excess deaths. You can find that data for yourself here.\n\nThe following chart has been created using the figures found in the OEC database. Figures that have been provided to the OEC by the U.S. Centers for Disease Control (CDC). And it shows excess deaths among children and young adults aged 0-44 across the USA by week in 2020 and 2021.\n\nThe official figures reveal that there was a slight increase in excess deaths among children and young adults when the alleged Covid-19 pandemic hit the US in early 2020.\n\nHowever, with the introduction of a Covid-19 injection, one would have expected deaths to have fallen significantly among the age group in 2021. But instead, the opposite happened.\n\nExcess deaths among children and young adults were significantly higher every single week in 2021 than they were in 2020 except for weeks 29 and 30. But then in week 31, something drastic happened to cause excess deaths to rise significantly among children and young adults.\n\nAnd official figures provided by the CDC, unfortunately show that trend has continued in 2022.\n\nThe most recent data released by the CDC covers up to week 40, the week ending October 9th, and it should be noted that the last few weeks of data are subject to change. But as you can see from the above, 2022 has also been a significant year for excess deaths among children and young adults.\n\nJust for comparison, here\u2019s how the figures for 2022 so far compare to the figures up to week 40 in 2020 and 2021.\n\nThe CDC has confirmed that there have been 7,680 more excess deaths among children and young adults in 2022 so far than there were during the same time frame in 2020 at the height of the alleged Covid-19 pandemic.\n\nThe year 2021, was by and far the worst, however, with 27,227 more excess deaths by week 40 following the roll-out of the Covid-19 injection than what occurred in 2020 at the height of the alleged Covid-19 pandemic.\n\nThe following chart shows the official CDC figures for all deaths and excess deaths among children and young adults across the USA prior to the roll-out of the Covid-19 vaccine, and after the roll-out of the Covid-19 vaccines on the 14th Dec. 2020.\n\nThe above figures reveal that the year 2022 so far has only seen 1,352 fewer excess deaths among 0-44-year-olds by week 40 than what occurred by week 51 in 2022, despite the year 2020 being the alleged height of the COVID pandemic and also including an extra 11 weeks worth of deaths.\n\nBut the most concerning figures revealed in the above chart are the overall number of deaths and excess deaths among children and young adults since the roll-out of the Covid-19 injections.\n\nNearly half a million people aged 0 to 44 have sadly died since week 51 of 2020, and this has resulted in an astounding 117,719 excess deaths against the 2015-2019 five-year average.\n\nThe average life expectancy in the USA as of 2020 was 77.28 years. If we are to believe the official narrative that Covid-19 is a deadly disease then we could perhaps agree that 231,987 children and young adults up to the age of 44 dying in 2020 resulting in 40,365 excess deaths was an unfortunate consequence of this disease.\n\nBut if we are to believe the official narrative that Covid-19 injections are safe and effective, then how can one explain the further increase in death among children and young adults in both 2021 and 2022?\n\nBecause we know millions of Americans were coerced into getting the injections, and we know millions of parents were coerced into forcing their children to also get the same injections.\n\nThe answer lies in the fact that the official narrative is an outright lie. The Covid-19 vaccines are neither.\n\nThe data provided by the CDC, which has been incredibly hard to find, only gives us clues as to this being the case with so many deaths among young Americans. But further data published by the UK Government confirms it.\n\nOne of the pieces of evidence confirming this is a report published on the 6th of July 2022, by the UK\u2019s Office for National Statistics, which is a UK Government agency.\n\nThe report is titled \u2018Deaths by Vaccination Status, England, 1 January 2021 to 31 May 2022\u2018, and it can be accessed on the ONS site here, and downloaded here.\n\nTable 2 of the report contains the monthly age-standardised mortality rates by vaccination status by age group for deaths per 100,000 person-years in England up to May 2022.\n\nWe\u2019ve taken the figures provided by the ONS for January to May 2022 and produced the following chart which reveals the horrific consequences of the mass Covid-19 vaccination campaign.\n\nThe chart shows the monthly age-standardised mortality rates by vaccination status among 18 to 39-year-olds for Non-Covid-19 deaths in England between January and May 2022 \u2013\n\nIn every single month since the beginning of 2022, partly vaccinated and double vaccinated 18-39-year-olds have been more likely to die than unvaccinated 18 to 39-year-olds. Triple vaccinated 18 to 39-year-olds however have had a mortality rate that has worsened by the month following the mass Booster campaign that occurred in the UK in December 2021.\n\nIn January, triple vaccinated 18 to 39-year-olds were ever so slightly less likely to die than unvaccinated 18 to 39-year-olds, with a mortality rate of 29.8 per 100,000 among the unvaccinated and 28.1 per 100,000 among the triple vaccinated.\n\nBut this all changed from February onwards. In February, triple vaccinated 18 to 39-year-olds were 27% more likely to die than unvaccinated 18 to 39-year-olds, with a mortality rate of 26.7 per 100k among the triple vaccinated and 21 per 100k among the unvaccinated.\n\nThings. unfortunately, got even worse for the triple vaccinated by May 2022 though. The data shows that triple vaccinated 18 to 39-year-olds were 52% more likely to die than unvaccinated 18 to 39-year-olds in May, with a mortality rate of 21.4 per 100k among the triple vaccinated and 14.1 among the unvaccinated.\n\nThe worst figures so far though are among the partly vaccinated, with May seeing partly vaccinated 18 to 39-year-olds 202% more likely to die than unvaccinated 18 to 39-year-olds.\n\nThat same report also reveals the mortality rates for children, although the UK Government did try to hide them.\n\nThe following chart shows the mortality rates by vaccination status per 100,000 person-years among children aged 10 to 14 in England for the period 1st January 2021 to 31st May 2022, according to the figures provided by the ONS \u2013\n\nIn regard to Covid-19 deaths, the ONS reveals that the mortality rate among unvaccinated children aged 10 to 14 equates to 0.31. But in regards to one-dose vaccinated children the mortality rate equates to 3.24 per 100,000 person-years, and in regards to triple vaccinated children the mortality rate equates to a shocking 41.29 per 100,000 person-years.\n\nUnfortunately, there is little improvement when it comes to non-Covid-19 deaths.\n\nThe all-cause death mortality rate equates to 6.39 per 100,000 person-years among unvaccinated children, and is ever so slightly higher at 6.48 among partly vaccinated children.\n\nHowever, the rate goes from bad to worse following the administration of each injection. The all-cause death mortality rate equates to 97.28 among double-vaccinated children, and a shocking 289.02 per 100,000 person-years among triple-vaccinated children.\n\nThis means, according to the UK Governments own official data, double vaccinated children are 1422% / 15.22x more likely to die of any cause than unvaccinated children. Whilst triple vaccinated children are 4423% / 45.23x more likely to die of any cause than unvaccinated children.\n\nThe figures provided by the Office for National statistics and both age-standardised and rates per 100,000 population. Therefore, they are definitive proof that the Covid-19 injections increase a person\u2019s risk of dying. Which means the Covid-19 injections have been and are continuing to kill people.\n\nThis is why it should come as no surprise to find that a secret CDC report confirms half a million American children & young adults have died following the COVID vaccine roll-out. resulting in nearly 118,00 excess deaths against the 2015-2019 five-year average.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.201,
+          "image_size": [
+            260,
+            163
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misinformation": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.1,
+          "veracity_category": "false",
+          "alignment_score": 0.1,
+          "alignment_category": "does_not_align",
+          "overall_score": 0.1,
+          "is_misinformation": true,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": false,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "MANIPULATED",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.201,
+            "image_size": [
+              260,
+              163
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_10_35",
+    "claim": "\"by Brian Shilhavy\n\nEditor, Health Impact News\n\nThe Indian Bar Association is reporting that murder charges have been filed in India\u2019s High Court against two billionaires responsible for the AstraZeneca\u2019s COVID-19 vaccine, Covishield, for the murder of a 23-year-old man who was injected with the shot.\n\nThe two named defendants are Bill Gates, and Adar Poonawalla, the CEO of Serum Institute of India (SII), reportedly the world\u2019s largest vaccine maker. According to corporate news sources, Adar Poonawalla\u2019s company produces not only the COVID-19 vaccine Covishield, but also over 50% of the world\u2019s vaccines that are injected into babies.\n\nThe unnamed defendants are \u201cother Government officials and leaders involved in the murder of a 23 year old man, who lost his life because of vaccination.\u201d\n\nThe deceased took the Covishield vaccine by believing in the false narrative that the vaccine is completely safe and also owing to the compliance requirement set by the Railways that only double vaccinated people would be allowed to travel.\n\nThe article also states that the Government of India\u2019s AEFI (Adverse Event Following Immunisation) Committee has recently admitted that the death of 33-year-old Dr. Snehal Lunawat, was due to side effects of the Covishield vaccine.\n\nThe Government of India\u2019s AEFI (Adverse Event Following Immunisation) Committee has recently admitted that the death of Dr. Snehal Lunawat, was due to side effects of the Covishield vaccine. The said report has exposed the falsity of the claim made by vaccine syndicate that vaccines are totally safe.\n\nYou can read more about Dr. Snehal Lunawat\u2019s murder by COVID-19 injection here.\n\nThe article goes on to quote case law in India which:\n\n\u201cmakes it clear that before giving a vaccine or any treatment to a person, he should be informed about the side effects of the medicine and also about the alternate remedies available. If any person is vaccinated by suppressing the facts or by telling a lie that the said vaccines are completely safe, amount to the consent being obtained under deception. In India, vaccination under deception or by force/coercion or by putting certain stifling conditions, is a civil and criminal wrong.\u201d\n\nAccording to the article, this makes Bill Gates and Adar Poonawalla co-conspirators to mass murder.\n\nBill Gates and Adar Poonawalla, the partners in manufacturing the Covishield (AstraZeneca) vaccine are made accused for their involvement in conspiracy. In India, the person allowing the false marketing of his product is also held to be guilty due to his act of commission and omission. In this regard the provisions of Section 120(B), 34, 109 etc. of IPC get attracted to make Bill Gates and Adar Poonawalla guilty of mass murders i.e. Section 302, 115, etc. of IPC.\n\nIf convicted, they face the death penalty.\n\nAs per the expert opinion, considering the proofs of sterling nature, Bill Gates and Adar Poonawalla will get death penalty.\n\nA previous case against Bill Gates for murdering 8 female children during vaccine trials for the HPV vaccine Gardasil in India is also mentioned.\n\nThe Petitioner also relied upon the criminal antecedents of Bill Gates in killing 8 female children by unauthorized trial of HPV vaccines in India and judgment of Constitution Bench of the Supreme Court in Kalpana Mehta\u2019s Case (2018) 7 SCC 1 , which is a strong proof against Bill Gates and his vaccine syndicate.\n\nThe India Polio vaccine program sponsored by Bill Gates is also referenced in the charges.\n\nPetitioner has also referred to the proofs of sinister plan of Bill Gates in polio programme which spoiled the lives of 4.5 lakh children in India as they suffered new type of paralysis. This is also an additional proof of Bill Gates\u2019 pervert and criminal mindset.\n\nThe article states that bail will be denied to Bill Gates, and that his assets in India will soon be confiscated.\n\nAs per experts, there is no chance of Bill Gates getting bail in the case and all the movable and immovable properties of the accused will be confiscated soon.\n\nCitizens of India now apparently have the authority to conduct Citizen Arrests of both Bill Gates and Adar Poonawalla to hand them over to the authorities.\n\nVarious social organizations and common people have decided to exercise citizen\u2019s right to arrest the accused as provided under section 43 of Cr.P.C. As per the said section, any citizen can arrest Bill Gates, Adar Poonawalla and other accused and handover them to the police.\n\nRead the full article at The Indian Bar Association.\n\nWhile it is encouraging to read that charges of mass murder are actually being filed against billionaire Globalists for their crimes against humanity for the gene-altering COVID-19 injections, the question remains as to whether or not this case will ever be brought to trial.\n\nDoes India have the ability to run a covert military operation to extract Bill Gates from the U.S., for example, and bring him to trial in India?\n\nComment on this article at HealthImpactNews.com.\n\nRelated:\n\nSee Also:\n\n\n\nCOVID-19 \u201cVaccine\u201d Casualties List\n\nSee Also:\n\nUnderstand the Times We are Currently Living Through\n\nHaving problems receiving our newsletters? See:\n\nWe Are Now on Minds.com, MeWe, and Telegram. Video channels at Bitchute and Rumble.\n\nIf our website is seized and shut down, find us on Minds.com, MeWe, and Telegram, as well as Bitchute and Rumble for further instructions about where to find us.\n\nIf you use the TOR Onion browser, here are the links and corresponding URLs to use in the TOR browser to find us on the Dark Web: Health Impact News, Vaccine Impact, Medical Kidnap, Created4Health, CoconutOil.com.\n\nLeaving a lucrative career as a nephrologist (kidney doctor), Dr. Suzanne Humphries is now free to actually help cure people.\n\nIn this autobiography she explains why good doctors are constrained within the current corrupt medical system from practicing real, ethical medicine.\n\nOne of the sane voices when it comes to examining the science behind modern-day vaccines, no pro-vaccine extremist doctors have ever dared to debate her in public.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.1922,
+          "image_size": [
+            811,
+            481
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.095,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.095,
+        "is_misinformation": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.1,
+          "veracity_category": "false",
+          "alignment_score": 0.095,
+          "alignment_category": "does_not_align",
+          "overall_score": 0.095,
+          "is_misinformation": true,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": false,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "MANIPULATED",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.1922,
+            "image_size": [
+              811,
+              481
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_410_16",
+    "claim": "\"The latest data published by the UK Health Security Agency confirms deaths are rising dramatically among the triple vaccinated population whilst declining steadily among the not-vaccinated population in England.\n\nWith the most recent figures showing the fully vaccinated accounted for 9 in every 10 Covid-19 deaths over the past month; and the triple vaccinated accounted for 4 in every 5 of them.\n\nThe Expos \u00e9 is now heavily censored by Google, Facebook, Twitter and PayPal. Let\u2019s not lose touch, subscribe today to receive the latest news from The Expos\u00e9 in your inbox\u2026\n\nThese are dark days for the citizens of Ukraine, but if you were to watch mainstream news or read a mainstream newspaper you could be forgiven for thinking the plight of the Ukrainians is currently the only event taking place in the world.\n\nThe Russian invasion is being aired in an endless 24/7 loop via BBC News and Sky News, with not a word about Covid-19 to be heard, despite airing nothing but propaganda and lies on the pandemic for the past two years.\n\nIt\u2019s times like these that you ought to watch what bad news is being quietly published in the background in the hope that it won\u2019t receive much attention, because there\u2019s nothing better than an international crisis to distract the public from what\u2019s going on at home.\n\nWith that being said, let\u2019s take a look at what the UK Government have \u201cquietly\u201d published in the past week in regards to the Covid-19 situation in England.\n\nThe UK Health Security Agency (UKHSA) publish a weekly Covid-19 Vaccine Surveillance Report, the most recent of which was published Thursday 24th Feb 22, and it can be viewed here.\n\nTable 10, found on page 41 of the latest report shows the number of Covid-19 cases by vaccination status in England between 24th Jan and 20th Feb 22, and it confirms the vast majority were recorded among the triple vaccinated population.\n\nIn all, between 24th Jan and 20th Feb, there were a total of 1,490,464 Covid-19 cases recorded across England, and the triple vaccinated population accounted for 752,126 of them, whilst the not-vaccinated population accounted for 404,030 of them but 303,107 of those cases were among children.\n\nOverall the vaccinated population accounted for 1,086,434 cases, meaning they accounted for 73% of all Covid-19 cases between 24th Jan and 20th Feb 22. But if we remove children from the equation we find that the vaccinated population accounted for 91% of all Covid-19 cases among over 18\u2019s in England.\n\nTable 11, found on page 42 of the latest report shows the number of Covid-19 hospitalisations by vaccination status in England between 24th Jan and 20th Feb 22, and it confirms the vast majority were again recorded among the triple vaccinated population.\n\nIn all, there were 9,230 Covid-19 hospitalisations in England between 24th Jan and 20th Feb 22, and the triple vaccinated population accounted for 4,936 of them, whilst the not-vaccinated population accounted for 2,341 of them, 1,132 of which were allegedly children.\n\nBut this is where the data doesn\u2019t make much sense. We know that Omicron is now the dominant variant in England, and we know it causes illness that is of equivalent severity to the common cold. So why is it that the data shows Covid-19 hospitalisations among children are more than double the amount that was being recorded when Delta was the dominant strain?\n\nThe following table is taken from Public Health England\u2019s \u2018Covid-19 Vaccine Surveillance Report \u2013 Week 36 \u2013 2021\u2018, and it shows that between week 32 and week 35 of 2021 (when Delta was the dominant variant) there were just 404 Covid-19 hospitalisations recorded among under 18\u2019s in England.\n\nThis number of hospitalisations among under 18\u2019s is typical for most of the weekly reports, so why on earth are Covid-19 hospitalisations now as high as 1,132 among children?\n\nWe know that children have never been at high risk of suffering severe disease due to Covid-19, and everyone should know by now that a person could be hospitalised with a broken leg and classed as a Covid-19 hospitalisation if they happen to test positive for Covid-19 with a highly questionable test within 28 days of admittance.\n\nBut we also know that the UK Government and NHS are attempting to justify Professor Chris Whitty\u2019s decision to overrule the Joint Committee on Vaccination and Immunisation and offer the Covid-19 vaccine to children.\n\nAre we seeing the UKHSA manipulate figures here through mass testing of already hospitalised children, to give the impression that experimental Covid-19 vaccination would benefit children?\n\nWhen we include children in the hospitalisation figures we find that the vaccinated population accounted for 75% of all Covid-19 hospitalisations between 24th Jan and 20th Feb 22. But when we remove children, we find that the vaccinated population accounted for 85% of all Covid-19 hospitalisations among over 18\u2019s in England.\n\nTable 12, found on page 43 of the latest report shows the number of Covid-19 deaths by vaccination status in England between 24th Jan and 20th Feb 22, and it confirms yet again that the vast majority were recorded among the triple vaccinated population.\n\nIn all, there were 4,861 Covid-19 deaths between 24th Jan and 20th Feb 22, and the triple vaccinated population accounted for 3,120 of them. Whilst the not-vaccinated population accounted for just 559.\n\nOverall, the vaccinated population accounted for 89% of all Covid-19 deaths during these four weeks, with 4,302 recorded deaths. This means the vaccinated population now account for 9 in every 10 deaths, and the triple vaccinated population account for 4 in every 5 of them.\n\nBut what\u2019s most concerning here is that things are improving by the week for the not-vaccinated population, whilst they take a turn for the worse or the triple vaccinated population.\n\nAccording to the \u2018Week 51 \u2013 2021 \u2013 Vaccine Surveillance Report\u2018, the total number of alleged Covid-19 deaths by vaccination status between November 22nd and December 19th, as confirmed by table 10 were as follows \u2013\n\nNot-vaccinated population = 889 deaths\n\nPartly vaccinated population = 117 deaths\n\nTriple/Double-vaccinated population = 2,796 deaths\n\nThis equated to the vaccinated population accounting for 77% of Covid-19 deaths between November 22nd and December 19th, and reveals that the number of Covid-19 deaths among the entire vaccinated population was 207 less than the total number of Covid-19 deaths recorded among the triple vaccinated population alone between 24th Jan and 20th Feb 22.\n\nDeaths among the not-vaccinated have fallen from 889 between 22nd Nov and 19th Dec 21, to 559 between 24th Jan and 20th Feb 22. This represents a 37% decrease in overall deaths.\n\nBut deaths the vaccinated population have increased from 2,913 between 22nd Nov and 19th Dec 21, to 4,302 between 24th Jan and 20th Feb 22. This represents a 48% increase in overall deaths.\n\nThese aren\u2019t the kind of figures you would expect to see if the Covid-19 injections really are up to 95% effective at preventing hospitalisation and death, are they?\n\nSo there you have it, whilst you\u2019ve been distracted by Russia\u2019s invasion of Ukraine, the UK Government released a report confirming the fully vaccinated now account for 9 in every 10 Covid-19 deaths in England. With news like this being swept under the rug by the mainstream media, it makes you wonder what else they will attempt to hide in the coming weeks?\n\nLike this: Like Loading...\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": true,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0,
+          "image_size": [
+            150,
+            44
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misinformation": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.1,
+          "veracity_category": "false",
+          "alignment_score": 0.1,
+          "alignment_category": "does_not_align",
+          "overall_score": 0.1,
+          "is_misinformation": true,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": true,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "AUTHENTIC",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.0,
+            "image_size": [
+              150,
+              44
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_120_7",
+    "claim": "\"...\n\n<3\n\n<3\n\n:)\n\n:)\n\n:)\n\n:)\n\n;)\n\n<3\n\nublic of Kanata, has just deemed 'CRIMINAL' all Covid19 forceful measures requiring its people to wear masks, social distance, quarantine, or Vaccinate!!! The law was passed on Sept 8, 2020, and is part of NESARA/GESARA ( https://www.youtube.com/watch\u2026 ). The Republic of Kanata is fully in compliance with the requirements of GESARA, including forgiveness of all credit card and mortgage debts, and the abolishment of income tax!!!! We will start seeing this all across the Nation in the times to comeIt is in our destiny now and can no longer be withheld from usThe masses just have to catch up and realize our POWER. We are the 99%!!!!! Say it out loud while doing your happy dance, \"WE ARE THE 99%\"Happening right before our very eyes even though mainstream channels won't be covering thisWAY TO GO CANADA!!! Under the new Public Safety Law NCCLA Order No. 09082020-A, any attempt to impose such measures on Canadians is considered a punishable crime and can result in the arrest and trial of the offender, regardless of their office. Canadians are encouraged to actively resist COVID measures, relying on the new law and local Common Law Sheriffs. Unless WE THE PEOPLE start spreading this news far and wide, people will continue to live in IGNORANCE!! ***Do your full research and get to know all the facts before becoming spokespersons***The law was issued by the National Council of Common Law Assemblies (NCCLA), which unites more than forty such Assemblies across Canada within the jurisdiction of the Republic of Kanata. The NCCLA also issued a Stand Down Order to all government, police, and health officials that requires that they not enforce COVID measures and comply with the new law. Copies of the NCCLA documents are attached to this release and are posted at www.republicofkanata.ca under \u201cMedia\u201d. \u201cIn the absence of responsible government, we the people are defending ourselves from a corporate police state. It is now up to every Canadian to enforce this Law and use it to defend their children and their liberties and overturn this tyranny while they still can.\u201d Source: http://murderbydecree.com/\u2026/breaking-n\u2026/\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": true,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0,
+          "image_size": [
+            39,
+            40
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.1,
+        "veracity_category": "false",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misinformation": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.1,
+          "veracity_category": "false",
+          "alignment_score": 0.1,
+          "alignment_category": "does_not_align",
+          "overall_score": 0.1,
+          "is_misinformation": true,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": true,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "AUTHENTIC",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.0,
+            "image_size": [
+              39,
+              40
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_926_0",
+    "claim": "More than $6.9 Million Raised for VeloSano 9 (2022) and Cancer Research at Cleveland Clinic The most successful year yet for the fundraising movement\n\nContent is property of Cleveland Clinic and for news media use only.\n\nA record-high $6.9 million was raised for VeloSano in 2022, 100% of which will support lifesaving cancer research at Cleveland Clinic and Cleveland Clinic Children\u2019s. The year-round fundraising movement has brought in a cumulative total of more than $37 million since its inception in 2014.\n\nThe total amount was announced today in a video featuring the many ways funds were raised for VeloSano throughout the year. This milestone was made possible by the entire VeloSano community, which includes Bike to Cure Riders and Volunteers, virtual fundraisers, Trike & Bike Junior Riders, donors, VeloSano Victors and corporate partners. To view the video, click here.\n\n\u201cEveryone knows someone affected by cancer and it can be empowering to take action together,\u201d said Alex A. Adjei, M.D., Ph.D., chair of Cleveland Clinic Taussig Cancer Institute. \u201cCleveland Clinic is a leader in cancer care and research, and the support we receive through VeloSano enables us to expand our work and our impact.\u201d\n\nCancer researchers across the Cleveland Clinic enterprise apply for funds raised for VeloSano, with the money being awarded to research proposals with the greatest promise. Thus far, VeloSano has supported more than 200 cancer research projects. Those projects often go on to earn research grants from the National Institutes of Health and other entities. The total return from additional, outside funding now surpasses $22 million, making the total impact of VeloSano more than $59 million.\n\nVeloSano has gained significant momentum in raising money for cancer research at Cleveland Clinic due to the support of its partners, including but not limited to, the Kohl Fund, the Cleveland Guardians, Adcom, Jones Day, Lexus, Advance Ohio/The Plain Dealer, AstraZeneca, Hileman Group, House of LaRose / Michelob Ultra, KeyBank, The Lerner Foundation, and TransDigm Group.\n\n\u201cWe\u2019re grateful for everyone who has helped us turn this event into a movement over the last decade resulting in a record-setting year in 2022,\u201d said Stewart Kohl, founder of VeloSano and Co-CEO of The Riverside Company. \u201cIt\u2019s incredibly rewarding for us to be able to go on the offensive against cancer, funding cutting-edge research helping to extend and improve the quality of lives.\u201d\n\nVeloSano celebrates 10 years next year. Bike to Cure weekend will be held September 8 \u2013 9, and registration information will be available on velosano.org in early 2023.\n\nLearn more about VeloSano and projects funded by visiting https://impact.velosano.org/.",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "aligned",
+      "plausibility": "high",
+      "is_misinformation": false
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": true,
+        "confidence": 0.764,
+        "method": "pixel_forensics",
+        "layer1_verdict": "AUTHENTIC",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0086,
+          "image_size": [
+            300,
+            200
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.9,
+        "alignment_category": "aligns_fully",
+        "overall_score": 0.9,
+        "is_misinformation": false,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.9,
+          "veracity_category": "true",
+          "alignment_score": 0.9,
+          "alignment_category": "aligns_fully",
+          "overall_score": 0.9,
+          "is_misinformation": false,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": true,
+          "confidence": 0.764,
+          "method": "pixel_forensics",
+          "layer1_verdict": "AUTHENTIC",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.0086,
+            "image_size": [
+              300,
+              200
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": false
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_71_4",
+    "claim": "\"Republicans are slamming Joe Biden after the presumptive Democratic nominee made a verbal gaffe during a campaign stop in Pennsylvania and said 120 million people had died from the novel coronavirus.\n\n\u201cPeople don\u2019t have a job, people don\u2019t know where to go, they don\u2019t know what to do,\u201d Biden said Thursday. \u201cNow we have over 120 million dead from COVID.\u201d\n\nAs of Thursday, there have been more than 122,000 \u2013 not million -- coronavirus deaths in the United States, according to Johns Hopkins figures.\n\nWhile Biden appears to immediately catch himself after his gaffe -- the pool video of Biden\u2019s comments cuts off after he made the remark \u2013 Republicans were quick to jump on the former vice president\u2019s comment.\n\n\u201cWHAT IS GOING ON WITH JOE BIDEN?\u201d Steve Guest, the Republican National Committee\u2019s rapid response director, tweeted out with a link to the clip.\n\nPresident Trump\u2019s reelection campaign team went after Biden even harder \u2013 calling him \u201cvery confused\u201d and dredging up one of Biden\u2019s past gaffes when he said that 150 million Americans had died from gun violence since 2007.\n\n\u201cJoe Biden is very confused,\u201d the campaign tweeted out. \u201cHe's not playing with a full deck, folks. #BarelyThereBiden.\u201d\n\nBiden was in Lancaster, Pa., to discuss unveil his healthcare proposals as his campaign revs up for more appearances after months indoors amid the coronavirus pandemic. His campaign has focused on small group gatherings to mitigate chances of spreading COVID-19 instead of large public rallies like Trump has begun to hold again.\n\nNEW POLLS INDICATE TRUMP TRAILING BIDEN IN 6 KEY BATTLEGROUNDS\n\nDuring his stop, Biden pushed the need to protect Affordable Care Act, or ObamaCare, while also taking shots at Trump\u2019s recent comments on testing. Trump told a crowd at a rally over the weekend that he asked staff to slow down coronavirus testing.\n\n\u201cHe called testing, quote, a double edge sword,\u201d Biden said. \u201cLet's be crystal clear about what he means by that. Testing unequivocally saves lives and widespread testing is the key to opening our economy. That's one edge of the sword. The other edge, he thinks that finding out that more Americans are sick will make him look bad.\u201d\n\nBiden added: \u201cDonald Trump needs to stop caring about how he looks to start caring about what America has happened to the rest of America.\u201d\n\nCLICK HERE TO GET THE FOX NEWS APP\n\nBiden\u2019s verbal slip-ups have plagued him throughout his 2020 presidential bid with the Trump campaign using them as fodder to argue that the presumptive Democratic nominee is unfit for the Oval Office, as well as to draw attention away from Trump\u2019s own mistakes.\n\nThe president himself has been hammered by pundits and Democrats for false or misleading claims he\u2019s made regarding the coronavirus pandemic \u2013 from his now infamous March 6 declaration that \"anybody that wants a test can get a test\" to claiming that the Obama administration had left him with bad or old tests for COVID-19 even though there could not have been a test until Trump's presidency.\n\nDespite Biden\u2019s slip-ups on the stump, his poll numbers against Trump continue to rise with a Real Clear Politics average showing the former vice president holding a 10 point lead over the current White House occupant with the general election less than five months away.\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.5178,
+          "image_size": [
+            1280,
+            720
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.9,
+        "alignment_category": "aligns_fully",
+        "overall_score": 0.9,
+        "is_misinformation": false,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.9,
+          "veracity_category": "true",
+          "alignment_score": 0.9,
+          "alignment_category": "aligns_fully",
+          "overall_score": 0.9,
+          "is_misinformation": false,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": false,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "MANIPULATED",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.5178,
+            "image_size": [
+              1280,
+              720
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": false
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_861_178",
+    "claim": "\"Mouthwash has the potential to protect against COVID-19 infection by killing the coronavirus before it can infect human cells, according to a new report.\n\nCoronaviruses belong to the class of 'enveloped viruses', meaning they are covered by a fatty layer that is vulnerable to certain chemicals.\n\nA team of international researchers say mouthwash could destroy the outermost layer or 'envelope' of the virus, preventing its replication in the mouth and throat.\n\nThe scientists say there is an urgent need to test the effectiveness of mouthwash in trials, although there is currently no clinical evidence that it would be successful.\n\nThe World Health Organisation has already said: 'There is no evidence that using mouthwash will protect you from infection with the new coronavirus.'\n\nThe study authors do not say that current commercially-available mouthwash prevents COVID-19, but that further research into mouthwash chemicals could be beneficial.\n\nReadily available dental mouthwashes have the potential to destroy the lipid envelope of coronaviruses, combating virus replication in the mouth and throat\n\nWriting in Function, the study authors, led by Cardiff University, say oral rinses are an \ufffd?under-researched area of major clinical need\u2019.\n\nThe team is backed by virologists, lipid specialists and healthcare experts from Cardiff University\u2019s School of Medicine, along with the universities of Nottingham, Colorado, Ottawa, Barcelona and Cambridge\u2019s Babraham Institute.\n\n'Safe use of mouthwash \u2013 as in gargling \u2013 has so far not been considered by public health bodies in the UK,' said lead author Professor O\u2019Donnell, co-director of Cardiff University\u2019s Systems Immunity Research Institute.\n\n'In test tube experiments and limited clinical studies, some mouthwashes contain enough of known virucidal ingredients to effectively target lipids in similar enveloped viruses.\n\n'What we don\u2019t know yet is whether existing mouthwashes are active against the lipid membrane of SARS-CoV-2.\n\n'Our review of the literature suggests that research is needed as a matter of urgency to determine its potential for use against this new virus.'\n\n'This is an under-researched area of major clinical need \u2013 and we hope that research projects will be quickly mobilised to further evaluate this.'\n\nCoronavirus is a type of enveloped virus, meaning it has an outer lipid membrane that could be damaged by chemicals in mouthwash. Naked viruses lack the viral envelope\n\nThe ingredients of dental mouthwashes, including chlorhexidine, cetylpyridinium chloride, hydrogen peroxide and povidone-iodine, all have the potential to prevent infection and several \ufffd?deserve clinical evaluation\u2019, according to the researchers.\n\nIn particular, these chemicals disrupt the outer lipid membrane, known as the \ufffd?viral envelope\u2019 or \ufffd?lipid envelope\u2019 of the SARS-CoV-2 virus, which causes COVID-19.\n\nThe lipid envelope helps several viruses, including coronaviruses, bind to human cells while avoiding the host immune system.\n\nSpecific spike proteins called \ufffd?glycoproteins\u2019 on the surface of the envelope identify and bind to receptor sites on the host's cell membrane, which allows infection.\n\nMouthwash chemicals could potentially modify the ability of the spike glycoproteins to interact with receptors on host cells.\n\nThe researchers said there had so far been 'no discussion' about the potential role of damaging the fatty membrane as a possible way to inactivate the virus.\n\nThe lipid envelope does not change when viruses mutate, meaning mouthwash could still work against any new coronavirus strains that emerge from this pandemic.\n\nThe WHO has previously debunked the suggestion that mouthwash can prevent infection by SARS CoV-2, the coronavirus that causes COVID-19.\n\n'Some brands of mousthwash can eliminate certain microbes for a few minutes in the saliva in your mouth,' it said.\n\n'However, this does not mean they protect you from 2019-nCoV infection.'\n\nWHO has emphatically debunked the theory that gargling mouthwash can prevent infection by the coronavirus\n\nResearch in this area appears to be largely unexplored \u2013 Listerine, one of the biggest mouthwash brands, says on its website that none of its products have been tested against any strains of coronavirus.\n\n'Listerine mouthwash is not intended to be used, nor would it be beneficial as a hand sanitizer or surface disinfectant,' it says.\n\nCommon mouthwashes contain the same key ingredient as coronavirus-killing hand santiser \u2013 alcohol.\n\nHowever, Centers for Disease Control and Prevention, the US's public health authority, recommends a hand sanitiser that contains at least 60 per cent alcohol for effective protection, and Listerine's products consist of only around 20 per cent alcohol.\n\nThe World Health Organisation (WHO) also stresses that drinking pure alcohol, along with methanol or bleach, is incredibly dangerous.\n\nThese substances do not prevent or cure COVID-19 and can lead to disability and death.\n\n'Methanol, ethanol, and bleach are sometimes used in cleaning products to kill the virus on surfaces \u2013 however you should never drink them,' WHO says on its website.\n\n'They will not kill the virus in your body and they will harm your internal organs.'\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0274,
+          "image_size": [
+            154,
+            115
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.6,
+        "veracity_category": "partially_true",
+        "alignment_score": 0.1,
+        "alignment_category": "does_not_align",
+        "overall_score": 0.1,
+        "is_misinformation": true,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.6,
+          "veracity_category": "partially_true",
+          "alignment_score": 0.1,
+          "alignment_category": "does_not_align",
+          "overall_score": 0.1,
+          "is_misinformation": true,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": false,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "MANIPULATED",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.0274,
+            "image_size": [
+              154,
+              115
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": true
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_251_1",
+    "claim": "\"You\u2019re not allowed to have Thanksgiving with a few of your family members, but Joe Biden and his hundreds of pals can all get together, mask-free, and party like it\u2019s 1999.\n\nThat\u2019s exactly what occurred for Dementia Joe\u2019s big \u201cBirthday Bash.\u201d\n\nIt was a rollicking event, complete with singers, no masks, and absolutely no social distancing whatsoever.\n\nWhy, if you looked at this video and didn\u2019t know better, you\u2019d think there was absolutely no \u201cCOVID pandemic\u201d at all.\n\nBut isn\u2019t this just the way? Look at smug Governor Gavin Newsom\u2026He locks his state down again, tells people they can\u2019t have Thanksgiving, while he parties with his rich elite pals without masks and social distancing at swanky French Laundry.\n\nDo you think CNN or Fox News will be outraged?\n\nIt\u2019s amazing to me that Americans \u2013 with their feisty spirits \u2013 are still allowing these elite globalist dirtbags to ruin their families and their county and do it in such a blatant and hypocritical way.\n\nWatch the video below:\n\nWishing our President-Elect @joebiden a VERY Happy Birthday from the great Blue state of Joe\u2019gia! pic.twitter.com/knv2XtcqYq \u2014 Keisha Lance Bottoms (@KeishaBottoms) November 20, 2020\n\nHow long will we allow all of this to go on?\n\nThe people who work for us, are now \u201cruling\u201d us as if we\u2019re worthless street peasants, and they\u2019re doing it while laughing in our faces.\n\nLet them eat cake?\n\nNo\u2026more like \u201cMake them wear masks.\u201d\"",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "misaligned",
+      "plausibility": "low",
+      "is_misinformation": true
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.834,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.0234,
+          "image_size": [
+            400,
+            240
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.855,
+        "alignment_category": "aligns_fully",
+        "overall_score": 0.855,
+        "is_misinformation": false,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.9,
+          "veracity_category": "true",
+          "alignment_score": 0.855,
+          "alignment_category": "aligns_fully",
+          "overall_score": 0.855,
+          "is_misinformation": false,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": false,
+          "confidence": 0.834,
+          "method": "pixel_forensics",
+          "layer1_verdict": "MANIPULATED",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.0234,
+            "image_size": [
+              400,
+              240
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": false
+      }
+    }
+  },
+  {
+    "image_id": "med_mmhl_test_164_1",
+    "claim": "Scientists use gene therapy and a novel light-sensing protein to restore vision in mice\n\nNIH-funded therapy will now be tested in humans.\n\nA newly developed light-sensing protein called the MCO1 opsin restores vision in blind mice when attached to retina bipolar cells using gene therapy. The National Eye Institute, part of the National Institutes of Health, provided a Small Business Innovation Research grant to Nanoscope, LLC for development of MCO1. The company is planning a U.S. clinical trial for later this year.\n\nNanoscope\u2019s findings, reported today in Nature Gene Therapy, show that totally blind mice\u2014meaning they have no light perception\u2014regain significant retinal function and vision after treatment. Studies described in the report showed that treated mice were significantly faster in standardized visual tests, such as navigating mazes and detecting changes in motion.\n\nOpsins are proteins that signal other cells as part of a cascade of signals essential to visual perception. In a normal eye, opsins are expressed by the rod and cone photoreceptors in the retina. When activated by light, the photoreceptors pulse and send a signal through other retinal neurons, the optic nerve, and on to neurons in the brain.\n\nA variety of common eye diseases, including age-related macular degeneration and retinitis pigmentosa, damage the photoreceptors, impairing vision. But while the photoreceptors may no longer fully function, other retinal neurons, including a class of cells called bipolar cells, remain intact. The investigators identified a way for bipolar cells to take on some of the work of damaged photoreceptors.\n\n\u201cThe beauty of our strategy is its simplicity,\u201d said Samarendra Mohanty, Ph.D., Nanoscope founder and corresponding author of a report on the mouse study that appears today in Nature Gene Therapy. \u201cBipolar cells are downstream from the photoreceptors, so when the MCO1 opsin gene is added to bipolar cells in a retina with nonfunctioning photoreceptors, light sensitivity is restored.\u201d\n\nThe strategy could overcome challenges plagued by other approaches to retinal regeneration, according to the researchers. Gene replacement therapy has thus far worked principally in rare diseases that leave photoreceptors intact, such as Luxurna for Leber congenital amaurosis. Bionic eyes, such as the Argus II retinal prosthesis, require invasive surgery and wearable hardware. Other opsin replacement therapies require the intensification of light in order to reach the threshold required for signal transduction. Intense light risks further damage to the retina. Nanoscope\u2019s therapy requires a one-time injection into the eye and no hardware. MCO1 is sensitive to ambient light, so no need exists for strong light to be shined into the eye. And therapy with MCO1 could treat a wider range of degenerative retinal diseases, since photoreceptor survival not required.\n\nThe researchers found no concerning safety issues in treated mice. Examination of blood and tissues found no signs of inflammation due to treatment and the therapy had no off-target effect \u2014 only bipolar cells expressed the MCO1 opsin.\n\nUnder a best-case scenario, the therapy could help patients achieve 20/60 vision, according to the researchers; however, no one knows how the restored vision will compare to normal vision.\n\n\u201cA clinical study in people will help us understand how signaling through bipolar cells affects vision quality; for example, how well treated eyes can pick out fast-moving objects.,\u201d said Subrata Batabyal, Ph.D., lead author of the manuscript. The therapy will likely be limited for treatment of patients with severe retinal disease.\n\n\u201cIf this optogenetic approach using cells spared in degenerated retina can prove to be effective in vision restoration in humans, beyond light perception, it could offer a valuable alternative to the retinal prosthesis approach for people with late-stage retinitis pigmentosa,\u201d said PaekGyu Lee, Ph.D., NEI\u2019s program officer for the Small Business Innovation Research program.\n\nThis press release describes a basic research finding. Basic research increases our understanding of human behavior and biology, which is foundational to advancing new and better ways to prevent, diagnose, and treat disease. Science is an unpredictable and incremental process\u2014 each research advance builds on past discoveries, often in unexpected ways. Most clinical advances would not be possible without the knowledge of fundamental basic research.\n\nThe Small Business Innovation Research (SBIR) program is a competitive awards-based funding mechanism that supports U.S.-based small businesses engaged in research and development that has the potential for commercialization. The NEI SBIR program specifically provides funding to companies developing technologies and innovations relating to blinding eye diseases, visual disorders preservation of sight, and addressing the special health problems and requirements of individuals with impaired vision.\n\nNEI leads the federal government\u2019s research on the visual system and eye diseases. NEI supports basic and clinical science programs to develop sight-saving treatments and address special needs of people with vision loss. For more information, visit https://www.nei.nih.gov.\n\nAbout the National Institutes of Health (NIH): NIH, the nation\u2019s medical research agency, includes 27 Institutes and Centers and is a component of the U.S. Department of Health and Human Services. NIH is the primary federal agency conducting and supporting basic, clinical, and translational medical research, and is investigating the causes, treatments, and cures for both common and rare diseases. For more information about NIH and its programs, visit https://www.nih.gov/.\n\nAbout the National Institutes of Health (NIH): NIH, the nation's medical research agency, includes 27 Institutes and Centers and is a component of the U.S. Department of Health and Human Services. NIH is the primary federal agency conducting and supporting basic, clinical, and translational medical research, and is investigating the causes, treatments, and cures for both common and rare diseases. For more information about NIH and its programs, visit www.nih.gov.",
+    "ground_truth": {
+      "pixel_authentic": true,
+      "alignment": "aligned",
+      "plausibility": "high",
+      "is_misinformation": false
+    },
+    "predictions": {
+      "pixel_forensics": {
+        "pixel_authentic": false,
+        "confidence": 0.85,
+        "method": "pixel_forensics",
+        "layer1_verdict": "MANIPULATED",
+        "layer1_details": {
+          "method": "pixel_forensics",
+          "copy_move_score": 0.4618,
+          "image_size": [
+            873,
+            698
+          ],
+          "image_mode": "RGB"
+        }
+      },
+      "contextual_analysis": {
+        "veracity_score": 0.9,
+        "veracity_category": "true",
+        "alignment_score": 0.36,
+        "alignment_category": "partially_aligns",
+        "overall_score": 0.36,
+        "is_misinformation": false,
+        "method": "contextual_analysis"
+      },
+      "combined_analysis": {
+        "contextual_authenticity": {
+          "veracity_score": 0.9,
+          "veracity_category": "true",
+          "alignment_score": 0.36,
+          "alignment_category": "partially_aligns",
+          "overall_score": 0.36,
+          "is_misinformation": false,
+          "method": "contextual_analysis"
+        },
+        "image_integrity": {
+          "pixel_authentic": false,
+          "confidence": 0.85,
+          "method": "pixel_forensics",
+          "layer1_verdict": "MANIPULATED",
+          "layer1_details": {
+            "method": "pixel_forensics",
+            "copy_move_score": 0.4618,
+            "image_size": [
+              873,
+              698
+            ],
+            "image_mode": "RGB"
+          }
+        },
+        "method": "combined_analysis",
+        "is_misinformation": false
+      }
+    }
+  }
+]

@@ -114,7 +114,8 @@ class HuggingFaceMedGemmaClient(BaseMedGemmaClient):
     async def check_health(self) -> bool:
         return await self.check_model_health()
 
-    async def check_model_health(self, model_id: str | None = None) -> bool:
+    @staticmethod
+    async def check_model_health(model_id: str | None = None) -> bool:
         """Check HuggingFace availability, optionally for a specific model."""
         if not settings.medgemma_hf_token:
             return False

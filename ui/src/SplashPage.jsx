@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import './SplashPage.css'
 
 const DEMO_CARDS = [
@@ -10,7 +10,7 @@ const DEMO_CARDS = [
     badgeLabel: 'MISINFORMATION DETECTED',
     backTitle: 'MedContext Analysis',
     backText:
-      'MedContext sees that both the photo and the caption look plausible, but together they don\'t match \u2014 it recognises a caterpillar, not a virus.',
+      'MedContext sees that both the photo and the caption look plausible, but together they don\'t match — it recognises a caterpillar, not a virus.',
     veracity: 'Plausible',
     alignment: 'Misaligned',
   },
@@ -22,7 +22,7 @@ const DEMO_CARDS = [
     badgeLabel: 'MISINFORMATION DETECTED',
     backTitle: 'MedContext Analysis',
     backText:
-      'MedContext detects it\u2019s actually a digital illustration, so the image and the claim about experimental data are inconsistent.',
+      'MedContext detects it\'s actually a digital illustration, so the image and the claim about experimental data are inconsistent.',
     veracity: 'Plausible',
     alignment: 'Misaligned',
   },
@@ -34,11 +34,33 @@ const DEMO_CARDS = [
     badgeLabel: 'VERIFIED',
     backTitle: 'MedContext Analysis',
     backText:
-      'MedContext confirms the lines on the cassette match the clinical interpretation, so it treats this image\u2013claim pair as trustworthy.',
+      'MedContext confirms the lines on the cassette match the clinical interpretation, so it treats this image–claim pair as trustworthy.',
     veracity: 'Accurate',
     alignment: 'Aligned',
   },
 ]
+
+// FRESH VALIDATION DATA - February 20, 2026
+const VALIDATION_DATA = {
+  q: {
+    model: "MedGemma 4B IT Q4_KM",
+    date: "February 20, 2026",
+    veracity: 71.2,
+    alignment: 77.9,
+    combined: {
+      accuracy: 91.4,
+      precision: 96.9,
+      recall: 92.6,
+      f1: 94.7,
+      tp: 125, fp: 4, tn: 24, fn: 10,
+    },
+    thresholds: { veracity: 0.65, alignment: 0.30 },
+  },
+  dataset: { n: 163, misinfo: 136, legitimate: 27 },
+}
+
+// YouTube video URL
+const VIDEO_URL = 'https://youtu.be/uoD6gL2l934'
 
 function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
   const [centerIndex, setCenterIndex] = useState(0)
@@ -68,6 +90,8 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
     return 'left'
   }
 
+  const d = VALIDATION_DATA.q
+
   return (
     <div className="splash">
       {/* Hero Section */}
@@ -85,7 +109,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
           </h1>
           <p className="splash-subtitle">
             MedContext is an AI-powered tool that detects medical misinformation
-            by analyzing whether claims match their images &mdash; not just
+            by analyzing whether claims match their images — not just
             whether images are doctored.
           </p>
           <div className="splash-cta">
@@ -100,6 +124,22 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
               See the Evidence
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Video Section */}
+      <section className="card splash-video">
+        <h2 className="splash-section-title">See MedContext in Action</h2>
+        <div className="video-container">
+          <iframe
+            width="100%"
+            height="400"
+            src={VIDEO_URL}
+            title="MedContext Demo"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </div>
       </section>
 
@@ -150,63 +190,38 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
                         }
                       : undefined
                   }
+                  aria-label={isCenter ? `Example ${index + 1}: ${card.claim}. Click to flip.` : undefined}
                 >
-                  <div
-                    className={`card-inner ${isFlipped ? 'card-flipped' : ''}`}
-                  >
-                    {/* Front — image + claim only, no verdict */}
-                    <div className="card-front">
-                      <img
-                        src={card.image}
-                        alt={`Demo: ${card.claim.slice(0, 40)}...`}
-                        className="card-image"
-                      />
-                      <div className="card-overlay">
-                        <p className="card-claim">&ldquo;{card.claim}&rdquo;</p>
-                        <p className="card-flip-hint">Tap to reveal verdict</p>
+                  <div className={`flipper ${isFlipped ? 'flipped' : ''}`}>
+                    {/* Front */}
+                    <div className="card-face card-front">
+                      <div className="card-image-wrapper">
+                        <img src={card.image} alt={`Example ${index + 1}`} />
+                      </div>
+                      <div className="card-content-front">
+                        <p className="card-claim">{card.claim}</p>
+                        <span className={`verdict-badge ${card.verdict}`}>
+                          {card.badgeLabel}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Back — verdict + analysis */}
-                    <div className="card-back">
-                      <span
-                        className={`verdict-badge ${
-                          card.verdict === 'misinformation'
-                            ? 'verdict-misinfo'
-                            : 'verdict-legit'
-                        }`}
-                      >
-                        {card.badgeLabel}
-                      </span>
-                      <h3>{card.backTitle}</h3>
-                      <p className="card-back-text">{card.backText}</p>
-                      <div className="signal-bars">
-                        <div className="signal-row">
-                          <span className="signal-label">Veracity</span>
-                          <span
-                            className={`signal-value ${
-                              card.veracity === 'Accurate'
-                                ? 'signal-high'
-                                : 'signal-medium'
-                            }`}
-                          >
-                            {card.veracity}
-                          </span>
-                        </div>
-                        <div className="signal-row">
-                          <span className="signal-label">Alignment</span>
-                          <span
-                            className={`signal-value ${
-                              card.alignment === 'Aligned'
-                                ? 'signal-high'
-                                : 'signal-low'
-                            }`}
-                          >
-                            {card.alignment}
-                          </span>
+                    {/* Back */}
+                    <div className="card-face card-back">
+                      <div className="card-content-back">
+                        <h4>{card.backTitle}</h4>
+                        <p>{card.backText}</p>
+                        <div className="analysis-details">
+                          <div className="analysis-item">
+                            <span className="analysis-label">Veracity:</span>
+                            <span className="analysis-value">{card.veracity}</span>
+                          </div>
+                          <div className="analysis-item">
+                            <span className="analysis-label">Alignment:</span>
+                            <span className="analysis-value">{card.alignment}</span>
+                          </div>
                         </div>
                       </div>
-                      <p className="card-back-hint">Click to flip back</p>
                     </div>
                   </div>
                 </div>
@@ -225,49 +240,12 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
             </svg>
           </button>
         </div>
-
-        {/* Carousel dots */}
-        <div className="carousel-dots">
-          {DEMO_CARDS.map((card, index) => (
-            <button
-              key={card.id}
-              type="button"
-              className={`carousel-dot ${index === centerIndex ? 'carousel-dot-active' : ''}`}
-              onClick={() => {
-                setFlippedCards({})
-                setCenterIndex(index)
-              }}
-              aria-label={`Go to card ${index + 1}`}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Video + Description Section */}
-      <section className="card splash-video-section">
-        <h2 className="splash-section-title">See It In Action</h2>
-        <p className="splash-section-subtitle">
-          Watch how MedContext analyzes real medical misinformation in under two minutes.
-        </p>
-        <div className="video-embed-wrapper">
-          {/* Replace YOUR_VIDEO_ID with the actual YouTube video ID */}
-          <div className="video-embed-placeholder">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-            <p>YouTube video embed goes here</p>
-            <p className="helper">
-              Replace the placeholder in SplashPage.jsx with:<br />
-              <code>&lt;iframe src=&quot;https://www.youtube.com/embed/YOUR_VIDEO_ID&quot; ...&gt;</code>
-            </p>
-          </div>
-        </div>
       </section>
 
       {/* How It Works */}
       <section className="card splash-how">
-        <h2 className="splash-section-title">How It Works</h2>
-        <div className="how-steps">
+        <h2 className="splash-section-title">How MedContext Works</h2>
+        <div className="how-grid">
           <div className="how-step">
             <div className="how-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -276,27 +254,27 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
                 <polyline points="21 15 16 10 5 21" />
               </svg>
             </div>
-            <h3>Submit Image + Claim</h3>
-            <p>Upload a medical image and the claim being made about it.</p>
+            <h3>Upload Image</h3>
+            <p>Share a medical image and accompanying claim.</p>
           </div>
           <div className="how-arrow">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </div>
           <div className="how-step">
             <div className="how-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a10 10 0 1 0 10 10" />
-                <path d="M12 12l7-7" />
-                <circle cx="12" cy="12" r="3" />
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
               </svg>
             </div>
-            <h3>AI Analyzes Context</h3>
-            <p>MedGemma assesses claim veracity and image-claim alignment.</p>
+            <h3>Analyze Context</h3>
+            <p>AI examines veracity (claim truth) and alignment (image-claim match).</p>
           </div>
           <div className="how-arrow">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </div>
@@ -313,12 +291,12 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
         </div>
       </section>
 
-      {/* Validation Teaser */}
-      <section className="card splash-teaser">
+      {/* S-Curve Validation Teaser */}
+      <section className="card splash-teaser" style={{ background: 'linear-gradient(135deg, rgba(42, 157, 143, 0.1) 0%, rgba(45, 184, 138, 0.05) 100%)' }}>
         <p className="teaser-text">
-          We tested <strong>3 MedGemma variants</strong> &mdash; 4B instruction-tuned,
-          4B pre-trained, and 4B quantized (Q4_KM) &mdash; on 163 real-world medical claims.
-          Which model catches the most misinformation?
+          We tested MedContext on <strong>163 real health-related image-claim pairs</strong> from the Med-MMHL benchmark.
+          Individual signals achieved only 71-78% accuracy — but <strong>combined optimization 
+          unlocks 91.4%</strong>. See the S-curve breakthrough.
         </p>
         <button
           type="button"
@@ -329,16 +307,26 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
         </button>
       </section>
 
-      {/* Stats Bar */}
+      {/* Stats Bar with S-Curve Data */}
       <section className="card splash-stats">
         <div className="stat-item">
-          <span className="stat-value">94.5%</span>
-          <span className="stat-label">Avg. Veracity + Alignment Accuracy</span>
+          <span className="stat-value" style={{ color: '#E63946' }}>{d.veracity.toFixed(0)}%</span>
+          <span className="stat-label">Veracity Only</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
-          <span className="stat-value">163</span>
-          <span className="stat-label">Real-World Examples Tested</span>
+          <span className="stat-value" style={{ color: '#F4A261' }}>{d.alignment.toFixed(0)}%</span>
+          <span className="stat-label">Alignment Only</span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat-item" style={{ background: 'rgba(42, 157, 143, 0.1)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
+          <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '2.2rem' }}>{d.optimized.toFixed(1)}%</span>
+          <span className="stat-label"><strong>Optimized</strong></span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat-item">
+          <span className="stat-value">{d.n}</span>
+          <span className="stat-label">Test Samples</span>
         </div>
         <div className="stat-divider" />
         <div

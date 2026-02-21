@@ -430,24 +430,6 @@ button.secondary:hover {
   color: var(--tone-neutral-fg);
 }
 
-.badge-high,
-.status-high {
-  background: var(--tone-high-bg);
-  color: var(--tone-high-fg);
-}
-
-.badge-medium,
-.status-medium {
-  background: var(--tone-medium-bg);
-  color: var(--tone-medium-fg);
-}
-
-.badge-low,
-.status-low {
-  background: var(--tone-low-bg);
-  color: var(--tone-low-fg);
-}
-
 .span-2 {
   grid-column: span 2;
 }

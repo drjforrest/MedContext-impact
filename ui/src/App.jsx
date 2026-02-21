@@ -43,7 +43,7 @@ function renderTriIcon(status, cx, cy) {
 }
 
 const defaultApiBase =
-  import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+  import.meta.env.VITE_API_BASE || ''
 const getStoredApiBase = () => {
   if (typeof window === 'undefined') {
     return defaultApiBase

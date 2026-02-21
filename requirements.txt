@@ -7,6 +7,7 @@ uvicorn==0.34.0
 starlette==0.45.3
 python-multipart==0.0.21
 h11==0.16.0
+web3>=7,<8
 
 # Data validation
 pydantic==2.12.0

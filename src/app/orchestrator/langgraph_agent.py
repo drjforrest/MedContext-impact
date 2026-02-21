@@ -201,7 +201,8 @@ class MedContextLangGraphAgent:
 
         return graph.compile()
 
-    def _should_continue_after_triage(self, state: AgentState) -> str:
+    @staticmethod
+    def _should_continue_after_triage(state: AgentState) -> str:
         if any(e.get("fatal") for e in state.get("errors", [])):
             return "fatal_error"
         return "continue"
@@ -440,10 +441,9 @@ class MedContextLangGraphAgent:
         # Summarise pre-screen context for the LLM
         pre_screen_summary = ""
         if pre_screen:
-            lines = []
-            lines.append(
+            lines = [
                 f"- File format: {'DICOM' if pre_screen.get('is_dicom') else 'standard image (PNG/JPEG)'}"
-            )
+            ]
             if pre_screen.get("metadata_flags"):
                 lines.append(f"- EXIF flags: {', '.join(pre_screen['metadata_flags'])}")
             if pre_screen.get("claim_flags"):
@@ -533,8 +533,9 @@ class MedContextLangGraphAgent:
                     medical_analysis, context, pre_screen
                 )
 
+    @staticmethod
     def _pre_screen_integrity(
-        self, image_bytes: bytes, context: str | None
+        image_bytes: bytes, context: str | None
     ) -> dict[str, Any]:
         """Fast structural pre-screen for integrity signals — no ML, runs before tool selection.
 
@@ -757,10 +758,9 @@ class MedContextLangGraphAgent:
         # Summarise pre-screen context for the LLM
         pre_screen_summary = ""
         if pre_screen:
-            lines = []
-            lines.append(
+            lines = [
                 f"- File format: {'DICOM' if pre_screen.get('is_dicom') else 'standard image (PNG/JPEG)'}"
-            )
+            ]
             if pre_screen.get("metadata_flags"):
                 lines.append(f"- EXIF flags: {', '.join(pre_screen['metadata_flags'])}")
             if pre_screen.get("claim_flags"):
@@ -848,7 +848,8 @@ class MedContextLangGraphAgent:
             # Fallback: infer tools from pre-screen signals + medical analysis
             return self._fallback_tool_selection(medical_analysis, context, pre_screen)
 
-    def _build_tool_descriptions(self, enabled: frozenset[str]) -> str:
+    @staticmethod
+    def _build_tool_descriptions(enabled: frozenset[str]) -> str:
         """Build the tool descriptions section for the tool selection prompt."""
         descriptions = {
             "reverse_search": (
@@ -1095,7 +1096,8 @@ class MedContextLangGraphAgent:
                     raw_text=str(e2),
                 )
 
-    def _alignment_system(self) -> str:
+    @staticmethod
+    def _alignment_system() -> str:
         return (
             "You are a clinical image-context alignment analyzer with THREE distinct jobs:\n\n"
             "JOB 1 — IMAGE DESCRIPTION: Describe in appropriate medical language what is "
@@ -1141,8 +1143,8 @@ class MedContextLangGraphAgent:
             "OUTPUT: Always return valid JSON. Start with { and end with }."
         )
 
+    @staticmethod
     def _build_alignment_prompt(
-        self,
         triage: Any,
         tool_results: dict[str, Any],
         context: str | None,
@@ -1558,8 +1560,9 @@ class MedContextLangGraphAgent:
             },
         }
 
+    @staticmethod
     def _extract_alignment_signal(
-        self, synthesis_output: dict[str, Any]
+        synthesis_output: dict[str, Any],
     ) -> tuple[float | None, str | None]:
         alignment_block = synthesis_output.get("part_2") or {}
         if not isinstance(alignment_block, dict):
@@ -1584,8 +1587,9 @@ class MedContextLangGraphAgent:
         confidence_val = max(0.0, min(1.0, confidence_val))
         return base * confidence_val, label_normalized
 
+    @staticmethod
     def _extract_claim_veracity(
-        self, synthesis_output: dict[str, Any]
+        synthesis_output: dict[str, Any],
     ) -> dict[str, str | None]:
         alignment_block = synthesis_output.get("part_2") or {}
         if not isinstance(alignment_block, dict):
@@ -1619,9 +1623,8 @@ class MedContextLangGraphAgent:
             "public_health_context": None,
         }
 
-    def _extract_plausibility(
-        self, triage: Any, context: str | None = None
-    ) -> float | None:
+    @staticmethod
+    def _extract_plausibility(triage: Any, context: str | None = None) -> float | None:
         """Extract plausibility from the new triage structure with medical_analysis"""
         if isinstance(triage, dict):
             # New structure: triage contains medical_analysis
@@ -1653,7 +1656,8 @@ class MedContextLangGraphAgent:
 
         return None
 
-    def _derive_source_reputation(self, tool_results: dict[str, Any]) -> float | None:
+    @staticmethod
+    def _derive_source_reputation(tool_results: dict[str, Any]) -> float | None:
         results = tool_results.get("reverse_search_results")
         if not isinstance(results, dict):
             return None
@@ -1670,7 +1674,8 @@ class MedContextLangGraphAgent:
             return None
         return max(0.0, min(1.0, sum(confidences) / len(confidences)))
 
-    def _derive_forensics_score(self, tool_results: dict[str, Any]) -> float | None:
+    @staticmethod
+    def _derive_forensics_score(tool_results: dict[str, Any]) -> float | None:
         forensics = tool_results.get("forensics")
         if not isinstance(forensics, dict) or forensics.get("status") != "completed":
             return None
@@ -1685,9 +1690,8 @@ class MedContextLangGraphAgent:
             return 1.0 - float(confidence)
         return 0.5
 
-    def _derive_genealogy_consistency(
-        self, tool_results: dict[str, Any]
-    ) -> float | None:
+    @staticmethod
+    def _derive_genealogy_consistency(tool_results: dict[str, Any]) -> float | None:
         provenance = tool_results.get("provenance")
         if not isinstance(provenance, dict):
             return None
@@ -1732,7 +1736,8 @@ class MedContextLangGraphAgent:
 
         return "The image provided appears to be a medical image."
 
-    def _build_factual_prompt(self, triage: Any) -> str:
+    @staticmethod
+    def _build_factual_prompt(triage: Any) -> str:
         """Build prompt for factual description from triage data"""
         if isinstance(triage, dict):
             medical_analysis = triage.get("medical_analysis", {})
@@ -1753,7 +1758,8 @@ class MedContextLangGraphAgent:
             'Return JSON: {"image_description": "<your single sentence description>"}'
         )
 
-    def _detect_image_format(self, image_bytes: bytes) -> str | None:
+    @staticmethod
+    def _detect_image_format(image_bytes: bytes) -> str | None:
         if not image_bytes:
             return None
         header = image_bytes[:12]
@@ -1778,7 +1784,8 @@ class MedContextLangGraphAgent:
         encoded = base64.b64encode(image_bytes).decode("ascii")
         return f"data:image/{image_format};base64,{encoded}"
 
-    def _sanitize_tools(self, tools: list[str]) -> list[str]:
+    @staticmethod
+    def _sanitize_tools(tools: list[str]) -> list[str]:
         allowed = settings.get_enabled_addons()
         normalized = []
         for tool in tools:
@@ -1816,18 +1823,20 @@ class MedContextLangGraphAgent:
                 )
         return results
 
-    def _generate_image_id(self) -> str:
+    @staticmethod
+    def _generate_image_id() -> str:
         from uuid import uuid4
 
         return str(uuid4())
 
-    def _generate_trace_id(self) -> str:
+    @staticmethod
+    def _generate_trace_id() -> str:
         from uuid import uuid4
 
         return str(uuid4())
 
+    @staticmethod
     def _append_trace(
-        self,
         state: AgentState,
         node: str,
         data: dict[str, Any],
@@ -1847,8 +1856,8 @@ class MedContextLangGraphAgent:
             }
         )
 
+    @staticmethod
     def _check_threshold_optimization_recommendation(
-        self,
         context: str | None,
         current_veracity: float | None,
         current_alignment: float | None,

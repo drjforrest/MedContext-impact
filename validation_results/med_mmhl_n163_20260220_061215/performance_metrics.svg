@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; }
+      .metric-name { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .metric-value { font-family: Arial, sans-serif; font-size: 32px; font-weight: bold; }
+      .metric-desc { font-family: Arial, sans-serif; font-size: 11px; fill: #666; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="600" height="400" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="300" y="35" text-anchor="middle" class="title">Overall Performance Metrics (n=163)</text>
+  
+  <!-- Metric cards -->
+  <!-- Accuracy -->
+  <rect x="50" y="70" width="240" height="140" fill="white" stroke="#2E86AB" stroke-width="3" rx="8"/>
+  <text x="170" y="110" text-anchor="middle" class="metric-name" fill="#2E86AB">Accuracy</text>
+  <text x="170" y="160" text-anchor="middle" class="metric-value" fill="#2E86AB">91.4%</text>
+  <text x="170" y="190" text-anchor="middle" class="metric-desc">Correct predictions</text>
+  
+  <!-- Precision -->
+  <rect x="310" y="70" width="240" height="140" fill="white" stroke="#A23B72" stroke-width="3" rx="8"/>
+  <text x="430" y="110" text-anchor="middle" class="metric-name" fill="#A23B72">Precision</text>
+  <text x="430" y="160" text-anchor="middle" class="metric-value" fill="#A23B72">96.9%</text>
+  <text x="430" y="190" text-anchor="middle" class="metric-desc">Flagged correctly</text>
+  
+  <!-- Recall -->
+  <rect x="50" y="230" width="240" height="140" fill="white" stroke="#F18F01" stroke-width="3" rx="8"/>
+  <text x="170" y="270" text-anchor="middle" class="metric-name" fill="#F18F01">Recall</text>
+  <text x="170" y="320" text-anchor="middle" class="metric-value" fill="#F18F01">92.6%</text>
+  <text x="170" y="350" text-anchor="middle" class="metric-desc">Misinfo caught</text>
+  
+  <!-- F1 Score -->
+  <rect x="310" y="230" width="240" height="140" fill="white" stroke="#C73E1D" stroke-width="3" rx="8"/>
+  <text x="430" y="270" text-anchor="middle" class="metric-name" fill="#C73E1D">F1 Score</text>
+  <text x="430" y="320" text-anchor="middle" class="metric-value" fill="#C73E1D">94.7%</text>
+  <text x="430" y="350" text-anchor="middle" class="metric-desc">Harmonic mean</text>
+</svg>

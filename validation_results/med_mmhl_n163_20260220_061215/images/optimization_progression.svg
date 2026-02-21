@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 20px; font-weight: bold; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 14px; fill: #666; }
+      .stage-title { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; }
+      .metric { font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; }
+      .label { font-family: Arial, sans-serif; font-size: 12px; fill: #666; }
+      .arrow { stroke: #333; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .box { stroke: #333; stroke-width: 2; rx: 8; }
+      .plus { font-family: Arial, sans-serif; font-size: 32px; font-weight: bold; fill: #666; }
+      .equals { font-family: Arial, sans-serif; font-size: 32px; font-weight: bold; fill: #666; }
+      .optimization { font-family: Arial, sans-serif; font-size: 13px; font-style: italic; fill: #2A9D8F; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="400" y="40" text-anchor="middle" class="title">How Contextual Optimization Improves Accuracy</text>
+  <text x="400" y="65" text-anchor="middle" class="subtitle">From Individual Signals to Optimized Combined Performance</text>
+  
+  <!-- Stage 1: Veracity Alone -->
+  <rect x="50" y="100" width="200" height="140" fill="#E8F4F8" class="box"/>
+  <text x="150" y="130" text-anchor="middle" class="stage-title" fill="#1D3557">Step 1: Veracity Only</text>
+  <text x="150" y="170" text-anchor="middle" class="metric" fill="#E63946">71.2%</text>
+  <text x="150" y="195" text-anchor="middle" class="label">Claim truthfulness</text>
+  <text x="150" y="212" text-anchor="middle" class="label">alone misses image cues</text>
+  
+  <!-- Plus sign -->
+  <text x="290" y="180" class="plus">+</text>
+  
+  <!-- Stage 2: Alignment Alone -->
+  <rect x="330" y="100" width="200" height="140" fill="#FFF3E0" class="box"/>
+  <text x="430" y="130" text-anchor="middle" class="stage-title" fill="#1D3557">Step 2: Alignment Only</text>
+  <text x="430" y="170" text-anchor="middle" class="metric" fill="#F4A261">77.9%</text>
+  <text x="430" y="195" text-anchor="middle" class="label">Image-claim match</text>
+  <text x="430" y="212" text-anchor="middle" class="label">alone misses claim truth</text>
+  
+  <!-- Arrow to optimization -->
+  <line x1="150" y1="260" x2="150" y2="290" class="arrow"/>
+  <line x1="430" y1="260" x2="430" y2="290" class="arrow"/>
+  
+  <!-- Optimization Box -->
+  <rect x="100" y="310" width="600" height="120" fill="#E8F5E9" class="box" stroke="#2A9D8F" stroke-width="3"/>
+  <text x="400" y="340" text-anchor="middle" class="stage-title" fill="#2A9D8F">Step 3: Hierarchical Optimization</text>
+  
+  <!-- Optimization details -->
+  <text x="200" y="370" text-anchor="middle" class="optimization">• Veracity threshold: 0.65 (not 0.5)</text>
+  <text x="200" y="390" text-anchor="middle" class="optimization">• Alignment threshold: 0.30 (not 0.5)</text>
+  <text x="200" y="410" text-anchor="middle" class="optimization">• VERACITY_FIRST logic</text>
+  
+  <text x="550" y="370" text-anchor="middle" class="optimization">• High veracity → Not misinfo</text>
+  <text x="550" y="390" text-anchor="middle" class="optimization">• Low veracity → Check alignment</text>
+  <text x="550" y="410" text-anchor="middle" class="optimization">• Smart tie-breaking</text>
+  
+  <!-- Arrow to result -->
+  <line x1="400" y1="440" x2="400" y2="470" class="arrow" stroke="#2A9D8F" stroke-width="4"/>
+  
+  <!-- Final Result -->
+  <rect x="250" y="490" width="300" height="90" fill="#2A9D8F" class="box" stroke="#1D3557" stroke-width="3"/>
+  <text x="400" y="525" text-anchor="middle" class="stage-title" fill="white">Final: Combined Contextual</text>
+  <text x="400" y="560" text-anchor="middle" class="metric" fill="white">91.4%</text>
+  
+  <!-- Gain annotation -->
+  <text x="680" y="535" text-anchor="middle" class="label" fill="#2A9D8F" font-weight="bold" font-size="14">+13-20%</text>
+  <text x="680" y="555" text-anchor="middle" class="label" fill="#666">improvement</text>
+  <text x="680" y="572" text-anchor="middle" class="label" fill="#666">over individual</text>
+  <text x="680" y="589" text-anchor="middle" class="label" fill="#666">signals</text>
+  
+  <!-- Bottom note -->
+  <text x="400" y="620" text-anchor="middle" class="label" font-size="11">
+    The hierarchical combination with optimized thresholds (0.65/0.30) outperforms simple threshold (0.5) on individual signals
+  </text>
+</svg>

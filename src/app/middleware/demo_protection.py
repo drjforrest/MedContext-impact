@@ -23,7 +23,8 @@ class DemoProtectionMiddleware(BaseHTTPMiddleware):
         self._rate_limit_requests = 10  # requests per hour
         self._rate_limit_window = 3600  # 1 hour in seconds
 
-    def _get_client_ip(self, request: Request) -> str:
+    @staticmethod
+    def _get_client_ip(request: Request) -> str:
         """Extract client IP from request."""
         # Check X-Forwarded-For for proxy/load balancer scenarios
         forwarded = request.headers.get("X-Forwarded-For")
@@ -48,7 +49,8 @@ class DemoProtectionMiddleware(BaseHTTPMiddleware):
         self._request_log[ip].append(now)
         return True
 
-    def _is_protected_endpoint(self, path: str) -> bool:
+    @staticmethod
+    def _is_protected_endpoint(path: str) -> bool:
         """Check if endpoint requires protection."""
         # Protect main API endpoints, but not health check or docs
         protected_prefixes = [
@@ -59,7 +61,8 @@ class DemoProtectionMiddleware(BaseHTTPMiddleware):
         ]
         return any(path.startswith(prefix) for prefix in protected_prefixes)
 
-    def _validate_access_code(self, request: Request) -> bool:
+    @staticmethod
+    def _validate_access_code(request: Request) -> bool:
         """Validate access code from header or query param."""
         # Skip validation if no demo code is configured (local dev)
         if not settings.demo_access_code:

@@ -21,7 +21,8 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
 
     provider_name = "local_api"
 
-    def _resolve_model_name(self, model: str) -> str:
+    @staticmethod
+    def _resolve_model_name(model: str) -> str:
         """Query the local server's /v1/models to get the actual loaded model ID."""
         api_model = model
         if "/" in api_model:
@@ -142,7 +143,8 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
         ok, _ = await self.check_health_with_model()
         return ok
 
-    async def check_health_with_model(self) -> tuple[bool, str | None]:
+    @staticmethod
+    async def check_health_with_model() -> tuple[bool, str | None]:
         """Check LM Studio availability. Returns (available, loaded_model_id)."""
         try:
             async with httpx.AsyncClient(timeout=2.0) as client:

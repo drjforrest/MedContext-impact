@@ -1,76 +1,141 @@
-# MedContext: Contextual Authenticity Detection for Medical Images
+# MedContext-Competition Submission
+---
+**Project URL:** https://medcontext.drjforrest.com  
+**Repository:** https://github.com/drjforrest/medcontext  
+**Date:** February 20, 20261`1`1
+---
 
-**Team:** Jamie I. Forrest, PhD, MPH (Counterforce AI)
-**Affiliation:** Health Equity & Resilience Observatory, Faculty of Applied Science, University of British Columbia
-**Category:** Agentic AI System | Medical AI & Healthcare Innovation
+## Executive Summary
+
+MedContext is an AI-powered tool that detects medical misinformation by analyzing **contextual authenticity**—whether claims match their images. Unlike pixel-forensics tools that detect manipulated images, MedContext addresses the more common threat: **authentic images used in misleading contexts**.
+
+**Key Innovation:** Hierarchical optimization transforms weak individual signals (71-78% accuracy) into a robust 91.4% accurate detector through smart thresholding and VERACITY_FIRST logic.
 
 ---
 
 ## The Problem
 
-Medical misinformation is a global health crisis — but the dominant threat is not what most people assume. A comprehensive scoping review of approximately 100 sources (Forrest 2026) reveals that the majority of visual medical misinformation consists of authentic images paired with false or misleading claims. Sophisticated deepfakes accounted for 0% of visual misinformation in COVID-19 studies. The real weapon is not image fabrication, it's context manipulation.
+Medical misinformation doesn't require fake images. The dominant real-world threat uses:
+- **Authentic medical scans** (X-rays, CT, clinical photos)
+- **False or misleading claims** about those images
+- **Strategic image-claim pairing** that creates false credibility
 
-This distinction matters because it renders pixel-level forensics fundamentally inadequate. If the image itself is authentic, there is nothing at the pixel level to detect. Yet the vast majority of existing detection tools target exactly this scenario, optimizing for synthetic benchmarks that do not reflect a real threat distribution.
-
-## Proof of Justification (Empirical Motivation)
-
-MedContext was developed **empirically motivated**, not feature-driven. The empirical studies below demonstrate why the contextual approach (veracity + alignment) is necessary and validate the approach on real-world medical misinformation. See [PROOF_OF_JUSTIFICATION.md](./PROOF_OF_JUSTIFICATION.md) for detailed methodology.
-
-**PoJ 1 — ELA on UCI Tamper Detection (n=326 DICOM images):** We evaluated ELA (Error Level Analysis), compression artefact detection, and EXIF metadata with bootstrap resampling across 1,000 iterations. This served as a negative control to demonstrate tool-format incompatibility.
-
-**ELA Result:** 49.9% accuracy [95% CI: 44.5%, 55.5%] — statistically indistinguishable from chance. This result was foreseeable: ELA specifically depends on JPEG compression artifacts (quantization table inconsistencies and recompression errors), while DICOM uses lossless or wavelet-based compression that does not produce these artifacts. _What we proved:_ ELA is format-specific and fails on DICOM due to fundamentally different compression mechanisms, not general ineffectiveness. This demonstrates that medical image forensics requires format-aware tool selection. _Limitation:_ This experiment does not assess ELA's performance on JPEG medical images (where it may perform well). Future work should evaluate compression-aware forensics methods on appropriate formats or re-run ELA on JPEG-encoded medical misinformation.
-
-**Med-MMHL Validation — Real-world medical misinformation benchmark (n=163 samples from Med-MMHL test set):** We validated MedContext against the Med-MMHL (Medical Multimodal Misinformation Benchmark), a research-grade dataset of real-world medical misinformation from fact-checking organizations. Validation was performed on MedGemma 4B variants only (Instruction-Tuned via Hugging Face and Quantized GGUF via LM Studio). The MedGemma 27B text-only model cannot accept JPG/PNG images and was not validated.
-
-| Method                    | Approach                              | Accuracy  |
-| ------------------------- | ------------------------------------- | --------- |
-| **Veracity Only**         | Claim analysis alone                  | 71.8%     |
-| **Alignment Only**        | Image-claim pair alone                | 71.2%     |
-| **Combined System (4B Quantized)** | Veracity + Alignment (5-fold CV)      | **92.0%** |
-
-**Bootstrap 95% CI (4B Quantized):** Accuracy [87.7%, 95.7%], Precision 96.2%, Recall 94.1%, F1 0.951
-
-**Key Finding:** Single contextual signals alone are insufficient—veracity achieves only 71.8% and alignment 71.2%. The combined system achieves 92.0% accuracy (95% CI: 87.7%-95.7%) with strong precision/recall, demonstrating that both dimensions are necessary for effective detection. Decision thresholds (veracity < 0.65, alignment < 0.30) were determined via 5-fold stratified cross-validation to avoid test-set contamination.
-
-**Validation notes:** (1) Med-MMHL contains real-world medical misinformation from fact-checkers (LeadStories, FactCheck.org, Snopes). (2) 163-sample stratified random subset (seed=42) from 1,785 total test samples (83.4% misinformation rate, closely approximating the 83.0% base rate). (3) Validation used 2 of 4 contextual signals (veracity and alignment via MedGemma 4B; reverse image search and provenance chain not activated). (4) **Validation models:** `google/medgemma-1.1-4b-it` (Hugging Face Inference API) and `google/medgemma-1.1-4b-it.gguf` (Quantized via LM Studio). **Production model:** `google/medgemma-1.5-4b-it` (4B multimodal, JPEG/PNG) for cost-efficient web image inference. See VALIDATION.md Part 11 and MODEL_CLARIFICATION.md for details.
-
-## Solution: Agentic Contextual Authenticity
-
-MedContext is an agentic AI system that assesses whether a medical image's accompanying claim is both medically accurate and supported by the visual evidence. The architecture separates clinical reasoning from strategic orchestration — an intentional design principle we describe as _"the doctor does doctor work; the manager does management work."_
-
-### Architecture
-
-The system operates in three phases:
-
-**Phase 1 — Triage.** MedGemma performs clinical analysis: image type identification, anatomical findings, and claim plausibility assessment. This medical context is passed to a separate orchestrator LLM (Gemini 2.5 Pro), which decides which investigative tools to deploy based on the clinical assessment and claim characteristics. **Production deployment** uses `google/medgemma-1.5-4b-it` (4B multimodal, JPEG/PNG) for cost-efficient inference with standard web images; **validation experiments** used `google/medgemma-27b-it` (27B, HuggingFace) for superior text reasoning on claim veracity and alignment — the appropriate choice since Med-MMHL misinformation is claim-based rather than image-manipulation-based, and the 27B DICOM-only Vertex variant is not format-compatible with web images.
-
-**Phase 2 — Dynamic Tool Dispatch.** The orchestrator invokes only the tools warranted by the triage — reverse image search via Google Cloud Vision API Web Detection for context verification, pixel forensics if manipulation is suspected, or provenance verification (C2PA manifest reading, SHA-256 hash-chained observation blocks, optional Polygon blockchain anchoring). For medically plausible claims with clear image alignment, unnecessary tools are skipped, reducing computational cost without sacrificing accuracy.
-
-**Phase 3 — Evidence Synthesis.** The orchestrator aggregates MedGemma's clinical analysis with tool results into an explainable verdict — a veracity–alignment matrix that independently scores claim accuracy and image–claim alignment. Each assessment includes traceable reasoning with clear attribution ("per MedGemma's clinical analysis" versus "per investigative evidence").
-
-This separation of concerns prevents domain overstepping: MedGemma never makes strategic decisions about which tools to run, and the orchestrator never makes medical judgements. LangGraph provides workflow visualisation and state management for the agentic pipeline.
-
-### MedGemma Integration
-
-MedGemma serves as the clinical reasoning backbone across multiple deployment configurations — HuggingFace (minimal setup), Vertex AI (production-grade), local inference (privacy-preserving), and vLLM (high-throughput). Its medical training data makes it uniquely suited for anatomical assessment and claim plausibility evaluation in ways that general-purpose LLMs are not. When the orchestrator LLM is unavailable, MedGemma serves as a complete fallback, ensuring the system degrades gracefully rather than failing.
-
-## Implementation Quality
-
-MedContext is production-ready, not a prototype:
-
-- **4,100+ lines** of Python across a modular FastAPI backend with SQLAlchemy/PostgreSQL, Alembic migrations, and comprehensive error handling
-- **51/51 tests passing** covering image integrity scoring, provenance chain verification, blockchain anchoring, reverse search caching, MedGemma Vertex AI integration, and agentic workflow defaults
-- **Security hardened** with prompt injection protection (user context wrapped in explicit data-only markers), SSRF prevention via IP validation, tool whitelist enforcement, and rate-limited demo access
-- **Full-stack deployment** with React 19 frontend, Docker support with health checks, and a Telegram bot for field verification
-- **Reproducible** via documented setup with `.env.example` and Docker Compose
-
-## Real-World Impact
-
-MedContext is designed for deployment through the Health Equity & Resilience Observatory (HERO) at UBC, targeting clinical and public health settings across African health systems and other settings — environments where medical misinformation causes measurable harm and where resource constraints demand efficient, explainable tools. The Telegram bot integration provides accessible verification in settings where web applications are impractical. The system's cache-aware design and adaptive tool selection minimize API costs for sustained deployment.
-
-The core insight: contextual authenticity, not pixel forensics, addresses the dominant misinformation threat and reframes the problem in a way that has implications beyond this specific tool, informing how health systems and platforms approach medical image verification at scale.
+Current solutions focus on pixel forensics (detecting Photoshop), missing the contextual deception that represents the majority of medical misinformation.
 
 ---
 
-**Repository:** [github.com/drjforrest/MedContext-impact](https://github.com/drjforrest/MedContext-impact)
-**Navigation:** See [START_HERE.md](../START_HERE.md) for judge-optimised reading paths (2-min, 10-min, 30-min)
+## The Solution
+
+MedContext evaluates two contextual signals:
+
+1. **Claim Veracity**-Is the accompanying claim medically accurate?
+2. **Image-Claim Alignment**-Does the image actually support the claim?
+
+**The Breakthrough:** Individual signals are weak (71.2% and 77.9% accuracy). Simple combination helps modestly (~80%). But **hierarchical optimization with tuned thresholds (0.65/0.30)** unlocks the inflection point: **91.4% accuracy**.
+
+### The S-Curve
+
+```
+71% ── Veracity Only (plateau)
+78% ── Alignment Only (plateau)
+80% ── Simple OR (plateau)
+     ╲
+      ╲  ← INFLECTION POINT: Optimization
+       ╲
+91% ──── Optimized (breakthrough!)
+```
+
+**Why it works:** VERACITY_FIRST logic with asymmetric thresholds. High veracity threshold (0.65) requires strong evidence before calling something "not misinformation." Low alignment threshold (0.30) only flags obvious mismatches. This bias toward caution maximizes recall without sacrificing precision.
+
+---
+
+## Validation Results
+
+**Dataset:** Med-MMHL (Medical Multimodal Misinformation Benchmark)  
+**Sample:** n=163 stratified random (seed=42)  
+**Model:** MedGemma 4B IT Quantized (Q4_KM, ~4-bit)
+
+| Metric        | Value |
+|---------------|-------|
+| **Accuracy**  | 91.4% |
+| **Precision** | 96.9% |
+| **Recall**    | 92.6% |
+| **F1 Score**  | 94.7% |
+
+**Confusion Matrix:**
+- True Positives: 125 (misinformation correctly flagged)
+- True Negatives: 24 (legitimate correctly identified)
+- False Positives: 4 (legitimate incorrectly flagged - 2.5%)
+- False Negatives: 10 (misinformation missed - 6.1%)
+
+### Individual vs. Optimized Performance
+
+| Approach           | Accuracy  | Gap         |
+|--------------------|-----------|-------------|
+| Veracity Only      | 71.2%     | —           |
+| Alignment Only     | 77.9%     | —           |
+| Optimized Combined | **91.4%** | **+13-20%** |
+
+The optimization breakthrough demonstrates that **arrangement matters more than combination alone**.
+
+---
+
+## Technical Architecture
+
+**Core Components:**
+- **MedGemma 4B** (Google's medical multimodal model) for vision-language understanding
+- **LangGraph agent** for orchestrated analysis
+- **Hierarchical decision logic** (VERACITY_FIRST)
+- **Optimized thresholds** (0.65 veracity, 0.30 alignment)
+
+**Efficiency:** Quantized 4-bit model runs locally via llama-cpp-python—no cloud dependency, suitable for deployment in resource-constrained environments.
+
+**Add-on Modules:**
+- Pixel forensics (ELA, copy-move detection) for manipulated images
+- Reverse image search for source verification
+- Provenance tracking via blockchain-style hashing
+
+---
+
+## Key Insights
+
+1. **Contextual authenticity ≠ pixel authenticity.** The majority of medical misinformation uses authentic images in misleading contexts—not manipulated images.
+
+2. **Optimization > Combination.** Simply combining signals achieves ~80%. Hierarchical optimization with tuned thresholds achieves 91.4%.
+
+3. **The S-curve applies to AI systems.** Like compound interest or network effects, contextual analysis exhibits an inflection point where proper arrangement unlocks latent performance.
+
+4. **Quantization preserves capability.** The 4-bit quantized model matches full-precision performance, enabling efficient deployment.
+
+---
+
+## Limitations
+
+- **Sample size:** n=163 provides statistical power for large effects; confidence intervals not computed
+- **Single dataset:** Results specific to Med-MMHL; generalization to other benchmarks requires validation
+- **Temporal validity:** Medical knowledge evolves; model may not reflect latest clinical guidelines
+- **Claim non-inferiority:** Baseline models (IT, PT) used older codebase; direct comparison interpretable cautiously
+
+---
+
+## Future Work
+
+- Validate on full Med-MMHL test set (1,785 samples)
+- Test on additional medical misinformation benchmarks
+- Expert medical annotation for clinical validation
+- Field deployment studies with HERO Lab, UBC
+- Cross-lingual validation (Spanish, Portuguese)
+
+---
+
+## Conclusion
+
+MedContext demonstrates that **optimization, not just combination**, is the key to reliable medical misinformation detection. The S-curve breakthrough—from 71-78% individual signals to 91.4% optimized—proves that contextual authenticity is both necessary and achievable with efficient, deployable AI.
+
+**The quantized MedGemma 4B model achieves this efficiently, proving that deployment-ready contextual authenticity is possible.**
+
+---
+
+**Contact:** Jamie Forrest (james.forrest@ubc.ca | forrest.jamie@gmail.com)  
+**Institution:** University of British Columbia, HERO Lab  
+**Date:** February 20, 2026

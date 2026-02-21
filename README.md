@@ -20,7 +20,7 @@
 
 **Most people think medical misinformation looks like this:**
 
-![What People Think](ui/public/the-problem-visual.jpeg)
+![What People Think](/ui/public/images/2026-February-19-clop-rename-92.jpeg)
 
 From our comprehensive literature review we discovered:
 

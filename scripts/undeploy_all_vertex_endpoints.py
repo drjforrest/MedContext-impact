@@ -3,7 +3,7 @@
 Script to undeploy all Vertex AI endpoints for this project
 """
 
-import vertexai
+import q
 from google.cloud import aiplatform
 
 PROJECT_ID = "medcontext"
@@ -12,7 +12,7 @@ LOCATION = "us-central1"
 
 def main():
     print("Initializing Vertex AI...")
-    vertexai.init(project=PROJECT_ID, location=LOCATION)
+    q.init(project=PROJECT_ID, location=LOCATION)
     aiplatform.init(project=PROJECT_ID, location=LOCATION)
 
     print("Listing all endpoints in this project:")

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; }
+      .label { font-family: Arial, sans-serif; font-size: 14px; }
+      .value { font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; fill: white; }
+      .metric { font-family: Arial, sans-serif; font-size: 12px; fill: #666; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="600" height="500" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="300" y="30" text-anchor="middle" class="title">Confusion Matrix (n=163)</text>
+  
+  <!-- Y-axis label -->
+  <text x="30" y="250" text-anchor="middle" class="label" transform="rotate(-90 30 250)">Actual</text>
+  
+  <!-- X-axis label -->
+  <text x="300" y="480" text-anchor="middle" class="label">Predicted</text>
+  
+  <!-- Grid cells -->
+  <!-- True Positive (top-left) -->
+  <rect x="150" y="80" width="200" height="150" fill="#2A9D8F" stroke="#333" stroke-width="2"/>
+  <text x="250" y="150" text-anchor="middle" class="value">125</text>
+  <text x="250" y="175" text-anchor="middle" class="metric" fill="white">True Positive</text>
+  <text x="250" y="195" text-anchor="middle" class="metric" fill="white">(Misinfo flagged)</text>
+  
+  <!-- False Negative (top-right) -->
+  <rect x="350" y="80" width="200" height="150" fill="#F4A261" stroke="#333" stroke-width="2"/>
+  <text x="450" y="150" text-anchor="middle" class="value">10</text>
+  <text x="450" y="175" text-anchor="middle" class="metric" fill="white">False Negative</text>
+  <text x="450" y="195" text-anchor="middle" class="metric" fill="white">(Missed)</text>
+  
+  <!-- False Positive (bottom-left) -->
+  <rect x="150" y="230" width="200" height="150" fill="#E63946" stroke="#333" stroke-width="2"/>
+  <text x="250" y="300" text-anchor="middle" class="value">4</text>
+  <text x="250" y="325" text-anchor="middle" class="metric" fill="white">False Positive</text>
+  <text x="250" y="345" text-anchor="middle" class="metric" fill="white">(False alarm)</text>
+  
+  <!-- True Negative (bottom-right) -->
+  <rect x="350" y="230" width="200" height="150" fill="#457B9D" stroke="#333" stroke-width="2"/>
+  <text x="450" y="300" text-anchor="middle" class="value">24</text>
+  <text x="450" y="325" text-anchor="middle" class="metric" fill="white">True Negative</text>
+  <text x="450" y="345" text-anchor="middle" class="metric" fill="white">(Legit correct)</text>
+  
+  <!-- Axis labels -->
+  <text x="100" y="155" text-anchor="end" class="label">Misinfo</text>
+  <text x="100" y="305" text-anchor="end" class="label">Legitimate</text>
+  <text x="250" y="420" text-anchor="middle" class="label">Predicted Misinfo</text>
+  <text x="450" y="420" text-anchor="middle" class="label">Predicted Legit</text>
+</svg>

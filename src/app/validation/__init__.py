@@ -14,6 +14,10 @@ __all__ = [
     "run_validation",
 ]
 
+from app.validation.chart_generation import generate_charts
+from app.validation.loaders import load_med_mmhl_dataset
+from app.validation.metrics import compute_three_dimensional_metrics
+
 
 def __getattr__(name: str):
     if name == "load_med_mmhl_dataset":

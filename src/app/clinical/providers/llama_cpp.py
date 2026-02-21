@@ -14,6 +14,46 @@ from app.core.utils import (
 from app.clinical.types import BaseMedGemmaClient, MedGemmaClientError, MedGemmaResult
 
 
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
+def Path(medgemma_local_path):
+    pass
+
+
 class LlamaCppMedGemmaClient(BaseMedGemmaClient):
     """Client for local GGUF models via llama-cpp-python."""
 
@@ -23,11 +63,11 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
         self._llm_instance = None
         self._model_lock = threading.Lock()
 
-    def _load_model(self) -> None:
+    def _load_model(self, Path=None) -> None:
         # Double-checked locking for thread safety
         if self._llm_instance is not None:
             return
-        
+
         with self._model_lock:
             if self._llm_instance is not None:
                 return

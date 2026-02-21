@@ -38,7 +38,15 @@ class BlockchainAnchorService:
     """
 
     def __init__(
-        self, rpc_url: str, private_key: str, network: str, contract_address: str
+        self,
+        rpc_url: str,
+        private_key: str,
+        network: str,
+        contract_address: str,
+        Web3=None,
+        web3=None,
+        Account=None,
+        eth_account=None,
     ) -> None:
         from eth_account import Account
         from web3 import Web3

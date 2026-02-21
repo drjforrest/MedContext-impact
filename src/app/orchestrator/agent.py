@@ -176,7 +176,8 @@ class MedContextAgent:
                 image_bytes=image_bytes, prompt=prompt, model=medgemma_model
             )
 
-    def _alignment_system(self) -> str:
+    @staticmethod
+    def _alignment_system() -> str:
         return (
             "You are a clinical image-context alignment analyzer with THREE distinct jobs:\n\n"
             "JOB 1 — IMAGE DESCRIPTION: Describe in appropriate medical language what is "
@@ -196,8 +197,8 @@ class MedContextAgent:
             "Start your response with { and end with }."
         )
 
+    @staticmethod
     def _build_alignment_prompt(
-        self,
         triage: MedGemmaResult,
         tool_results: dict[str, Any],
         context: str | None,
@@ -358,8 +359,9 @@ class MedContextAgent:
             },
         }
 
+    @staticmethod
     def _extract_claim_veracity(
-        self, synthesis_output: dict[str, Any]
+        synthesis_output: dict[str, Any],
     ) -> dict[str, str | None]:
         alignment_block = synthesis_output.get("part_2") or {}
         if not isinstance(alignment_block, dict):
@@ -393,8 +395,9 @@ class MedContextAgent:
             "public_health_context": None,
         }
 
+    @staticmethod
     def _extract_alignment_signal(
-        self, synthesis_output: dict[str, Any]
+        synthesis_output: dict[str, Any],
     ) -> tuple[float | None, str | None]:
         alignment_block = synthesis_output.get("part_2") or {}
         if not isinstance(alignment_block, dict):
@@ -419,7 +422,8 @@ class MedContextAgent:
         confidence_val = max(0.0, min(1.0, confidence_val))
         return base * confidence_val, label_normalized
 
-    def _extract_plausibility(self, triage: MedGemmaResult) -> float | None:
+    @staticmethod
+    def _extract_plausibility(triage: MedGemmaResult) -> float | None:
         payload = triage.output
         if isinstance(payload, dict):
             plausibility = payload.get("plausibility")
@@ -429,7 +433,8 @@ class MedContextAgent:
                 )
         return None
 
-    def _derive_source_reputation(self, tool_results: dict[str, Any]) -> float | None:
+    @staticmethod
+    def _derive_source_reputation(tool_results: dict[str, Any]) -> float | None:
         results = tool_results.get("reverse_search_results")
         if not isinstance(results, dict):
             return None
@@ -446,9 +451,8 @@ class MedContextAgent:
             return None
         return max(0.0, min(1.0, sum(confidences) / len(confidences)))
 
-    def _derive_genealogy_consistency(
-        self, tool_results: dict[str, Any]
-    ) -> float | None:
+    @staticmethod
+    def _derive_genealogy_consistency(tool_results: dict[str, Any]) -> float | None:
         provenance = tool_results.get("provenance")
         if not isinstance(provenance, dict):
             return None
@@ -458,7 +462,8 @@ class MedContextAgent:
             return 0.8
         return 0.4
 
-    def _looks_like_reasoning(self, text: str) -> bool:
+    @staticmethod
+    def _looks_like_reasoning(text: str) -> bool:
         """Check if text looks like model reasoning/thinking rather than a summary."""
         if not text or len(text) < 50:
             return False
@@ -507,7 +512,8 @@ class MedContextAgent:
         raw_text = result.raw_text or ""
         return raw_text.strip() or "The image provided appears to be a medical image."
 
-    def _build_factual_prompt(self, triage: MedGemmaResult) -> str:
+    @staticmethod
+    def _build_factual_prompt(triage: MedGemmaResult) -> str:
         import json
 
         try:
@@ -520,7 +526,8 @@ class MedContextAgent:
             f"Triage: {triage_json}"
         )
 
-    def _build_image_preview(self, image_bytes: bytes) -> str:
+    @staticmethod
+    def _build_image_preview(image_bytes: bytes) -> str:
         try:
             with Image.open(io.BytesIO(image_bytes)) as img:
                 image_format = (img.format or "JPEG").lower()
@@ -544,7 +551,8 @@ class MedContextAgent:
             return self._sanitize_tools(self._infer_tools_from_text(raw))
         return []
 
-    def _sanitize_tools(self, tools: Iterable[str]) -> list[str]:
+    @staticmethod
+    def _sanitize_tools(tools: Iterable[str]) -> list[str]:
         normalized = []
         for tool in tools:
             if not isinstance(tool, str):
@@ -554,7 +562,8 @@ class MedContextAgent:
                 normalized.append(tool_name)
         return normalized
 
-    def _infer_tools_from_text(self, text: str) -> list[str]:
+    @staticmethod
+    def _infer_tools_from_text(text: str) -> list[str]:
         text_lower = text.lower()
         inferred = []
         if "reverse" in text_lower:
@@ -600,12 +609,14 @@ class MedContextAgent:
                 results[tool] = chain.model_dump(mode="json")
         return results
 
-    def _generate_image_id(self):
+    @staticmethod
+    def _generate_image_id():
         from uuid import uuid4
 
         return uuid4()
 
-    def _select_forensics_layers(self, triage: MedGemmaResult | None) -> list[str]:
+    @staticmethod
+    def _select_forensics_layers(triage: MedGemmaResult | None) -> list[str]:
         plausibility = None
         if triage is not None and isinstance(triage.output, dict):
             plausibility = triage.output.get("plausibility")

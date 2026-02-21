@@ -28,35 +28,9 @@ sns.set_style("whitegrid")
 
 def load_predictions(results_dir: Path):
     """Load raw predictions."""
-    with open(results_dir / "raw_predictions.json") as f:
+    with open(results_dir / 'raw_predictions.json') as f:
         predictions = json.load(f)
     return predictions
-
-
-def extract_scores_and_labels(predictions):
-    """Extract veracity scores, alignment scores, and ground truth labels."""
-    veracity_scores = []
-    alignment_scores = []
-    y_true = []
-
-    for pred in predictions:
-        # Get contextual analysis
-        context = pred["predictions"].get("contextual_analysis", {})
-
-        # Extract scores (default to 0.5 if missing)
-        veracity_scores.append(context.get("veracity_score", 0.5))
-        alignment_scores.append(context.get("alignment_score", 0.5))
-
-        # Ground truth
-        ground_truth = pred.get("ground_truth", {})
-        if "is_misinformation" not in ground_truth:
-            raise ValueError(
-                f"Missing ground truth for prediction: {pred.get('id', 'unknown')}"
-            )
-        y_true.append(ground_truth["is_misinformation"])
-
-    return np.array(veracity_scores), np.array(alignment_scores), np.array(y_true)
-
 
 def apply_thresholds(
     veracity_scores,

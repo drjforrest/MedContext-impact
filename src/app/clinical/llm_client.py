@@ -68,8 +68,8 @@ class LlmClient:
             )
         raise LlmClientError(f"Unsupported provider: {self.provider}")
 
+    @staticmethod
     def _generate_openrouter(
-        self,
         prompt: str,
         *,
         system: Optional[str],
@@ -134,8 +134,8 @@ class LlmClient:
             raw_text=cleaned,
         )
 
+    @staticmethod
     def _generate_openai_compatible(
-        self,
         prompt: str,
         *,
         system: Optional[str],
@@ -240,8 +240,8 @@ class LlmClient:
             raw_text=cleaned,
         )
 
+    @staticmethod
     def _generate_ollama(
-        self,
         prompt: str,
         *,
         system: Optional[str],
@@ -287,8 +287,8 @@ class LlmClient:
             raw_text=cleaned,
         )
 
+    @staticmethod
     def _generate_gemini(
-        self,
         prompt: str,
         *,
         system: Optional[str],

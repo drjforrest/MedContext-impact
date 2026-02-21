@@ -17,6 +17,8 @@ app.add_middleware(
         "http://127.0.0.1:8000",
         "http://localhost",
         "http://localhost:80",
+        "https://medcontext.drjforrest.com",
+        "http://medcontext.drjforrest.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],

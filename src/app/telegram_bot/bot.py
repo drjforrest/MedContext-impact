@@ -78,9 +78,8 @@ class MedContextTelegramBot:
         )
         return WAITING_FOR_IMAGE
 
-    async def help_command(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
+    @staticmethod
+    async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Help command - detailed usage instructions."""
         help_text = (
             "<b>MedContext Help</b> 📚\n\n"
@@ -577,8 +576,9 @@ class MedContextTelegramBot:
         if provenance_data:
             await self._send_provenance_details(update, provenance_data)
 
+    @staticmethod
     async def _send_forensics_details(
-        self, update: Update, forensics_data: dict[str, Any]
+        update: Update, forensics_data: dict[str, Any]
     ) -> None:
         """Send detailed forensics analysis."""
         forensics_msg = (
@@ -648,9 +648,8 @@ class MedContextTelegramBot:
             forensics_msg, parse_mode=ParseMode.HTML
         )
 
-    async def _send_provenance_details(
-        self, update: Update, provenance_data: Any
-    ) -> None:
+    @staticmethod
+    async def _send_provenance_details(update: Update, provenance_data: Any) -> None:
         """Send detailed provenance chain information."""
         provenance_msg = (
             "━━━━━━━━━━━━━━━━━━━━\n🔗 <b>PROVENANCE CHAIN</b>\n━━━━━━━━━━━━━━━━━━━━\n\n"

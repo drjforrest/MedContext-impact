@@ -402,12 +402,12 @@ async def run_agent_trace(
 async def get_medgemma_models() -> list[MedGemmaModelAvailability]:
     """Get available MedGemma models and their status."""
     from app.clinical.providers.huggingface import HuggingFaceMedGemmaClient
-    from app.clinical.providers.local_api import LocalApiMedGemmaClient
+    import app.clinical.providers.local_api
     from app.clinical.providers.llama_cpp import LlamaCppMedGemmaClient
     from app.clinical.providers.vertex import VertexMedGemmaClient
 
     hf_client = HuggingFaceMedGemmaClient()
-    local_api_client = LocalApiMedGemmaClient()
+    local_api_client = app.clinical.providers.local_api.LocalApiMedGemmaClient()
     llama_cpp_client = LlamaCppMedGemmaClient()
     vertex_client = VertexMedGemmaClient()
 

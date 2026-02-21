@@ -63,8 +63,9 @@ def compute_three_dimensional_metrics(
         s > 0.5 for s in veracity_score
     ]  # high score = plausible = not fake
     veracity_truth = [
-        not g["is_fake_claim"] for g in ground_truth
-    ]  # not fake = plausible
+        not g.get("is_misinformation", g.get("is_fake_claim", False))
+        for g in ground_truth
+    ]  # not misinformation = plausible
 
     veracity_acc = accuracy_score(veracity_truth, veracity_pred)
     veracity_pr, veracity_re, veracity_f1, _ = precision_recall_fscore_support(
@@ -91,8 +92,9 @@ def compute_three_dimensional_metrics(
             s > 0.5 for s in alignment_score
         ]  # high = aligned = not misaligned
     alignment_truth = [
-        not g["expected_misalignment"] for g in ground_truth
-    ]  # not misaligned = aligned
+        g.get("alignment", "").lower() in ("aligned", "aligns_fully")
+        for g in ground_truth
+    ]  # aligned = not misaligned
 
     alignment_acc = accuracy_score(alignment_truth, alignment_pred)
     alignment_pr, alignment_re, alignment_f1, _ = precision_recall_fscore_support(

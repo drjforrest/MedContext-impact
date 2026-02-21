@@ -11,7 +11,8 @@ class _FakeResponse:
         self._payload = payload
         self.text = "ok"
 
-    def raise_for_status(self):
+    @staticmethod
+    def raise_for_status():
         return None
 
     def json(self):
