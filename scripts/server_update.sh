@@ -20,7 +20,11 @@ echo "Pulling latest code..."
 git fetch origin
 git reset --hard origin/main
 
-# Sync Python deps (only installs new/changed packages)
+# Ensure venv exists, then sync deps
+if [ ! -d ".venv" ]; then
+    echo "Creating Python venv..."
+    uv venv --python 3.12
+fi
 echo "Syncing Python dependencies..."
 uv pip install -r requirements.txt --quiet
 

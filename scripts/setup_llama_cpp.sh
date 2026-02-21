@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Add uv to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # ─────────────────────────────────────────────────────────────────────────────
 # setup_llama_cpp.sh
 #
@@ -30,7 +33,7 @@ echo ""
 
 if ! command -v huggingface-cli &>/dev/null; then
     echo "Installing huggingface_hub CLI..."
-    pip install --quiet huggingface_hub
+    uv pip install --quiet huggingface_hub
 fi
 
 # ── 2. Create models directory ───────────────────────────────────────────────
@@ -67,10 +70,10 @@ fi
 
 # ── 5. Install llama-cpp-python if missing ───────────────────────────────────
 
-if ! python -c "import llama_cpp" 2>/dev/null; then
+if ! uv run python -c "import llama_cpp" 2>/dev/null; then
     echo ""
     echo "Installing llama-cpp-python..."
-    pip install llama-cpp-python
+    uv pip install llama-cpp-python
 else
     echo "llama-cpp-python already installed."
 fi
@@ -80,18 +83,18 @@ fi
 echo ""
 echo "Configuring ${ENV_FILE}..."
 
-# Helper: set or update a key in .env
+# Helper: set or update a key in .env (Linux-compatible)
 set_env() {
     local key="$1" value="$2"
     if [ ! -f "${ENV_FILE}" ]; then
         echo "${key}=${value}" > "${ENV_FILE}"
     elif grep -q "^${key}=" "${ENV_FILE}"; then
-        # Update existing (macOS-compatible sed)
-        sed -i '' "s|^${key}=.*|${key}=${value}|" "${ENV_FILE}"
+        # Update existing (Linux-compatible sed with backup)
+        sed -i.bak "s|^${key}=.*|${key}=${value}|" "${ENV_FILE}" && rm -f "${ENV_FILE}.bak"
         echo "  Updated: ${key}=${value}"
     elif grep -q "^# *${key}=" "${ENV_FILE}"; then
         # Uncomment and set
-        sed -i '' "s|^# *${key}=.*|${key}=${value}|" "${ENV_FILE}"
+        sed -i.bak "s|^# *${key}=.*|${key}=${value}|" "${ENV_FILE}" && rm -f "${ENV_FILE}.bak"
         echo "  Enabled: ${key}=${value}"
     else
         echo "${key}=${value}" >> "${ENV_FILE}"
@@ -120,7 +123,7 @@ echo "=== Verification ==="
 echo "  Model:  $(du -h "${MODEL_PATH}" | cut -f1)  ${MODEL_PATH}"
 echo "  mmproj: $(du -h "${MMPROJ_PATH}" | cut -f1)  ${MMPROJ_PATH}"
 
-python -c "
+uv run python -c "
 from llama_cpp import Llama
 print('  llama-cpp-python: OK (import successful)')
 " 2>/dev/null || echo "  llama-cpp-python: FAILED (import error)"
