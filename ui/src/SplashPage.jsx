@@ -317,9 +317,9 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       <section className="card splash-teaser">
         <p className="teaser-text">
           Neither veracity alone nor image-claim alignment alone is sufficient for detecting
-          medical misinformation. <strong>Each component scored in the 70s%</strong> on accuracy.
+          medical misinformation. <strong>Veracity scored 80%, alignment 87%</strong> on the Med-MMHL benchmark.
           But through threshold optimization, <strong>MedContext's Contextual Authenticity achieves
-          91.4% accuracy</strong> — where one method fails, the other catches it.
+          92% accuracy</strong> — where one method fails, the other catches it.
         </p>
         <button
           type="button"
@@ -333,17 +333,17 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       {/* Stats Bar */}
       <section className="card splash-stats">
         <div className="stat-item">
-          <span className="stat-value" style={{ color: '#E63946' }}>71%</span>
+          <span className="stat-value" style={{ color: '#E63946' }}>80%</span>
           <span className="stat-label">Veracity Alone</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
-          <span className="stat-value" style={{ color: '#F4A261' }}>78%</span>
+          <span className="stat-value" style={{ color: '#F4A261' }}>87%</span>
           <span className="stat-label">Alignment Alone</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item" style={{ background: 'rgba(42, 157, 143, 0.1)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
-          <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '1.8rem' }}>91.4%</span>
+          <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '1.8rem' }}>92%</span>
           <span className="stat-label"><strong>Optimized Together</strong></span>
         </div>
         <div className="stat-divider" />
