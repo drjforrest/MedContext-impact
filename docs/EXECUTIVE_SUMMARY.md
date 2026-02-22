@@ -45,7 +45,7 @@ Med-MMHL images are predominantly authentic — misinformation resides primarily
 1. **Veracity alone is insufficient:** 79.8% — claim truth assessment misses image misuse (e.g., caterpillar labeled as HIV virus)
 2. **Alignment alone is insufficient:** 86.5% — image-claim consistency misses false claims with aligned images
 3. **Simple combination plateaus:** ~83% — naive averaging provides minimal improvement
-4. **Hierarchical optimization unlocks the S-curve:** 92.0% — smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve +13-20% gain over individual signals
+4. **Hierarchical optimization achieves the breakthrough:** 92.0% — smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve +13-20% gain over individual signals
 5. **High precision and recall:** 96.2% precision and 94.1% recall on Q4_KM quantized model (5-fold cross-validation)
 6. **MedGemma's multimodal training is key:** Medical vision-language model enables both contextual signals; optimization transforms them into reliable detector
 
@@ -91,7 +91,7 @@ First agentic AI system optimized for real-world threat distribution:
 
 ### Contribution (Novel)
 
-**Scientific:** First empirical demonstration that hierarchical optimization of contextual signals unlocks the S-curve breakthrough. Individual signals are insufficient (veracity 79.8%, alignment 86.5%), simple combination plateaus (~83%), but smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve 92.0% accuracy (95% CI: [87.7%, 95.7%]) on 163-sample Med-MMHL stratified random subset (seed=42) with MedGemma 4B Q4_KM quantized model. Thresholds determined via 5-fold cross-validation.
+**Scientific:** First empirical demonstration that hierarchical optimization of contextual signals achieves breakthrough performance. Individual signals are insufficient (veracity 79.8%, alignment 86.5%), simple combination plateaus (~83%), but smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve 92.0% accuracy (95% CI: [87.7%, 95.7%]) on 163-sample Med-MMHL stratified random subset (seed=42) with MedGemma 4B Q4_KM quantized model. Thresholds determined via 5-fold cross-validation.
 
 **Technical:** Multi-modal system leveraging MedGemma's medical vision-language training for dual contextual signals (veracity + alignment), with hierarchical optimization framework that transforms weak signals into reliable detector
 
@@ -100,7 +100,7 @@ First agentic AI system optimized for real-world threat distribution:
 ### Why MedContext Wins
 
 ✅ **Problem understanding:** Evidence-based from ~100-source literature review documenting that the majority of threat is authentic images in misleading context
-✅ **Scientific rigor:** Empirical evaluation on 163-sample Med-MMHL stratified random subset proving hierarchical optimization unlocks the S-curve (veracity 79.8%, alignment 86.5%, simple combination ~83%, optimized 92.0% with 95% CI: [87.7%, 95.7%]). Thresholds (0.65/0.30) determined via 5-fold cross-validation using Q4_KM quantized model for efficient deployment
+✅ **Scientific rigor:** Empirical evaluation on 163-sample Med-MMHL stratified random subset proving hierarchical optimization achieves breakthrough performance (veracity 79.8%, alignment 86.5%, simple combination ~83%, optimized 92.0% with 95% CI: [87.7%, 95.7%]). Thresholds (0.65/0.30) determined via 5-fold cross-validation using Q4_KM quantized model for efficient deployment
 ✅ **Technical quality:** Production-ready code with 45/45 tests, 4 MedGemma providers, full-stack architecture
 ✅ **Real-world path:** Field deployment partnership with HERO Lab, UBC targeting African Ministries of Health
 ✅ **Honest science:** Stratified random sampling with proper cross-validation to avoid test-set contamination, and results interpreted with appropriate uncertainty

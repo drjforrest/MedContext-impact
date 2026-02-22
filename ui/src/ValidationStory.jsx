@@ -62,9 +62,9 @@ function ValidationStory({ onNavigateBack }) {
           </span>
           
           <h1 className="validation-title">
-            The Optimization S-Curve
+            The Optimization Breakthrough
           </h1>
-          
+
           <p className="validation-subtitle">
             How hierarchical optimization transforms weak individual signals (80-87%)
             into a 92% accurate misinformation detector
@@ -123,10 +123,10 @@ function ValidationStory({ onNavigateBack }) {
         <div className="timeline-step">
           <div className="step-marker">2</div>
           <div className="step-content">
-            <h3>The S-Curve Breakthrough</h3>
+            <h3>The Optimization Breakthrough</h3>
             <p>
-              Simple combination plateaus. But <strong>hierarchical optimization</strong>—smart thresholds 
-              (0.65/0.30) and VERACITY_FIRST logic—unlocks the inflection point.
+              Simple combination plateaus. But <strong>hierarchical optimization</strong>—smart thresholds
+              (0.65/0.30) and VERACITY_FIRST logic—unlocks the performance gain.
             </p>
             
             <div className="chart-card">
@@ -215,9 +215,9 @@ function ValidationStory({ onNavigateBack }) {
         <div className="timeline-step">
           <div className="step-marker">5</div>
           <div className="step-content">
-            <h3>Why The S-Curve Matters</h3>
+            <h3>Why The Optimization Breakthrough Matters</h3>
             <p>
-              Like compound interest or network effects, contextual authenticity has an inflection point. 
+              Like compound interest or network effects, contextual authenticity has an inflection point.
               Optimization—not just combination—is the key to reliable medical misinformation detection.
             </p>
             
@@ -258,13 +258,13 @@ function ValidationStory({ onNavigateBack }) {
 
           <div style={{ padding: '1.5rem', background: 'rgba(42, 157, 143, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #2A9D8F' }}>
             <h3 style={{ marginTop: 0, color: '#2A9D8F', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUpIcon /> The S-Curve Breakthrough
+              <TrendingUpIcon /> The Optimization Breakthrough
             </h3>
             <p style={{ marginBottom: 0, color: '#c5cad4' }}>
-              Like compound interest or network effects, contextual authenticity exhibits an S-curve:
-              slow initial gains, a long plateau, then rapid acceleration when the pieces align.
-              The quantized MedGemma 4B model—efficient and deployable—achieves this breakthrough,
-              proving that <strong>optimization, not just combination, is the key</strong>.
+              Like compound interest or network effects, contextual authenticity exhibits an inflection point:
+              individual signals plateau, simple combination provides minimal gain, then hierarchical optimization
+              unlocks dramatic performance improvement. The quantized MedGemma 4B model—efficient and deployable—achieves
+              this breakthrough, proving that <strong>optimization, not just combination, is the key</strong>.
             </p>
           </div>
 
@@ -290,7 +290,7 @@ function ValidationStory({ onNavigateBack }) {
           <p className="summary-note" style={{ marginTop: '1.5rem' }}>
             Med-MMHL validation (n={VALIDATION_DATA.dataset.n}, stratified random, seed=42) — February 20, 2026.
             Q4_KM quantized model via llama-cpp-python. Hierarchical optimization with
-            VERACITY_FIRST logic and tuned thresholds (0.65/0.30) achieves the S-curve breakthrough.
+            VERACITY_FIRST logic and tuned thresholds (0.65/0.30) achieves the optimization breakthrough.
           </p>
         </div>
       </section>

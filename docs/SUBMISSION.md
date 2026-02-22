@@ -9,7 +9,7 @@
 
 MedContext is an AI-powered tool that detects medical misinformation by analyzing **contextual authenticity**—whether claims match their images. Unlike pixel-forensics tools that detect manipulated images, MedContext addresses the more common threat: **authentic images used in misleading contexts**.
 
-**Key Innovation:** Hierarchical optimization transforms weak individual signals (veracity 80%, alignment 87%) into a robust 92.0% accurate detector through smart thresholds (0.65/0.30) and VERACITY_FIRST logic. Simple combination plateaus at ~83%; optimization unlocks the S-curve.
+**Key Innovation:** Hierarchical optimization transforms weak individual signals (veracity 80%, alignment 87%) into a robust 92.0% accurate detector through smart thresholds (0.65/0.30) and VERACITY_FIRST logic. Simple combination plateaus at ~83%; optimization achieves the breakthrough.
 
 ---
 
@@ -31,7 +31,7 @@ MedContext evaluates two contextual signals:
 1. **Claim Veracity**-Is the accompanying claim medically accurate?
 2. **Image-Claim Alignment**-Does the image actually support the claim?
 
-**The Breakthrough:** Individual signals are insufficient (veracity 79.8%, alignment 86.5%). Simple combination plateaus (~83%). But **hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic** unlocks the S-curve inflection point: **92.0% accuracy**.
+**The Breakthrough:** Individual signals are insufficient (veracity 79.8%, alignment 86.5%). Simple combination plateaus (~83%). But **hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic** achieves breakthrough performance: **92.0% accuracy**.
 
 ### The S-Curve
 
@@ -77,7 +77,7 @@ MedContext evaluates two contextual signals:
 | Simple Combination      | ~83%      | —           |
 | **Hierarchical Optimization** | **92.0%** | **+13-20%** |
 
-The optimization breakthrough demonstrates that **smart arrangement unlocks the S-curve; simple combination plateaus**.
+The optimization breakthrough demonstrates that **smart arrangement achieves dramatic gains; simple combination plateaus**.
 
 ---
 
@@ -104,7 +104,7 @@ The optimization breakthrough demonstrates that **smart arrangement unlocks the 
 
 2. **Optimization > Combination.** Simply combining signals plateaus at ~83%. Hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic achieves 92.0%.
 
-3. **The S-curve applies to AI systems.** Like compound interest or network effects, contextual analysis exhibits an inflection point where proper arrangement unlocks latent performance.
+3. **Optimization unlocks latent performance.** Like compound interest or network effects, contextual analysis exhibits an inflection point where proper arrangement transforms weak signals into strong detection.
 
 4. **Quantization preserves capability.** The 4-bit quantized model matches full-precision performance, enabling efficient deployment.
 
@@ -131,7 +131,7 @@ The optimization breakthrough demonstrates that **smart arrangement unlocks the 
 
 ## Conclusion
 
-MedContext demonstrates that **optimization, not just combination**, is the key to reliable medical misinformation detection. The S-curve breakthrough—from 80-87% individual signals to 92.0% hierarchically optimized—proves that contextual authenticity is both necessary and achievable with efficient, deployable AI.
+MedContext demonstrates that **optimization, not just combination**, is the key to reliable medical misinformation detection. The optimization breakthrough—from 80-87% individual signals to 92.0% hierarchically optimized—proves that contextual authenticity is both necessary and achievable with efficient, deployable AI.
 
 **The Q4_KM quantized MedGemma 4B model achieves this efficiently, proving that deployment-ready contextual authenticity at scale is possible with smart threshold optimization and VERACITY_FIRST logic.**
 

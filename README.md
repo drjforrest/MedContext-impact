@@ -65,7 +65,7 @@ We validated MedContext against the **Med-MMHL (Medical Multimodal Misinformatio
 - ✅ **Veracity alone (79.8%) is insufficient** — claim truth assessment misses image misuse (e.g., caterpillar labeled as HIV virus)
 - ✅ **Alignment alone (86.5%) is insufficient** — image-claim consistency misses false claims with aligned images
 - ✅ **Simple combination (~83%) plateaus** — naive averaging provides minimal improvement
-- ✅ **Hierarchical optimization (92.0%) unlocks the S-curve** — smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve +13-20% gain
+- ✅ **Hierarchical optimization (92.0%) achieves the breakthrough** — smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve +13-20% gain
 - ✅ High precision (96.2%) and recall (94.1%) — catches the vast majority of misinformation cases with very few false alarms
 
 **Methodology:** Results use the **MedGemma 4B model** with optimized decision thresholds determined via 5-fold cross-validation on the Med-MMHL validation set (n=163). Bootstrap confidence intervals computed over 1,000 iterations. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 92.0% accuracy and bootstrap CIs may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
@@ -269,7 +269,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ### Novel Contributions
 
-1. **First empirical validation** proving single contextual signals are insufficient, but hierarchical optimization unlocks the S-curve:
+1. **First empirical validation** proving single contextual signals are insufficient, but hierarchical optimization achieves breakthrough performance:
    - On **Med-MMHL (fact-checked labels):** Veracity-only 79.8%, Alignment-only 86.5%, Optimized 92.0% (Q4_KM quantized with VERACITY_FIRST + smart thresholds 0.65/0.30)
    - On **BTD+UCI (synthetic labels):** Demonstrated veracity (61.3%) and alignment (56.9%) are distinct dimensions requiring joint analysis
 2. **First agentic system** for contextual authenticity assessment using MedGemma for combined veracity + alignment analysis

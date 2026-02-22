@@ -104,9 +104,9 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 - **Veracity alone (79.8%) is insufficient** — misses image misuse (caterpillar labeled as HIV virus)
 - **Alignment alone (86.5%) is insufficient** — misses false claims with aligned images
 - **Simple combination (~83%) plateaus** — naive averaging provides minimal improvement
-- **Hierarchical optimization (92.0%) unlocks the S-curve** — smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve +13-20% gain over individual signals
+- **Hierarchical optimization (92.0%) achieves the breakthrough** — smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve +13-20% gain over individual signals
 
-**Key Insight:** MedGemma's multimodal medical training enables both contextual signals, but the breakthrough comes from **optimization, not just combination**. This is the optimization S-curve principle.
+**Key Insight:** MedGemma's multimodal medical training enables both contextual signals, but the breakthrough comes from **optimization, not just combination**. This is the optimization breakthrough principle.
 
 [See VALIDATION.md](docs/VALIDATION.md) | [Interactive Validation Story](ui/src/ValidationStory.jsx)
 

@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-MedContext achieves **92.0% accuracy** on medical misinformation detection using hierarchical optimization of contextual signals. Neither veracity (80%) nor alignment (87%) alone is sufficient—but smart thresholds (0.65/0.30) with VERACITY_FIRST logic unlock the optimization S-curve. The quantized 4-bit model demonstrates efficient deployment capability.
+MedContext achieves **92.0% accuracy** on medical misinformation detection using hierarchical optimization of contextual signals. Neither veracity (80%) nor alignment (87%) alone is sufficient—but smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve the optimization breakthrough. The quantized 4-bit model demonstrates efficient deployment capability.
 
 | Metric        | Value |
 |---------------|-------|
@@ -74,24 +74,24 @@ Final classification uses hierarchical logic (VERACITY_FIRST): veracity score pr
 
 ---
 
-## The Optimization S-Curve Breakthrough
+## The Optimization Breakthrough
 
-The key finding is that **hierarchical optimization transforms weak individual signals into a strong detector**. This demonstrates the optimization S-curve principle: simple combination plateaus, but smart arrangement unlocks the inflection point.
+The key finding is that **hierarchical optimization transforms weak individual signals into a strong detector**. Simple combination plateaus at ~83%, but smart thresholds with VERACITY_FIRST logic unlock dramatic performance improvement to 92%.
 
 | Signal              | Accuracy  | Notes                                           |
 |---------------------|-----------|------------------------------------------------|
 | Veracity alone      | **79.8%** | Claim truth detection insufficient             |
 | Alignment alone     | **86.5%** | Image-claim match insufficient                 |
 | Simple combination  | ~83%      | Naive averaging plateaus                       |
-| **Optimized (0.65/0.30)** | **92.0%** | Hierarchical optimization unlocks S-curve |
+| **Optimized (0.65/0.30)** | **92.0%** | Hierarchical optimization achieves breakthrough |
 
-**Interpretation:** Neither veracity nor alignment alone is sufficient for detecting medical misinformation. MedGemma's multimodal medical training enables both signals, but the breakthrough comes from **hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic**—transforming ~80-87% individual signals into 92% accuracy. This is the optimization S-curve principle.
+**Interpretation:** Neither veracity nor alignment alone is sufficient for detecting medical misinformation. MedGemma's multimodal medical training enables both signals, but the breakthrough comes from **hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic**—transforming ~80-87% individual signals into 92% accuracy. This is the optimization breakthrough principle.
 
 ---
 
 ## Key Findings
 
-1. **Optimization Unlocks The S-Curve:** Hierarchical optimization with smart thresholds achieves 92.0% accuracy, substantially exceeding either signal alone (veracity 80%, alignment 87%). Simple combination plateaus at ~83%.
+1. **Optimization Achieves The Breakthrough:** Hierarchical optimization with smart thresholds achieves 92.0% accuracy, substantially exceeding either signal alone (veracity 80%, alignment 87%). Simple combination plateaus at ~83%.
 
 2. **High Precision:** 96.2% precision means when MedContext flags misinformation, it's correct 96% of the time—critical for minimizing false alarms in clinical settings.
 

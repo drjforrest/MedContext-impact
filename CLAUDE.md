@@ -336,7 +336,7 @@ See `docs/VALIDATION.md` for full results.
 
 **Contextual Signals Validation (✅ Complete):**
 
-MedGemma's multimodal medical training enables detection of medical misinformation by combining two contextual signals: **veracity** (claim truth) and **alignment** (image-claim match). Neither signal alone is sufficient, but threshold optimization unlocks the S-curve breakthrough.
+MedGemma's multimodal medical training enables detection of medical misinformation by combining two contextual signals: **veracity** (claim truth) and **alignment** (image-claim match). Neither signal alone is sufficient, but threshold optimization achieves breakthrough performance.
 
 **Med-MMHL Validation Results (Feb 17, 2026):**
 
@@ -348,7 +348,7 @@ Validated on Med-MMHL dataset (n=163, stratified random, seed=42) using **MedGem
   - Precision: 96.2% | Recall: 94.1% | F1: 95.1%
   - Confusion Matrix: TP=128, FP=5, TN=22, FN=8
 
-**Key Finding:** Hierarchical optimization with smart thresholds transforms weak individual signals (~80-87%) into a 92% accurate misinformation detector. The whole exceeds the sum when arranged correctly — this is the **optimization S-curve** principle.
+**Key Finding:** Hierarchical optimization with smart thresholds transforms weak individual signals (~80-87%) into a 92% accurate misinformation detector. The whole exceeds the sum when arranged correctly — this is the **optimization breakthrough** principle.
 
 See `validation_results/med_mmhl_n163_4b_quantized/` for full results.
 
