@@ -15,7 +15,7 @@ This guide will help you quickly understand our submission and navigate the docu
 One-page overview covering:
 
 - The problem (over half of misinformation uses authentic images with misleading context)
-- Our Med-MMHL validation results (n=163): single methods 65-72% accuracy; combined system 96.3% accuracy
+- Our Med-MMHL validation results (n=163): individual signals 79.8%/86.5% vs optimized 92.0%
 - The solution (agentic contextual authenticity combining both approaches)
 
 ### Have 15 minutes?
@@ -68,19 +68,13 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 ---
 
-## 🎯 What Makes MedContext Different
+## 🎯 MedContext's Approach
 
-### Most projects would optimize for:
+### Design Philosophy:
 
-- ❌ Synthetic benchmark datasets
-- ❌ Deepfake detection (sophisticated manipulations)
-- ❌ Pixel-level forensics
-
-### MedContext optimizes for:
-
-- ✅ **Real-world threat distribution** (majority authentic images with false context)
-- ✅ **Empirically validated** (Med-MMHL n=163: single methods 65-72% insufficient; combined system 96.3% necessary)
-- ✅ **Production deployment** (UBC HERO Lab partnership ready)
+- ✅ **Real-world threat focus** — Addresses authentic images with false context (the dominant misinformation pattern)
+- ✅ **Empirically validated** — Med-MMHL n=163: individual signals 79.8%/86.5% insufficient; optimized 92.0% necessary
+- ✅ **Production deployment ready** — UBC HERO Lab partnership with Telegram bot integration
 
 ---
 
@@ -88,11 +82,11 @@ See **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** for complete Docker guide.
 
 **Med-MMHL Validation Results (real-world medical misinformation benchmark, n=163):**
 
-| Method                      | Approach                            | Accuracy  | Precision | Recall   | F1 Score |
-| --------------------------- | ----------------------------------- | --------- | --------- | -------- | -------- |
-| **Veracity Only**           | Claim truth analysis alone          | 79.8%     | —         | —        | —        |
-| **Alignment Only**          | Image-claim match alone             | 86.5%     | —         | —        | —        |
-| **Simple Combination**      | Naive averaging                     | ~83%      | —         | —        | —        |
+| Method                        | Approach                                      | Accuracy  | Precision | Recall    | F1 Score  |
+| ----------------------------- | --------------------------------------------- | --------- | --------- | --------- | --------- |
+| **Veracity Only**             | Claim truth analysis alone                    | 79.8%     | —         | —         | —         |
+| **Alignment Only**            | Image-claim match alone                       | 86.5%     | —         | —         | —         |
+| **Simple Combination**        | Naive averaging                               | ~83%      | —         | —         | —         |
 | **Hierarchical Optimization** | Smart thresholds (0.65/0.30) + VERACITY_FIRST | **92.0%** | **96.2%** | **94.1%** | **95.1%** |
 
 **†Note:** Single-signal methods output continuous scores (0-1). The breakthrough comes from **hierarchical optimization with smart thresholds**, not simple combination. See [VALIDATION.md](docs/VALIDATION.md) for detailed methodology.
@@ -163,7 +157,7 @@ medcontext/
 - [ ] **Innovation?** ✅ Agentic system for contextual authenticity
 - [ ] **Works?** ✅ 51/51 tests passing, full-stack implementation
 - [ ] **Evidence?** ✅ Empirical validation with confidence intervals
-- [ ] **Impact?** ✅ HERO Lab partnership for African deployment
+- [ ] **Impact?** ✅ HERO Lab partnership and Telegram bot deployment ready
 - [ ] **Documentation?** ✅ 5 comprehensive documents, white paper
 - [ ] **Reproducible?** ✅ Setup in 5 minutes, HuggingFace provider for judges
 
@@ -180,7 +174,7 @@ Watch the 3-minute demonstration:
 1. The problem (authentic images used in misleading contexts)
 2. Med-MMHL validation results (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
 3. Live demo (upload → analysis → verdict)
-4. Impact (HERO Lab, UBC partnership for African deployment)
+4. Impact (HERO Lab, UBC partnership and Telegram bot deployment)
 
 > Note: Competition requirement is 3 minutes maximum
 
@@ -190,7 +184,7 @@ Watch the 3-minute demonstration:
 
 **Developer:** Jamie Forrest
 **Email:** forrest.jamie@gmail.com | james.forrest@ubc.ca
-**Affiliation:** Scientific Director, HERO Lab, School of Nursing, University of British Columbia
+**Affiliation:** Scientific Director, Health Equitity & Resilience Observatory, Favculty of Applied Science, University of British Columbia
 
 **Questions?**
 

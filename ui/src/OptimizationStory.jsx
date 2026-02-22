@@ -7,6 +7,7 @@ import {
 import {
   Bar,
   BarChart,
+  Cell,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -142,7 +143,11 @@ function ValidationStory({ onNavigateBack }) {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
                   <YAxis domain={[0, 100]} hide />
                   <Tooltip formatter={(v) => `${v.toFixed(1)}%`} />
-                  <Bar dataKey="acc" radius={[6, 6, 0, 0]} label={{ position: 'top', formatter: (v) => `${v.toFixed(1)}%`, fontWeight: 'bold' }} />
+                  <Bar dataKey="acc" radius={[6, 6, 0, 0]} label={{ position: 'top', formatter: (v) => `${v.toFixed(1)}%`, fontWeight: 'bold' }}>
+                    {sCurveData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
               

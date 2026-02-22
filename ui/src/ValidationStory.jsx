@@ -1,17 +1,17 @@
 import {
   CheckCircle as CheckIcon,
-  Verified as VerifiedIcon,
-  Science as ScienceIcon,
-  BarChart as ChartIcon,
   Shuffle as RandomIcon,
+  Science as ScienceIcon,
+  Verified as VerifiedIcon
 } from '@mui/icons-material'
 import {
   Bar,
   BarChart,
+  Cell,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
 } from 'recharts'
 import './ValidationStory.css'
 
@@ -141,7 +141,11 @@ function ValidationStory({ onNavigateBack }) {
                   <XAxis dataKey="n" label={{ value: 'Sample Size (n)', position: 'insideBottom', offset: -10 }} />
                   <YAxis domain={[0, 15]} label={{ value: 'CI Width (%)', angle: -90, position: 'insideLeft' }} />
                   <Tooltip formatter={(v) => `${v.toFixed(1)}%`} />
-                  <Bar dataKey="ci_width" radius={[6, 6, 0, 0]} label={{ position: 'top', formatter: (v) => `${v.toFixed(1)}%`, fontWeight: 'bold' }} />
+                  <Bar dataKey="ci_width" radius={[6, 6, 0, 0]} label={{ position: 'top', formatter: (v) => `${v.toFixed(1)}%`, fontWeight: 'bold' }}>
+                    {sampleSizeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
 
@@ -169,7 +173,11 @@ function ValidationStory({ onNavigateBack }) {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
                   <YAxis domain={[75, 90]} label={{ value: 'Misinformation Rate (%)', angle: -90, position: 'insideLeft' }} />
                   <Tooltip formatter={(v) => `${v.toFixed(1)}%`} />
-                  <Bar dataKey="misinfoRate" radius={[6, 6, 0, 0]} label={{ position: 'top', formatter: (v) => `${v.toFixed(1)}%`, fontWeight: 'bold' }} />
+                  <Bar dataKey="misinfoRate" radius={[6, 6, 0, 0]} label={{ position: 'top', formatter: (v) => `${v.toFixed(1)}%`, fontWeight: 'bold' }}>
+                    {distributionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
 
@@ -242,8 +250,8 @@ function ValidationStory({ onNavigateBack }) {
                   <p><strong>Reproducible</strong> sampling</p>
                 </div>
                 <div className="insight-box">
-                  <span className="insight-number" style={{ color: '#e5484d' }}>0%</span>
-                  <p><strong>Bias</strong> in distribution</p>
+                  <span className="insight-number" style={{ color: '#4E9A34' }}>&lt;1%</span>
+                  <p><strong>Distribution bias</strong> (minimal)</p>
                 </div>
               </div>
             </div>

@@ -12,11 +12,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files
-COPY requirements.txt pyproject.toml ./
+COPY requirements-docker.txt pyproject.toml ./
 
-# Install Python dependencies
+# Install Python dependencies (Docker-optimized, excludes llama-cpp-python)
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements-docker.txt
 
 # Copy application code
 COPY src/ ./src/

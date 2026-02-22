@@ -8,8 +8,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (using --legacy-peer-deps for eslint compatibility)
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .

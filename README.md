@@ -221,15 +221,13 @@ The live demo requires an access code to prevent abuse and control API costs.
 ✅ **Explainable verdicts** with traceable rationale
 ✅ **LangGraph integration** for workflow visualization
 
-### What Makes MedContext Different
+### Key Strengths
 
-| Most Submissions                     | MedContext                                                                        |
-| ------------------------------------ | --------------------------------------------------------------------------------- |
-| ❌ Optimize for synthetic benchmarks | ✅ Optimized for real-world threat (majority authentic images)                    |
-| ❌ Focus on deepfake detection       | ✅ Focus on contextual misuse                                                     |
-| ❌ Single-signal approaches          | ✅ Proved single signals insufficient (veracity 80%, alignment 87%); hierarchical optimization achieves 92.0% (Q4 quantized) |
-| ❌ Theoretical impact                | ✅ Real deployment partner (HERO Lab)                                             |
-| ❌ Proof of concept                  | ✅ Production-ready (63/63 tests passing)                                         |
+- ✅ **Real-world optimization** — Addresses authentic images with misleading context (the dominant threat pattern)
+- ✅ **Contextual authenticity focus** — Detects misuse of genuine images, not just fake pixels
+- ✅ **Empirically proven approach** — Demonstrated that hierarchical optimization (92.0%) achieves breakthrough performance over individual signals (79.8%/86.5%)
+- ✅ **Production deployment partner** — HERO Lab, UBC collaboration with field-ready Telegram bot
+- ✅ **Production-ready implementation** — 63/63 tests passing, comprehensive validation
 
 ---
 
@@ -302,7 +300,7 @@ Watch the 3-minute demonstration:
 1. The Problem (authentic images used in misleading contexts)
 2. Med-MMHL Validation (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
 3. Live Demo (upload → analysis → verdict)
-4. Impact (HERO Lab, UBC partnership for African deployment)
+4. Impact (HERO Lab, UBC partnership and Telegram bot deployment)
 
 ---
 
