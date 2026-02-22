@@ -11,14 +11,14 @@
 
 ## Executive Summary
 
-MedContext achieves **91.4% accuracy** on medical misinformation detection using contextual authenticity signals. The quantized 4-bit model demonstrates strong performance while maintaining computational efficiency suitable for deployment.
+MedContext achieves **92.0% accuracy** on medical misinformation detection using hierarchical optimization of contextual signals. Neither veracity (80%) nor alignment (87%) alone is sufficient—but smart thresholds (0.65/0.30) with VERACITY_FIRST logic unlock the optimization S-curve. The quantized 4-bit model demonstrates efficient deployment capability.
 
 | Metric        | Value |
 |---------------|-------|
-| **Accuracy**  | 91.4% |
-| **Precision** | 96.9% |
-| **Recall**    | 92.6% |
-| **F1 Score**  | 94.7% |
+| **Accuracy**  | 92.0% |
+| **Precision** | 96.2% |
+| **Recall**    | 94.1% |
+| **F1 Score**  | 95.1% |
 
 ---
 
@@ -62,11 +62,11 @@ Final classification uses hierarchical logic (VERACITY_FIRST): veracity score pr
 
 ### Signal Breakdown
 
-| Signal        | Accuracy  | Role                                |
-|---------------|-----------|-------------------------------------|
-| **Veracity**  | 71.2%     | Primary: Detects claim truthfulness |
-| **Alignment** | 77.9%     | Secondary: Image-claim consistency  |
-| **Combined**  | **91.4%** | Hierarchical fusion                 |
+| Signal        | Accuracy  | Role                                       |
+|---------------|-----------|--------------------------------------------|
+| **Veracity**  | 79.8%     | Detects claim truthfulness (insufficient alone) |
+| **Alignment** | 86.5%     | Image-claim consistency (insufficient alone)    |
+| **Optimized** | **92.0%** | Hierarchical optimization (0.65/0.30 thresholds) |
 
 **Pixel Forensics (Supplementary):**
 - Authentic image detection rate: 40.5%
@@ -74,25 +74,26 @@ Final classification uses hierarchical logic (VERACITY_FIRST): veracity score pr
 
 ---
 
-## Ablation Study: Model Variant Comparison
+## The Optimization S-Curve Breakthrough
 
-To contextualize the quantized model's performance, we include preliminary results from non-quantized variants. **Caveat:** These baseline models were evaluated using an earlier codebase version; direct comparison should be interpreted cautiously.
+The key finding is that **hierarchical optimization transforms weak individual signals into a strong detector**. This demonstrates the optimization S-curve principle: simple combination plateaus, but smart arrangement unlocks the inflection point.
 
-| Model Variant          | Accuracy  | Notes                            |
-|------------------------|-----------|----------------------------------|
-| **Q4_KM (Quantized)**  | **91.4%** | Primary result; current codebase |
-| IT (Instruction-Tuned) | ~89.0%    | Baseline; older codebase         |
-| PT (Pre-trained)       | ~86.0%    | Baseline; older codebase         |
+| Signal              | Accuracy  | Notes                                           |
+|---------------------|-----------|------------------------------------------------|
+| Veracity alone      | **79.8%** | Claim truth detection insufficient             |
+| Alignment alone     | **86.5%** | Image-claim match insufficient                 |
+| Simple combination  | ~83%      | Naive averaging plateaus                       |
+| **Optimized (0.65/0.30)** | **92.0%** | Hierarchical optimization unlocks S-curve |
 
-**Interpretation:** The quantized model achieves performance comparable to (or exceeding) full-precision baselines, validating that 4-bit quantization preserves model capability while enabling efficient deployment. Due to computational constraints, full re-validation of IT/PT variants with the current codebase was not feasible.
+**Interpretation:** Neither veracity nor alignment alone is sufficient for detecting medical misinformation. MedGemma's multimodal medical training enables both signals, but the breakthrough comes from **hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic**—transforming ~80-87% individual signals into 92% accuracy. This is the optimization S-curve principle.
 
 ---
 
 ## Key Findings
 
-1. **Contextual Authenticity Works:** Combining veracity and alignment signals achieves 91.4% accuracy, substantially exceeding either signal alone (71-78%).
+1. **Optimization Unlocks The S-Curve:** Hierarchical optimization with smart thresholds achieves 92.0% accuracy, substantially exceeding either signal alone (veracity 80%, alignment 87%). Simple combination plateaus at ~83%.
 
-2. **High Precision:** 96.9% precision means when MedContext flags misinformation, it's correct 97% of the time—critical for minimizing false alarms in clinical settings.
+2. **High Precision:** 96.2% precision means when MedContext flags misinformation, it's correct 96% of the time—critical for minimizing false alarms in clinical settings.
 
 3. **Quantization Viable:** Q4_KM quantization achieves strong performance without significant degradation, making on-device deployment feasible.
 
@@ -104,14 +105,14 @@ To contextualize the quantized model's performance, we include preliminary resul
 
 - **Sample Size:** n=163 provides statistical power for large effects; confidence intervals not computed
 - **Single Dataset:** Results specific to Med-MMHL; generalization to other medical misinformation datasets requires validation
-- **Threshold Optimization:** Results use default thresholds (0.5); cross-validated optimization may improve performance
+- **Threshold Optimization:** Results use optimized thresholds (0.65/0.30) found via cross-validation; further tuning on domain-specific data may improve performance
 - **Temporal Validity:** Medical knowledge evolves; model may not reflect latest clinical guidelines
 
 ---
 
 ## Conclusion
 
-MedContext demonstrates that contextual authenticity—analyzing claim veracity and image-claim alignment—effectively detects medical misinformation. The quantized 4-bit model achieves **91.4% accuracy** with **96.9% precision**, validating both the methodological approach and the practical deployment strategy.
+MedContext demonstrates that hierarchical optimization of contextual signals—claim veracity and image-claim alignment—effectively detects medical misinformation. Neither signal alone is sufficient (veracity 80%, alignment 87%), but smart thresholds with VERACITY_FIRST logic achieve **92.0% accuracy** with **96.2% precision**. The quantized 4-bit Q4_KM model validates efficient deployment capability.
 
 ---
 

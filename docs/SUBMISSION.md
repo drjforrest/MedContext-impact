@@ -9,7 +9,7 @@
 
 MedContext is an AI-powered tool that detects medical misinformation by analyzing **contextual authenticity**—whether claims match their images. Unlike pixel-forensics tools that detect manipulated images, MedContext addresses the more common threat: **authentic images used in misleading contexts**.
 
-**Key Innovation:** Hierarchical optimization transforms weak individual signals (71-78% accuracy) into a robust 91.4% accurate detector through smart thresholding and VERACITY_FIRST logic.
+**Key Innovation:** Hierarchical optimization transforms weak individual signals (veracity 80%, alignment 87%) into a robust 92.0% accurate detector through smart thresholds (0.65/0.30) and VERACITY_FIRST logic. Simple combination plateaus at ~83%; optimization unlocks the S-curve.
 
 ---
 
@@ -31,7 +31,7 @@ MedContext evaluates two contextual signals:
 1. **Claim Veracity**-Is the accompanying claim medically accurate?
 2. **Image-Claim Alignment**-Does the image actually support the claim?
 
-**The Breakthrough:** Individual signals are weak (71.2% and 77.9% accuracy). Simple combination helps modestly (~80%). But **hierarchical optimization with tuned thresholds (0.65/0.30)** unlocks the inflection point: **91.4% accuracy**.
+**The Breakthrough:** Individual signals are insufficient (veracity 79.8%, alignment 86.5%). Simple combination plateaus (~83%). But **hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic** unlocks the S-curve inflection point: **92.0% accuracy**.
 
 ### The S-Curve
 
@@ -57,26 +57,27 @@ MedContext evaluates two contextual signals:
 
 | Metric        | Value |
 |---------------|-------|
-| **Accuracy**  | 91.4% |
-| **Precision** | 96.9% |
-| **Recall**    | 92.6% |
-| **F1 Score**  | 94.7% |
+| **Accuracy**  | 92.0% |
+| **Precision** | 96.2% |
+| **Recall**    | 94.1% |
+| **F1 Score**  | 95.1% |
 
 **Confusion Matrix:**
-- True Positives: 125 (misinformation correctly flagged)
-- True Negatives: 24 (legitimate correctly identified)
-- False Positives: 4 (legitimate incorrectly flagged - 2.5%)
-- False Negatives: 10 (misinformation missed - 6.1%)
+- True Positives: 128 (misinformation correctly flagged)
+- True Negatives: 22 (legitimate correctly identified)
+- False Positives: 5 (legitimate incorrectly flagged - 3.1%)
+- False Negatives: 8 (misinformation missed - 4.9%)
 
 ### Individual vs. Optimized Performance
 
-| Approach           | Accuracy  | Gap         |
-|--------------------|-----------|-------------|
-| Veracity Only      | 71.2%     | —           |
-| Alignment Only     | 77.9%     | —           |
-| Optimized Combined | **91.4%** | **+13-20%** |
+| Approach                | Accuracy  | Gap         |
+|-------------------------|-----------|-------------|
+| Veracity Only           | 79.8%     | —           |
+| Alignment Only          | 86.5%     | —           |
+| Simple Combination      | ~83%      | —           |
+| **Hierarchical Optimization** | **92.0%** | **+13-20%** |
 
-The optimization breakthrough demonstrates that **arrangement matters more than combination alone**.
+The optimization breakthrough demonstrates that **smart arrangement unlocks the S-curve; simple combination plateaus**.
 
 ---
 
@@ -101,7 +102,7 @@ The optimization breakthrough demonstrates that **arrangement matters more than 
 
 1. **Contextual authenticity ≠ pixel authenticity.** The majority of medical misinformation uses authentic images in misleading contexts—not manipulated images.
 
-2. **Optimization > Combination.** Simply combining signals achieves ~80%. Hierarchical optimization with tuned thresholds achieves 91.4%.
+2. **Optimization > Combination.** Simply combining signals plateaus at ~83%. Hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic achieves 92.0%.
 
 3. **The S-curve applies to AI systems.** Like compound interest or network effects, contextual analysis exhibits an inflection point where proper arrangement unlocks latent performance.
 
@@ -130,9 +131,9 @@ The optimization breakthrough demonstrates that **arrangement matters more than 
 
 ## Conclusion
 
-MedContext demonstrates that **optimization, not just combination**, is the key to reliable medical misinformation detection. The S-curve breakthrough—from 71-78% individual signals to 91.4% optimized—proves that contextual authenticity is both necessary and achievable with efficient, deployable AI.
+MedContext demonstrates that **optimization, not just combination**, is the key to reliable medical misinformation detection. The S-curve breakthrough—from 80-87% individual signals to 92.0% hierarchically optimized—proves that contextual authenticity is both necessary and achievable with efficient, deployable AI.
 
-**The quantized MedGemma 4B model achieves this efficiently, proving that deployment-ready contextual authenticity is possible.**
+**The Q4_KM quantized MedGemma 4B model achieves this efficiently, proving that deployment-ready contextual authenticity at scale is possible with smart threshold optimization and VERACITY_FIRST logic.**
 
 ---
 

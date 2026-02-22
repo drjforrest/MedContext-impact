@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Compare 3 MedGemma variants side-by-side.
+"""[DEPRECATED] Compare 3 MedGemma variants side-by-side.
 
-Loads raw_predictions.json from each variant directory, computes metrics,
-runs threshold optimization (cross-validated), and produces a comparison table.
+**NOTE:** This script is no longer part of the primary thesis. The current focus
+is on demonstrating that hierarchical optimization of contextual signals (veracity
++ alignment) achieves strong performance with Q4_KM quantized model—NOT on comparing
+model variants.
 
-Usage:
+Legacy script kept for historical reference only.
+
+Original usage:
   uv run python -m app.validation.compare_variants
 
   # Custom directories:
