@@ -14,21 +14,21 @@ import {
 } from 'recharts'
 import './ValidationStory.css'
 
-// FRESH VALIDATION DATA - February 20, 2026
-// Model: MedGemma 4B IT Quantized (Q4_KM, ~4-bit)
+// FRESH VALIDATION DATA - February 17, 2026
+// Model: MedGemma 4B Quantized (Q4_KM via LM Studio)
 // Dataset: Med-MMHL (n=163, stratified random, seed=42)
 const VALIDATION_DATA = {
   q: {
-    model: "MedGemma 4B IT Quantized",
-    date: "February 20, 2026",
-    veracity: 71.2,      // Individual signal
-    alignment: 77.9,     // Individual signal
+    model: "MedGemma 4B Quantized (Q4_KM)",
+    date: "February 17, 2026",
+    veracity: 79.8,      // Individual signal (79.75% actual)
+    alignment: 86.5,     // Individual signal (86.50% actual)
     combined: {
-      accuracy: 91.4,
-      precision: 96.9,
-      recall: 92.6,
-      f1: 94.7,
-      tp: 125, fp: 4, tn: 24, fn: 10,
+      accuracy: 92.0,    // 92.02% actual - threshold optimized
+      precision: 96.2,   // 96.21% actual
+      recall: 94.1,      // 94.07% actual
+      f1: 95.1,          // 95.13% actual
+      tp: 128, fp: 5, tn: 22, fn: 8,
     },
     thresholds: { veracity: 0.65, alignment: 0.30 },
   },
@@ -66,8 +66,8 @@ function ValidationStory({ onNavigateBack }) {
           </h1>
           
           <p className="validation-subtitle">
-            How hierarchical optimization transforms weak individual signals (71-78%) 
-            into a 91.4% accurate misinformation detector
+            How hierarchical optimization transforms weak individual signals (80-87%)
+            into a 92% accurate misinformation detector
           </p>
 
           <div className="validation-stats-row">
@@ -140,8 +140,8 @@ function ValidationStory({ onNavigateBack }) {
               </ResponsiveContainer>
               
               <p className="helper" style={{ marginTop: '1rem', background: 'rgba(42, 157, 143, 0.1)', padding: '0.75rem', borderRadius: '4px' }}>
-                <strong style={{ color: '#2A9D8F' }}>The jump:</strong> From ~71-78% individual signals 
-                to <strong>91.4% optimized</strong>. The whole exceeds the sum when arranged correctly.
+                <strong style={{ color: '#2A9D8F' }}>The jump:</strong> From ~80-87% individual signals
+                to <strong>92% optimized</strong>. The whole exceeds the sum when arranged correctly.
               </p>
             </div>
           </div>
@@ -182,7 +182,7 @@ function ValidationStory({ onNavigateBack }) {
         <div className="timeline-step">
           <div className="step-marker">4</div>
           <div className="step-content">
-            <h3>Results: 91.4% Accuracy</h3>
+            <h3>Results: 92% Accuracy</h3>
             
             <div className="chart-card" style={{ background: 'rgba(42, 157, 143, 0.1)', borderLeft: '3px solid #2A9D8F' }}>
               <div className="insight-grid">
@@ -224,19 +224,19 @@ function ValidationStory({ onNavigateBack }) {
             <div className="chart-card">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
                 <div style={{ padding: '1rem', background: 'rgba(230, 57, 70, 0.1)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#E63946' }}>71%</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#E63946' }}>80%</div>
                   <div style={{ fontSize: '0.8rem' }}>Veracity</div>
                 </div>
                 <div style={{ padding: '1rem', background: 'rgba(244, 162, 97, 0.1)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#F4A261' }}>78%</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#F4A261' }}>87%</div>
                   <div style={{ fontSize: '0.8rem' }}>Alignment</div>
                 </div>
                 <div style={{ padding: '1rem', background: 'rgba(108, 117, 125, 0.1)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#6C757D' }}>~80%</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#6C757D' }}>~83%</div>
                   <div style={{ fontSize: '0.8rem' }}>Simple</div>
                 </div>
                 <div style={{ padding: '1rem', background: 'rgba(42, 157, 143, 0.2)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2A9D8F' }}>91%</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2A9D8F' }}>92%</div>
                   <div style={{ fontSize: '0.8rem' }}>Optimized</div>
                 </div>
               </div>
@@ -252,8 +252,8 @@ function ValidationStory({ onNavigateBack }) {
           <h2>The Bottom Line</h2>
           <p className="summary-lead">
             Medical misinformation detection requires <strong>optimization, not just combination</strong>.
-            Hierarchical logic with smart thresholds transforms ~71-78% signals into a
-            <strong> 91.4% accurate quantized model</strong>.
+            Hierarchical logic with smart thresholds transforms ~80-87% signals into a
+            <strong> 92% accurate quantized model</strong>.
           </p>
 
           <div style={{ padding: '1.5rem', background: 'rgba(42, 157, 143, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #2A9D8F' }}>
