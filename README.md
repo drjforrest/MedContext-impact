@@ -291,14 +291,18 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 ## 🎬 Demo Video
 
-[Video will be embedded here - currently in production]
+Watch the 3-minute demonstration:
 
-**Preview (3 minutes - competition requirement):**
+[![MedContext Demo](https://img.youtube.com/vi/uoD6gL2l934/maxresdefault.jpg)](https://www.youtube.com/watch?v=uoD6gL2l934)
 
-1. The Problem (majority authentic images with false context)
-2. Proof of Justification (ELA fails on DICOM; three dimensions required)
-3. The Solution + Live Demo (agentic workflow in action)
-4. Impact (HERO Lab partnership for Africa)
+**🎥 [Watch on YouTube](https://www.youtube.com/watch?v=uoD6gL2l934)**
+
+**Covers (3 minutes):**
+
+1. The Problem (authentic images used in misleading contexts)
+2. Med-MMHL Validation (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
+3. Live Demo (upload → analysis → verdict)
+4. Impact (HERO Lab, UBC partnership for African deployment)
 
 ---
 

@@ -1,15 +1,30 @@
 # MedContext-Competition Submission
 ---
-**Project URL:** https://medcontext.drjforrest.com  
-**Repository:** https://github.com/drjforrest/medcontext  
-**Date:** February 20, 20261`1`1
+**Project URL:** https://medcontext.drjforrest.com
+**Repository:** https://github.com/drjforrest/medcontext
+**Demo Video:** https://www.youtube.com/watch?v=uoD6gL2l934
+**Date:** February 20, 2026
+---
+
+## Demo Video
+
+Watch the 3-minute demonstration:
+
+[![MedContext Demo](https://img.youtube.com/vi/uoD6gL2l934/maxresdefault.jpg)](https://www.youtube.com/watch?v=uoD6gL2l934)
+
+**Video covers:**
+1. The problem (authentic images used in misleading contexts)
+2. Med-MMHL validation results (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
+3. Live demo (upload → analysis → verdict)
+4. Impact (HERO Lab, UBC partnership for African deployment)
+
 ---
 
 ## Executive Summary
 
 MedContext is an AI-powered tool that detects medical misinformation by analyzing **contextual authenticity**—whether claims match their images. Unlike pixel-forensics tools that detect manipulated images, MedContext addresses the more common threat: **authentic images used in misleading contexts**.
 
-**Key Innovation:** Hierarchical optimization transforms weak individual signals (veracity 80%, alignment 87%) into a robust 92.0% accurate detector through smart thresholds (0.65/0.30) and VERACITY_FIRST logic. Simple combination plateaus at ~83%; optimization achieves the breakthrough.
+**Key Innovation:** Hierarchical optimization transforms weak individual signals (veracity 79.8%, alignment 86.5%) into a robust 92.0% accurate detector through smart thresholds (0.65/0.30) and VERACITY_FIRST logic. Simple combination plateaus at ~83%; optimization achieves the breakthrough.
 
 ---
 
@@ -32,18 +47,6 @@ MedContext evaluates two contextual signals:
 2. **Image-Claim Alignment**-Does the image actually support the claim?
 
 **The Breakthrough:** Individual signals are insufficient (veracity 79.8%, alignment 86.5%). Simple combination plateaus (~83%). But **hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic** achieves breakthrough performance: **92.0% accuracy**.
-
-### The S-Curve
-
-```
-71% ── Veracity Only (plateau)
-78% ── Alignment Only (plateau)
-80% ── Simple OR (plateau)
-     ╲
-      ╲  ← INFLECTION POINT: Optimization
-       ╲
-91% ──── Optimized (breakthrough!)
-```
 
 **Why it works:** VERACITY_FIRST logic with asymmetric thresholds. High veracity threshold (0.65) requires strong evidence before calling something "not misinformation." Low alignment threshold (0.30) only flags obvious mismatches. This bias toward caution maximizes recall without sacrificing precision.
 

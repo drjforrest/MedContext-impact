@@ -17,7 +17,6 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from scipy import stats
 from scipy.stats import gaussian_kde
 
 sns.set_style("whitegrid")
@@ -25,7 +24,7 @@ sns.set_style("whitegrid")
 
 def load_predictions(results_dir: Path):
     """Load raw predictions and ground truth."""
-    with open(results_dir / 'raw_predictions.json') as f:
+    with open(results_dir / "raw_predictions.json") as f:
         predictions = json.load(f)
 
     veracity_scores = []
@@ -33,16 +32,12 @@ def load_predictions(results_dir: Path):
     y_true = []
 
     for pred in predictions:
-        veracity_scores.append(pred['veracity_score'])
-        alignment_scores.append(pred['alignment_score'])
+        veracity_scores.append(pred["veracity_score"])
+        alignment_scores.append(pred["alignment_score"])
         # True = misinformation
-        y_true.append(pred['ground_truth'] == 'misinformation')
+        y_true.append(pred["ground_truth"] == "misinformation")
 
-    return (
-        np.array(veracity_scores),
-        np.array(alignment_scores),
-        np.array(y_true)
-    )
+    return (np.array(veracity_scores), np.array(alignment_scores), np.array(y_true))
 
 
 def calculate_optimal_weight_per_image(
@@ -112,45 +107,77 @@ def plot_contribution_distribution(
 
     # 1. Veracity contribution distribution (smoothed)
     ax1 = axes[0, 0]
-    kde_v = gaussian_kde(veracity_weights, bw_method='scott')
+    kde_v = gaussian_kde(veracity_weights, bw_method="scott")
     x_range = np.linspace(0, 1, 200)
-    ax1.plot(x_range, kde_v(x_range), linewidth=2.5, color='#E63946', label='KDE')
-    ax1.hist(veracity_weights, bins=20, alpha=0.3, color='#E63946', density=True, label='Histogram')
-    ax1.axvline(np.mean(veracity_weights), color='#B91C1C', linestyle='--',
-                linewidth=2, label=f'Mean: {np.mean(veracity_weights):.2f}')
-    ax1.set_xlabel('Optimal Veracity Weight', fontsize=12, fontweight='bold')
-    ax1.set_ylabel('Density', fontsize=12, fontweight='bold')
-    ax1.set_title('Theoretical Distribution: Veracity Contribution', fontsize=14, fontweight='bold')
+    ax1.plot(x_range, kde_v(x_range), linewidth=2.5, color="#E63946", label="KDE")
+    ax1.hist(
+        veracity_weights,
+        bins=20,
+        alpha=0.3,
+        color="#E63946",
+        density=True,
+        label="Histogram",
+    )
+    ax1.axvline(
+        np.mean(veracity_weights),
+        color="#B91C1C",
+        linestyle="--",
+        linewidth=2,
+        label=f"Mean: {np.mean(veracity_weights):.2f}",
+    )
+    ax1.set_xlabel("Optimal Veracity Weight", fontsize=12, fontweight="bold")
+    ax1.set_ylabel("Density", fontsize=12, fontweight="bold")
+    ax1.set_title(
+        "Theoretical Distribution: Veracity Contribution",
+        fontsize=14,
+        fontweight="bold",
+    )
     ax1.legend()
     ax1.grid(alpha=0.3)
 
     # 2. Alignment contribution distribution (smoothed)
     ax2 = axes[0, 1]
-    kde_a = gaussian_kde(alignment_weights, bw_method='scott')
-    ax2.plot(x_range, kde_a(x_range), linewidth=2.5, color='#F4A261', label='KDE')
-    ax2.hist(alignment_weights, bins=20, alpha=0.3, color='#F4A261', density=True, label='Histogram')
-    ax2.axvline(np.mean(alignment_weights), color='#D4860A', linestyle='--',
-                linewidth=2, label=f'Mean: {np.mean(alignment_weights):.2f}')
-    ax2.set_xlabel('Optimal Alignment Weight', fontsize=12, fontweight='bold')
-    ax2.set_ylabel('Density', fontsize=12, fontweight='bold')
-    ax2.set_title('Theoretical Distribution: Alignment Contribution', fontsize=14, fontweight='bold')
+    kde_a = gaussian_kde(alignment_weights, bw_method="scott")
+    ax2.plot(x_range, kde_a(x_range), linewidth=2.5, color="#F4A261", label="KDE")
+    ax2.hist(
+        alignment_weights,
+        bins=20,
+        alpha=0.3,
+        color="#F4A261",
+        density=True,
+        label="Histogram",
+    )
+    ax2.axvline(
+        np.mean(alignment_weights),
+        color="#D4860A",
+        linestyle="--",
+        linewidth=2,
+        label=f"Mean: {np.mean(alignment_weights):.2f}",
+    )
+    ax2.set_xlabel("Optimal Alignment Weight", fontsize=12, fontweight="bold")
+    ax2.set_ylabel("Density", fontsize=12, fontweight="bold")
+    ax2.set_title(
+        "Theoretical Distribution: Alignment Contribution",
+        fontsize=14,
+        fontweight="bold",
+    )
     ax2.legend()
     ax2.grid(alpha=0.3)
 
     # 3. 2D density plot (veracity vs alignment)
     ax3 = axes[1, 0]
     # Create 2D histogram
-    h = ax3.hist2d(veracity_weights, alignment_weights, bins=20, cmap='YlOrRd', cmin=1)
-    ax3.plot([0, 1], [1, 0], 'k--', alpha=0.5, linewidth=2, label='Sum=1 constraint')
-    ax3.set_xlabel('Veracity Weight', fontsize=12, fontweight='bold')
-    ax3.set_ylabel('Alignment Weight', fontsize=12, fontweight='bold')
-    ax3.set_title('2D Distribution: Weight Pairs', fontsize=14, fontweight='bold')
+    h = ax3.hist2d(veracity_weights, alignment_weights, bins=20, cmap="YlOrRd", cmin=1)
+    ax3.plot([0, 1], [1, 0], "k--", alpha=0.5, linewidth=2, label="Sum=1 constraint")
+    ax3.set_xlabel("Veracity Weight", fontsize=12, fontweight="bold")
+    ax3.set_ylabel("Alignment Weight", fontsize=12, fontweight="bold")
+    ax3.set_title("2D Distribution: Weight Pairs", fontsize=14, fontweight="bold")
     ax3.legend()
-    plt.colorbar(h[3], ax=ax3, label='Count')
+    plt.colorbar(h[3], ax=ax3, label="Count")
 
     # 4. Statistics summary
     ax4 = axes[1, 1]
-    ax4.axis('off')
+    ax4.axis("off")
 
     stats_text = f"""
     THEORETICAL DISTRIBUTION ANALYSIS
@@ -176,19 +203,27 @@ def plot_contribution_distribution(
     Total images: {len(veracity_weights)}
     """
 
-    ax4.text(0.1, 0.5, stats_text, fontsize=11, fontfamily='monospace',
-             verticalalignment='center', bbox=dict(boxstyle='round',
-             facecolor='wheat', alpha=0.3))
+    ax4.text(
+        0.1,
+        0.5,
+        stats_text,
+        fontsize=11,
+        fontfamily="monospace",
+        verticalalignment="center",
+        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.3),
+    )
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
     print(f"✓ Saved contribution distribution plot to {output_path}")
 
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: python analyze_contribution_distribution.py <results_dir>")
-        print("Example: python analyze_contribution_distribution.py validation_results/med_mmhl_n163_4b_quantized")
+        print(
+            "Example: python analyze_contribution_distribution.py validation_results/med_mmhl_n163_4b_quantized"
+        )
         sys.exit(1)
 
     results_dir = Path(sys.argv[1])
@@ -197,7 +232,7 @@ def main():
         print(f"Error: Directory not found: {results_dir}")
         sys.exit(1)
 
-    print(f"\n📊 Analyzing per-image optimal contribution weights...")
+    print("\n📊 Analyzing per-image optimal contribution weights...")
     print(f"   Results directory: {results_dir}\n")
 
     # Load predictions
@@ -209,39 +244,43 @@ def main():
     veracity_weights, alignment_weights = calculate_optimal_weight_per_image(
         veracity_scores, alignment_scores, y_true
     )
-    print(f"✓ Calculated optimal weights")
+    print("✓ Calculated optimal weights")
 
     # Plot distribution
     output_path = results_dir / "contribution_distribution.png"
-    print(f"📈 Generating smoothed distribution plots...")
+    print("📈 Generating smoothed distribution plots...")
     plot_contribution_distribution(veracity_weights, alignment_weights, output_path)
 
     # Save raw data
     data_output = results_dir / "optimal_weights.json"
-    with open(data_output, 'w') as f:
-        json.dump({
-            'veracity_weights': veracity_weights.tolist(),
-            'alignment_weights': alignment_weights.tolist(),
-            'statistics': {
-                'veracity': {
-                    'mean': float(np.mean(veracity_weights)),
-                    'median': float(np.median(veracity_weights)),
-                    'std': float(np.std(veracity_weights)),
+    with open(data_output, "w") as f:
+        json.dump(
+            {
+                "veracity_weights": veracity_weights.tolist(),
+                "alignment_weights": alignment_weights.tolist(),
+                "statistics": {
+                    "veracity": {
+                        "mean": float(np.mean(veracity_weights)),
+                        "median": float(np.median(veracity_weights)),
+                        "std": float(np.std(veracity_weights)),
+                    },
+                    "alignment": {
+                        "mean": float(np.mean(alignment_weights)),
+                        "median": float(np.median(alignment_weights)),
+                        "std": float(np.std(alignment_weights)),
+                    },
                 },
-                'alignment': {
-                    'mean': float(np.mean(alignment_weights)),
-                    'median': float(np.median(alignment_weights)),
-                    'std': float(np.std(alignment_weights)),
-                },
-            }
-        }, f, indent=2)
+            },
+            f,
+            indent=2,
+        )
     print(f"✓ Saved optimal weights data to {data_output}")
 
     print("\n✅ Analysis complete!")
-    print(f"\nKey insight: The theoretical distribution shows how optimal")
-    print(f"contribution weights vary per-image. Your fixed thresholds")
-    print(f"(0.65/0.30) approximate this varying optimal weighting.")
+    print("\nKey insight: The theoretical distribution shows how optimal")
+    print("contribution weights vary per-image. Your fixed thresholds")
+    print("(0.65/0.30) approximate this varying optimal weighting.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

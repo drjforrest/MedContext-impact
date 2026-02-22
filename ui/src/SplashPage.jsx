@@ -247,20 +247,18 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       <section className="card splash-video-section">
         <h2 className="splash-section-title">See It In Action</h2>
         <p className="splash-section-subtitle">
-          Watch how MedContext analyzes real medical misinformation in under two minutes.
+          Watch how MedContext analyzes real medical misinformation in under three minutes.
         </p>
         <div className="video-embed-wrapper">
-          {/* Replace YOUR_VIDEO_ID with the actual YouTube video ID */}
-          <div className="video-embed-placeholder">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-            <p>YouTube video embed goes here</p>
-            <p className="helper">
-              Replace the placeholder in SplashPage.jsx with:<br />
-              <code>&lt;iframe src=&quot;https://www.youtube.com/embed/YOUR_VIDEO_ID&quot; ...&gt;</code>
-            </p>
-          </div>
+          <iframe
+            width="100%"
+            height="100%"
+            src="https://www.youtube.com/embed/uoD6gL2l934"
+            title="MedContext Demo"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
         </div>
       </section>
 

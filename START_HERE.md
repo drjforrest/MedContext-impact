@@ -169,14 +169,18 @@ medcontext/
 
 ## 📹 Demo Video
 
-[Video embed - currently in production]
+Watch the 3-minute demonstration:
 
-**3-minute demonstration covering:**
+[![MedContext Demo](https://img.youtube.com/vi/uoD6gL2l934/maxresdefault.jpg)](https://www.youtube.com/watch?v=uoD6gL2l934)
 
-1. The problem (authentic images used misleadingly)
-2. Med-MMHL validation results (n=163: single methods 65-72% vs combined 96.3%)
+**🎥 [Watch on YouTube](https://www.youtube.com/watch?v=uoD6gL2l934)**
+
+**Covers:**
+
+1. The problem (authentic images used in misleading contexts)
+2. Med-MMHL validation results (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
 3. Live demo (upload → analysis → verdict)
-4. Impact (HERO Lab partnership for Africa)
+4. Impact (HERO Lab, UBC partnership for African deployment)
 
 > Note: Competition requirement is 3 minutes maximum
 

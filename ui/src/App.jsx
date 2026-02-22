@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import SplashPage from './SplashPage'
 import ValidationStory from './ValidationStory'
-import ThresholdOptimization from './ThresholdOptimization'
+import OptimizationStory from './OptimizationStory'
+import SettingsAndTools from './SettingsAndTools'
 
 function renderTriIcon(status, cx, cy) {
   if (status === 'pass') {
@@ -404,23 +405,6 @@ function App() {
       return 'pending'
     })
   }, [agentSteps, progressPhase, toolActivity, forceTools])
-  const integrityVisualization = contextualIntegrity?.visualization || null
-  const integrityScore =
-    typeof integrityVisualization?.overall_confidence === 'number'
-      ? integrityVisualization.overall_confidence
-      : typeof contextualIntegrity?.score === 'number'
-        ? contextualIntegrity.score
-        : null
-  const integrityScorePercent =
-    integrityScore === null ? null : Math.round(integrityScore * 100)
-  const integrityScoreTone =
-    integrityScorePercent === null
-      ? 'neutral'
-      : integrityScorePercent >= 70
-        ? 'high'
-        : integrityScorePercent >= 40
-          ? 'medium'
-          : 'low'
   const claimVeracity = useMemo(() => {
     const veracity =
       part2?.claim_veracity || contextualIntegrity?.claim_veracity || null
@@ -529,77 +513,7 @@ function App() {
     }
     return { score: 0, label: 'Alignment undetermined.', tone: 'neutral' }
   }, [part2?.alignment, part2?.verdict])
-  const evidenceItems = useMemo(() => {
-    const items = []
-    if (part2?.alignment) {
-      items.push({
-        label: 'Image-claim alignment',
-        value: part2.alignment,
-        detail: alignmentScore.label,
-        tone: alignmentScore.tone,
-      })
-    }
-    if (claimVeracity?.accuracy) {
-      items.push({
-        label: 'Claim veracity',
-        value: claimVeracity.accuracy.replace('_', ' '),
-        detail: claimVeracity.evidenceBasis || claimVeracity.label,
-        tone: claimVeracity.tone,
-      })
-    }
-    if (integrityScorePercent !== null) {
-      items.push({
-        label: 'Authenticity score',
-        value: `${integrityScorePercent}%`,
-        detail: 'Composite score across evidence signals.',
-        tone: integrityScoreTone,
-      })
-    }
-    if (orchestratorReverseSearch) {
-      const matchCount = orchestratorReverseSearch.matches?.length || 0
-      items.push({
-        label: 'Reverse search',
-        value: `${matchCount} matches`,
-        detail: matchCount ? 'Sources found online.' : 'No sources found.',
-        tone: matchCount ? 'high' : 'neutral',
-      })
-    }
-    if (provenanceData) {
-      const blockCount = provenanceData.blocks?.length || 0
-      const isAnchored = Boolean(provenanceData.blockchain_tx_hash)
-      items.push({
-        label: 'Provenance chain',
-        value: `${blockCount} blocks`,
-        detail: isAnchored
-          ? 'Immutable chain anchored on Polygon blockchain.'
-          : blockCount
-            ? 'Immutable chain constructed.'
-            : 'No chain data.',
-        tone: blockCount ? 'high' : 'neutral',
-      })
-    }
-    if (forensicsData) {
-      const statusLabel =
-        typeof forensicsData?.status === 'string' ? forensicsData.status : 'unknown'
-      items.push({
-        label: 'Forensics status',
-        value: statusLabel,
-        detail: forensicsData?.detail || 'No forensics detail returned.',
-        tone: statusLabel === 'completed' ? 'high' : 'neutral',
-      })
-    }
-    return items
-  }, [
-    alignmentScore.label,
-    alignmentScore.tone,
-    claimVeracity,
-    forensicsData,
-    integrityScorePercent,
-    integrityScoreTone,
-    orchestratorReverseSearch,
-    part2?.alignment,
-    provenanceData,
-  ])
+
   const assessmentQuadrant = useMemo(() => {
     if (!part2?.alignment && !claimVeracity) return null
     const alignmentKey = (part2?.alignment || '').toLowerCase().replace(/[\s-]+/g, '_')
@@ -755,7 +669,7 @@ function App() {
         <nav className="tab-bar">
           <button
             type="button"
-            className={`tab-button ${activeView === 'main' || activeView === 'settings' ? 'tab-active' : ''}`}
+            className={`tab-button ${activeView === 'main' ? 'tab-active' : ''}`}
             onClick={() => setActiveView('main')}
           >
             Verify Image
@@ -765,25 +679,21 @@ function App() {
             className={`tab-button ${activeView === 'validation' ? 'tab-active' : ''}`}
             onClick={() => setActiveView('validation')}
           >
-            Validation Results
+            Validation Methodology
           </button>
           <button
             type="button"
-            className={`tab-button ${activeView === 'threshold' ? 'tab-active' : ''}`}
-            onClick={() => setActiveView('threshold')}
+            className={`tab-button ${activeView === 'optimization' ? 'tab-active' : ''}`}
+            onClick={() => setActiveView('optimization')}
           >
-            Threshold Optimization
+            Optimization Story
           </button>
           <button
             type="button"
-            className="tab-button tab-settings-btn"
-            onClick={() =>
-              setActiveView((current) =>
-                current === 'settings' ? 'main' : 'settings',
-              )
-            }
+            className={`tab-button ${activeView === 'settings' ? 'tab-active' : ''}`}
+            onClick={() => setActiveView('settings')}
           >
-            {activeView === 'settings' ? 'Back' : 'Settings'}
+            Settings & Tools
           </button>
         </nav>
       )}
@@ -794,54 +704,18 @@ function App() {
             onNavigateToVerify={() => setActiveView('main')}
             onNavigateToValidation={() => setActiveView('validation')}
           />
-        ) : activeView === 'threshold' ? (
-          <ThresholdOptimization apiBase={apiBase} accessCode={accessCode} />
         ) : activeView === 'validation' ? (
           <ValidationStory />
+        ) : activeView === 'optimization' ? (
+          <OptimizationStory />
         ) : activeView === 'settings' ? (
-          <section className="card settings-card">
-            <div className="settings-header">
-              <div>
-                <h2>Settings</h2>
-                <p className="helper">
-                  Configure API endpoints and reverse search polling.
-                </p>
-              </div>
-            </div>
-            <div className="settings-section">
-              <h3>API</h3>
-              <div className="grid">
-                <label className="field">
-                  <span>API base URL</span>
-                  <input
-                    type="url"
-                    placeholder={defaultApiBase}
-                    value={apiBase}
-                    onChange={(event) =>
-                      handleApiBaseChange(event.target.value)
-                    }
-                  />
-                  <span className="helper">
-                    Stored locally in your browser.
-                  </span>
-                </label>
-                <label className="field">
-                  <span>Demo Access Code</span>
-                  <input
-                    type="text"
-                    placeholder="Leave empty for local dev"
-                    value={accessCode}
-                    onChange={(event) =>
-                      handleAccessCodeChange(event.target.value)
-                    }
-                  />
-                  <span className="helper">
-                    Required for public demo. See README for code.
-                  </span>
-                </label>
-              </div>
-            </div>
-          </section>
+          <SettingsAndTools
+            apiBase={apiBase}
+            accessCode={accessCode}
+            onApiBaseChange={handleApiBaseChange}
+            onAccessCodeChange={handleAccessCodeChange}
+            defaultApiBase={defaultApiBase}
+          />
         ) : (
           <>
             <section className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -990,7 +864,7 @@ function App() {
                           Decision Thresholds
                         </span>
                         <span className="helper" style={{ display: 'block', marginBottom: '1rem' }}>
-                          Use optimized thresholds from the "Threshold Optimization" tab or adjust manually.
+                          Use optimized thresholds from the "Settings & Tools" tab or adjust manually.
                           Current: {decisionLogic} logic.
                         </span>
                         
@@ -1189,7 +1063,7 @@ function App() {
                         fontSize: '0.85rem',
                         color: 'var(--muted)'
                       }}>
-                        💡 <strong>Tip:</strong> Use the "Threshold Optimization" tab to find optimal values for your specific use case.
+                        💡 <strong>Tip:</strong> Use the "Settings & Tools" tab to find optimal values for your specific use case.
                         Default values (veracity &lt; 0.65 OR alignment &lt; 0.30) were optimized on MedGemma 4B runs for Med-MMHL.
                       </div>
                     </div>
@@ -1482,7 +1356,7 @@ function App() {
                       </p>
                       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                         <button
-                          onClick={() => setActiveView('threshold')}
+                          onClick={() => setActiveView('settings')}
                           style={{
                             padding: '0.75rem 1.5rem',
                             background: '#c85a00',

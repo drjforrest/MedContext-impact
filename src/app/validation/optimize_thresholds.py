@@ -28,9 +28,25 @@ sns.set_style("whitegrid")
 
 def load_predictions(results_dir: Path):
     """Load raw predictions."""
-    with open(results_dir / 'raw_predictions.json') as f:
+    with open(results_dir / "raw_predictions.json") as f:
         predictions = json.load(f)
     return predictions
+
+
+def extract_scores_and_labels(predictions):
+    """Extract veracity scores, alignment scores, and ground truth labels."""
+    veracity_scores = []
+    alignment_scores = []
+    y_true = []
+
+    for pred in predictions:
+        veracity_scores.append(pred["veracity_score"])
+        alignment_scores.append(pred["alignment_score"])
+        # True = misinformation
+        y_true.append(pred["ground_truth"] == "misinformation")
+
+    return (np.array(veracity_scores), np.array(alignment_scores), np.array(y_true))
+
 
 def apply_thresholds(
     veracity_scores,
