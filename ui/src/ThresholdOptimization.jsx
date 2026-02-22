@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Bar, BarChart, Cell, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import './App.css'
+import './ThresholdOptimization.css'
 
 export default function ThresholdOptimization({ apiBase, accessCode }) {
   const [datasetFile, setDatasetFile] = useState(null)
