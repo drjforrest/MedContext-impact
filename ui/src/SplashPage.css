@@ -142,24 +142,31 @@
   cursor: default;
 }
 
-/* Carousel card positioning */
 .carousel-card-center {
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -50%) translateZ(0) scale(1);
   z-index: 3;
-  opacity: 1;
   cursor: pointer;
+  filter: drop-shadow(0 24px 48px rgba(11, 31, 58, 0.22));
 }
 
-.carousel-card-left {
-  transform: translate(-120%, -50%) scale(0.85);
-  z-index: 1;
-  opacity: 0.6;
+.carousel-card-center:focus-visible {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 4px;
+  border-radius: 16px;
 }
 
 .carousel-card-right {
-  transform: translate(20%, -50%) scale(0.85);
+  transform: translate(calc(-50% + 260px), -50%) translateZ(-180px) scale(0.82) rotateY(-12deg);
   z-index: 1;
-  opacity: 0.6;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.carousel-card-left {
+  transform: translate(calc(-50% - 260px), -50%) translateZ(-180px) scale(0.82) rotateY(12deg);
+  z-index: 1;
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .card-inner {
@@ -260,6 +267,16 @@
   text-transform: uppercase;
 }
 
+.verdict-misinfo {
+  background: rgba(185, 28, 28, 0.9);
+  color: #fff;
+}
+
+.verdict-legit {
+  background: rgba(78, 154, 52, 0.9);
+  color: #fff;
+}
+
 .card-back h3 {
   margin: 0;
   font-size: 1.1rem;
@@ -329,8 +346,39 @@
 }
 
 /* --- Carousel Dots --- */
+.carousel-dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.carousel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 1px 3px rgba(11, 31, 58, 0.1);
+}
+
+.carousel-dot:hover {
+  transform: scale(1.2);
+  box-shadow: none;
+}
+
+.carousel-dot-active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
 
 /* --- Video Section (uses .card from App.css) --- */
+.splash-video-section {
+  text-align: center;
+}
 
 .splash-video-section .splash-section-title {
   margin-bottom: 0.25rem;
@@ -340,11 +388,32 @@
   margin-bottom: 1.5rem;
 }
 
+.video-embed-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
 .video-embed-wrapper iframe {
   width: 100%;
   aspect-ratio: 16 / 9;
   border: none;
   border-radius: 12px;
+}
+
+.video-embed-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  border: 2px dashed var(--border);
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--muted);
 }
 
 .video-embed-placeholder p {
@@ -511,12 +580,12 @@
     height: 420px;
   }
 
-  .carousel-card-left {
-    transform: translate(-110%, -50%) scale(0.8);
+  .carousel-card-right {
+    transform: translate(calc(-50% + 220px), -50%) translateZ(-180px) scale(0.8) rotateY(-12deg);
   }
 
-  .carousel-card-right {
-    transform: translate(10%, -50%) scale(0.8);
+  .carousel-card-left {
+    transform: translate(calc(-50% - 220px), -50%) translateZ(-180px) scale(0.8) rotateY(12deg);
   }
 }
 
@@ -547,12 +616,10 @@
     height: 410px;
   }
 
+  .carousel-card-right,
   .carousel-card-left {
-    transform: translate(-105%, -50%) scale(0.75);
-  }
-
-  .carousel-card-right {
-    transform: translate(5%, -50%) scale(0.75);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .how-steps {
