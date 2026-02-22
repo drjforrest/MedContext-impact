@@ -316,29 +316,40 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       {/* Validation Teaser */}
       <section className="card splash-teaser">
         <p className="teaser-text">
-          We tested <strong>3 MedGemma variants</strong> &mdash; 4B instruction-tuned,
-          4B pre-trained, and 4B quantized (Q4_KM) &mdash; on 163 real-world medical claims.
-          Which model catches the most misinformation?
+          Neither veracity alone nor image-claim alignment alone is sufficient for detecting
+          medical misinformation. <strong>Each component scored in the 70s%</strong> on accuracy.
+          But through threshold optimization, <strong>MedContext's Contextual Authenticity achieves
+          91.4% accuracy</strong> — where one method fails, the other catches it.
         </p>
         <button
           type="button"
           className="teaser-cta"
           onClick={onNavigateToValidation}
         >
-          See the Results
+          See the Validation Results
         </button>
       </section>
 
       {/* Stats Bar */}
       <section className="card splash-stats">
         <div className="stat-item">
-          <span className="stat-value">94.5%</span>
-          <span className="stat-label">Avg. Veracity + Alignment Accuracy</span>
+          <span className="stat-value" style={{ color: '#E63946' }}>71%</span>
+          <span className="stat-label">Veracity Alone</span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat-item">
+          <span className="stat-value" style={{ color: '#F4A261' }}>78%</span>
+          <span className="stat-label">Alignment Alone</span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat-item" style={{ background: 'rgba(42, 157, 143, 0.1)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
+          <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '1.8rem' }}>91.4%</span>
+          <span className="stat-label"><strong>Optimized Together</strong></span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
           <span className="stat-value">163</span>
-          <span className="stat-label">Real-World Examples Tested</span>
+          <span className="stat-label">Test Samples</span>
         </div>
         <div className="stat-divider" />
         <div
