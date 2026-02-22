@@ -3,6 +3,7 @@
 import base64
 import httpx
 import json
+import os
 
 # Simple 1x1 test image
 test_image = bytes.fromhex(
@@ -11,8 +12,8 @@ test_image = bytes.fromhex(
     "44ae426082"
 )
 
-url = "https://fxar9mmzlra5k3ua.us-east-1.aws.endpoints.huggingface.cloud"
-token = "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"
+url = os.getenv("MEDGEMMA_ENDPOINT_URL", "https://your-endpoint-url.endpoints.huggingface.cloud")
+token = os.getenv("MEDGEMMA_HF_TOKEN", "your_token_here")
 headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 encoded = base64.b64encode(test_image).decode("ascii")
