@@ -65,17 +65,7 @@ step "Syncing code to VPS..."
 
 rsync -avz --delete \
   --exclude '.git' \
-  --exclude 'node_modules' \
-  --exclude 'ui/node_modules' \
-  --exclude 'ui/dist' \
-  --exclude '.venv' \
-  --exclude '__pycache__' \
-  --exclude '.env' \
-  --exclude '*.pyc' \
-  --exclude 'data' \
-  --exclude 'validation_results' \
-  --exclude '.pytest_cache' \
-  --exclude '.ruff_cache' \
+  --exclude-from="$REPO_ROOT/.gitignore" \
   "$REPO_ROOT/" "$VPS_HOST:$VPS_DIR/"
 
 step "Connecting to VPS and deploying..."
