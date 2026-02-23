@@ -1,5 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 
+// Inject @keyframes once so inline animation properties work
+const KEYFRAMES_ID = 'llama-status-keyframes'
+if (typeof document !== 'undefined' && !document.getElementById(KEYFRAMES_ID)) {
+  const style = document.createElement('style')
+  style.id = KEYFRAMES_ID
+  style.textContent = `
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.5; }
+    }
+  `
+  document.head.appendChild(style)
+}
+
 /**
  * LlamaCppStatus — polls the /api/v1/config/provider-status endpoint every
  * 5 seconds and surfaces the current provider state to the rest of the app.
@@ -17,6 +35,11 @@ function LlamaCppStatus({ apiBase = '', accessCode = '', onStatusChange }) {
   const [status, setStatus] = useState(null)
   const [error, setError] = useState(false)
   const intervalRef = useRef(null)
+  const onStatusChangeRef = useRef(onStatusChange)
+
+  useEffect(() => {
+    onStatusChangeRef.current = onStatusChange
+  }, [onStatusChange])
 
   const fetchStatus = async () => {
     try {
@@ -31,7 +54,7 @@ function LlamaCppStatus({ apiBase = '', accessCode = '', onStatusChange }) {
       const data = await res.json()
       setError(false)
       setStatus(data)
-      if (onStatusChange) onStatusChange(data)
+      if (onStatusChangeRef.current) onStatusChangeRef.current(data)
     } catch {
       setError(true)
     }

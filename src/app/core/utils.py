@@ -139,7 +139,12 @@ def parse_llm_json(content: str) -> Any:
 
 
 def resize_image(image_bytes: bytes, max_size: int = 1024, quality: int = 80) -> bytes:
-    """Resize image to reduce payload size and avoid API limits."""
+    """Resize image to fit within max_size pixels and re-encode as JPEG.
+
+    Always returns the re-encoded image when dimensions were reduced, even if
+    the file size increased — pixel dimensions matter more than byte count for
+    CPU-based vision model inference.
+    """
     try:
         from PIL import Image
 
@@ -147,16 +152,22 @@ def resize_image(image_bytes: bytes, max_size: int = 1024, quality: int = 80) ->
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
 
+        was_resized = False
         if max(img.size) > max_size:
             ratio = max_size / max(img.size)
             new_size = tuple(int(dim * ratio) for dim in img.size)
             img = img.resize(new_size, Image.Resampling.LANCZOS)
+            was_resized = True
 
         buffer = io.BytesIO()
         img.save(buffer, format="JPEG", quality=quality)
         resized = buffer.getvalue()
 
-        # Verify the resize actually reduced size (if input was already small/optimized)
+        # Always use the resized version when dimensions were reduced —
+        # pixel count is what matters for vision model memory, not file size.
+        if was_resized:
+            return resized
+        # Dimensions fit already; only re-encode if it saves bytes.
         if len(resized) < len(image_bytes):
             return resized
         return image_bytes

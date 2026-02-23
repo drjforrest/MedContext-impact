@@ -1063,18 +1063,13 @@ function App() {
                     <div className={`signal-block signal-block-veracity${triangleSignals ? ` signal-${triangleSignals.veracity}` : ''}`}>
                       <div className="signal-block-top">
                         <span className="signal-block-name">Claim Veracity</span>
-                        <span className="signal-block-badge">{claimVeracity?.label || 'Not assessed'}</span>
+                        <span className={`signal-block-badge signal-tone-${claimVeracity?.tone || 'neutral'}`}>
+                          {claimVeracity?.tone === 'high' ? '✓' : claimVeracity?.tone === 'low' ? '✗' : claimVeracity?.tone === 'medium' ? '△' : '—'}
+                        </span>
                       </div>
-                      <span className="signal-score-num">
-                        {claimVeracity?.score != null
-                          ? <>{Math.round(claimVeracity.score * 100)}<sup>%</sup></>
-                          : '—'}
-                      </span>
-                      {claimVeracity?.score != null && (
-                        <div className="signal-progress-track">
-                          <div className="signal-progress-fill" style={{ width: `${Math.round(claimVeracity.score * 100)}%` }} />
-                        </div>
-                      )}
+                      <p className="signal-block-label">
+                        {claimVeracity?.label || 'Not assessed'}
+                      </p>
                       <p className="signal-block-detail">
                         {claimVeracity?.evidenceBasis || 'Factual accuracy of the medical claim'}
                       </p>
@@ -1084,18 +1079,13 @@ function App() {
                     <div className={`signal-block signal-block-alignment${triangleSignals ? ` signal-${triangleSignals.alignment}` : ''}`}>
                       <div className="signal-block-top">
                         <span className="signal-block-name">Image-Context Alignment</span>
-                        <span className="signal-block-badge">{alignmentScore?.label || 'Not assessed'}</span>
+                        <span className={`signal-block-badge signal-tone-${alignmentScore?.tone || 'neutral'}`}>
+                          {alignmentScore?.tone === 'high' ? '✓' : alignmentScore?.tone === 'low' ? '✗' : alignmentScore?.tone === 'medium' ? '△' : '—'}
+                        </span>
                       </div>
-                      <span className="signal-score-num">
-                        {alignmentScore?.score != null && alignmentScore.score > 0
-                          ? <>{Math.round(alignmentScore.score * 100)}<sup>%</sup></>
-                          : '—'}
-                      </span>
-                      {alignmentScore?.score != null && alignmentScore.score > 0 && (
-                        <div className="signal-progress-track">
-                          <div className="signal-progress-fill" style={{ width: `${Math.round(alignmentScore.score * 100)}%` }} />
-                        </div>
-                      )}
+                      <p className="signal-block-label">
+                        {alignmentScore?.label || 'Not assessed'}
+                      </p>
                       <p className="signal-block-detail">
                         Whether the image supports the associated claim
                       </p>

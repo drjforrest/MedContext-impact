@@ -88,7 +88,7 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
                 model_path=settings.medgemma_local_path,
                 chat_handler=chat_handler,
                 n_ctx=4096,
-                n_gpu_layers=-1,
+                n_gpu_layers=0,
                 verbose=False,
             )
         except Exception as e:
@@ -101,7 +101,7 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
         model: Optional[str] = None,
     ) -> MedGemmaResult:
         current_model = model or settings.medgemma_model
-        image_bytes = resize_image(image_bytes, max_size=512)
+        image_bytes = resize_image(image_bytes, max_size=512, quality=70)
         self._load_model()
 
         image_format = detect_image_format(image_bytes)

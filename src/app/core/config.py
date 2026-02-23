@@ -18,7 +18,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("MEDGEMMA_PROVIDER"),
     )
     medgemma_model: str = Field(
-        default="google/medgemma-1.1-4b-it",
+        default="google/medgemma-4b-it",
         validation_alias=AliasChoices("MEDGEMMA_MODEL", "MEDGEMMA_HF_MODEL"),
     )
     medgemma_hf_token: str = Field(

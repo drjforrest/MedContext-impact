@@ -1410,28 +1410,18 @@ details summary:hover {
 .signal-block-veracity.signal-partial .signal-block-badge,
 .signal-block-alignment.signal-partial .signal-block-badge { background: rgba(212,134,10,0.12); color: #92560a; }
 
-.signal-score-num {
-  font-size: 2.1rem;
-  font-weight: 800;
-  line-height: 1;
+.signal-tone-high { background: rgba(78,154,52,0.15); color: #3a7a25; }
+.signal-tone-low { background: rgba(185,28,28,0.12); color: #9b1c1c; }
+.signal-tone-medium { background: rgba(212,134,10,0.12); color: #92560a; }
+.signal-tone-neutral { background: var(--surface-muted); color: var(--muted); }
+
+.signal-block-label {
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--ink);
-  display: block;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
+  line-height: 1.3;
 }
-
-.signal-score-num sup {
-  font-size: 0.9rem;
-  font-weight: 700;
-  vertical-align: super;
-  margin-left: 1px;
-}
-
-.signal-block-veracity.signal-pass .signal-score-num,
-.signal-block-alignment.signal-pass .signal-score-num { color: #3a7a25; }
-.signal-block-veracity.signal-fail .signal-score-num,
-.signal-block-alignment.signal-fail .signal-score-num { color: #9b1c1c; }
-.signal-block-veracity.signal-partial .signal-score-num,
-.signal-block-alignment.signal-partial .signal-score-num { color: #92560a; }
 
 .signal-progress-track {
   height: 3px;

@@ -305,8 +305,13 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   border: none;
+}
+
+.st-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #1e2233, 0 0 0 4px #5b8def;
 }
 
 .st-btn--primary {
@@ -318,6 +323,10 @@
   background: #4f7cde;
 }
 
+.st-btn--primary:focus-visible {
+  box-shadow: 0 0 0 2px #1e2233, 0 0 0 4px #93b4f5;
+}
+
 .st-btn--indigo {
   background: #6366f1;
   color: #fff;
@@ -325,6 +334,10 @@
 
 .st-btn--indigo:hover {
   background: #5254cc;
+}
+
+.st-btn--indigo:focus-visible {
+  box-shadow: 0 0 0 2px #1e2233, 0 0 0 4px #a5a7f7;
 }
 
 .st-btn--ghost {
@@ -337,6 +350,11 @@
   background: #2d3142;
   color: #e9eef4;
   border-color: #4d5168;
+}
+
+.st-btn--ghost:focus-visible {
+  box-shadow: 0 0 0 2px #1e2233, 0 0 0 4px #5b8def;
+  border-color: #5b8def;
 }
 
 .st-actions {

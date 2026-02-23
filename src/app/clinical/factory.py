@@ -63,6 +63,12 @@ def create_client(provider: Optional[str] = None) -> BaseMedGemmaClient:
     # happen under one lock — no TOCTOU race.
     active, byo_endpoint, byo_key = provider_state.get_effective_provider_config()
     if active == "byo_gpu":
+        if not byo_endpoint:
+            from app.clinical.types import MedGemmaClientError
+            raise MedGemmaClientError(
+                "BYO GPU is active but no endpoint URL is configured. "
+                "Call /api/v1/config/activate-byo-gpu with a valid endpoint first."
+            )
         from app.clinical.providers.local_api import LocalApiMedGemmaClient
         return LocalApiMedGemmaClient(url_override=byo_endpoint, api_key_override=byo_key)
 

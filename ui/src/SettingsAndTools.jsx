@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
-import { StatusChip } from './components/LlamaCppStatus'
+import { useEffect, useRef, useState } from 'react'
 import './SettingsAndTools.css'
+import { StatusChip } from './components/LlamaCppStatus'
 
 function SettingsAndTools({
   apiBase,
@@ -38,9 +38,9 @@ function SettingsAndTools({
   const [liveStatus, setLiveStatus] = useState(null)
   const pollRef = useRef(null)
 
-  // Load saved configuration from localStorage
+  // Load saved configuration from sessionStorage (secrets never persist across sessions)
   useEffect(() => {
-    const savedConfig = localStorage.getItem('medcontext_provider_config')
+    const savedConfig = sessionStorage.getItem('medcontext_provider_config')
     if (savedConfig) {
       try {
         const config = JSON.parse(savedConfig)
@@ -53,9 +53,11 @@ function SettingsAndTools({
         setGeminiApiKey(config.geminiApiKey || '')
         setOpenrouterApiKey(config.openrouterApiKey || '')
       } catch {
-        // Ignore invalid localStorage data — defaults will be used
+        // Ignore invalid sessionStorage data — defaults will be used
       }
     }
+    // Migrate: clear any secrets previously stored in localStorage
+    localStorage.removeItem('medcontext_provider_config')
   }, [])
 
   // Sync providerInfo from availableModels
@@ -135,21 +137,31 @@ function SettingsAndTools({
   }
 
   const handleSaveConfiguration = () => {
+    const hasSecrets = [hfToken, vertexApiKey, geminiApiKey, openrouterApiKey].some(k => k.trim())
+    if (hasSecrets) {
+      const proceed = window.confirm(
+        'API keys will be stored in your browser session memory. ' +
+        'They are cleared when you close this tab. ' +
+        'For production use, configure keys in the server .env file instead.\n\nContinue?'
+      )
+      if (!proceed) return
+    }
     const config = {
       providerType, hfToken, vertexProject, vertexEndpoint, vertexApiKey,
       llmProvider, geminiApiKey, openrouterApiKey,
     }
-    localStorage.setItem('medcontext_provider_config', JSON.stringify(config))
+    sessionStorage.setItem('medcontext_provider_config', JSON.stringify(config))
     if (onConfigSave) onConfigSave(config)
-    setTestStatus('success:Configuration saved! Restart the backend to apply changes.')
+    setTestStatus('success:Configuration saved to session. Keys are cleared when you close this tab.')
   }
 
   const handleTestConnection = async () => {
     setTestStatus('pending:Testing connection...')
     try {
-      const url = `${apiBase || defaultApiBase}/api/v1/orchestrator/providers`
+      const base = (apiBase || defaultApiBase || '').replace(/\/$/, '')
+      const url = `${base}/api/v1/orchestrator/providers`
       const headers = {}
-      if (accessCode) headers['X-Access-Code'] = accessCode
+      if (accessCode) headers['X-Demo-Access-Code'] = accessCode
       const res = await fetch(url, { headers })
       if (res.ok) {
         const providers = await res.json()
@@ -167,6 +179,7 @@ function SettingsAndTools({
   const parseStatus = (s) => {
     if (!s) return null
     const colon = s.indexOf(':')
+    if (colon === -1) return { state: s, msg: '' }
     return { state: s.slice(0, colon), msg: s.slice(colon + 1) }
   }
 
@@ -465,8 +478,8 @@ function SettingsAndTools({
         })()}
 
         <div className="st-notice st-notice--info" style={{ marginTop: '1.5rem' }}>
-          <strong>Note:</strong> Configuration is saved to your browser's localStorage.
-          To apply backend changes, update the <code>.env</code> file on the server and restart the service.
+          <strong>Note:</strong> Configuration is saved to your browser session only and is cleared when you close the tab.
+          For persistent configuration, update the <code>.env</code> file on the server and restart the service.
         </div>
       </section>
 
@@ -487,7 +500,7 @@ function SettingsAndTools({
                     type="radio" name="medgemma_model" value={m.model}
                     checked={selectedModel === m.model}
                     disabled={!m.available}
-                    onChange={(e) => onModelSelect(e.target.value)}
+                    onChange={(e) => onModelSelect?.(e.target.value)}
                   />
                   <div className="st-model-info">
                     <div className="st-model-name-row">

@@ -13,29 +13,29 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
-from app.core.config import settings
 from app.core import provider_state
+from app.core.config import settings
 
 router = APIRouter()
 
 
 # Private/loopback CIDR ranges that must not be reachable via BYO GPU endpoint
 _PRIVATE_NETWORKS = [
-    ipaddress.ip_network("127.0.0.0/8"),    # Loopback
-    ipaddress.ip_network("10.0.0.0/8"),     # RFC1918
+    ipaddress.ip_network("127.0.0.0/8"),  # Loopback
+    ipaddress.ip_network("10.0.0.0/8"),  # RFC1918
     ipaddress.ip_network("172.16.0.0/12"),  # RFC1918
-    ipaddress.ip_network("192.168.0.0/16"), # RFC1918
-    ipaddress.ip_network("169.254.0.0/16"), # Link-local / AWS metadata
-    ipaddress.ip_network("::1/128"),        # IPv6 loopback
-    ipaddress.ip_network("fc00::/7"),       # IPv6 private
+    ipaddress.ip_network("192.168.0.0/16"),  # RFC1918
+    ipaddress.ip_network("169.254.0.0/16"),  # Link-local / AWS metadata
+    ipaddress.ip_network("::1/128"),  # IPv6 loopback
+    ipaddress.ip_network("fc00::/7"),  # IPv6 private
 ]
 
 
 def _validate_byo_endpoint(endpoint: str) -> None:
     """Raise HTTPException if the endpoint URL looks like an SSRF target."""
-    try:
-        parsed = urlparse(endpoint)
-    except ValueError:
+    parsed = urlparse(endpoint)
+
+    if not parsed.scheme or not parsed.hostname:
         raise HTTPException(status_code=422, detail="Invalid endpoint URL.")
 
     if parsed.scheme not in ("http", "https"):
@@ -45,6 +45,18 @@ def _validate_byo_endpoint(endpoint: str) -> None:
         )
 
     hostname = parsed.hostname or ""
+    hostname_lower = hostname.lower()
+
+    # Reject localhost variants
+    if (
+        hostname_lower in ("localhost", "localhost.localdomain", "0.0.0.0")
+        or "localhost" in hostname_lower
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="Endpoint must not use 'localhost'. Use a publicly reachable URL.",
+        )
+
     # Reject bare IP addresses that are in private ranges
     try:
         addr = ipaddress.ip_address(hostname)
@@ -58,12 +70,8 @@ def _validate_byo_endpoint(endpoint: str) -> None:
                     ),
                 )
     except ValueError:
-        # Not an IP literal — reject well-known localhost hostnames
-        if hostname in ("localhost", "localhost.localdomain"):
-            raise HTTPException(
-                status_code=422,
-                detail="Endpoint must not use 'localhost'. Use a publicly reachable URL.",
-            )
+        # Not an IP literal — hostname validation already done above
+        pass
 
 
 def _require_admin(request: Request) -> None:
@@ -90,6 +98,7 @@ def _require_admin(request: Request) -> None:
 # Read endpoints (public — no admin required)
 # ---------------------------------------------------------------------------
 
+
 @router.get("/provider-status")
 def get_provider_status() -> dict:
     """Return the current provider status, busy state, and BYO GPU info."""
@@ -99,6 +108,7 @@ def get_provider_status() -> dict:
 # ---------------------------------------------------------------------------
 # Write endpoints (admin-only)
 # ---------------------------------------------------------------------------
+
 
 class BYOGPURequest(BaseModel):
     endpoint: str
