@@ -4,10 +4,10 @@ This guide explains how to configure MedContext for different deployment scenari
 
 ## Quick Start (Zero Configuration)
 
-The system works **out-of-the-box** with local GGUF inference:
+MedContext runs **out-of-the-box** with local GGUF inference. No API keys or external services required.
 
 ```bash
-# 1. Download models (one-time setup, ~3GB)
+# 1. Download models (one-time setup, ~2.4GB)
 ./scripts/setup_llama_cpp.sh
 
 # 2. Copy configuration
@@ -17,14 +17,18 @@ cp .env.example .env
 docker-compose up -d
 ```
 
-**No API keys needed!** The system runs entirely offline with local GGUF models.
+**What you get:**
+
+- Medical image analysis powered by MedGemma (local, offline)
+- No usage limits or API costs
+- Privacy-preserving (images never leave the server)
 
 ## Configuration Architecture
 
 MedContext has two main components that need configuration:
 
-1. **MedGemma Provider** - Medical image analysis engine
-2. **LLM Orchestrator** - Contextual reasoning and alignment analysis
+1. **MedGemma Provider** — Medical image analysis engine
+2. **LLM Orchestrator** — Contextual reasoning and alignment analysis (recommended, not required)
 
 ### Default Configuration
 
@@ -33,27 +37,20 @@ MedContext has two main components that need configuration:
 MEDGEMMA_MODEL=llama_cpp/medgemma-1.5-4b-it-Q4_K_M
 MEDGEMMA_LOCAL_PATH=models/medgemma-1.5-4b-it-Q4_K_M.gguf
 MEDGEMMA_MMPROJ_PATH=models/mmproj-F16.gguf
-
-# LLM: Google Gemini API (1500 free requests/day)
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
-LLM_ORCHESTRATOR=gemini-2.5-pro
-LLM_WORKER=gemini-2.5-flash
 ```
 
 ## MedGemma Provider Options
 
-### Option A: Local GGUF Inference (Recommended for Development)
+### Option A: Local GGUF Inference (Default)
 
 **Pros:**
-- ✅ No API costs
-- ✅ Works offline
-- ✅ Low latency (~2-3s per image)
-- ✅ Privacy-preserving (data never leaves your server)
+- No API costs
+- Works offline
+- Privacy-preserving (data never leaves your server)
 
 **Cons:**
-- ⚠️ Requires ~4GB RAM
-- ⚠️ One-time download (~2.4GB)
+- Requires ~4GB RAM
+- ~2-3 min per image on CPU-only servers
 
 **Setup:**
 
@@ -69,72 +66,69 @@ MEDGEMMA_MMPROJ_PATH=models/mmproj-F16.gguf
 
 **Available Quantizations:**
 
-| Quantization | Size | Quality | Speed | RAM |
-|--------------|------|---------|-------|-----|
-| Q2_K | 1.7GB | Lower | Fastest | 2GB |
-| Q4_K_M | 2.4GB | **Best Balance** | Fast | 4GB |
-| Q5_K_M | 2.7GB | Higher | Medium | 4GB |
-| Q6_K | 3.0GB | Highest | Slower | 5GB |
-| Q8_0 | 3.9GB | Near-FP16 | Slowest | 6GB |
+| Quantization | Size  | Quality          | Speed   | RAM |
+| ------------ | ----- | ---------------- | ------- | --- |
+| Q2_K         | 1.7GB | Lower            | Fastest | 2GB |
+| Q4_K_M       | 2.4GB | **Best Balance** | Fast    | 4GB |
+| Q5_K_M       | 2.7GB | Higher           | Medium  | 4GB |
+| Q6_K         | 3.0GB | Highest          | Slower  | 5GB |
+| Q8_0         | 3.9GB | Near-FP16        | Slowest | 6GB |
 
-### Option B: HuggingFace Inference API (Production Ready)
+### Option B: HuggingFace Inference API
 
 **Pros:**
-- ✅ No local resources needed
-- ✅ Always latest model
-- ✅ Free tier available (1,000 requests/month)
-- ✅ Easy setup
+- No local resources needed
+- Free tier available (1,000 requests/month)
 
 **Cons:**
-- ⚠️ Requires internet connection
-- ⚠️ ~5-10s latency (cold start)
-- ⚠️ API rate limits
+- Requires internet connection
+- ~5-10s cold-start latency
 
 **Setup:**
 
 ```bash
 # Get token: https://huggingface.co/settings/tokens
-# Use the exact model ID from huggingface.co (e.g., google/medgemma-4b-it)
+# Use the exact model ID from huggingface.co
 MEDGEMMA_MODEL=google/medgemma-4b-it
 MEDGEMMA_HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-### Option C: Google Vertex AI (Enterprise Production)
+### Option C: Google Vertex AI (Enterprise)
 
 **Pros:**
-- ✅ Lowest latency (<1s)
-- ✅ High throughput
-- ✅ Enterprise SLAs
-- ✅ Auto-scaling
+- Lowest latency (<1s)
+- Auto-scaling, enterprise SLAs
 
 **Cons:**
-- ⚠️ Requires GCP account
-- ⚠️ Complex setup (deploy endpoint)
-- ⚠️ Usage costs ($$$)
+- Requires GCP account and deployed endpoint
+- Usage costs
 
 **Setup:**
 
 ```bash
-# 1. Deploy MedGemma to Vertex AI (see docs/vertex-deployment.md)
-# 2. Configure .env
 MEDGEMMA_MODEL=mg-endpoint-xxxxx
 MEDGEMMA_VERTEX_PROJECT=your-gcp-project-id
 MEDGEMMA_VERTEX_LOCATION=us-central1
 MEDGEMMA_VERTEX_ENDPOINT=https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT/locations/us-central1/endpoints/ENDPOINT
-VERTEX_API_KEY=your_vertex_api_key  # Optional: for key-based auth
+VERTEX_API_KEY=your_vertex_api_key
+```
+
+### Provider Auto-Detection
+
+The system auto-detects which provider to use based on the `MEDGEMMA_MODEL` value. You can also set `MEDGEMMA_PROVIDER` explicitly to override:
+
+```bash
+# Explicit override (optional — auto-detection usually works)
+MEDGEMMA_PROVIDER=llama_cpp    # or: huggingface, vertex, local_api, vllm
 ```
 
 ## LLM Orchestrator Options
 
+The LLM handles contextual reasoning and alignment analysis. **Recommended for full accuracy** — without it, the system falls back to MedGemma-only mode (see [Fallback Mode](#fallback-mode-no-llm) below).
+
 ### Option A: Google Gemini API (Recommended)
 
-**Pros:**
-- ✅ 1,500 free requests/day (Gemini 2.5 Flash)
-- ✅ Best performance for medical reasoning
-- ✅ Native multimodal support
-- ✅ Fast response times (~1-2s)
-
-**Setup:**
+Free tier: 1,500 requests/day.
 
 ```bash
 # Get API key: https://aistudio.google.com/app/apikey
@@ -146,13 +140,7 @@ LLM_WORKER=gemini-2.5-flash
 
 ### Option B: OpenRouter (Multi-Provider)
 
-**Pros:**
-- ✅ Access GPT-4, Claude, Gemini, etc.
-- ✅ Pay-as-you-go pricing
-- ✅ No rate limits (paid tier)
-- ✅ Model switching without code changes
-
-**Setup:**
+Pay-as-you-go access to GPT-4, Claude, Gemini, and more.
 
 ```bash
 # Get API key: https://openrouter.ai/keys
@@ -163,12 +151,27 @@ LLM_ORCHESTRATOR=anthropic/claude-3.5-sonnet
 LLM_WORKER=openai/gpt-4o-mini
 ```
 
+The system accepts multiple environment variable names for the API key:
+
+```bash
+# Any of these work:
+GEMINI_API_KEY=xxx
+OPENROUTER_API_KEY=xxx
+LLM_API_KEY=xxx
+GOOGLE_API_KEY=xxx
+```
+
 ### Fallback Mode (No LLM)
 
-If no LLM API key is provided, the system operates in **MedGemma-only mode**:
-- ✅ Medical image analysis still works
-- ⚠️ Limited contextual reasoning
-- ⚠️ No alignment scoring
+If no LLM API key is configured, the system still works — the orchestrator automatically falls back to MedGemma for the synthesis step. No configuration flags are needed; the fallback is automatic.
+
+**What changes in fallback mode:**
+
+- Triage (image analysis) works identically
+- Synthesis uses MedGemma instead of a dedicated LLM, which means reduced contextual reasoning
+- Each request runs llama-cpp inference **twice** (triage + synthesis), so expect ~4-6 min per request on CPU instead of ~2-3 min
+
+**Recommendation:** Configure a Gemini API key (free tier: 1,500 req/day) for significantly better accuracy and faster responses.
 
 ## Add-on Modules (Optional)
 
@@ -184,35 +187,66 @@ ENABLE_PROVENANCE=true
 
 # Forensics Analysis (pixel-level ELA, EXIF)
 ENABLE_FORENSICS=true
-ENABLE_FORENSICS_MEDGEMMA=true  # MedGemma semantic layer
+ENABLE_FORENSICS_MEDGEMMA=true
 ```
 
-## Configuration Validation
-
-Test your configuration:
+## Production Server Settings
 
 ```bash
-# Check MedGemma provider status
-curl http://localhost:8000/api/v1/orchestrator/providers | jq
+# Admin IP — bypasses all rate limits (use your static IP)
+ADMIN_IP=your.static.ip
 
-# Expected output:
-# {
-#   "id": "medgemma-4b-quantized",
-#   "available": true,  # <-- Should be true
-#   "provider": "llama_cpp"
-# }
+# Rate limit for llama-cpp requests (per hour, per IP)
+LLAMA_CPP_RATE_LIMIT=5
 
-# Check enabled modules
-curl http://localhost:8000/api/v1/modules | jq
+# BYO GPU auto-revert timeout (seconds of inactivity)
+BYO_GPU_INACTIVITY_SECS=120
 
-# Test end-to-end
-curl -X POST http://localhost:8000/api/v1/orchestrator/run \
-  -H "Content-Type: application/json" \
-  -d '{
-    "image_url": "https://example.com/medical-image.jpg",
-    "context": "Patient has fever and cough"
-  }'
+# Demo access code (leave empty for local dev)
+DEMO_ACCESS_CODE=your-access-code
 ```
+
+## Testing Your Configuration
+
+After updating `.env`, restart the service:
+
+```bash
+# Production VPS (systemd)
+sudo systemctl restart medcontext
+
+# Check provider status
+curl http://localhost:8000/api/v1/orchestrator/providers | python3 -m json.tool
+```
+
+For local development:
+
+```bash
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src --reload
+```
+
+**Expected output** (provider will reflect your configuration):
+
+```json
+[
+  {
+    "id": "medgemma-4b-quantized",
+    "provider": "llama_cpp",
+    "available": true,
+    "model": "your-configured-model"
+  }
+]
+```
+
+Verify that `"available": true` — if `false`, check your provider configuration above.
+
+## Configuration Summary
+
+| Scenario            | MedGemma Provider   | LLM Key Required | Cost               |
+| ------------------- | ------------------- | ---------------- | ------------------ |
+| **Default (VPS)**   | `llama_cpp` (local) | No (fallback)    | $0                 |
+| **VPS + Gemini**    | `llama_cpp` (local) | Yes              | $0 (free tier LLM) |
+| **BYO HuggingFace** | `huggingface`       | Recommended      | HF API + LLM costs |
+| **BYO Vertex AI**   | `vertex`            | Recommended      | GCP + LLM costs    |
 
 ## Troubleshooting
 
@@ -230,18 +264,6 @@ grep MEDGEMMA_MMPROJ_PATH .env
 python -c "import llama_cpp; print('OK')"
 ```
 
-### LLM API key not recognized
-
-The system accepts multiple environment variable names:
-
-```bash
-# Any of these work:
-GEMINI_API_KEY=xxx
-OPENROUTER_API_KEY=xxx
-LLM_API_KEY=xxx
-GOOGLE_API_KEY=xxx
-```
-
 ### Out of memory with GGUF models
 
 Try a smaller quantization:
@@ -251,58 +273,21 @@ Try a smaller quantization:
 MEDGEMMA_LOCAL_PATH=models/medgemma-1.5-4b-it-Q2_K.gguf
 ```
 
-## Recommended Configurations
-
-### Development (Local Laptop)
+### Backend not responding
 
 ```bash
-MEDGEMMA_MODEL=llama_cpp/medgemma-1.5-4b-it-Q4_K_M
-MEDGEMMA_LOCAL_PATH=models/medgemma-1.5-4b-it-Q4_K_M.gguf
-MEDGEMMA_MMPROJ_PATH=models/mmproj-F16.gguf
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
+sudo systemctl status medcontext
+sudo journalctl -u medcontext --no-pager -n 50
+curl http://localhost:8000/health
 ```
-
-**Cost:** $0/month (local + Gemini free tier)
-**Performance:** Good for testing
-
-### Production (VPS/Cloud)
-
-```bash
-MEDGEMMA_MODEL=google/medgemma-4b-it  # Use exact model ID from huggingface.co
-MEDGEMMA_HF_TOKEN=your_hf_token
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
-```
-
-**Cost:** ~$10-50/month (HF paid tier + Gemini)
-**Performance:** Excellent for production traffic
-
-### Enterprise (High Volume)
-
-```bash
-MEDGEMMA_MODEL=mg-endpoint-xxxxx
-MEDGEMMA_VERTEX_PROJECT=your-project
-MEDGEMMA_VERTEX_LOCATION=us-central1
-MEDGEMMA_VERTEX_ENDPOINT=your_endpoint_url
-LLM_PROVIDER=openai_compatible
-OPENROUTER_API_KEY=your_key
-LLM_ORCHESTRATOR=anthropic/claude-3.5-sonnet
-```
-
-**Cost:** $$$$ (Vertex AI + OpenRouter)
-**Performance:** Sub-second latency, unlimited scale
 
 ## Security Best Practices
 
-1. **Never commit .env files** - Already in `.gitignore`
-2. **Use environment-specific configs** - `.env.dev`, `.env.prod`
-3. **Rotate API keys regularly** - Set calendar reminders
-4. **Use secret management** - AWS Secrets Manager, GCP Secret Manager
-5. **Enable rate limiting** - See `app/middleware/rate_limit.py`
+1. **Never commit .env files** — already in `.gitignore`
+2. **Rotate API keys regularly**
+3. **Use secret management** in production (AWS Secrets Manager, GCP Secret Manager)
+4. **Rate limiting is enabled by default** for llama-cpp endpoints
 
 ## Next Steps
 
-- See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment guide
-- See [VALIDATION.md](VALIDATION.md) for testing and validation
-- See [API.md](API.md) for API reference
+- See [VALIDATION.md](VALIDATION.md) for testing and validation results

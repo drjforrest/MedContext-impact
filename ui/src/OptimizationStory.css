@@ -1,7 +1,11 @@
+/* Dark-themed page container */
 .validation-story {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem 1.5rem;
+  background: #14161d;
+  border-radius: 20px;
+  color: #e9eef4;
 }
 
 .validation-back-button {
@@ -121,6 +125,7 @@
 .timeline-header h2 {
   font-size: 2rem;
   margin-bottom: 0.5rem;
+  color: #e9eef4;
 }
 
 .timeline-step {
@@ -330,6 +335,7 @@
 .conclusion-card h4 {
   font-size: 1.25rem;
   margin-bottom: 1rem;
+  color: #e9eef4;
 }
 
 .conclusion-card ul {

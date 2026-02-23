@@ -6,15 +6,17 @@
    NOT redefined here.
    ========================================================================== */
 
-/* Page container */
+/* Page container — dark-themed island on the light global background */
 .settings-and-tools {
   max-width: 860px;
   margin: 0 auto;
-  padding: 2rem 1rem 4rem;
+  padding: 2rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  color: #e9eef4; /* default text — inherits into all st-card children */
+  color: #e9eef4;
+  background: #14161d;
+  border-radius: 20px;
 }
 
 /* Page header */

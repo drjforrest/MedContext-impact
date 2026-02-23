@@ -6,9 +6,15 @@
 
 **Medical images don't need to be fake to cause harm.**
 
-[![Tests](https://img.shields.io/badge/tests-63%2F63%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-65%2F65%20passing-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12+-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-CC--BY--4.0-blue.svg)](LICENSE)
+[![MedGemma](https://img.shields.io/badge/MedGemma-4B%20Quantized-ff6f00)](https://huggingface.co/google/medgemma-1.1-4b-it)
+[![Accuracy](https://img.shields.io/badge/accuracy-92.0%25%20Med--MMHL-2A9D8F)](docs/VALIDATION.md)
+
+[![GitHub](https://img.shields.io/badge/GitHub-drjforrest-181717?logo=github)](https://github.com/drjforrest)
+[![Website](https://img.shields.io/badge/drjforrest.com-1d6fb8?logo=google-chrome&logoColor=white)](https://drjforrest.com)
+[![Counterforce AI](https://img.shields.io/badge/Counterforce%20AI-Partner-6366f1)](https://counterforce.tech)
 
 [**📖 Start Here**](START_HERE.md) | [**📊 Validation**](docs/VALIDATION.md) | [**🏆 Submission**](docs/SUBMISSION.md) | [**🎬 Demo Video**](#demo-video)
 
@@ -142,7 +148,7 @@ cd ui && npm run dev
 ```bash
 # Run test suite
 uv run pytest tests/ -v
-# Expected: 63/63 passed ✅
+# Expected: 65/65 passed ✅
 
 # Test API
 curl http://localhost:8000/health
@@ -227,7 +233,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 - ✅ **Contextual authenticity focus** — Detects misuse of genuine images, not just fake pixels
 - ✅ **Empirically proven approach** — Demonstrated that hierarchical optimization (92.0%) achieves breakthrough performance over individual signals (79.8%/86.5%)
 - ✅ **Production deployment partner** — HERO Lab, UBC collaboration with field-ready Telegram bot
-- ✅ **Production-ready implementation** — 63/63 tests passing, comprehensive validation
+- ✅ **Production-ready implementation** — 65/65 tests passing, comprehensive validation
 
 ---
 
@@ -236,7 +242,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 ### Production-Ready Quality
 
 - **Code:** 4,100+ lines Python, 527 lines React
-- **Tests:** 63/63 unit tests passing (comprehensive test suite with mocked integrations)
+- **Tests:** 65/65 unit tests passing (comprehensive test suite with mocked integrations)
 - **Architecture:** FastAPI + React + PostgreSQL
 - **Security:** Tool whitelist, prompt injection protection, SSRF prevention
 - **Providers:** 5 MedGemma options (HuggingFace, LM Studio, llama-cpp, vLLM, Vertex AI)
@@ -416,7 +422,7 @@ medcontext/
 │   ├── metrics/                    ← Integrity scoring
 │   └── api/v1/endpoints/           ← REST API
 ├── ui/                             ← React frontend
-├── tests/                          ← 63 passing tests
+├── tests/                          ← 65 passing tests
 └── scripts/                        ← Utilities
 ```
 
@@ -455,8 +461,11 @@ medcontext/
 ## 👤 Contact & Support
 
 **Developer:** Jamie Forrest
+**GitHub:** [@drjforrest](https://github.com/drjforrest)
+**Website:** [drjforrest.com](https://drjforrest.com)
 **Email:** forrest.jamie@gmail.com
 **Affiliation:** Scientific Director, HERO Lab, School of Nursing, University of British Columbia
+**Partner:** [Counterforce AI](https://counterforce.tech)
 
 **Questions?**
 

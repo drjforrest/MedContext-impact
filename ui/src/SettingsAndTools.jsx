@@ -34,6 +34,11 @@ function SettingsAndTools({
   const [byoGpuApiKey, setByoGpuApiKey] = useState('')
   const [byoGpuStatus, setByoGpuStatus] = useState('')
 
+  // Threshold optimization state
+  const [optimizationFile, setOptimizationFile] = useState(null)
+  const [optimizationStatus, setOptimizationStatus] = useState('')
+  const [optimizationResults, setOptimizationResults] = useState(null)
+
   // Live provider status (polled every 5s while this component is mounted)
   const [liveStatus, setLiveStatus] = useState(null)
   const pollRef = useRef(null)
@@ -133,6 +138,33 @@ function SettingsAndTools({
       }
     } catch (err) {
       setByoGpuStatus(`error:${err.message}`)
+    }
+  }
+
+  const handleRunOptimization = async () => {
+    if (!optimizationFile) return
+    setOptimizationStatus('pending:Running threshold optimization...')
+    setOptimizationResults(null)
+    try {
+      const formData = new FormData()
+      formData.append('dataset', optimizationFile)
+      const headers = {}
+      if (accessCode) headers['X-Demo-Access-Code'] = accessCode
+      const base = (apiBase || defaultApiBase || '').replace(/\/$/, '')
+      const res = await fetch(`${base}/api/v1/orchestrator/optimize-thresholds`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setOptimizationResults(data)
+        setOptimizationStatus('success:Optimization complete. See results below.')
+      } else {
+        setOptimizationStatus(`error:${data.detail || 'Optimization failed.'}`)
+      }
+    } catch (err) {
+      setOptimizationStatus(`error:${err.message}`)
     }
   }
 
@@ -528,130 +560,80 @@ function SettingsAndTools({
         )}
       </section>
 
-      {/* ── API Settings ─────────────────────────────────────────── */}
+      {/* ── Threshold Optimization Tool ─────────────────────────── */}
       <section className="st-card">
-        <h2>API Settings</h2>
-        <p className="st-helper">Configure API endpoints and access codes</p>
+        <h2>Threshold Optimization</h2>
+        <p className="st-helper">
+          Upload a labeled validation dataset to find optimal decision thresholds for your model and domain.
+        </p>
 
-        <div className="st-section st-grid">
-          <label className="field">
-            <span>API base URL</span>
+        <div className="st-section">
+          <div className="st-notice st-notice--info">
+            <strong>Expected format:</strong> A JSON file containing an array of labeled samples:
+            <pre style={{ marginTop: '0.5rem', fontSize: '0.82rem', whiteSpace: 'pre-wrap' }}>{`[
+  { "image_path": "/path/to/image.jpg", "claim": "Medical claim...", "label": "misinformation" },
+  { "image_path": "/path/to/image2.jpg", "claim": "Another claim...", "label": "legitimate" }
+]`}</pre>
+          </div>
+
+          <label className="field" style={{ marginTop: '1rem' }}>
+            <span>Validation Dataset (JSON)</span>
             <input
-              type="url"
-              placeholder={defaultApiBase}
-              value={apiBase}
-              onChange={(e) => onApiBaseChange(e.target.value)}
+              type="file"
+              accept=".json"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) setOptimizationFile(file)
+              }}
             />
-            <span className="helper">
-              Stored locally in your browser. Default: {defaultApiBase || 'http://localhost:8000'}
-            </span>
+            <span className="helper">Upload a JSON file with labeled image-claim pairs.</span>
           </label>
-          <label className="field">
-            <span>Demo Access Code</span>
-            <input
-              type="text"
-              placeholder="Leave empty for local dev"
-              value={accessCode}
-              onChange={(e) => onAccessCodeChange(e.target.value)}
-            />
-            <span className="helper">Required for public demo. Leave empty for local development.</span>
-          </label>
-        </div>
-      </section>
 
-      {/* ── About ────────────────────────────────────────────────── */}
-      <section className="st-card about-card">
-        <div className="about-content">
-          <h2>About MedContext</h2>
-
-          <div className="about-section">
-            <h3>The Problem</h3>
-            <p>
-              Medical misinformation doesn&apos;t require fake images. The dominant real-world threat uses
-              <strong> authentic medical scans</strong> paired with <strong>false or misleading claims</strong>.
-              Current solutions focus on pixel forensics, missing the contextual deception that represents
-              the majority of medical misinformation.
-            </p>
+          <div className="st-actions" style={{ marginTop: '1rem' }}>
+            <button
+              type="button"
+              className="st-btn st-btn--primary"
+              disabled={!optimizationFile || optimizationStatus?.startsWith('pending')}
+              onClick={handleRunOptimization}
+            >
+              {optimizationStatus?.startsWith('pending') ? 'Optimizing...' : 'Run Threshold Optimization'}
+            </button>
           </div>
 
-          <div className="about-section">
-            <h3>The Solution</h3>
-            <p>MedContext evaluates <strong>contextual authenticity</strong> through two signals:</p>
-            <ul>
-              <li><strong>Claim Veracity</strong> — Is the accompanying claim medically accurate?</li>
-              <li><strong>Image-Claim Alignment</strong> — Does the image actually support the claim?</li>
-            </ul>
-            <p>
-              Individual signals are insufficient (veracity 79.8%, alignment 86.5%). But <strong>hierarchical
-              optimization</strong> with smart thresholds (0.65/0.30) and VERACITY_FIRST logic achieves
-              <strong> 92.0% accuracy</strong> on the Med-MMHL benchmark.
-            </p>
-          </div>
+          {optimizationStatus && (() => {
+            const { state, msg } = parseStatus(optimizationStatus)
+            return (
+              <div className={`st-notice st-notice--${state === 'success' ? 'success' : state === 'pending' ? 'warn' : 'error'}`}
+                style={{ marginTop: '0.75rem' }}>
+                {msg}
+              </div>
+            )
+          })()}
 
-          <div className="about-section">
-            <h3>Validation</h3>
-            <p>
-              Validated on <strong>Med-MMHL</strong> — a research-grade dataset of real-world fact-checked
-              medical misinformation samples from LeadStories, FactCheck.org, Snopes, and health authorities.
-            </p>
-            <div className="stats-grid">
-              <div className="stat-box"><span className="stat-number">92.0%</span><span className="stat-label">Accuracy</span></div>
-              <div className="stat-box"><span className="stat-number">96.2%</span><span className="stat-label">Precision</span></div>
-              <div className="stat-box"><span className="stat-number">94.1%</span><span className="stat-label">Recall</span></div>
-              <div className="stat-box"><span className="stat-number">95.1%</span><span className="stat-label">F1 Score</span></div>
+          {optimizationResults && (
+            <div className="st-section" style={{ marginTop: '1rem' }}>
+              <h3>Optimization Results</h3>
+              <div className="st-compare-grid">
+                <div className="st-compare-card st-compare-card--green">
+                  <h4>Optimal Thresholds</h4>
+                  <ul>
+                    <li>Veracity: <strong>{optimizationResults.optimal_veracity_threshold?.toFixed(2) ?? 'N/A'}</strong></li>
+                    <li>Alignment: <strong>{optimizationResults.optimal_alignment_threshold?.toFixed(2) ?? 'N/A'}</strong></li>
+                  </ul>
+                </div>
+                <div className="st-compare-card st-compare-card--blue">
+                  <h4>Performance</h4>
+                  <ul>
+                    <li>Accuracy: <strong>{optimizationResults.accuracy != null ? `${(optimizationResults.accuracy * 100).toFixed(1)}%` : 'N/A'}</strong></li>
+                    <li>F1 Score: <strong>{optimizationResults.f1 != null ? `${(optimizationResults.f1 * 100).toFixed(1)}%` : 'N/A'}</strong></li>
+                  </ul>
+                </div>
+              </div>
+              <pre style={{ marginTop: '0.75rem', fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', overflow: 'auto', maxHeight: '300px' }}>
+                {JSON.stringify(optimizationResults, null, 2)}
+              </pre>
             </div>
-            <p className="helper" style={{ marginTop: '1rem' }}>
-              n=163 stratified random sample (seed=42), MedGemma 4B Q4_KM quantized model
-            </p>
-          </div>
-
-          <div className="about-section">
-            <h3>Technical Architecture</h3>
-            <ul>
-              <li><strong>MedGemma 4B</strong> — Google&apos;s medical multimodal model</li>
-              <li><strong>LangGraph Agent</strong> — Orchestrated analysis workflow</li>
-              <li><strong>Hierarchical Decision Logic</strong> — VERACITY_FIRST with optimized thresholds</li>
-              <li><strong>Efficient Deployment</strong> — Quantized 4-bit model via llama-cpp-python</li>
-            </ul>
-          </div>
-
-          <div className="about-section">
-            <h3>Impact &amp; Deployment</h3>
-            <p>
-              Partnership with <strong>HERO Lab, University of British Columbia</strong> for deployment
-              to African Ministries of Health and rural clinical settings. Target scale: millions of
-              patients via Telegram bot integration.
-            </p>
-          </div>
-
-          <div className="about-section about-footer">
-            <h3>Project Information</h3>
-            <div className="info-grid">
-              <div><strong>Developer</strong><p>Jamie Forrest</p></div>
-              <div>
-                <strong>Affiliation</strong>
-                <p>HERO Lab, School of Nursing<br />University of British Columbia</p>
-              </div>
-              <div>
-                <strong>Contact</strong>
-                <p>
-                  <a href="mailto:james.forrest@ubc.ca">james.forrest@ubc.ca</a><br />
-                  <a href="mailto:forrest.jamie@gmail.com">forrest.jamie@gmail.com</a>
-                </p>
-              </div>
-              <div>
-                <strong>Repository</strong>
-                <p>
-                  <a href="https://github.com/drjforrest/medcontext" target="_blank" rel="noopener noreferrer">
-                    github.com/drjforrest/medcontext
-                  </a>
-                </p>
-              </div>
-            </div>
-            <p className="helper" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-              February 2026 · MedGemma 4B Q4_KM · Med-MMHL (n=163)
-            </p>
-          </div>
+          )}
         </div>
       </section>
     </div>

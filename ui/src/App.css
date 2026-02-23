@@ -843,6 +843,16 @@ button.advanced-toggle:hover:not(:disabled) {
   background: var(--accent-green);
 }
 
+.activity-step.activity-error {
+  border-color: rgba(230, 57, 70, 0.35);
+  background: rgba(230, 57, 70, 0.05);
+}
+
+.activity-pill.activity-error {
+  color: #ffffff;
+  background: #E63946;
+}
+
 .activity-pill.activity-skipped {
   color: var(--muted);
   background: var(--surface-muted);
@@ -1060,6 +1070,18 @@ button.advanced-toggle:hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.results-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 /* Contextual Authenticity colour-coded score blocks */

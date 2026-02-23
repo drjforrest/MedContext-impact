@@ -4,6 +4,7 @@ import SplashPage from './SplashPage'
 import ValidationStory from './ValidationStory'
 import OptimizationStory from './OptimizationStory'
 import SettingsAndTools from './SettingsAndTools'
+import AboutPage from './AboutPage'
 import LlamaCppStatus from './components/LlamaCppStatus'
 
 
@@ -40,6 +41,7 @@ function App() {
   const [forceTools, setForceTools] = useState(new Set())
   const [progressPhase, setProgressPhase] = useState(0)
   const progressTimersRef = useRef([])
+  const statusRef = useRef(null)
   const [providerStatus, setProviderStatus] = useState(null)
   const [showRunModal, setShowRunModal] = useState(false)
 
@@ -167,16 +169,18 @@ function App() {
     progressTimersRef.current = []
 
     if (status === 'loading') {
-      setProgressPhase(1)                                       // veracity → active
-      const t1 = setTimeout(() => setProgressPhase(2), 2500)  // veracity "done" (simulated), alignment pending
-      const t2 = setTimeout(() => setProgressPhase(3), 3500)  // alignment → active
-      const t3 = setTimeout(() => setProgressPhase(4), 6500)  // add-ons → awaiting
+      setProgressPhase(1)                                        // veracity → active
+      const t1 = setTimeout(() => setProgressPhase(2), 5000)   // veracity "done" after 5s
+      const t2 = setTimeout(() => setProgressPhase(3), 7000)   // alignment → active after 2s pause
+      const t3 = setTimeout(() => setProgressPhase(4), 12000)  // add-ons → awaiting
       progressTimersRef.current = [t1, t2, t3]
-    } else if (status === 'success' || status === 'error') {
+    } else if (status === 'success') {
       setProgressPhase(5)
       const t4 = setTimeout(() => setProgressPhase(6), 500)
       const t5 = setTimeout(() => setProgressPhase(7), 1500)
       progressTimersRef.current = [t4, t5]
+    } else if (status === 'error') {
+      setProgressPhase(-1)
     } else if (status === 'idle') {
       setProgressPhase(0)
     }
@@ -271,6 +275,9 @@ function App() {
     setResult(null)
     setProgressPhase(0)
 
+    // Immediately refresh provider status so the navbar chip reflects "busy"
+    statusRef.current?.refresh()
+
     const formData = new FormData()
     if (hasFile) {
       formData.append('file', imageFile)
@@ -294,6 +301,8 @@ function App() {
     }
 
     setStatus('loading')
+    // Refresh status after a short delay so the backend has registered the request
+    setTimeout(() => statusRef.current?.refresh(), 500)
     try {
       const headers = {}
       if (accessCode.trim()) {
@@ -317,6 +326,8 @@ function App() {
       setError(err instanceof Error ? err.message : 'Request failed.')
       setStatus('error')
     }
+    // Refresh status so chip returns to idle promptly
+    statusRef.current?.refresh()
   }
 
   const handleApiBaseChange = (value) => {
@@ -358,6 +369,13 @@ function App() {
   const agentStepStates = useMemo(() => {
     return agentSteps.map((step) => {
       if (progressPhase === 0) return 'idle'
+
+      // Error state: all steps that were pending/active become 'error'
+      if (progressPhase === -1) {
+        // Core steps and synthesis all failed
+        if (step.isCore || step.isSynthesis) return 'error'
+        return 'skipped'
+      }
 
       // Claim Veracity: active at phase 1, simulated-done at phase 2+ (before result), actual-done at 5+
       if (step.key === 'claim_veracity') {
@@ -692,9 +710,17 @@ function App() {
           >
             Settings & Tools
           </button>
+          <button
+            type="button"
+            className={`tab-button ${activeView === 'about' ? 'tab-active' : ''}`}
+            onClick={() => setActiveView('about')}
+          >
+            About
+          </button>
           {/* Provider status chip — always visible in the nav bar */}
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', paddingRight: '0.5rem' }}>
             <LlamaCppStatus
+              ref={statusRef}
               apiBase={apiBase}
               accessCode={accessCode}
               onStatusChange={setProviderStatus}
@@ -713,6 +739,8 @@ function App() {
           <ValidationStory />
         ) : activeView === 'optimization' ? (
           <OptimizationStory />
+        ) : activeView === 'about' ? (
+          <AboutPage />
         ) : activeView === 'settings' ? (
           <SettingsAndTools
             apiBase={apiBase}
@@ -1018,6 +1046,7 @@ function App() {
                         active: step.isCore ? 'Analyzing...' : step.isSynthesis ? 'Synthesizing...' : 'Running...',
                         done: 'Complete',
                         skipped: 'Not selected',
+                        error: 'Failed',
                       }
                       const stepClass = [
                         'activity-step',
@@ -1042,6 +1071,7 @@ function App() {
                               {state === 'active' && '⏳ '}
                               {state === 'awaiting' && '… '}
                               {state === 'done' && '✓ '}
+                              {state === 'error' && '✗ '}
                               {state === 'skipped' && '○ '}
                               {stateLabels[state] || state}
                             </span>
@@ -1142,6 +1172,55 @@ function App() {
             {result && (
               <div data-export-target="results" className="results-stack">
 
+                {/* Results header: timestamp + export actions */}
+                <div className="results-header">
+                  <div>
+                    <h2 style={{ margin: 0 }}>Analysis Results</h2>
+                    <p className="helper" style={{ marginTop: '0.25rem' }}>
+                      {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {' '}at{' '}
+                      {new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div className="export-buttons">
+                    <button
+                      type="button"
+                      className="ghost export-button"
+                      onClick={() => {
+                        const el = document.querySelector('[data-export-target="results"]');
+                        if (el) {
+                          import('./utils/exportUtils')
+                            .then(async ({ downloadAsPDF }) => {
+                              try { await downloadAsPDF(el, 'medcontext-results.pdf'); }
+                              catch { alert('Failed to download PDF. Please try again.'); }
+                            })
+                            .catch(() => alert('Failed to load export functionality. Please try again.'));
+                        }
+                      }}
+                    >
+                      Download as PDF
+                    </button>
+                    <button
+                      type="button"
+                      className="ghost export-button"
+                      onClick={() => {
+                        const el = document.querySelector('[data-export-target="results"]');
+                        if (el) {
+                          import('./utils/exportUtils')
+                            .then(({ copyToClipboardText }) =>
+                              copyToClipboardText(el).catch(() =>
+                                alert('Failed to copy results to clipboard. Please try again.')
+                              )
+                            )
+                            .catch(() => alert('Failed to load export functionality. Please try again.'));
+                        }
+                      }}
+                    >
+                      Copy to Clipboard
+                    </button>
+                  </div>
+                </div>
+
                 {/* Card 1: Submitted Image & Claim */}
                 {(imagePreview || contextQuote || part1?.image_description) && (
                   <section className="card">
@@ -1173,46 +1252,7 @@ function App() {
 
                 {/* Card 2: Verdict */}
                 <section className="card">
-                  <div className="result-header">
-                    <h2>Verdict</h2>
-                    <div className="export-buttons">
-                      <button
-                        type="button"
-                        className="ghost export-button"
-                        onClick={() => {
-                          const el = document.querySelector('[data-export-target="results"]');
-                          if (el) {
-                            import('./utils/exportUtils')
-                              .then(async ({ downloadAsPDF }) => {
-                                try { await downloadAsPDF(el, 'medcontext-results.pdf'); }
-                                catch { alert('Failed to download PDF. Please try again.'); }
-                              })
-                              .catch(() => alert('Failed to load export functionality. Please try again.'));
-                          }
-                        }}
-                      >
-                        Download as PDF
-                      </button>
-                      <button
-                        type="button"
-                        className="ghost export-button"
-                        onClick={() => {
-                          const el = document.querySelector('[data-export-target="results"]');
-                          if (el) {
-                            import('./utils/exportUtils')
-                              .then(({ copyToClipboardText }) =>
-                                copyToClipboardText(el).catch(() =>
-                                  alert('Failed to copy results to clipboard. Please try again.')
-                                )
-                              )
-                              .catch(() => alert('Failed to load export functionality. Please try again.'));
-                          }
-                        }}
-                      >
-                        Copy to Clipboard
-                      </button>
-                    </div>
-                  </div>
+                  <h2>Verdict</h2>
                   {thresholdRecommendation && (
                     <div style={{
                       background: 'rgba(245, 165, 36, 0.1)',

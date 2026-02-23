@@ -340,14 +340,14 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
           <span className="stat-label">Alignment Alone</span>
         </div>
         <div className="stat-divider" />
-        <div className="stat-item" style={{ background: 'rgba(42, 157, 143, 0.1)', padding: '0.5rem 1rem', borderRadius: '8px' }}>
+        <div className="stat-item stat-item-highlight">
           <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '1.8rem' }}>92%</span>
-          <span className="stat-label"><strong>Optimized Together</strong></span>
+          <span className="stat-label"><strong>Combined</strong></span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
           <span className="stat-value">163</span>
-          <span className="stat-label">Test Samples</span>
+          <span className="stat-label">Samples</span>
         </div>
         <div className="stat-divider" />
         <div
@@ -362,8 +362,8 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
             }
           }}
         >
-          <span className="stat-value">Med-MMHL</span>
-          <span className="stat-label">Benchmark &rarr;</span>
+          <span className="stat-value stat-value-small">Med-MMHL</span>
+          <span className="stat-label">Benchmark</span>
         </div>
       </section>
     </div>

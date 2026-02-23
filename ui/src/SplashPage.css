@@ -540,6 +540,11 @@
   gap: 0.2rem;
 }
 
+.stat-item-highlight {
+  border-left: 3px solid #2A9D8F;
+  padding-left: 1rem;
+}
+
 .stat-item-link {
   cursor: pointer;
   transition: opacity 0.15s ease;
@@ -555,12 +560,17 @@
   color: var(--ink);
 }
 
+.stat-value-small {
+  font-size: 1.15rem;
+}
+
 .stat-label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  text-align: center;
 }
 
 .stat-divider {

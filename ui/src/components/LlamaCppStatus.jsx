@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 // Inject @keyframes once so inline animation properties work
 const KEYFRAMES_ID = 'llama-status-keyframes'
@@ -31,7 +31,10 @@ if (typeof document !== 'undefined' && !document.getElementById(KEYFRAMES_ID)) {
  *
  * Renders a compact inline status chip that can appear in multiple places.
  */
-function LlamaCppStatus({ apiBase = '', accessCode = '', onStatusChange }) {
+const LlamaCppStatus = forwardRef(function LlamaCppStatus(
+  { apiBase = '', accessCode = '', onStatusChange },
+  ref,
+) {
   const [status, setStatus] = useState(null)
   const [error, setError] = useState(false)
   const intervalRef = useRef(null)
@@ -41,7 +44,7 @@ function LlamaCppStatus({ apiBase = '', accessCode = '', onStatusChange }) {
     onStatusChangeRef.current = onStatusChange
   }, [onStatusChange])
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const headers = {}
       if (accessCode) headers['X-Demo-Access-Code'] = accessCode
@@ -58,18 +61,23 @@ function LlamaCppStatus({ apiBase = '', accessCode = '', onStatusChange }) {
     } catch {
       setError(true)
     }
-  }
+  }, [apiBase, accessCode])
 
+  // Expose refresh() so parent can trigger an immediate poll
+  useImperativeHandle(ref, () => ({ refresh: fetchStatus }), [fetchStatus])
+
+  // Poll every 2s when busy, 5s when idle
   useEffect(() => {
     fetchStatus()
-    intervalRef.current = setInterval(fetchStatus, 5000)
+    const interval = status?.busy ? 2000 : 5000
+    intervalRef.current = setInterval(fetchStatus, interval)
     return () => clearInterval(intervalRef.current)
-  }, [apiBase, accessCode])
+  }, [apiBase, accessCode, fetchStatus, status?.busy])
 
   if (error || !status) return null
 
   return <StatusChip status={status} />
-}
+})
 
 /**
  * StatusChip — the visual component.  Can be used standalone anywhere.
