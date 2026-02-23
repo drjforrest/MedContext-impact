@@ -4,6 +4,7 @@ import os
 from typing import Optional
 
 from app.core.config import settings
+from app.core import provider_state
 from app.clinical.types import BaseMedGemmaClient
 
 
@@ -49,9 +50,29 @@ def _resolve_local_provider() -> str:
 
 
 def create_client(provider: Optional[str] = None) -> BaseMedGemmaClient:
-    """Create a provider-specific MedGemma client."""
+    """Create a provider-specific MedGemma client.
+
+    Priority order:
+    1. Runtime BYO GPU override (set by admin via /api/v1/config/activate-byo-gpu)
+    2. Explicit provider argument (passed by caller)
+    3. MEDGEMMA_PROVIDER env var
+    4. Auto-detect from model name
+    """
+    # Check for BYO GPU runtime override first (auto-reverts after inactivity).
+    # Uses a single atomic call so that auto-revert check + credential read
+    # happen under one lock — no TOCTOU race.
+    active, byo_endpoint, byo_key = provider_state.get_effective_provider_config()
+    if active == "byo_gpu":
+        from app.clinical.providers.local_api import LocalApiMedGemmaClient
+        return LocalApiMedGemmaClient(url_override=byo_endpoint, api_key_override=byo_key)
+
     if provider is None:
-        provider = determine_provider(settings.medgemma_model)
+        # Check for explicit provider override first
+        if settings.medgemma_provider:
+            provider = settings.medgemma_provider
+        else:
+            # Auto-detect from model name
+            provider = determine_provider(settings.medgemma_model)
 
     if provider == "huggingface":
         from app.clinical.providers.huggingface import HuggingFaceMedGemmaClient

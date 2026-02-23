@@ -6,6 +6,7 @@ from typing import Any, Optional
 import httpx
 
 from app.core.config import settings
+from app.core import provider_state
 from app.core.utils import (
     clean_llm_text,
     detect_image_format,
@@ -17,20 +18,32 @@ from app.clinical.types import BaseMedGemmaClient, MedGemmaClientError, MedGemma
 
 
 class LocalApiMedGemmaClient(BaseMedGemmaClient):
-    """Client for local OpenAI-compatible servers (LM Studio, etc.)."""
+    """Client for local OpenAI-compatible servers (LM Studio, BYO GPU, etc.)."""
 
     provider_name = "local_api"
 
-    @staticmethod
-    def _resolve_model_name(model: str) -> str:
-        """Query the local server's /v1/models to get the actual loaded model ID."""
+    def __init__(self, url_override: str = "", api_key_override: str = "") -> None:
+        """Create client, optionally overriding the URL and API key.
+
+        When url_override is set this instance acts as a BYO GPU client and
+        records request timestamps for auto-revert tracking.
+        """
+        self._url_override = url_override
+        self._api_key_override = api_key_override
+        self._is_byo_gpu = bool(url_override)
+
+    def _effective_url(self) -> str:
+        return self._url_override or settings.local_medgemma_url
+
+    def _resolve_model_name(self, model: str) -> str:
+        """Query the server's /v1/models to get the actual loaded model ID."""
         api_model = model
         if "/" in api_model:
             prefix, _, actual_model = api_model.partition("/")
             if prefix in ("local", "lmstudio"):
                 api_model = actual_model
 
-        local_url = settings.local_medgemma_url.rstrip("/")
+        local_url = self._effective_url().rstrip("/")
         try:
             with httpx.Client(timeout=2.0) as client:
                 resp = client.get(f"{local_url}/v1/models")
@@ -77,7 +90,7 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
             "temperature": 0.1,
         }
 
-        local_url = settings.local_medgemma_url.rstrip("/")
+        local_url = self._effective_url().rstrip("/")
         candidate_urls = list(
             dict.fromkeys(
                 [
@@ -88,9 +101,15 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
             )
         )
 
+        # Build auth header: BYO GPU key takes priority, then HF token
         headers: dict[str, str] = {"Content-Type": "application/json"}
-        if settings.medgemma_hf_token:
-            headers["Authorization"] = f"Bearer {settings.medgemma_hf_token}"
+        effective_api_key = self._api_key_override or settings.medgemma_hf_token
+        if effective_api_key:
+            headers["Authorization"] = f"Bearer {effective_api_key}"
+
+        # Track BYO GPU activity for auto-revert timer
+        if self._is_byo_gpu:
+            provider_state.record_byo_gpu_request()
 
         all_errors: list[str] = []
         for url in candidate_urls:
@@ -143,13 +162,16 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
         ok, _ = await self.check_health_with_model()
         return ok
 
-    @staticmethod
-    async def check_health_with_model() -> tuple[bool, str | None]:
-        """Check LM Studio availability. Returns (available, loaded_model_id)."""
+    async def check_health_with_model(self) -> tuple[bool, str | None]:
+        """Check server availability. Returns (available, loaded_model_id)."""
         try:
             async with httpx.AsyncClient(timeout=2.0) as client:
-                url = f"{settings.local_medgemma_url.rstrip('/')}/v1/models"
-                response = await client.get(url)
+                url = f"{self._effective_url().rstrip('/')}/v1/models"
+                headers: dict[str, str] = {}
+                effective_api_key = self._api_key_override or settings.medgemma_hf_token
+                if effective_api_key:
+                    headers["Authorization"] = f"Bearer {effective_api_key}"
+                response = await client.get(url, headers=headers)
                 if response.status_code != 200:
                     return False, None
                 data = response.json()
@@ -165,5 +187,6 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
     def get_model_info(self) -> dict[str, Any]:
         return {
             "provider": self.provider_name,
-            "url": settings.local_medgemma_url,
+            "url": self._effective_url(),
+            "is_byo_gpu": self._is_byo_gpu,
         }

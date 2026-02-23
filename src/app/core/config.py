@@ -11,6 +11,12 @@ DEFAULT_ALIGNMENT_THRESHOLD = 0.30  # Low threshold for context-claim alignment
 class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/medcontext"
     medgemma_url: str = "http://localhost:8001"
+    # Explicit provider override (optional). If not set, auto-detects from model name.
+    # Options: "llama_cpp" | "huggingface" | "vertex" | "local_api" | "vllm"
+    medgemma_provider: str = Field(
+        default="",
+        validation_alias=AliasChoices("MEDGEMMA_PROVIDER"),
+    )
     medgemma_model: str = Field(
         default="google/medgemma-1.1-4b-it",
         validation_alias=AliasChoices("MEDGEMMA_MODEL", "MEDGEMMA_HF_MODEL"),
@@ -67,6 +73,7 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices(
             "LLM_API_KEY",
+            "GEMINI_API_KEY",
             "OPENROUTER_API_KEY",
             "GOOGLE_API_KEY",
             "VERTEX_API_KEY",
@@ -125,6 +132,20 @@ class Settings(BaseSettings):
     demo_access_code: str = Field(
         default="",
         validation_alias=AliasChoices("DEMO_ACCESS_CODE"),
+    )
+
+    # Production server: admin IP bypass and llama-cpp rate limiting
+    admin_ip: str = Field(
+        default="",
+        validation_alias=AliasChoices("ADMIN_IP"),
+    )
+    llama_cpp_rate_limit: int = Field(
+        default=5,
+        validation_alias=AliasChoices("LLAMA_CPP_RATE_LIMIT"),
+    )
+    byo_gpu_inactivity_secs: int = Field(
+        default=120,
+        validation_alias=AliasChoices("BYO_GPU_INACTIVITY_SECS"),
     )
 
     # UI/Orchestration hints

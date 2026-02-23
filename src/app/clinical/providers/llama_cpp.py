@@ -7,6 +7,7 @@ import threading
 from typing import Any, Optional
 
 from app.core.config import settings
+from app.core import provider_state
 from app.core.utils import (
     clean_llm_text,
     detect_image_format,
@@ -107,6 +108,7 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
         image_url = f"data:image/{image_format};base64,{encoded_image}"
 
+        provider_state.set_llama_cpp_busy(True)
         try:
             response = self._llm_instance.create_chat_completion(
                 messages=[
@@ -123,6 +125,8 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
             content = response["choices"][0]["message"]["content"]
         except Exception as e:
             raise MedGemmaClientError(f"llama-cpp-python inference failed: {e}")
+        finally:
+            provider_state.set_llama_cpp_busy(False)
 
         cleaned = clean_llm_text(content)
         parsed = parse_llm_json(cleaned)

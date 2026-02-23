@@ -4,44 +4,8 @@ import SplashPage from './SplashPage'
 import ValidationStory from './ValidationStory'
 import OptimizationStory from './OptimizationStory'
 import SettingsAndTools from './SettingsAndTools'
+import LlamaCppStatus from './components/LlamaCppStatus'
 
-function renderTriIcon(status, cx, cy) {
-  if (status === 'pass') {
-    return (
-      <path
-        d={`M${cx - 12},${cy + 1} L${cx - 3},${cy + 10} L${cx + 14},${cy - 9}`}
-        stroke="#fff"
-        strokeWidth="5"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    )
-  }
-  if (status === 'fail') {
-    return (
-      <g>
-        <line x1={cx - 10} y1={cy - 10} x2={cx + 10} y2={cy + 10} stroke="#fff" strokeWidth="5" strokeLinecap="round" />
-        <line x1={cx + 10} y1={cy - 10} x2={cx - 10} y2={cy + 10} stroke="#fff" strokeWidth="5" strokeLinecap="round" />
-      </g>
-    )
-  }
-  if (status === 'partial') {
-    return (
-      <g>
-        <line x1={cx - 10} y1={cy} x2={cx + 10} y2={cy} stroke="#fff" strokeWidth="5" strokeLinecap="round" />
-      </g>
-    )
-  }
-  if (status === 'addon') {
-    return (
-      <text x={cx} y={cy + 7} textAnchor="middle" fill="#fff" fontSize="22" fontWeight="700">+</text>
-    )
-  }
-  return (
-    <text x={cx} y={cy + 7} textAnchor="middle" fill="#fff" fontSize="24" fontWeight="700">?</text>
-  )
-}
 
 const defaultApiBase =
   import.meta.env.VITE_API_BASE || ''
@@ -76,6 +40,8 @@ function App() {
   const [forceTools, setForceTools] = useState(new Set())
   const [progressPhase, setProgressPhase] = useState(0)
   const progressTimersRef = useRef([])
+  const [providerStatus, setProviderStatus] = useState(null)
+  const [showRunModal, setShowRunModal] = useState(false)
 
   // Threshold configuration
   const [veracityThreshold, setVeracityThreshold] = useState(0.65)
@@ -201,15 +167,16 @@ function App() {
     progressTimersRef.current = []
 
     if (status === 'loading') {
-      setProgressPhase(1)
-      const t1 = setTimeout(() => setProgressPhase(2), 1500)
-      const t2 = setTimeout(() => setProgressPhase(3), 3500)
-      progressTimersRef.current = [t1, t2]
+      setProgressPhase(1)                                       // veracity → active
+      const t1 = setTimeout(() => setProgressPhase(2), 2500)  // veracity "done" (simulated), alignment pending
+      const t2 = setTimeout(() => setProgressPhase(3), 3500)  // alignment → active
+      const t3 = setTimeout(() => setProgressPhase(4), 6500)  // add-ons → awaiting
+      progressTimersRef.current = [t1, t2, t3]
     } else if (status === 'success' || status === 'error') {
-      setProgressPhase(4)
-      const t3 = setTimeout(() => setProgressPhase(5), 500)
-      const t4 = setTimeout(() => setProgressPhase(6), 1500)
-      progressTimersRef.current = [t3, t4]
+      setProgressPhase(5)
+      const t4 = setTimeout(() => setProgressPhase(6), 500)
+      const t5 = setTimeout(() => setProgressPhase(7), 1500)
+      progressTimersRef.current = [t4, t5]
     } else if (status === 'idle') {
       setProgressPhase(0)
     }
@@ -268,10 +235,19 @@ function App() {
     },
   ]
 
-  const handleRun = async () => {
+  // handleRun: validate inputs, then show the confirmation modal
+  const handleRun = () => {
     setError('')
-    setResult(null)
-    setProgressPhase(0)
+
+    // Block if local model is busy
+    if (llamaCppBusy) {
+      setError(
+        'Local AI is currently processing a request. ' +
+        'The local model handles one request at a time — please wait 2–3 minutes and try again.'
+      )
+      setStatus('error')
+      return
+    }
 
     if ((hasFile && hasUrl) || (!hasFile && !hasUrl)) {
       setError('Provide either an image file or a public image URL.')
@@ -284,6 +260,16 @@ function App() {
       setStatus('error')
       return
     }
+
+    // Inputs look good — show the confirmation modal
+    setShowRunModal(true)
+  }
+
+  // handleConfirmRun: called when the user confirms in the modal
+  const handleConfirmRun = async () => {
+    setShowRunModal(false)
+    setResult(null)
+    setProgressPhase(0)
 
     const formData = new FormData()
     if (hasFile) {
@@ -373,33 +359,34 @@ function App() {
     return agentSteps.map((step) => {
       if (progressPhase === 0) return 'idle'
 
-      // Claim Veracity: active at phase 1, done at phase 4+
+      // Claim Veracity: active at phase 1, simulated-done at phase 2+ (before result), actual-done at 5+
       if (step.key === 'claim_veracity') {
-        if (progressPhase >= 4) return 'done'
+        if (progressPhase >= 5) return 'done'
+        if (progressPhase >= 2) return 'done'  // simulated: veracity analyzed, alignment starting
         if (progressPhase >= 1) return 'active'
         return 'pending'
       }
 
-      // Image-Context Alignment: active at phase 2, done at phase 4+
+      // Image-Context Alignment: activates at phase 3 (after veracity "done"), done at 5+
       if (step.key === 'context_alignment') {
-        if (progressPhase >= 4) return 'done'
-        if (progressPhase >= 2) return 'active'
+        if (progressPhase >= 5) return 'done'
+        if (progressPhase >= 3) return 'active'
         return 'pending'
       }
 
-      // Synthesis: active at phase 5, done at phase 6
+      // Synthesis: active at phase 6, done at phase 7
       if (step.isSynthesis) {
-        if (progressPhase >= 6) return 'done'
-        if (progressPhase >= 5) return 'active'
-        if (progressPhase >= 4) return 'pending'
+        if (progressPhase >= 7) return 'done'
+        if (progressPhase >= 6) return 'active'
+        if (progressPhase >= 5) return 'pending'
         return 'idle'
       }
 
-      // Add-on modules: awaiting at phase 3, resolve at phase 4+
-      if (progressPhase >= 4) {
+      // Add-on modules: awaiting at phase 4, resolve at phase 5+
+      if (progressPhase >= 5) {
         return toolActivity[step.toolKey] ? 'done' : 'skipped'
       }
-      if (progressPhase >= 3) {
+      if (progressPhase >= 4) {
         return forceTools.has(step.toolKey) ? 'active' : 'awaiting'
       }
       return 'pending'
@@ -659,14 +646,24 @@ function App() {
   }, [triangleSignals])
 
   const showResultsOverview = Boolean(result)
-  const showProgressCard = status !== 'success' || progressPhase < 6
+  const showProgressCard = status !== 'success' || progressPhase < 7
   
   const isLanding = activeView === 'landing'
+
+  const llamaCppBusy = providerStatus?.active_provider === 'llama_cpp' && providerStatus?.busy === true
 
   return (
     <div className="page">
       {!isLanding && (
         <nav className="tab-bar">
+          <button
+            type="button"
+            className="tab-button tab-button--home"
+            onClick={() => setActiveView('landing')}
+            aria-label="Home"
+          >
+            Home
+          </button>
           <button
             type="button"
             className={`tab-button ${activeView === 'main' ? 'tab-active' : ''}`}
@@ -695,6 +692,14 @@ function App() {
           >
             Settings & Tools
           </button>
+          {/* Provider status chip — always visible in the nav bar */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', paddingRight: '0.5rem' }}>
+            <LlamaCppStatus
+              apiBase={apiBase}
+              accessCode={accessCode}
+              onStatusChange={setProviderStatus}
+            />
+          </div>
         </nav>
       )}
 
@@ -715,6 +720,9 @@ function App() {
             onApiBaseChange={handleApiBaseChange}
             onAccessCodeChange={handleAccessCodeChange}
             defaultApiBase={defaultApiBase}
+            availableModels={availableModels}
+            selectedModel={selectedModel}
+            onModelSelect={handleModelSelect}
           />
         ) : (
           <>
@@ -735,56 +743,28 @@ function App() {
             <div className="top-grid">
               <section
                 className={[
-                  'card',
+                  'card input-card',
                   showProgressCard || showResultsOverview ? null : 'card-span',
                 ]
                   .filter(Boolean)
                   .join(' ')}
               >
-                <h2>Provide an image</h2>
-                <div className="inline-status" aria-live="polite">
-                  <span className={`status-dot status-${status}`} />
-                  {status === 'loading' ? (
-                    <span className="spinner" aria-hidden="true" />
-                  ) : null}
-                  <span>{statusLabel}</span>
+                <div className="input-card-header">
+                  <h2>Verify an Image</h2>
+                  <div className="inline-status" aria-live="polite">
+                    <span className={`status-dot status-${status}`} />
+                    {status === 'loading' ? (
+                      <span className="spinner" aria-hidden="true" />
+                    ) : null}
+                    <span>{statusLabel}</span>
+                  </div>
                 </div>
 
-                {availableModels.length > 0 && (
-                  <div className="field" style={{ marginTop: '0.75rem' }}>
-                    <span>MedGemma Variant</span>
-                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                      {availableModels.map((m) => (
-                        <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: m.available ? 1 : 0.5, cursor: m.available ? 'pointer' : 'not-allowed' }}>
-                            <input
-                            type="radio"
-                            name="medgemma_model_top"
-                            value={m.model}
-                            checked={selectedModel === m.model}
-                            disabled={!m.available}
-                            onChange={(e) => handleModelSelect(e.target.value)}
-                          />
-                          <span>{m.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                    {selectionStatus && (
-                      <div className="status-message" style={{ 
-                        marginTop: '0.5rem', 
-                        fontSize: '0.85rem', 
-                        color: selectionStatus.includes('✅') ? '#2db88a' : '#ef5b5b',
-                        fontWeight: '500',
-                        animation: 'fadeIn 0.3s ease'
-                      }}>
-                        {selectionStatus}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.5rem' }}>
+                {/* ── Image input sub-card ─────────────────────────── */}
+                <div className="input-subcard">
+                  <p className="input-subcard-label">Image</p>
                   <label className="field">
-                    <span>Image file</span>
+                    <span>Upload a file</span>
                     <input
                       key={fileInputKey}
                       type="file"
@@ -794,12 +774,12 @@ function App() {
                       }
                     />
                     <span className="helper">
-                      {imageFile
-                        ? imageFile.name
-                        : 'PNG, JPG, or HEIC recommended.'}
+                      {imageFile ? imageFile.name : 'PNG, JPG, or HEIC recommended.'}
                     </span>
                   </label>
-                  
+
+                  <div className="input-or-divider"><span>or</span></div>
+
                   <label className="field">
                     <span>Public image URL</span>
                     <input
@@ -808,151 +788,107 @@ function App() {
                       value={imageUrl}
                       onChange={(event) => setImageUrl(event.target.value)}
                     />
-                    <span className="helper">
-                      Use a direct image link if possible.
-                    </span>
+                    <span className="helper">Use a direct image link if possible.</span>
                   </label>
+                </div>
 
-                  <label className="field">
-                    <span>Clinical Context</span>
+                {/* ── Clinical context sub-card (grows to fill remaining height) ── */}
+                <div className="input-subcard input-subcard--grow">
+                  <p className="input-subcard-label">Claim / Context</p>
+                  <label className="field field--flex">
+                    <span>
+                      Clinical context{' '}
+                      <span style={{ fontWeight: 400, color: 'var(--error)' }}>*</span>
+                    </span>
                     <textarea
-                      rows="3"
-                      placeholder="Caption or claim about the image (required)"
+                      placeholder="Caption or claim about the image — e.g. 'This X-ray shows signs of tuberculosis in a 30-year-old'"
                       value={context}
                       onChange={(event) => setContext(event.target.value)}
                       required
                     />
                     <span className="helper">
-                      Provide the medical claim or context exactly as it appeared. (Required)
+                      Provide the medical claim or context exactly as it appeared.
                     </span>
                   </label>
                 </div>
                 
-                {/* Advanced Configuration - Threshold Settings */}
-                <div className="field">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span>Advanced Settings</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowAdvanced(!showAdvanced)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#5b8def',
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        padding: '0.25rem 0.5rem',
-                      }}
-                    >
-                      {showAdvanced ? '▼ Hide' : '▶ Show Advanced'}
-                    </button>
-                  </div>
-                  
+                {/* ── Advanced Settings sub-card ─────────────────────── */}
+                <div className="input-subcard advanced-settings">
+                  <button
+                    type="button"
+                    className="advanced-toggle"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    aria-expanded={showAdvanced}
+                  >
+                    <span className="input-subcard-label">Advanced Settings</span>
+                    <span className="advanced-chevron" aria-hidden="true">
+                      {showAdvanced ? '▾' : '▸'}
+                    </span>
+                  </button>
+
                   {showAdvanced && (
-                    <div style={{ 
-                      background: 'rgba(45, 184, 138, 0.05)', 
-                      padding: '1.25rem', 
-                      borderRadius: '12px',
-                      border: '1px solid rgba(45, 184, 138, 0.2)',
-                      marginTop: '0.75rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '1.5rem'
-                    }}>
-                      <div style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)', paddingBottom: '1rem' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--ink)', display: 'block', marginBottom: '0.5rem' }}>
-                          Decision Thresholds
-                        </span>
-                        <span className="helper" style={{ display: 'block', marginBottom: '1rem' }}>
-                          Use optimized thresholds from the "Settings & Tools" tab or adjust manually.
-                          Current: {decisionLogic} logic.
-                        </span>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Veracity Threshold</span>
+                    <div className="advanced-panel">
+                      {/* Decision Thresholds */}
+                      <div className="advanced-section">
+                        <p className="advanced-section-title">Decision Thresholds</p>
+                        <p className="helper">
+                          Optimized defaults: veracity &lt; 0.65 OR alignment &lt; 0.30 (Med-MMHL).
+                          Current logic: <strong>{decisionLogic}</strong>.
+                        </p>
+                        <div className="advanced-threshold-grid">
+                          <label className="advanced-field">
+                            <span>Veracity Threshold</span>
                             <input
                               type="range"
-                              min="0"
-                              max="1"
-                              step="0.05"
+                              min="0" max="1" step="0.05"
                               value={veracityThreshold}
                               onChange={(e) => {
-                                const parsed = parseFloat(e.target.value);
-                                setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
+                                const parsed = parseFloat(e.target.value)
+                                setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed)
                               }}
-                              style={{ accentColor: '#5b8def' }}
+                              className="advanced-range"
                             />
                             <input
                               type="number"
-                              min="0"
-                              max="1"
-                              step="0.05"
+                              min="0" max="1" step="0.05"
                               value={veracityThreshold}
                               onChange={(e) => {
-                                const parsed = parseFloat(e.target.value);
-                                setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed);
+                                const parsed = parseFloat(e.target.value)
+                                setVeracityThreshold(isNaN(parsed) ? veracityThreshold : parsed)
                               }}
-                              style={{ 
-                                padding: '0.5rem', 
-                                background: 'var(--surface-soft)', 
-                                border: '1px solid var(--border)',
-                                borderRadius: '4px',
-                                color: 'var(--ink)',
-                                fontSize: '0.9rem'
-                              }}
+                              className="advanced-number"
                             />
                           </label>
-                          
-                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Alignment Threshold</span>
+                          <label className="advanced-field">
+                            <span>Alignment Threshold</span>
                             <input
                               type="range"
-                              min="0"
-                              max="1"
-                              step="0.05"
+                              min="0" max="1" step="0.05"
                               value={alignmentThreshold}
                               onChange={(e) => {
-                                const parsed = parseFloat(e.target.value);
-                                setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
+                                const parsed = parseFloat(e.target.value)
+                                setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed)
                               }}
-                              style={{ accentColor: '#5b8def' }}
+                              className="advanced-range"
                             />
                             <input
                               type="number"
-                              min="0"
-                              max="1"
-                              step="0.05"
+                              min="0" max="1" step="0.05"
                               value={alignmentThreshold}
                               onChange={(e) => {
-                                const parsed = parseFloat(e.target.value);
-                                setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed);
+                                const parsed = parseFloat(e.target.value)
+                                setAlignmentThreshold(isNaN(parsed) ? alignmentThreshold : parsed)
                               }}
-                              style={{ 
-                                padding: '0.5rem', 
-                                background: 'var(--surface-soft)', 
-                                border: '1px solid var(--border)',
-                                borderRadius: '4px',
-                                color: 'var(--ink)',
-                                fontSize: '0.9rem'
-                              }}
+                              className="advanced-number"
                             />
                           </label>
                         </div>
-                        
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Decision Logic</span>
+                        <label className="advanced-field">
+                          <span>Decision Logic</span>
                           <select
                             value={decisionLogic}
                             onChange={(e) => setDecisionLogic(e.target.value)}
-                            style={{ 
-                              padding: '0.5rem', 
-                              background: 'var(--surface-soft)', 
-                              border: '1px solid var(--border)',
-                              borderRadius: '4px',
-                              color: 'var(--ink)',
-                              fontSize: '0.9rem'
-                            }}
+                            className="advanced-select"
                           >
                             <option value="OR">OR — Flag if veracity OR alignment below threshold (high recall)</option>
                             <option value="AND">AND — Flag if veracity AND alignment below threshold (high precision)</option>
@@ -961,39 +897,32 @@ function App() {
                         </label>
                       </div>
 
-                      {/* Force-run module overrides — moved into Advanced Settings */}
+                      {/* Module Overrides */}
                       {['forensics', 'reverse_search', 'provenance'].some(isAddonEnabled) && (
-                        <div style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)', paddingBottom: '1rem' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--ink)', display: 'block', marginBottom: '0.5rem' }}>
-                            Module Overrides
-                          </span>
-                          <span className="helper" style={{ marginBottom: '0.75rem', display: 'block' }}>
-                            Force-run specific investigative modules regardless of agent triage decision.
-                          </span>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        <div className="advanced-section">
+                          <p className="advanced-section-title">Module Overrides</p>
+                          <p className="helper">Force-run specific modules regardless of triage decision.</p>
+                          <div className="advanced-checkboxes">
                             {[
-                              { key: 'forensics', label: 'Image Integrity (pixel forensics)' },
+                              { key: 'forensics', label: 'Image Integrity (Pixel Forensics)' },
                               { key: 'reverse_search', label: 'Source Verification (reverse image search)' },
                               { key: 'provenance', label: 'Provenance (audit trail)' },
                             ]
                               .filter(({ key }) => isAddonEnabled(key))
                               .map(({ key, label }) => (
-                                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontWeight: 'normal', fontSize: '0.9rem', color: 'var(--ink-soft)' }}>
+                                <label key={key} className="advanced-checkbox-label">
                                   <input
                                     type="checkbox"
                                     checked={forceTools.has(key)}
                                     onChange={(e) => {
                                       setForceTools((prev) => {
                                         const next = new Set(prev)
-                                        if (e.target.checked) {
-                                          next.add(key)
-                                        } else {
-                                          next.delete(key)
-                                        }
+                                        if (e.target.checked) next.add(key)
+                                        else next.delete(key)
                                         return next
                                       })
                                     }}
-                                    style={{ width: '1.1rem', height: '1.1rem', accentColor: '#5b8def' }}
+                                    className="advanced-checkbox"
                                   />
                                   {label}
                                 </label>
@@ -1001,75 +930,15 @@ function App() {
                           </div>
                         </div>
                       )}
-                      
-                      {availableModels.length > 0 && (
-                        <div style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
-                          <span style={{ fontSize: '0.9rem', color: 'var(--ink-soft)', display: 'block', marginBottom: '0.75rem' }}>
-                            MedGemma Model Variant
-                          </span>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {availableModels.map((m) => (
-                              <label key={m.id} style={{ 
-                                display: 'flex', 
-                                alignItems: 'flex-start', 
-                                gap: '0.75rem',
-                                cursor: m.available ? 'pointer' : 'not-allowed',
-                                opacity: m.available ? 1 : 0.5,
-                                padding: '0.75rem',
-                                background: selectedModel === m.model ? 'rgba(91, 141, 239, 0.15)' : 'rgba(0, 0, 0, 0.03)',
-                                border: selectedModel === m.model ? '1px solid #5b8def' : '1px solid rgba(0, 0, 0, 0.1)',
-                                borderRadius: '6px',
-                                transition: 'all 0.2s ease'
-                              }}>
-                                <input
-                                  type="radio"
-                                  name="medgemma_model"
-                                  value={m.model}
-                                  checked={selectedModel === m.model}
-                                  disabled={!m.available}
-                                  onChange={(e) => handleModelSelect(e.target.value)}
-                                  style={{ marginTop: '0.2rem' }}
-                                />
-                                <div>
-                                  <div style={{ fontWeight: '600', fontSize: '0.95rem', color: m.available ? 'var(--ink)' : 'var(--muted)' }}>
-                                    {m.name} {!m.available && <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#ef5b5b', marginLeft: '0.5rem' }}>(Unavailable)</span>}
-                                  </div>
-                                  <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
-                                    {m.description}
-                                  </div>
-                                </div>
-                              </label>
-                            ))}
-                          </div>
-                          {selectionStatus && (
-                            <div className="status-message" style={{ 
-                              marginTop: '0.75rem', 
-                              fontSize: '0.85rem', 
-                              color: selectionStatus.includes('✅') ? '#2db88a' : '#ef5b5b',
-                              fontWeight: '500',
-                              animation: 'fadeIn 0.3s ease'
-                            }}>
-                              {selectionStatus}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      <div style={{ 
-                        marginTop: '1rem', 
-                        padding: '0.75rem', 
-                        background: 'rgba(91, 141, 239, 0.1)',
-                        borderRadius: '4px',
-                        fontSize: '0.85rem',
-                        color: 'var(--muted)'
-                      }}>
-                        💡 <strong>Tip:</strong> Use the "Settings & Tools" tab to find optimal values for your specific use case.
-                        Default values (veracity &lt; 0.65 OR alignment &lt; 0.30) were optimized on MedGemma 4B runs for Med-MMHL.
-                      </div>
+
+                      <p className="advanced-tip">
+                        Use <strong>Settings &amp; Tools</strong> to find optimal threshold values for your model and dataset.
+                      </p>
                     </div>
                   )}
                 </div>
-                
+
+                {/* Demo Access Code — appears only when needed */}
                 {(error && (error.includes('Access denied') || error.includes('403'))) || accessCode ? (
                   <label className="field">
                     <span>Demo Access Code</span>
@@ -1077,22 +946,32 @@ function App() {
                       type="text"
                       placeholder="Enter access code"
                       value={accessCode}
-                      onChange={(event) =>
-                        handleAccessCodeChange(event.target.value)
-                      }
+                      onChange={(event) => handleAccessCodeChange(event.target.value)}
                     />
                     <span className="helper">
                       {error && (error.includes('Access denied') || error.includes('403'))
-                        ? '⚠️ Access denied. Please enter the demo access code to continue.'
+                        ? 'Access denied. Please enter the demo access code to continue.'
                         : 'Code saved locally. Leave empty to remove.'}
                     </span>
                   </label>
                 ) : null}
+
+                {/* Local AI busy warning */}
+                {llamaCppBusy && (
+                  <div className="busy-warning">
+                    <span className="busy-warning-icon" aria-hidden="true">⏳</span>
+                    <div>
+                      <strong>Local AI is processing a request</strong>
+                      <p className="helper">The local model handles one request at a time. Please wait 2–3 minutes before submitting.</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="actions">
                   <button
                     type="button"
                     onClick={handleRun}
-                    disabled={status === 'loading'}
+                    disabled={status === 'loading' || llamaCppBusy}
                   >
                     Run verification
                   </button>
@@ -1175,190 +1054,190 @@ function App() {
                 </section>
               ) : null}
               {showResultsOverview ? (
-                <section className="card triangle-card">
-                  <h2>Assessment</h2>
-                  <p className="helper">
-                    <strong>Contextual Authenticity</strong> (core): Claim Veracity + Image-Context Alignment = final verdict on misinformation.
-                    <br />
-                    <strong>Image Integrity</strong> (optional add-on): Separate pixel forensics assessment for detecting image manipulation.
-                  </p>
-                  <svg
-                    className="triangle-svg"
-                    viewBox="0 0 440 470"
-                    role="img"
-                    aria-label={`Assessment: integrity ${triangleSignals.integrity}, veracity ${triangleSignals.veracity}, alignment ${triangleSignals.alignment}, source ${triangleSignals.source}, provenance ${triangleSignals.provenance}`}
-                  >
-                    {/* Core assessment connection */}
-                    <line x1="75" y1="325" x2="365" y2="325" stroke="#c8d3de" strokeWidth="3" />
+                <section className="card signal-overview-card">
+                  <h2>Assessment Overview</h2>
 
-                    {/* Far-left vertex: Source Reputation */}
-                    <text x="60" y="45" textAnchor="middle" className="tri-label-primary">Source</text>
-                    <text x="60" y="62" textAnchor="middle" className="tri-label-secondary">Reputation</text>
-                    <circle cx="60" cy="115" r="34" className={`tri-node tri-node-${triangleSignals.source}`} />
-                    {renderTriIcon(triangleSignals.source, 60, 115)}
-
-                    {/* Top vertex: Image Integrity */}
-                    <text x="220" y="45" textAnchor="middle" className="tri-label-primary">Image Integrity</text>
-                    <text x="220" y="62" textAnchor="middle" className="tri-label-secondary">
-                      {triangleSignals.integrity === 'addon' ? '(Add-on)' : '(Forensics)'}
-                    </text>
-                    <circle cx="220" cy="115" r="38" className={`tri-node tri-node-${triangleSignals.integrity}`} />
-                    {renderTriIcon(triangleSignals.integrity, 220, 115)}
-
-                    {/* Far-right vertex: Genealogy */}
-                    <text x="380" y="45" textAnchor="middle" className="tri-label-primary">Genealogy</text>
-                    <text x="380" y="62" textAnchor="middle" className="tri-label-secondary">Provenance</text>
-                    <circle cx="380" cy="115" r="34" className={`tri-node tri-node-${triangleSignals.provenance}`} />
-                    {renderTriIcon(triangleSignals.provenance, 380, 115)}
-
-                    {/* Bottom-left vertex: Context Veracity */}
-                    <circle cx="75" cy="325" r="38" className={`tri-node tri-node-${triangleSignals.veracity}`} />
-                    {renderTriIcon(triangleSignals.veracity, 75, 325)}
-                    <text x="75" y="380" textAnchor="middle" className="tri-label-primary">Context</text>
-                    <text x="75" y="397" textAnchor="middle" className="tri-label-primary">Veracity</text>
-
-                    {/* Bottom-right vertex: Context-Image Alignment */}
-                    <circle cx="365" cy="325" r="38" className={`tri-node tri-node-${triangleSignals.alignment}`} />
-                    {renderTriIcon(triangleSignals.alignment, 365, 325)}
-                    <text x="365" y="380" textAnchor="middle" className="tri-label-primary">Context-Image</text>
-                    <text x="365" y="397" textAnchor="middle" className="tri-label-primary">Alignment</text>
-
-                    {/* Overall verdict pill */}
-                    <rect x="120" y="425" width="200" height="34" rx="17" className={`tri-pill tri-pill-${triangleSignals.overall}`} />
-                    <text x="220" y="447" textAnchor="middle" className="tri-pill-text">Contextual Authenticity</text>
-                  </svg>
-
-                  {/* 2x2x2 Matrix */}
-                  {cubeMatrix ? (
-                    <div className="cube-matrix">
-                      <p className="cube-matrix-title">
-                        {cubeMatrix.integrityUnchecked
-                          ? '2x2 assessment matrix'
-                          : '2x2x2 assessment matrix'}
-                      </p>
-                      <div className="cube-layers">
-                        {(cubeMatrix.integrityUnchecked ? [true] : [true, false]).map((intLayer) => (
-                          <div key={intLayer ? 'intact' : 'tampered'} className="cube-layer">
-                            {!cubeMatrix.integrityUnchecked ? (
-                              <span className="cube-layer-label">
-                                {intLayer ? 'Image intact' : 'Image tampered'}
-                              </span>
-                            ) : null}
-                            <div className="cube-grid">
-                              {cubeMatrix.cells
-                                .filter(c => cubeMatrix.integrityUnchecked ? c.integrity : c.integrity === intLayer)
-                                .map(cell => (
-                                  <div
-                                    key={cell.key}
-                                    className={[
-                                      'cube-cell',
-                                      cubeMatrix.activeKey === cell.key ? `cube-active cube-${cell.tone}` : '',
-                                    ].join(' ')}
-                                  >
-                                    <span className="cube-cell-label">{cell.label}</span>
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        ))}
+                  {/* Core signal blocks: Veracity + Alignment side by side */}
+                  <div className="signal-core-grid">
+                    {/* Veracity */}
+                    <div className={`signal-block signal-block-veracity${triangleSignals ? ` signal-${triangleSignals.veracity}` : ''}`}>
+                      <div className="signal-block-top">
+                        <span className="signal-block-name">Claim Veracity</span>
+                        <span className="signal-block-badge">{claimVeracity?.label || 'Not assessed'}</span>
                       </div>
-                      {cubeMatrix.activeCell ? (
-                        <div className={`quadrant-verdict quadrant-verdict-${cubeMatrix.activeCell.tone}`}>
-                          <strong>{cubeMatrix.activeCell.label}</strong>
-                          <p>{cubeMatrix.activeCell.description}</p>
+                      <span className="signal-score-num">
+                        {claimVeracity?.score != null
+                          ? <>{Math.round(claimVeracity.score * 100)}<sup>%</sup></>
+                          : '—'}
+                      </span>
+                      {claimVeracity?.score != null && (
+                        <div className="signal-progress-track">
+                          <div className="signal-progress-fill" style={{ width: `${Math.round(claimVeracity.score * 100)}%` }} />
                         </div>
-                      ) : null}
+                      )}
+                      <p className="signal-block-detail">
+                        {claimVeracity?.evidenceBasis || 'Factual accuracy of the medical claim'}
+                      </p>
                     </div>
-                  ) : assessmentQuadrant ? (
-                    <div className={`quadrant-verdict quadrant-verdict-${assessmentQuadrant.tone}`}>
-                      <strong>{assessmentQuadrant.title}</strong>
-                      <p>{assessmentQuadrant.description}</p>
+
+                    {/* Alignment */}
+                    <div className={`signal-block signal-block-alignment${triangleSignals ? ` signal-${triangleSignals.alignment}` : ''}`}>
+                      <div className="signal-block-top">
+                        <span className="signal-block-name">Image-Context Alignment</span>
+                        <span className="signal-block-badge">{alignmentScore?.label || 'Not assessed'}</span>
+                      </div>
+                      <span className="signal-score-num">
+                        {alignmentScore?.score != null && alignmentScore.score > 0
+                          ? <>{Math.round(alignmentScore.score * 100)}<sup>%</sup></>
+                          : '—'}
+                      </span>
+                      {alignmentScore?.score != null && alignmentScore.score > 0 && (
+                        <div className="signal-progress-track">
+                          <div className="signal-progress-fill" style={{ width: `${Math.round(alignmentScore.score * 100)}%` }} />
+                        </div>
+                      )}
+                      <p className="signal-block-detail">
+                        Whether the image supports the associated claim
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Verdict panel */}
+                  {assessmentQuadrant ? (
+                    <div className={`signal-verdict signal-verdict-${assessmentQuadrant.tone}`}>
+                      <span className="signal-verdict-icon" aria-hidden="true">
+                        {assessmentQuadrant.tone === 'high' ? '✓' : assessmentQuadrant.tone === 'danger' ? '⚠' : '△'}
+                      </span>
+                      <div>
+                        <strong>{assessmentQuadrant.title}</strong>
+                        <p>{assessmentQuadrant.description}</p>
+                      </div>
+                    </div>
+                  ) : result?.is_misinformation != null ? (
+                    <div className={`signal-verdict signal-verdict-${result.is_misinformation ? 'danger' : 'high'}`}>
+                      <span className="signal-verdict-icon" aria-hidden="true">
+                        {result.is_misinformation ? '⚠' : '✓'}
+                      </span>
+                      <div>
+                        <strong>{result.is_misinformation ? 'Misinformation detected' : 'Context appears authentic'}</strong>
+                        <p>{result.is_misinformation
+                          ? 'The claim does not align with the image or contains factual inaccuracies.'
+                          : 'No significant contextual integrity issues detected.'}</p>
+                      </div>
                     </div>
                   ) : null}
+
+                  {/* Add-on signal chips */}
+                  {triangleSignals && (
+                    <div className="signal-addon-row">
+                      <div className={`signal-chip signal-chip-${triangleSignals.integrity}`}>
+                        <span className="signal-chip-dot" aria-hidden="true" />
+                        <span>Image Integrity</span>
+                      </div>
+                      <div className={`signal-chip signal-chip-${triangleSignals.source}`}>
+                        <span className="signal-chip-dot" aria-hidden="true" />
+                        <span>Source Verification</span>
+                      </div>
+                      <div className={`signal-chip signal-chip-${triangleSignals.provenance}`}>
+                        <span className="signal-chip-dot" aria-hidden="true" />
+                        <span>Provenance</span>
+                      </div>
+                    </div>
+                  )}
                 </section>
               ) : null}
             </div>
 
-            <section className="card" ref={result ? (el => el ? el.setAttribute('data-export-target', 'results') : null) : null}>
-              <div className="result-header">
-                <h2>Analysis Results</h2>
-                {result && (
-                  <div className="export-buttons">
-                    <button
-                      type="button"
-                      className="ghost export-button"
-                      onClick={() => {
-                        const resultsElement = document.querySelector('[data-export-target="results"]');
-                        if (resultsElement) {
-                          import('./utils/exportUtils')
-                            .then(async ({ downloadAsPDF }) => {
-                              try {
-                                await downloadAsPDF(resultsElement, 'medcontext-results.pdf');
-                              } catch (error) {
-                                console.error('Error in downloadAsPDF:', error);
-                                alert('Failed to download PDF. Please try again.');
-                              }
-                            })
-                            .catch((error) => {
-                              console.error('Failed to load export utilities:', error);
-                              alert('Failed to load export functionality. Please try again.');
-                            });
-                        } else {
-                          alert('Results element not found for export.');
-                        }
-                      }}
-                    >
-                      Download as PDF
-                    </button>
-                    <button
-                      type="button"
-                      className="ghost export-button"
-                      onClick={() => {
-                        const resultsElement = document.querySelector('[data-export-target="results"]');
-                        if (resultsElement) {
-                          import('./utils/exportUtils')
-                            .then(({ copyToClipboardText }) =>
-                              copyToClipboardText(resultsElement).catch(error => {
-                                console.error('Error in copyToClipboardText:', error);
-                                alert('Failed to copy results to clipboard. Please try again.');
-                              })
-                            )
-                            .catch((error) => {
-                              console.error('Failed to load export utilities:', error);
-                              alert('Failed to load export functionality. Please try again.');
-                            });
-                        } else {
-                          alert('Results element not found for export.');
-                        }
-                      }}
-                    >
-                      Copy to Clipboard
-                    </button>
-                  </div>
+            {/* Results: 7 focused cards, rendered after analysis completes */}
+            {result && (
+              <div data-export-target="results" className="results-stack">
+
+                {/* Card 1: Submitted Image & Claim */}
+                {(imagePreview || contextQuote || part1?.image_description) && (
+                  <section className="card">
+                    <h2>Submitted Image &amp; Claim</h2>
+                    {imagePreview && (
+                      <img
+                        className="image-preview"
+                        src={imagePreview}
+                        alt="Reviewed upload"
+                        style={{ maxWidth: '400px', borderRadius: '8px' }}
+                      />
+                    )}
+                    {contextQuote && (
+                      <>
+                        <p className="eyebrow" style={{ marginTop: '1rem' }}>
+                          {isUserProvidedContext ? 'User-provided context' : 'Analyzed claim'}
+                        </p>
+                        <blockquote className="context-quote">{contextQuote}</blockquote>
+                      </>
+                    )}
+                    {part1?.image_description && (
+                      <div style={{ marginTop: '1rem' }}>
+                        <p className="eyebrow">Image description (MedGemma)</p>
+                        <p className="summary-text">{part1.image_description}</p>
+                      </div>
+                    )}
+                  </section>
                 )}
-              </div>
-              {result ? (
-                <div className="results">
-                  {/* Threshold Recommendation (if present) */}
+
+                {/* Card 2: Verdict */}
+                <section className="card">
+                  <div className="result-header">
+                    <h2>Verdict</h2>
+                    <div className="export-buttons">
+                      <button
+                        type="button"
+                        className="ghost export-button"
+                        onClick={() => {
+                          const el = document.querySelector('[data-export-target="results"]');
+                          if (el) {
+                            import('./utils/exportUtils')
+                              .then(async ({ downloadAsPDF }) => {
+                                try { await downloadAsPDF(el, 'medcontext-results.pdf'); }
+                                catch { alert('Failed to download PDF. Please try again.'); }
+                              })
+                              .catch(() => alert('Failed to load export functionality. Please try again.'));
+                          }
+                        }}
+                      >
+                        Download as PDF
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost export-button"
+                        onClick={() => {
+                          const el = document.querySelector('[data-export-target="results"]');
+                          if (el) {
+                            import('./utils/exportUtils')
+                              .then(({ copyToClipboardText }) =>
+                                copyToClipboardText(el).catch(() =>
+                                  alert('Failed to copy results to clipboard. Please try again.')
+                                )
+                              )
+                              .catch(() => alert('Failed to load export functionality. Please try again.'));
+                          }
+                        }}
+                      >
+                        Copy to Clipboard
+                      </button>
+                    </div>
+                  </div>
                   {thresholdRecommendation && (
                     <div style={{
                       background: 'rgba(245, 165, 36, 0.1)',
                       border: '2px solid #f5a524',
                       borderRadius: '12px',
-                      padding: '1.5rem',
-                      marginBottom: '1.5rem',
+                      padding: '1.25rem',
+                      marginTop: '1rem',
                     }}>
-                      <h3 style={{ color: '#f5a524', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        💡 Threshold Optimization Recommended
-                      </h3>
-                      <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem' }}>
-                        {thresholdRecommendation.message}
-                      </p>
-                      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <h3 style={{ color: '#f5a524', marginTop: 0 }}>Threshold Optimization Recommended</h3>
+                      <p style={{ lineHeight: '1.6', marginBottom: '1rem' }}>{thresholdRecommendation.message}</p>
+                      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <button
                           onClick={() => setActiveView('settings')}
                           style={{
-                            padding: '0.75rem 1.5rem',
+                            padding: '0.6rem 1.25rem',
                             background: '#c85a00',
                             color: '#fff',
                             border: 'none',
@@ -1369,19 +1248,13 @@ function App() {
                         >
                           {thresholdRecommendation.action}
                         </button>
-                        <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.9rem', color: '#9ba0af' }}>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>
                           {thresholdRecommendation.benefit}
                         </span>
                       </div>
                     </div>
                   )}
-                  
-                  {/* 1. FINAL VERDICT - Most important, shown first */}
-                  <div className="result-block">
-                    <h3>Final Verdict</h3>
-                    <p className="helper" style={{ marginBottom: '1rem' }}>
-                      Based on <strong>Contextual Authenticity</strong> (Claim Veracity + Image-Context Alignment):
-                    </p>
+                  <div style={{ marginTop: '1.25rem' }}>
                     {part2?.verdict || result?.is_misinformation !== undefined ? (
                       <div className={`quadrant-verdict ${
                         result?.is_misinformation === true || part2?.verdict?.toLowerCase().includes('misinformation')
@@ -1389,447 +1262,487 @@ function App() {
                           : result?.is_misinformation === false
                             ? 'quadrant-verdict-high'
                             : 'quadrant-verdict-medium'
-                      }`} style={{ marginTop: '0' }}>
+                      }`}>
                         <strong style={{ fontSize: '1.8rem', display: 'block', marginBottom: '0.5rem' }}>
-                          {result?.is_misinformation === true ? '⚠️ MISINFORMATION DETECTED' :
-                           result?.is_misinformation === false ? '✓ NO MISINFORMATION DETECTED' :
+                          {result?.is_misinformation === true ? 'MISINFORMATION DETECTED' :
+                           result?.is_misinformation === false ? 'NO MISINFORMATION DETECTED' :
                            part2?.verdict || 'Assessment Complete'}
                         </strong>
                         <p style={{ fontSize: '1.1rem' }}>
-                          {result?.is_misinformation === true ? 'Misinformation detected.' :
-                           result?.is_misinformation === false ? 'No misinformation detected.' :
-                           (part2?.verdict || 'Review the contextual authenticity scores and rationale below for details.')}
+                          {result?.is_misinformation === true
+                            ? 'This image-claim combination shows signs of contextual misinformation.'
+                            : result?.is_misinformation === false
+                              ? 'No contextual misinformation detected.'
+                              : (part2?.verdict || 'Review the contextual authenticity scores below.')}
                         </p>
-                        {part2?.confidence ? (
-                          <p style={{ marginTop: '0.75rem', opacity: 0.85, fontSize: '1rem' }}>
+                        {part2?.confidence && (
+                          <p style={{ marginTop: '0.75rem', opacity: 0.85 }}>
                             <strong>Confidence:</strong> {part2.confidence}
                           </p>
-                        ) : null}
+                        )}
                       </div>
                     ) : (
-                      <p className="helper">Final verdict not available</p>
+                      <p className="helper">Final verdict not available.</p>
                     )}
                   </div>
+                </section>
 
-                  {/* 2. Contextual Authenticity Components (Veracity + Alignment) */}
-                  <div className="result-block">
-                    <h3>Contextual Authenticity Assessment</h3>
-                    <p className="helper">
-                      The core of MedContext: combining claim veracity with image-context alignment to detect contextual misinformation.
-                    </p>
-                    <div className="assessment-duo" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-                      {claimVeracity ? (
-                        <div className={`score-pill score-${claimVeracity.tone}`}>
-                          <span className="score-label">Claim Veracity</span>
-                          <span className="score-value-text">
-                            {claimVeracity.accuracy?.replace('_', ' ') || 'Unknown'}
-                          </span>
-                          <span>{claimVeracity.label}</span>
-                        </div>
-                      ) : (
-                        <div className="score-pill score-neutral">
-                          <span className="score-label">Claim Veracity</span>
-                          <span className="score-value-text">Not assessed</span>
-                        </div>
-                      )}
-
-                      {alignmentScore && alignmentScore.score > 0 ? (
-                        <div className={`score-pill score-${alignmentScore.tone}`}>
-                          <span className="score-label">Context-Image Alignment</span>
-                          <span className="score-value">
-                            {alignmentScore.score}/3
-                          </span>
-                          <span>{alignmentScore.label}</span>
-                        </div>
-                      ) : (
-                        <div className="score-pill score-neutral">
-                          <span className="score-label">Context-Image Alignment</span>
-                          <span className="score-value-text">Not assessed</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 3. Image and Context Display */}
-                  {part2 || part1 ? (
-                    <div className="result-block">
-                      <h3>Image and Claim Under Review</h3>
-                      {imagePreview ? (
-                        <img
-                          className="image-preview"
-                          src={imagePreview}
-                          alt="Reviewed upload"
-                          style={{ maxWidth: '400px', marginBottom: '1rem', borderRadius: '8px' }}
-                        />
-                      ) : null}
-                      {contextQuote ? (
-                        <>
-                          <p className="eyebrow">
-                            {isUserProvidedContext ? 'User-provided context' : 'Analyzed claim'}
-                          </p>
-                          <blockquote className="context-quote">
-                            {contextQuote}
-                          </blockquote>
-                        </>
-                      ) : null}
-                      {part1?.image_description ? (
-                        <div style={{ marginTop: '1rem' }}>
-                          <p className="eyebrow">Image description (MedGemma)</p>
-                          <p className="summary-text">{part1.image_description}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-
-                  {/* 4. Model Rationale */}
-                  {part2?.summary || part2?.alignment_analysis || part2?.rationale ? (
-                    <div className="result-block">
-                      <h3>Analysis Rationale</h3>
-                      <p className="helper">How the model arrived at its verdict:</p>
-                      <div style={{ marginTop: '1rem' }}>
-                        {part2.summary ? <p className="summary-text">{part2.summary}</p> : null}
-                        {part2.alignment_analysis ? (
-                          <div style={{ marginTop: '0.75rem' }}>
-                            <p className="eyebrow">Alignment Analysis</p>
-                            <p className="summary-text">{part2.alignment_analysis}</p>
-                          </div>
-                        ) : null}
-                        {part2.rationale ? (
-                          <div style={{ marginTop: '0.75rem' }}>
-                            <p className="eyebrow">Rationale</p>
-                            <p className="summary-text">{part2.rationale}</p>
-                          </div>
-                        ) : null}
-                        {claimVeracity?.evidenceBasis ? (
-                          <div style={{ marginTop: '0.75rem' }}>
-                            <p className="eyebrow">Evidence Basis</p>
-                            <p className="summary-text">{claimVeracity.evidenceBasis}</p>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {/* 5. Image Integrity Assessment (Separate, Add-on) */}
-                  <div className="result-block">
-                    <h3>Image Integrity Assessment</h3>
-                    <p className="helper">
-                      Pixel forensics is an optional add-on module for detecting image manipulation (separate from contextual authenticity):
-                    </p>
+                {/* Card 3: Analysis Narrative */}
+                {(part2?.summary || part2?.alignment_analysis || part2?.rationale || claimVeracity?.evidenceBasis) && (
+                  <section className="card">
+                    <h2>Analysis Narrative</h2>
+                    <p className="helper">How the model arrived at its verdict:</p>
                     <div style={{ marginTop: '1rem' }}>
-                      {forensicsData ? (
-                        <div className={`score-pill ${forensicsData.results?.layer_1?.verdict === 'AUTHENTIC' ? 'score-high' : 'score-low'}`}>
-                          <span className="score-label">Image Integrity (Pixel Forensics)</span>
-                          <span className="score-value-text">
-                            {forensicsData.results?.layer_1?.verdict || 'Unknown'}
-                          </span>
-                          <span>
-                            {forensicsData.results?.layer_1?.confidence != null
-                              ? `${Math.round(forensicsData.results.layer_1.confidence * 100)}% confidence`
-                              : 'Confidence N/A'}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="score-pill score-neutral">
-                          <span className="score-label">Image Integrity (Pixel Forensics)</span>
-                          <span className="score-value-text">Not assessed</span>
-                          <span>{isAddonEnabled('forensics') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</span>
+                      {part2?.summary && <p className="summary-text">{part2.summary}</p>}
+                      {part2?.alignment_analysis && (
+                        <div style={{ marginTop: '0.75rem' }}>
+                          <p className="eyebrow">Alignment Analysis</p>
+                          <p className="summary-text">{part2.alignment_analysis}</p>
                         </div>
                       )}
-                      {forensicsData?.results?.layer_1 ? (
-                        <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(78, 154, 52, 0.05)', borderRadius: '8px', borderLeft: '3px solid #4E9A34' }}>
-                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#4E9A34' }}>Forensics Details</h4>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                            <div>
-                              <strong>Verdict:</strong> <span className={`pill ${forensicsData.results.layer_1.verdict === 'AUTHENTIC' ? 'pill-success' : 'pill-error'}`}>
-                                {forensicsData.results.layer_1.verdict}
-                              </span>
-                            </div>
-                            {forensicsData.results.layer_1.confidence != null ? (
-                              <div>
-                                <strong>Confidence:</strong> {Math.round(forensicsData.results.layer_1.confidence * 100)}%
-                              </div>
-                            ) : null}
-                            {forensicsData.results.layer_1.details?.copy_move_score !== undefined ? (
-                              <div>
-                                <strong>Copy-Move Score:</strong> {forensicsData.results.layer_1.details.copy_move_score.toFixed(4)}
-                              </div>
-                            ) : null}
-                          </div>
+                      {part2?.rationale && (
+                        <div style={{ marginTop: '0.75rem' }}>
+                          <p className="eyebrow">Rationale</p>
+                          <p className="summary-text">{part2.rationale}</p>
                         </div>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {/* 6. Additional Tool Results (Reverse Search, Provenance) */}
-                  <div className="result-block">
-                    <h3>Additional Module Results</h3>
-                    <p className="helper">
-                      Status of optional add-on modules for source verification and provenance tracking:
-                    </p>
-
-                    {/* Reverse Search */}
-                    <div style={{ marginTop: '1rem' }}>
-                      {orchestratorReverseSearch ? (
-                        <div style={{ padding: '1rem', background: 'rgba(91, 141, 239, 0.05)', borderRadius: '8px', borderLeft: '3px solid #5b8def' }}>
-                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#5b8def' }}>✓ Reverse Image Search</h4>
-                          <p className="helper" style={{ marginBottom: '1rem' }}>Finds where this image appears online.</p>
-                          {orchestratorReverseSearch.matches?.length > 0 ? (
-                            <div>
-                              <strong>{orchestratorReverseSearch.matches.length} matches found</strong>
-                              <div style={{ marginTop: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
-                                {orchestratorReverseSearch.matches.slice(0, 3).map((match, idx) => (
-                                  <div key={idx} style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                    <div><strong>{match.title || 'Untitled'}</strong></div>
-                                    {match.url ? <div style={{ fontSize: '0.85rem', opacity: 0.8 }}><a href={match.url} target="_blank" rel="noreferrer">{match.url}</a></div> : null}
-                                    {match.snippet ? <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>{match.snippet}</div> : null}
-                                  </div>
-                                ))}
-                                {orchestratorReverseSearch.matches.length > 3 ? (
-                                  <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>+ {orchestratorReverseSearch.matches.length - 3} more matches</div>
-                                ) : null}
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="helper">No matches found.</p>
-                          )}
-                        </div>
-                      ) : (
-                        <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px', borderLeft: '3px solid rgba(255,255,255,0.2)' }}>
-                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#8891a3' }}>○ Reverse Image Search</h4>
-                          <p className="helper">{isAddonEnabled('reverse_search') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</p>
+                      )}
+                      {claimVeracity?.evidenceBasis && (
+                        <div style={{ marginTop: '0.75rem' }}>
+                          <p className="eyebrow">Evidence Basis</p>
+                          <p className="summary-text">{claimVeracity.evidenceBasis}</p>
                         </div>
                       )}
                     </div>
-
-                    {/* Provenance */}
-                    <div style={{ marginTop: '1rem' }}>
-                      {provenanceData ? (
-                        <div style={{ padding: '1rem', background: 'rgba(245, 165, 36, 0.05)', borderRadius: '8px', borderLeft: '3px solid #f5a524' }}>
-                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#f5a524' }}>✓ Provenance Chain</h4>
-                          <p className="helper" style={{ marginBottom: '1rem' }}>Blockchain-style immutable audit trail for image history.</p>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                            <div><strong>Chain ID:</strong> <code style={{ fontSize: '0.85rem' }}>{provenanceData.chain_id?.substring(0, 16)}...</code></div>
-                            <div><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</div>
-                            {provenanceData.blockchain_tx_hash ? (
-                              <>
-                                <div style={{ gridColumn: '1 / -1' }}>
-                                  <strong>Blockchain Anchor:</strong> <code style={{ fontSize: '0.85rem' }}>{provenanceData.blockchain_tx_hash.substring(0, 18)}...</code>
-                                </div>
-                              </>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px', borderLeft: '3px solid rgba(255,255,255,0.2)' }}>
-                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#8891a3' }}>○ Provenance Chain</h4>
-                          <p className="helper">{isAddonEnabled('provenance') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="helper">
-                  Run an analysis to see the results here.
-                </p>
-              )}
-            </section>
-
-            {/* Forensics Tool Results */}
-            {forensicsData ? (
-              <section className="card">
-                <h2>🔍 Forensics Analysis</h2>
-                <p className="helper">
-                  Forensics signals and metadata checks (legacy integrity checks removed).
-                </p>
-                {forensicsData.results ? (
-                  <div className="results">
-                    {Object.entries(forensicsData.results).map(([layerName, layerData]) => (
-                      <div key={layerName} className="result-block">
-                        <h3>
-                          {layerName === 'layer_1' ? '📊 Layer 1: Pixel Forensics' :
-                            layerName === 'layer_2' ? '🧠 Layer 2: Semantic Analysis' :
-                              '📝 Layer 3: Metadata & EXIF'}
-                        </h3>
-                        <div className="forensics-verdict">
-                          <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
-                            {layerData.verdict}
-                          </span>
-                          {layerData.confidence != null ? (
-                            <span className="pill pill-muted">
-                              {Math.round(layerData.confidence * 100)}% confidence
-                            </span>
-                          ) : null}
-                        </div>
-                        {layerData.details ? (
-                          <div className="forensics-details">
-                            {layerData.details.method ? (
-                              <p><strong>Method:</strong> {layerData.details.method}</p>
-                            ) : null}
-                            {layerData.details.copy_move_score !== undefined ? (
-                              <div className="forensics-stats">
-                                <p><strong>Copy-Move Score:</strong> {layerData.details.copy_move_score}</p>
-                                {layerData.details.image_size ? (
-                                  <p><strong>Image Size:</strong> {layerData.details.image_size[0]} x {layerData.details.image_size[1]}</p>
-                                ) : null}
-                                {layerData.details.image_mode ? (
-                                  <p><strong>Mode:</strong> {layerData.details.image_mode}</p>
-                                ) : null}
-                              </div>
-                            ) : null}
-                            {layerData.details.has_exif !== undefined ? (
-                              <div>
-                                <p><strong>EXIF Data:</strong> {layerData.details.has_exif ? 'Present' : 'Missing'}</p>
-                                {layerData.details.exif_fields_count ? (
-                                  <p><strong>EXIF Fields:</strong> {layerData.details.exif_fields_count}</p>
-                                ) : null}
-                                {layerData.details.suspicious_patterns?.length > 0 ? (
-                                  <div className="suspicious-patterns">
-                                    <p><strong>⚠️ Suspicious Patterns:</strong></p>
-                                    <ul>
-                                      {layerData.details.suspicious_patterns.map((pattern, idx) => (
-                                        <li key={idx} className="error">{pattern}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                ) : null}
-                                {layerData.details.software_tags?.length > 0 ? (
-                                  <p><strong>Software:</strong> {layerData.details.software_tags.join(', ')}</p>
-                                ) : null}
-                              </div>
-                            ) : null}
-                            {layerData.details.note ? (
-                              <p className="helper">{layerData.details.note}</p>
-                            ) : null}
-                            {layerData.details.error ? (
-                              <p className="error">Error: {layerData.details.error}</p>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="helper">
-                    Forensics layers are currently unavailable.
-                  </p>
+                  </section>
                 )}
-              </section>
-            ) : null}
 
-            {/* Provenance Tool Results */}
-            {provenanceData ? (
-              <section className="card">
-                <h2>🔗 Provenance Chain</h2>
-                <p className="helper">
-                  Blockchain-style immutable audit trail for image history
-                </p>
-                <div className="results">
-                  <div className="provenance-meta">
-                    <p><strong>Chain ID:</strong> <code>{provenanceData.chain_id}</code></p>
-                    <p><strong>Status:</strong> <span className="pill pill-success">{provenanceData.status}</span></p>
-                    <p><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</p>
-                    {provenanceData.blockchain_tx_hash ? (
-                      <p>
-                        <strong>Blockchain anchor:</strong>{' '}
-                        <code>{provenanceData.blockchain_tx_hash.substring(0, 18)}…</code>
-                        {provenanceData.blockchain_verification_url &&
-                        !provenanceData.blockchain_verification_url.startsWith('local://') ? (
-                          <>
-                            {' '}
-                            <a
-                              href={provenanceData.blockchain_verification_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="pill pill-success"
-                            >
-                              Verify on-chain ↗
-                            </a>
-                          </>
-                        ) : null}
-                      </p>
-                    ) : null}
+                {/* Card 4: Contextual Authenticity — colour-coded by signal */}
+                <section className="card">
+                  <h2>Contextual Authenticity</h2>
+                  <p className="helper">
+                    Combining claim veracity with image-context alignment — the core MedContext signal for detecting misinformation.
+                  </p>
+                  <div className="ca-score-grid">
+                    {/* Veracity — red */}
+                    <div
+                      className="ca-score-block"
+                      style={claimVeracity
+                        ? { '--ca-color': '#E63946', '--ca-bg': 'rgba(230,57,70,0.1)', '--ca-border': 'rgba(230,57,70,0.3)' }
+                        : { '--ca-color': 'var(--muted)', '--ca-bg': 'var(--surface-muted)', '--ca-border': 'var(--border)' }
+                      }
+                    >
+                      <span className="ca-score-label">Claim Veracity</span>
+                      <span className="ca-score-value">
+                        {claimVeracity ? (claimVeracity.accuracy?.replace('_', ' ') || 'Unknown') : 'Not assessed'}
+                      </span>
+                      {claimVeracity?.label && <span className="ca-score-sublabel">{claimVeracity.label}</span>}
+                    </div>
+
+                    {/* Alignment — amber */}
+                    <div
+                      className="ca-score-block"
+                      style={alignmentScore && alignmentScore.score > 0
+                        ? { '--ca-color': '#F4A261', '--ca-bg': 'rgba(244,162,97,0.1)', '--ca-border': 'rgba(244,162,97,0.3)' }
+                        : { '--ca-color': 'var(--muted)', '--ca-bg': 'var(--surface-muted)', '--ca-border': 'var(--border)' }
+                      }
+                    >
+                      <span className="ca-score-label">Context-Image Alignment</span>
+                      <span className="ca-score-value">
+                        {alignmentScore && alignmentScore.score > 0 ? `${alignmentScore.score}/3` : 'Not assessed'}
+                      </span>
+                      {alignmentScore?.label && alignmentScore.score > 0 && (
+                        <span className="ca-score-sublabel">{alignmentScore.label}</span>
+                      )}
+                    </div>
+
+                    {/* Combined — teal */}
+                    <div
+                      className="ca-score-block ca-score-block--wide"
+                      style={{ '--ca-color': '#2A9D8F', '--ca-bg': 'rgba(42,157,143,0.1)', '--ca-border': 'rgba(42,157,143,0.3)' }}
+                    >
+                      <span className="ca-score-label">Combined Assessment</span>
+                      <span className="ca-score-value">
+                        {result?.is_misinformation === true ? 'Misinformation' :
+                         result?.is_misinformation === false ? 'Authentic' :
+                         part2?.verdict || 'Pending'}
+                      </span>
+                      {assessmentQuadrant?.title && (
+                        <span className="ca-score-sublabel">{assessmentQuadrant.title}</span>
+                      )}
+                    </div>
                   </div>
-                  {provenanceData.blocks?.length > 0 ? (
-                    <div className="provenance-blocks">
-                      {provenanceData.blocks.map((block, idx) => (
-                        <div key={idx} className="provenance-block">
-                          <div className="block-header">
-                            <strong>Block #{block.block_number}</strong>
-                            <span className="pill pill-muted">{block.observation_type}</span>
-                          </div>
-                          <div className="block-hash">
-                            <p><strong>Hash:</strong> <code>{block.block_hash?.substring(0, 16)}...</code></p>
-                            {block.previous_hash ? (
-                              <p><strong>Previous:</strong> <code>{block.previous_hash.substring(0, 16)}...</code></p>
-                            ) : (
-                              <p><strong>Previous:</strong> <em>Genesis block</em></p>
+                </section>
+
+                {/* Card 5: Image Integrity (Pixel Forensics) — always shown */}
+                <section className="card">
+                  <h2>Image Integrity (Pixel Forensics)</h2>
+                  <p className="helper">
+                    Pixel-level forensics is an optional add-on for detecting image manipulation, separate from contextual authenticity.
+                  </p>
+                  {forensicsData ? (
+                    <div style={{ marginTop: '1rem' }}>
+                      <div
+                        className={`quadrant-verdict ${forensicsData.results?.layer_1?.verdict === 'AUTHENTIC' ? 'quadrant-verdict-high' : 'quadrant-verdict-danger'}`}
+                        style={{ marginBottom: '1rem' }}
+                      >
+                        <strong>{forensicsData.results?.layer_1?.verdict || 'Unknown'}</strong>
+                        {forensicsData.results?.layer_1?.confidence != null && (
+                          <span style={{ marginLeft: '0.75rem', opacity: 0.85 }}>
+                            {Math.round(forensicsData.results.layer_1.confidence * 100)}% confidence
+                          </span>
+                        )}
+                      </div>
+                      {forensicsData.results && Object.entries(forensicsData.results).map(([layerName, layerData]) => (
+                        <div key={layerName} className="result-block">
+                          <h3>
+                            {layerName === 'layer_1' ? 'Pixel Forensics' :
+                             layerName === 'layer_2' ? 'Semantic Analysis' :
+                             'Metadata & EXIF'}
+                          </h3>
+                          <div className="forensics-verdict">
+                            <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
+                              {layerData.verdict}
+                            </span>
+                            {layerData.confidence != null && (
+                              <span className="pill pill-muted">
+                                {Math.round(layerData.confidence * 100)}% confidence
+                              </span>
                             )}
                           </div>
-                          {block.observation_data ? (
-                            <details>
-                              <summary>View observation data</summary>
-                              <pre className="code-block">{JSON.stringify(block.observation_data, null, 2)}</pre>
-                            </details>
-                          ) : null}
+                          {layerData.details && (
+                            <div className="forensics-details">
+                              {layerData.details.method && <p><strong>Method:</strong> {layerData.details.method}</p>}
+                              {layerData.details.copy_move_score !== undefined && (
+                                <div className="forensics-stats">
+                                  <p><strong>Copy-Move Score:</strong> {layerData.details.copy_move_score}</p>
+                                  {layerData.details.image_size && (
+                                    <p><strong>Image Size:</strong> {layerData.details.image_size[0]} x {layerData.details.image_size[1]}</p>
+                                  )}
+                                  {layerData.details.image_mode && (
+                                    <p><strong>Mode:</strong> {layerData.details.image_mode}</p>
+                                  )}
+                                </div>
+                              )}
+                              {layerData.details.has_exif !== undefined && (
+                                <div>
+                                  <p><strong>EXIF Data:</strong> {layerData.details.has_exif ? 'Present' : 'Missing'}</p>
+                                  {layerData.details.exif_fields_count && (
+                                    <p><strong>EXIF Fields:</strong> {layerData.details.exif_fields_count}</p>
+                                  )}
+                                  {layerData.details.suspicious_patterns?.length > 0 && (
+                                    <div className="suspicious-patterns">
+                                      <p><strong>Suspicious Patterns:</strong></p>
+                                      <ul>
+                                        {layerData.details.suspicious_patterns.map((pattern, idx) => (
+                                          <li key={idx} className="error">{pattern}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {layerData.details.software_tags?.length > 0 && (
+                                    <p><strong>Software:</strong> {layerData.details.software_tags.join(', ')}</p>
+                                  )}
+                                </div>
+                              )}
+                              {layerData.details.note && <p className="helper">{layerData.details.note}</p>}
+                              {layerData.details.error && <p className="error">Error: {layerData.details.error}</p>}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="helper">No provenance blocks available</p>
+                    <div style={{ marginTop: '1rem' }}>
+                      <div className="score-pill score-neutral">
+                        <span className="score-label">Image Integrity (Pixel Forensics)</span>
+                        <span className="score-value-text">Not assessed</span>
+                        <span>{isAddonEnabled('forensics') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</span>
+                      </div>
+                    </div>
                   )}
-                </div>
-              </section>
-            ) : null}
+                </section>
 
-            {/* Orchestrator Reverse Search Results */}
-            {orchestratorReverseSearch ? (
-              <section className="card">
-                <h2>🔎 Reverse Search (from Agent)</h2>
-                <p className="helper">
-                  Agent-invoked reverse image search results
-                </p>
-                <div className="results">
-                  <div className="reverse-meta">
-                    <span>Image ID: {orchestratorReverseSearch.image_id}</span>
-                    {orchestratorReverseSearch.query_hash ? (
-                      <span>Query Hash: {orchestratorReverseSearch.query_hash}</span>
-                    ) : null}
-                  </div>
-                  {orchestratorReverseSearch.matches?.length > 0 ? (
-                    <div className="match-grid">
-                      {orchestratorReverseSearch.matches.map((match, idx) => (
-                        <article className="match-card" key={idx}>
-                          <div className="match-header">
-                            <span className="pill">{match.source || 'Unknown'}</span>
-                            {match.confidence ? (
-                              <span className="pill pill-muted">
-                                {Math.round(match.confidence * 100)}% confidence
-                              </span>
-                            ) : null}
-                          </div>
-                          <h3>{match.title || 'Untitled match'}</h3>
-                          {match.snippet ? (
-                            <p className="summary-text">{match.snippet}</p>
-                          ) : null}
-                          {match.url ? (
-                            <a href={match.url} target="_blank" rel="noreferrer">
-                              {match.url}
-                            </a>
-                          ) : null}
-                        </article>
-                      ))}
+                {/* Card 6: Source Verification — always shown */}
+                <section className="card">
+                  <h2>Source Verification</h2>
+                  <p className="helper">
+                    Reverse image search to find where this image appears online and check for context discrepancies.
+                  </p>
+                  {orchestratorReverseSearch ? (
+                    <div style={{ marginTop: '1rem' }}>
+                      <div className="reverse-meta" style={{ marginBottom: '1rem' }}>
+                        {orchestratorReverseSearch.image_id && (
+                          <span>Image ID: {orchestratorReverseSearch.image_id}</span>
+                        )}
+                        {orchestratorReverseSearch.query_hash && (
+                          <span>Query Hash: {orchestratorReverseSearch.query_hash}</span>
+                        )}
+                      </div>
+                      {orchestratorReverseSearch.matches?.length > 0 ? (
+                        <div className="match-grid">
+                          {orchestratorReverseSearch.matches.map((match, idx) => (
+                            <article className="match-card" key={idx}>
+                              <div className="match-header">
+                                <span className="pill">{match.source || 'Unknown'}</span>
+                                {match.confidence && (
+                                  <span className="pill pill-muted">
+                                    {Math.round(match.confidence * 100)}% confidence
+                                  </span>
+                                )}
+                              </div>
+                              <h3>{match.title || 'Untitled match'}</h3>
+                              {match.snippet && <p className="summary-text">{match.snippet}</p>}
+                              {match.url && (
+                                <a href={match.url} target="_blank" rel="noreferrer">{match.url}</a>
+                              )}
+                            </article>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="helper">No matches found via reverse image search.</p>
+                      )}
                     </div>
                   ) : (
-                    <p className="helper">No matches found via agent-invoked reverse search</p>
+                    <div style={{ marginTop: '1rem' }}>
+                      <div className="score-pill score-neutral">
+                        <span className="score-label">Source Verification</span>
+                        <span className="score-value-text">Not assessed</span>
+                        <span>{isAddonEnabled('reverse_search') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</span>
+                      </div>
+                    </div>
                   )}
-                </div>
-              </section>
-            ) : null}
+                </section>
+
+                {/* Card 7: Provenance — always shown */}
+                <section className="card">
+                  <h2>Provenance</h2>
+                  <p className="helper">
+                    Blockchain-style immutable audit trail tracking image history and observation chain.
+                  </p>
+                  {provenanceData ? (
+                    <div style={{ marginTop: '1rem' }}>
+                      <div className="provenance-meta">
+                        <p><strong>Chain ID:</strong> <code>{provenanceData.chain_id}</code></p>
+                        <p><strong>Status:</strong> <span className="pill pill-success">{provenanceData.status}</span></p>
+                        <p><strong>Blocks:</strong> {provenanceData.blocks?.length || 0}</p>
+                        {provenanceData.blockchain_tx_hash && (
+                          <p>
+                            <strong>Blockchain anchor:</strong>{' '}
+                            <code>{provenanceData.blockchain_tx_hash.substring(0, 18)}…</code>
+                            {provenanceData.blockchain_verification_url &&
+                            !provenanceData.blockchain_verification_url.startsWith('local://') && (
+                              <>
+                                {' '}
+                                <a
+                                  href={provenanceData.blockchain_verification_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="pill pill-success"
+                                >
+                                  Verify on-chain ↗
+                                </a>
+                              </>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                      {provenanceData.blocks?.length > 0 ? (
+                        <div className="provenance-blocks">
+                          {provenanceData.blocks.map((block, idx) => (
+                            <div key={idx} className="provenance-block">
+                              <div className="block-header">
+                                <strong>Block #{block.block_number}</strong>
+                                <span className="pill pill-muted">{block.observation_type}</span>
+                              </div>
+                              <div className="block-hash">
+                                <p><strong>Hash:</strong> <code>{block.block_hash?.substring(0, 16)}...</code></p>
+                                {block.previous_hash ? (
+                                  <p><strong>Previous:</strong> <code>{block.previous_hash.substring(0, 16)}...</code></p>
+                                ) : (
+                                  <p><strong>Previous:</strong> <em>Genesis block</em></p>
+                                )}
+                              </div>
+                              {block.observation_data && (
+                                <details>
+                                  <summary>View observation data</summary>
+                                  <pre className="code-block">{JSON.stringify(block.observation_data, null, 2)}</pre>
+                                </details>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="helper">No provenance blocks available.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '1rem' }}>
+                      <div className="score-pill score-neutral">
+                        <span className="score-label">Provenance</span>
+                        <span className="score-value-text">Not assessed</span>
+                        <span>{isAddonEnabled('provenance') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</span>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+              </div>
+            )}
+
           </>
         )}
       </main>
+      {/* Run confirmation modal */}
+      {showRunModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="run-modal-title"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.55)',
+            padding: '1rem',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowRunModal(false) }}
+        >
+          <div style={{
+            background: 'var(--surface, #fff)',
+            borderRadius: '14px',
+            padding: '2rem',
+            maxWidth: '520px',
+            width: '100%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+          }}>
+            <h2 id="run-modal-title" style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
+              Ready to run analysis?
+            </h2>
+
+            {/* Provider-aware patience message */}
+            {providerStatus?.active_provider === 'llama_cpp' ? (
+              <div style={{
+                margin: '1rem 0',
+                padding: '0.875rem 1rem',
+                background: 'rgba(245,158,11,0.1)',
+                border: '1px solid rgba(245,158,11,0.4)',
+                borderRadius: '8px',
+              }}>
+                <div style={{ fontWeight: '700', color: '#92400e', marginBottom: '0.25rem' }}>
+                  ⏳ Local CPU inference — please be patient
+                </div>
+                <div style={{ fontSize: '0.88rem', color: '#78350f', lineHeight: 1.5 }}>
+                  Analysis runs locally on the server CPU. This is completely free and
+                  private, but takes <strong>2–3 minutes</strong> per request. Do not
+                  close or reload this page while the analysis is running.
+                </div>
+              </div>
+            ) : providerStatus?.active_provider === 'byo_gpu' ? (
+              <div style={{
+                margin: '1rem 0',
+                padding: '0.875rem 1rem',
+                background: 'rgba(59,130,246,0.08)',
+                border: '1px solid rgba(59,130,246,0.3)',
+                borderRadius: '8px',
+              }}>
+                <div style={{ fontWeight: '700', color: '#1d4ed8', marginBottom: '0.25rem' }}>
+                  🖥️ BYO GPU endpoint active
+                </div>
+                <div style={{ fontSize: '0.88rem', color: '#1e3a5f', lineHeight: 1.5 }}>
+                  Analysis will run on your configured GPU server. Typical response
+                  time is under 30 seconds.
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                margin: '1rem 0',
+                padding: '0.875rem 1rem',
+                background: 'rgba(16,185,129,0.07)',
+                border: '1px solid rgba(16,185,129,0.3)',
+                borderRadius: '8px',
+              }}>
+                <div style={{ fontWeight: '700', color: '#065f46', marginBottom: '0.25rem' }}>
+                  ☁️ Cloud inference
+                </div>
+                <div style={{ fontSize: '0.88rem', color: '#064e3b', lineHeight: 1.5 }}>
+                  Analysis will run via a cloud AI provider. Typical response time is
+                  5–30 seconds.
+                </div>
+              </div>
+            )}
+
+            {/* What will happen */}
+            <div style={{ fontSize: '0.88rem', color: 'var(--ink-soft, #4b5563)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+              <strong style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--ink, #111)' }}>
+                What the analysis covers:
+              </strong>
+              <ul style={{ margin: '0', paddingLeft: '1.25rem' }}>
+                <li><strong>Claim Veracity</strong> — Is the accompanying claim medically accurate?</li>
+                <li><strong>Image-Context Alignment</strong> — Does this image actually support the claim?</li>
+                {forceTools.size > 0 && (
+                  <li><strong>Add-on modules</strong> — {Array.from(forceTools).join(', ')}</li>
+                )}
+              </ul>
+            </div>
+
+            {/* Fair-use rules */}
+            <div style={{
+              fontSize: '0.82rem',
+              color: 'var(--muted, #6b7280)',
+              background: 'rgba(0,0,0,0.03)',
+              borderRadius: '6px',
+              padding: '0.75rem 1rem',
+              marginBottom: '1.5rem',
+              lineHeight: 1.55,
+            }}>
+              <strong style={{ color: 'var(--ink-soft, #374151)' }}>Fair-use policy</strong>
+              {providerStatus?.active_provider === 'llama_cpp' ? (
+                <> · Local inference is limited to <strong>5 requests per hour</strong> per
+                user to ensure fair access for everyone. Each request occupies the model for
+                2–3 minutes, so please only submit when you are ready.</>
+              ) : (
+                <> · Cloud requests are limited to <strong>10 requests per hour</strong> per
+                user to prevent abuse.</>
+              )} Repeated rapid submissions will be automatically rate-limited.
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowRunModal(false)}
+                style={{
+                  padding: '0.625rem 1.25rem',
+                  background: 'transparent',
+                  border: '1px solid var(--border, #d1d5db)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  color: 'var(--ink-soft, #374151)',
+                  fontSize: '0.9rem',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmRun}
+                style={{
+                  padding: '0.625rem 1.5rem',
+                  background: '#5b8def',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '700',
+                  color: '#fff',
+                  fontSize: '0.9rem',
+                }}
+              >
+                Run analysis
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <footer className="footer">
         <div className="footer-inner">
           <span>Jamie Forrest</span>
