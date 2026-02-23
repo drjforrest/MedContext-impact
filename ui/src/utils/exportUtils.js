@@ -1,6 +1,6 @@
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import copyToClipboard from 'copy-to-clipboard';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const LOGO_PATH = '/MedContext-Logo-Set/logo-w-tagline.png';
 
@@ -16,18 +16,29 @@ const CONTENT_H = PAGE_H - HEADER_H - FOOTER_H;
 /**
  * Pre-load the logo as a base64 data URL so jsPDF can embed it.
  * Falls back gracefully if the image can't be fetched.
+ * Returns an object with dataUrl and intrinsic dimensions, or null on failure.
  */
 async function loadLogoDataUrl() {
   try {
     const res = await fetch(LOGO_PATH);
     if (!res.ok) return null;
     const blob = await res.blob();
-    return await new Promise((resolve) => {
+    const dataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
       reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
     });
+    if (!dataUrl) return null;
+    // Load image to get intrinsic dimensions
+    const img = await new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => resolve(null);
+      image.src = dataUrl;
+    });
+    if (!img) return null;
+    return { dataUrl, width: img.width, height: img.height };
   } catch {
     return null;
   }
@@ -36,7 +47,7 @@ async function loadLogoDataUrl() {
 /**
  * Draw branded header on the current PDF page.
  */
-function drawHeader(pdf, logoDataUrl, timestamp) {
+function drawHeader(pdf, logoInfo, timestamp) {
   // Header background
   pdf.setFillColor(28, 30, 38);        // #1c1e26
   pdf.rect(0, 0, PAGE_W, HEADER_H, 'F');
@@ -45,14 +56,17 @@ function drawHeader(pdf, logoDataUrl, timestamp) {
   pdf.setFillColor(91, 141, 239);       // #5b8def
   pdf.rect(0, HEADER_H - 0.6, PAGE_W, 0.6, 'F');
 
-  // Logo (left side)
-  if (logoDataUrl) {
-    // Logo is square 500x500 — render at 20x20mm
-    pdf.addImage(logoDataUrl, 'PNG', MARGIN, 4, 20, 20);
+  // Logo (left side) - preserve aspect ratio, max 20mm height
+  if (logoInfo) {
+    const { dataUrl, width, height } = logoInfo;
+    const aspectRatio = width / height;
+    const targetHeight = 20; // max height in mm
+    const targetWidth = targetHeight * aspectRatio;
+    pdf.addImage(dataUrl, 'PNG', MARGIN, 4, targetWidth, targetHeight);
   }
 
   // Title text
-  const textX = logoDataUrl ? MARGIN + 23 : MARGIN;
+  const textX = logoInfo ? MARGIN + 23 : MARGIN;
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(14);
   pdf.setTextColor(233, 238, 244);       // #e9eef4
@@ -109,7 +123,7 @@ export const downloadAsPDF = async (element, filename = 'medcontext-results.pdf'
       }),
     ]);
 
-    const timestamp = new Date().toLocaleDateString(undefined, {
+    const timestamp = new Date().toLocaleString(undefined, {
       year: 'numeric', month: 'long', day: 'numeric',
       hour: '2-digit', minute: '2-digit',
     });
@@ -129,10 +143,10 @@ export const downloadAsPDF = async (element, filename = 'medcontext-results.pdf'
       drawFooter(pdf, page + 1, totalPages);
 
       // Slice the canvas for this page
-      const srcY = page * CONTENT_H * pixelsPerMM;
+      const srcY = Math.round(page * CONTENT_H * pixelsPerMM);
       const remaining = scaledImgHeight - page * CONTENT_H;
       const sliceH = Math.min(CONTENT_H, remaining);
-      const slicePixelH = sliceH * pixelsPerMM;
+      const slicePixelH = Math.round(sliceH * pixelsPerMM);
 
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = canvas.width;

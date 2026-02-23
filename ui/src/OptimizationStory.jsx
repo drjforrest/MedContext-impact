@@ -81,6 +81,8 @@ function simulateAccuracy(vThresh, aThresh) {
 
   // OR logic: flag if EITHER score below threshold
   // True positive rate = P(flag | misinfo) = 1 - P(both above | misinfo)
+  // ASSUMPTION: V and A are independent for the same sample — joint probability computed as product.
+  // Positive correlation between signals would change the joint probabilities; this is an explicit modeling assumption.
   const tpr = 1 - pVAboveMisinfo * pAAboveMisinfo
   // True negative rate = P(not flag | legit) = P(both above | legit)
   const tnr = pVAboveLegit * pAAboveLegit
@@ -126,8 +128,9 @@ const VALIDATION_DATA = {
 // ---------------------------------------------------------------------------
 
 function ThresholdTheory() {
-  const [veracityThreshold, setVeracityThreshold] = useState(0.65)
-  const [alignmentThreshold, setAlignmentThreshold] = useState(0.30)
+  const optimalThresholds = VALIDATION_DATA.q.thresholds
+  const [veracityThreshold, setVeracityThreshold] = useState(optimalThresholds.veracity)
+  const [alignmentThreshold, setAlignmentThreshold] = useState(optimalThresholds.alignment)
 
   const distData = useMemo(() => buildDistributionData(), [])
 
@@ -137,8 +140,8 @@ function ThresholdTheory() {
   )
 
   const isNearOptimal =
-    Math.abs(veracityThreshold - 0.65) < 0.05 &&
-    Math.abs(alignmentThreshold - 0.30) < 0.05
+    Math.abs(veracityThreshold - optimalThresholds.veracity) < 0.05 &&
+    Math.abs(alignmentThreshold - optimalThresholds.alignment) < 0.05
 
   // Custom label renderer to avoid clipping — positions labels inside the chart area
   const renderThresholdLabel = (color, text, side) => ({ viewBox }) => {
@@ -218,7 +221,7 @@ function ThresholdTheory() {
                     alignmentMisinfo: 'Alignment — Misinfo',
                     alignmentLegit:   'Alignment — Legit',
                   }
-                  return [null, labels[name] || name]
+                  return ['', labels[name] || name]
                 }}
               />
 

@@ -300,6 +300,10 @@ class LlmClient:
             raise LlmClientError("Missing LLM_API_KEY for Gemini API.")
 
         model_name = model or settings.llm_worker
+        if not model_name:
+            raise LlmClientError(
+                "No model specified for Gemini and LLM_WORKER is not configured."
+            )
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
 
         contents = [{"role": "user", "parts": [{"text": prompt}]}]

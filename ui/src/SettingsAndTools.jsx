@@ -583,7 +583,7 @@ function SettingsAndTools({
               accept=".json"
               onChange={(e) => {
                 const file = e.target.files?.[0]
-                if (file) setOptimizationFile(file)
+                setOptimizationFile(file ?? null)
               }}
             />
             <span className="helper">Upload a JSON file with labeled image-claim pairs.</span>

@@ -24,7 +24,7 @@ function AboutPage() {
         </p>
 
         <p className="about-page-text">
-          MedContext is currently deployed in production with the MedGemma Q4_KM quantized variant
+          MedContext is currently deployed in production with the MedGemma Q4_K_M quantized variant
           with CPU-only inference. It can however, be easily configured to run the full 4B
           instruction-tuned or pre-trained variants with GPU acceleration at a dedicated endpoint
           with configurable options for inference provider with HuggingFace or Google Vertex AI.

@@ -66,13 +66,27 @@ const LlamaCppStatus = forwardRef(function LlamaCppStatus(
   // Expose refresh() so parent can trigger an immediate poll
   useImperativeHandle(ref, () => ({ refresh: fetchStatus }), [fetchStatus])
 
-  // Poll every 2s when busy, 5s when idle
+  // Initial fetch on mount and when API params change — does NOT depend on status
   useEffect(() => {
     fetchStatus()
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+  }, [apiBase, accessCode, fetchStatus])
+
+  // Polling interval setup — depends only on fetchStatus and status?.busy
+  useEffect(() => {
     const interval = status?.busy ? 2000 : 5000
     intervalRef.current = setInterval(fetchStatus, interval)
-    return () => clearInterval(intervalRef.current)
-  }, [apiBase, accessCode, fetchStatus, status?.busy])
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [fetchStatus, status?.busy])
 
   if (error || !status) return null
 

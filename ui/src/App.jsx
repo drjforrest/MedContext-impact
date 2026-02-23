@@ -36,12 +36,14 @@ function App() {
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
+  const [resultTimestamp, setResultTimestamp] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
   const [modules, setModules] = useState(null)
   const [forceTools, setForceTools] = useState(new Set())
   const [progressPhase, setProgressPhase] = useState(0)
   const progressTimersRef = useRef([])
   const statusRef = useRef(null)
+  const statusRefreshTimerRef = useRef(null)
   const [providerStatus, setProviderStatus] = useState(null)
   const [showRunModal, setShowRunModal] = useState(false)
 
@@ -273,6 +275,7 @@ function App() {
   const handleConfirmRun = async () => {
     setShowRunModal(false)
     setResult(null)
+    setResultTimestamp(null)
     setProgressPhase(0)
 
     // Immediately refresh provider status so the navbar chip reflects "busy"
@@ -291,7 +294,7 @@ function App() {
     if (forceTools.size > 0) {
       formData.append('force_tools', Array.from(forceTools).join(','))
     }
-    
+
     // Add threshold configuration
     formData.append('veracity_threshold', veracityThreshold.toString())
     formData.append('alignment_threshold', alignmentThreshold.toString())
@@ -302,7 +305,7 @@ function App() {
 
     setStatus('loading')
     // Refresh status after a short delay so the backend has registered the request
-    setTimeout(() => statusRef.current?.refresh(), 500)
+    const timerId = setTimeout(() => statusRef.current?.refresh(), 500)
     try {
       const headers = {}
       if (accessCode.trim()) {
@@ -321,10 +324,13 @@ function App() {
         throw new Error(payload.detail || 'Request failed.')
       }
       setResult(payload)
+      setResultTimestamp(Date.now())
       setStatus('success')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Request failed.')
       setStatus('error')
+    } finally {
+      clearTimeout(timerId)
     }
     // Refresh status so chip returns to idle promptly
     statusRef.current?.refresh()
@@ -1011,6 +1017,7 @@ function App() {
                       setImageUrl('')
                       setContext('')
                       setResult(null)
+                      setResultTimestamp(null)
                       setError('')
                       setStatus('idle')
                       setForceTools(new Set())
@@ -1177,9 +1184,9 @@ function App() {
                   <div>
                     <h2 style={{ margin: 0 }}>Analysis Results</h2>
                     <p className="helper" style={{ marginTop: '0.25rem' }}>
-                      {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {resultTimestamp ? new Date(resultTimestamp).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                       {' '}at{' '}
-                      {new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                      {resultTimestamp ? new Date(resultTimestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                   <div className="export-buttons">

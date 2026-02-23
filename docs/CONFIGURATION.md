@@ -7,7 +7,7 @@ This guide explains how to configure MedContext for different deployment scenari
 MedContext runs **out-of-the-box** with local GGUF inference. No API keys or external services required.
 
 ```bash
-# 1. Download models (one-time setup, ~2.4GB)
+# 1. Download models (one-time setup, ~3.3GB total: ~2.5GB model + ~850MB mmproj)
 ./scripts/setup_llama_cpp.sh
 
 # 2. Copy configuration
@@ -78,11 +78,12 @@ MEDGEMMA_MMPROJ_PATH=models/mmproj-F16.gguf
 
 **Pros:**
 - No local resources needed
-- Free tier available (1,000 requests/month)
+- Free tier available with generous usage allowance (Inference Providers include a base credit allocation for free accounts; PRO users receive 20× more credits and higher queue priority)
 
 **Cons:**
 - Requires internet connection
 - ~5-10s cold-start latency
+- Rate limits vary by model and provider; some models (especially multimodal like MedGemma) may require dedicated Inference Endpoints (paid)
 
 **Setup:**
 
@@ -92,6 +93,8 @@ MEDGEMMA_MMPROJ_PATH=models/mmproj-F16.gguf
 MEDGEMMA_MODEL=google/medgemma-4b-it
 MEDGEMMA_HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+
+*Note: HuggingFace does not publish a fixed monthly request quota for the free tier. Limits depend on inference credits, model type, and provider availability. See [HuggingFace Pricing](https://huggingface.co/pricing) for current details (verified Feb 2026).*
 
 ### Option C: Google Vertex AI (Enterprise)
 
@@ -161,6 +164,8 @@ LLM_API_KEY=xxx
 GOOGLE_API_KEY=xxx
 ```
 
+When multiple keys are set, they are evaluated in the order shown above and the first non-empty value wins (earliest in the list takes precedence).
+
 ### Fallback Mode (No LLM)
 
 If no LLM API key is configured, the system still works — the orchestrator automatically falls back to MedGemma for the synthesis step. No configuration flags are needed; the fallback is automatic.
@@ -194,6 +199,11 @@ ENABLE_FORENSICS_MEDGEMMA=true
 
 ```bash
 # Admin IP — bypasses all rate limits (use your static IP)
+# ⚠️ SECURITY WARNING: ADMIN_IP bypasses all rate limits and is unsafe for shared or dynamic addresses.
+# Must be a dedicated, static, non-shared IP (not a corporate NAT, ISP-assigned dynamic address, or other
+# shared gateway). Do NOT use for broad networks (e.g., entire office subnets).
+# Safer alternatives: assign a higher dedicated quota via LLAMA_CPP_RATE_LIMIT, or use authenticated admin
+# tokens instead of global rate-limit bypass.
 ADMIN_IP=your.static.ip
 
 # Rate limit for llama-cpp requests (per hour, per IP)

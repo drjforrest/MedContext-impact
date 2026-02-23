@@ -16,6 +16,7 @@
   --surface-muted: #e7f0f8;
   --surface-soft: #f1f6fb;
   --border: #d3e0ec;
+  --link: #1d6fb8;
   --accent-blue: #1d6fb8;
   --accent-blue-dark: #15538c;
   --accent-blue-light: rgba(29, 111, 184, 0.12);
@@ -23,6 +24,7 @@
   --accent-blue-glow: rgba(29, 111, 184, 0.15);
   --accent-green: #4e9a34;
   --accent-green-dark: #357a25;
+  --accent-teal: #2A9D8F;
   --warning: #f1b355;
   --error: #b91c1c;
 }

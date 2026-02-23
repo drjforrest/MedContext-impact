@@ -541,8 +541,8 @@
 }
 
 .stat-item-highlight {
-  border-left: 3px solid #2A9D8F;
-  padding-left: 1rem;
+  border-inline-start: 3px solid var(--accent-teal);
+  padding-inline: 1rem;
 }
 
 .stat-item-link {
@@ -558,6 +558,11 @@
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--ink);
+}
+
+.stat-value-highlight {
+  color: var(--accent-teal);
+  font-size: 1.8rem;
 }
 
 .stat-value-small {
