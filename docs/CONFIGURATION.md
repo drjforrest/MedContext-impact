@@ -94,7 +94,8 @@ MEDGEMMA_MMPROJ_PATH=models/mmproj-F16.gguf
 
 ```bash
 # Get token: https://huggingface.co/settings/tokens
-MEDGEMMA_MODEL=google/medgemma-1.1-4b-it
+# Use the exact model ID from huggingface.co (e.g., google/medgemma-4b-it)
+MEDGEMMA_MODEL=google/medgemma-4b-it
 MEDGEMMA_HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
@@ -268,7 +269,7 @@ GEMINI_API_KEY=your_key_here
 ### Production (VPS/Cloud)
 
 ```bash
-MEDGEMMA_MODEL=google/medgemma-1.1-4b-it
+MEDGEMMA_MODEL=google/medgemma-4b-it  # Use exact model ID from huggingface.co
 MEDGEMMA_HF_TOKEN=your_hf_token
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_key_here

@@ -213,12 +213,29 @@ echo ""
 echo "=== Summary ==="
 echo ""
 
-if [ -f "models/medgemma-4b-it-Q4_K_M.gguf" ] && [ -f "models/mmproj-model-F16.gguf" ] && [ -f ".env" ]; then
+READY=true
+if [ ! -f ".env" ]; then
+    check_fail "Missing .env file"
+    READY=false
+elif [ -z "${MEDGEMMA_LOCAL_PATH:-}" ]; then
+    check_fail "MEDGEMMA_LOCAL_PATH not set in .env"
+    READY=false
+elif [ ! -f "${MEDGEMMA_LOCAL_PATH}" ]; then
+    check_fail "Model file not found: ${MEDGEMMA_LOCAL_PATH}"
+    READY=false
+fi
+
+if [ -n "${MEDGEMMA_MMPROJ_PATH:-}" ] && [ ! -f "${MEDGEMMA_MMPROJ_PATH}" ]; then
+    check_fail "mmproj file not found: ${MEDGEMMA_MMPROJ_PATH}"
+    READY=false
+fi
+
+if [ "$READY" = true ]; then
     echo -e "${GREEN}✓ READY FOR TESTING${NC}"
     echo ""
     echo "To test the deployment:"
-    echo "  1. Start the server:"
-    echo "     uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src"
+    echo "  1. Restart the service:"
+    echo "     sudo systemctl restart medcontext"
     echo ""
     echo "  2. Test the health endpoint:"
     echo "     curl http://localhost:8000/health"

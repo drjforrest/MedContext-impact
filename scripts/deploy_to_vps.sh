@@ -29,6 +29,14 @@ warn() {
 }
 
 # ── 1. Commit and push changes ───────────────────────────────────────────────
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$BRANCH" != "main" ]]; then
+    warn "You are on branch '$BRANCH', not 'main'. Deploy pushes to main."
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    [[ $REPLY =~ ^[Yy]$ ]] || { echo "Aborting."; exit 1; }
+fi
+
 step "Checking for uncommitted changes..."
 if [[ -n $(git status -s) ]]; then
     warn "You have uncommitted changes. Commit them first:"
@@ -64,20 +72,21 @@ git pull origin main
 
 echo ""
 echo "=== Restarting backend ==="
-pkill -f uvicorn || true
-sleep 2
-.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src > logs/uvicorn.log 2>&1 &
-echo "Backend restarted (PID: $!)"
+sudo systemctl restart medcontext
 
-sleep 3
-
-# Test backend health
-if curl -s http://localhost:8000/health | grep -q "ok"; then
-    echo "✅ Backend is healthy"
-else
-    echo "❌ Backend health check failed"
-    exit 1
-fi
+# Wait for backend to come up
+for i in {1..10}; do
+    if curl -s http://localhost:8000/health | grep -q "ok"; then
+        echo "✅ Backend is healthy"
+        break
+    fi
+    if [[ $i -eq 10 ]]; then
+        echo "❌ Backend health check failed after 10 attempts"
+        exit 1
+    fi
+    echo "Waiting for backend to start (attempt $i/10)..."
+    sleep 2
+done
 
 echo ""
 echo "=== Building frontend ==="

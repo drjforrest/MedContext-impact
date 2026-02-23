@@ -45,6 +45,7 @@ def create_client(provider: Optional[str] = None) -> BaseMedGemmaClient:
 ## Configuration Options for Users
 
 ### Default (Free - Local GGUF)
+
 ```bash
 MEDGEMMA_PROVIDER=llama_cpp
 MEDGEMMA_LOCAL_PATH=/var/www/medcontext/models/medgemma-1.5-4b-it-Q4_K_M.gguf
@@ -53,6 +54,7 @@ GEMINI_API_KEY=user_provides
 ```
 
 ### Option: HuggingFace
+
 ```bash
 MEDGEMMA_PROVIDER=huggingface
 MEDGEMMA_MODEL=google/medgemma-1.1-4b-it
@@ -61,6 +63,7 @@ GEMINI_API_KEY=user_provides  # or OPENROUTER_API_KEY
 ```
 
 ### Option: Vertex AI
+
 ```bash
 MEDGEMMA_PROVIDER=vertex
 MEDGEMMA_VERTEX_PROJECT=user_provides
@@ -92,18 +95,21 @@ GET /api/v1/orchestrator/providers
 ### Settings/Configuration Page
 
 **Section 1: MedGemma Provider**
+
 - [ ] Radio buttons: "Local GGUF (Free)" | "HuggingFace" | "Vertex AI"
 - [ ] Conditional inputs based on selection:
   - HuggingFace: `MEDGEMMA_HF_TOKEN` (text input)
   - Vertex AI: `MEDGEMMA_VERTEX_PROJECT`, `MEDGEMMA_VERTEX_ENDPOINT`, `VERTEX_API_KEY`
 
 **Section 2: LLM Orchestrator**
+
 - [ ] Radio buttons: "Google Gemini" | "OpenRouter"
 - [ ] Conditional inputs:
   - Gemini: `GEMINI_API_KEY` (text input)
   - OpenRouter: `OPENROUTER_API_KEY` (text input)
 
 **Section 3: Save & Test**
+
 - [ ] "Save Configuration" button
 - [ ] "Test Connection" button (calls `/api/v1/orchestrator/providers`)
 - [ ] Status indicator showing current provider health
@@ -112,7 +118,7 @@ GET /api/v1/orchestrator/providers
 
 1. **Create settings page/modal** in React app
 2. **Add form fields** for each configuration option
-3. **Store in localStorage** (for demo) or **send to backend API** (for production)
+3. **Send to backend API** for secure storage (credentials should never be stored client-side)
 4. **Show current provider status** using `/api/v1/orchestrator/providers`
 
 Ready for you to show me where to add the UI controls! 🎨

@@ -4,7 +4,10 @@
 
 ```bash
 # On your local machine - push changes to git
-git add -A
+# Review what will be staged (ensure no .env or secrets)
+git status
+git add -u   # stages modified/deleted tracked files only
+git diff --staged --stat   # verify staged changes look correct
 git commit -m "feat: add configurable provider support with UI"
 git push origin main
 
@@ -18,11 +21,10 @@ cd /var/www/medcontext/medcontext
 git pull origin main
 
 # Restart the backend
-pkill -f uvicorn
-.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src &
+sudo systemctl restart medcontext
 
 # Verify it's running
-sleep 3
+sudo systemctl status medcontext
 curl http://localhost:8000/health
 ```
 
@@ -113,8 +115,7 @@ nano /var/www/medcontext/medcontext/.env
 # MEDGEMMA_HF_TOKEN=your_token_here
 
 # Restart backend
-pkill -f uvicorn
-.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src &
+sudo systemctl restart medcontext
 
 # Test
 curl http://localhost:8000/api/v1/orchestrator/providers | python3 -m json.tool
@@ -138,11 +139,11 @@ sudo systemctl status caddy  # or nginx
 
 ### Backend not responding
 ```bash
-# Check if uvicorn is running
-ps aux | grep uvicorn
+# Check service status
+sudo systemctl status medcontext
 
 # Check logs
-tail -f /var/www/medcontext/medcontext/logs/*.log
+sudo journalctl -u medcontext --no-pager -n 50
 
 # Test directly
 curl http://localhost:8000/health
