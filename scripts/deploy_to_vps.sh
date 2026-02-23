@@ -11,7 +11,7 @@ echo "=== MedContext VPS Deployment ==="
 echo ""
 
 # Configuration
-VPS_HOST="${VPS_HOST:-admin@vmi3089488}"
+VPS_HOST="${VPS_HOST:-Contabo-admin}"
 VPS_DIR="/var/www/medcontext/medcontext"
 WEB_ROOT="/var/www/medcontext/dist"
 
