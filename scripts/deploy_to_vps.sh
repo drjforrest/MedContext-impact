@@ -60,15 +60,30 @@ else
 fi
 
 # ── 2. Deploy to VPS ─────────────────────────────────────────────────────────
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+step "Syncing code to VPS..."
+
+rsync -avz --delete \
+  --exclude '.git' \
+  --exclude 'node_modules' \
+  --exclude 'ui/node_modules' \
+  --exclude 'ui/dist' \
+  --exclude '.venv' \
+  --exclude '__pycache__' \
+  --exclude '.env' \
+  --exclude '*.pyc' \
+  --exclude 'data' \
+  --exclude 'validation_results' \
+  --exclude '.pytest_cache' \
+  --exclude '.ruff_cache' \
+  "$REPO_ROOT/" "$VPS_HOST:$VPS_DIR/"
+
 step "Connecting to VPS and deploying..."
 
 ssh $VPS_HOST << 'ENDSSH'
 set -euo pipefail
 
-echo ""
-echo "=== On VPS: Pulling latest code ==="
 cd /var/www/medcontext/medcontext
-GIT_SSH_COMMAND="ssh -i ~/.ssh/medcontext_deploy_ed25519 -o IdentitiesOnly=yes" git pull origin main
 
 echo ""
 echo "=== Restarting backend ==="
