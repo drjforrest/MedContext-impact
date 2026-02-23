@@ -68,7 +68,7 @@ set -euo pipefail
 echo ""
 echo "=== On VPS: Pulling latest code ==="
 cd /var/www/medcontext/medcontext
-git pull origin main
+GIT_SSH_COMMAND="ssh -i ~/.ssh/medcontext_deploy_ed25519 -o IdentitiesOnly=yes" git pull origin main
 
 echo ""
 echo "=== Restarting backend ==="
