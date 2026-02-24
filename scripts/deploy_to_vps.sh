@@ -99,24 +99,22 @@ echo ""
 echo "=== Restarting backend ==="
 sudo systemctl restart medcontext
 
-# Wait for backend to come up
+# Wait for backend to come up (don't block frontend deploy)
+BACKEND_OK=false
 for i in {1..10}; do
     if curl -s http://localhost:8000/health | grep -q "ok"; then
         echo "✅ Backend is healthy"
+        BACKEND_OK=true
         break
     fi
     if [[ $i -eq 10 ]]; then
-        echo "❌ Backend health check failed after 10 attempts"
+        echo "⚠ Backend health check failed after 10 attempts (continuing with frontend deploy)"
         echo ""
-        echo "=== Service status ==="
-        sudo systemctl status medcontext --no-pager || true
-        echo ""
-        echo "=== Recent logs ==="
-        sudo journalctl -u medcontext -n 30 --no-pager || true
-        exit 1
+        sudo systemctl status medcontext --no-pager 2>/dev/null | head -15 || true
+    else
+        echo "Waiting for backend to start (attempt $i/10)..."
+        sleep 2
     fi
-    echo "Waiting for backend to start (attempt $i/10)..."
-    sleep 2
 done
 
 echo ""
