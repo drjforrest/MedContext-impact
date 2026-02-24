@@ -91,6 +91,12 @@ for i in {1..10}; do
     fi
     if [[ $i -eq 10 ]]; then
         echo "❌ Backend health check failed after 10 attempts"
+        echo ""
+        echo "=== Service status ==="
+        sudo systemctl status medcontext --no-pager || true
+        echo ""
+        echo "=== Recent logs ==="
+        sudo journalctl -u medcontext -n 30 --no-pager || true
         exit 1
     fi
     echo "Waiting for backend to start (attempt $i/10)..."
