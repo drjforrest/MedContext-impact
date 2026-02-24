@@ -113,7 +113,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
           <iframe
             width="100%"
             height="100%"
-            src="https://www.youtube.com/embed/22UJ9-lFwe0"
+            src="https://www.youtube.com/embed/uQJ_-zAW4h4"
             title="MedContext Demo"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
