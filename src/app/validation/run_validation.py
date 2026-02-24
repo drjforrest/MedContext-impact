@@ -46,6 +46,7 @@ from app.validation.chart_generation import generate_charts
 from app.validation.loaders import load_med_mmhl_dataset
 from app.validation.metrics import (
     bootstrap_confidence_intervals,
+    compute_misinformation_metrics,
     compute_three_dimensional_metrics,
 )
 
@@ -384,6 +385,7 @@ def run_validation(
         )
 
     metrics = compute_three_dimensional_metrics(predictions, ground_truth)
+    metrics["misinformation"] = compute_misinformation_metrics(predictions, ground_truth)
 
     if bootstrap_iterations > 0 and len(predictions) >= 10:
         ci = bootstrap_confidence_intervals(
@@ -506,6 +508,19 @@ def print_summary(report: dict) -> None:
         print(
             f"  Precision: {m['alignment']['precision']:.1%} | Recall: {m['alignment']['recall']:.1%}"
         )
+    if "misinformation" in m:
+        mi = m["misinformation"]
+        print()
+        print("Misinformation (VERACITY_FIRST end-to-end):")
+        mi_f1 = mi.get("f1")
+        mi_f1_str = f"{mi_f1:.3f}" if mi_f1 is not None else "N/A"
+        print(f"  Accuracy: {mi['accuracy']:.1%} | F1: {mi_f1_str}")
+        if mi.get("precision") is not None and mi.get("recall") is not None:
+            print(
+                f"  Precision: {mi['precision']:.1%} | Recall: {mi['recall']:.1%}"
+            )
+        if mi.get("roc_auc") is not None:
+            print(f"  ROC AUC: {mi['roc_auc']:.3f}")
     if "bootstrap_95ci" in m:
         ci = m["bootstrap_95ci"]
         print()

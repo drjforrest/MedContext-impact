@@ -145,6 +145,81 @@ def compute_three_dimensional_metrics(
     }
 
 
+# VERACITY_FIRST thresholds (from validation methodology: 5-fold CV optimized)
+VERACITY_THRESHOLD = 0.65
+ALIGNMENT_THRESHOLD = 0.30
+
+
+def _apply_veracity_first(
+    veracity_score: float,
+    alignment_score: float,
+    v_thresh: float = VERACITY_THRESHOLD,
+    a_thresh: float = ALIGNMENT_THRESHOLD,
+) -> bool:
+    """Apply VERACITY_FIRST rule: misinformation if veracity < v_thresh OR alignment < a_thresh."""
+    return veracity_score < v_thresh or alignment_score < a_thresh
+
+
+def compute_misinformation_metrics(
+    predictions: list[dict],
+    ground_truth: list[dict],
+    veracity_threshold: float = VERACITY_THRESHOLD,
+    alignment_threshold: float = ALIGNMENT_THRESHOLD,
+) -> dict[str, Any]:
+    """Compute end-to-end misinformation detection metrics.
+
+    Applies VERACITY_FIRST rule to veracity and alignment scores to produce
+    binary Misinformation/Legitimate predictions, then evaluates against
+    ground-truth is_misinformation labels.
+
+    Returns:
+        Dict with accuracy, precision, recall, f1, roc_auc (where applicable), n.
+    """
+    if len(predictions) != len(ground_truth):
+        raise ValueError("predictions and ground_truth must have same length")
+    if len(predictions) == 0:
+        raise ValueError("predictions and ground_truth cannot be empty")
+
+    y_true = [g.get("is_misinformation", g.get("is_fake_claim", False)) for g in ground_truth]
+    y_pred = [
+        _apply_veracity_first(
+            p.get("veracity_score", 0.5),
+            p.get("alignment_score", 0.5),
+            veracity_threshold,
+            alignment_threshold,
+        )
+        for p in predictions
+    ]
+
+    # Continuous score for AUC: higher = more likely misinformation
+    # 1 - min(v,a) approximates OR logic (either low => high score)
+    y_score = [
+        1.0 - min(p.get("veracity_score", 0.5), p.get("alignment_score", 0.5))
+        for p in predictions
+    ]
+
+    acc = float(accuracy_score(y_true, y_pred))
+    pr, re, f1, _ = precision_recall_fscore_support(
+        y_true, y_pred, average="binary", zero_division=np.nan
+    )
+    try:
+        auc = float(roc_auc_score(y_true, y_score))
+    except ValueError:
+        auc = np.nan
+
+    def nan_to_none(val: float) -> float | None:
+        return None if np.isnan(val) else float(val)
+
+    return {
+        "accuracy": acc,
+        "precision": nan_to_none(pr),
+        "recall": nan_to_none(re),
+        "f1": nan_to_none(f1),
+        "roc_auc": nan_to_none(auc),
+        "n": len(predictions),
+    }
+
+
 def bootstrap_confidence_intervals(
     predictions: List[Dict],
     ground_truth: List[Dict],

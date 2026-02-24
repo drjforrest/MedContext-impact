@@ -6,6 +6,19 @@ from app.clinical.medgemma_client import MedGemmaClient, MedGemmaClientError
 from app.core.config import settings
 
 
+
+# Skip all Vertex AI tests unless properly configured
+vertex_configured = (
+    settings.medgemma_vertex_endpoint and 
+    settings.medgemma_vertex_project and
+    settings.medgemma_model and 'vertex' in settings.medgemma_model.lower()
+)
+
+requires_vertex = pytest.mark.skipif(
+    not vertex_configured,
+    reason="Vertex AI not configured (set MEDGEMMA_VERTEX_ENDPOINT, MEDGEMMA_VERTEX_PROJECT, and use vertex/medgemma model)"
+)
+
 class _FakeResponse:
     def __init__(self, payload):
         self._payload = payload
@@ -37,7 +50,7 @@ class _FakeClient:
         return self._response
 
 
-@pytest.mark.skip(reason="Requires Vertex AI credentials and proper SDK mocking")
+@requires_vertex
 def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
     original_endpoint = settings.medgemma_vertex_endpoint
     original_project = settings.medgemma_vertex_project
@@ -94,6 +107,7 @@ def test_vertex_api_key_uses_predict_endpoint(sample_image_bytes, monkeypatch):
     assert fake_client.last_request.url.endswith(":predict")
 
 
+@requires_vertex
 def test_vertex_requires_endpoint(sample_image_bytes):
     original_endpoint = settings.medgemma_vertex_endpoint
     original_key = settings.vertexai_api_key
@@ -116,7 +130,7 @@ def test_vertex_requires_endpoint(sample_image_bytes):
         settings.medgemma_fallback_provider = original_fallback
 
 
-@pytest.mark.skip(reason="Requires Vertex AI credentials and proper SDK mocking")
+@requires_vertex
 def test_vertex_api_key_builds_predict_url_from_resource_name(
     sample_image_bytes, monkeypatch
 ):

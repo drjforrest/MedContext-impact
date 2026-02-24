@@ -2,7 +2,7 @@
 ---
 **Project URL:** https://medcontext.drjforrest.com
 **Repository:** https://github.com/drjforrest/medcontext
-**Demo Video:** https://www.youtube.com/watch?v=uoD6gL2l934
+**Demo Video:** https://www.youtube.com/watch?v=22UJ9-lFwe0
 **Date:** February 20, 2026
 ---
 
@@ -10,19 +10,19 @@
 
 Watch the 3-minute demonstration:
 
-[![MedContext Demo](https://img.youtube.com/vi/uoD6gL2l934/maxresdefault.jpg)](https://www.youtube.com/watch?v=uoD6gL2l934)
+[![MedContext Demo](https://img.youtube.com/vi/22UJ9-lFwe0/maxresdefault.jpg)](https://www.youtube.com/watch?v=22UJ9-lFwe0)
 
 **Video covers:**
-1. The problem (authentic images used in misleading contexts)
+1. The problem (authentic images used in fake or misleading contexts)
 2. Med-MMHL validation results (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
 3. Live demo (upload → analysis → verdict)
-4. Impact (HERO Lab, UBC partnership for African deployment)
+4. Impact (Counterforce AI & UBC partnership—reaching millions of patients, teachers, students, journalists)
 
 ---
 
 ## Executive Summary
 
-MedContext is an AI-powered tool that detects medical misinformation by analyzing **contextual authenticity**—whether claims match their images. Unlike pixel-forensics tools that detect manipulated images, MedContext addresses the more common threat: **authentic images used in misleading contexts**.
+MedContext is an AI-powered tool that detects medical misinformation by analyzing **contextual authenticity**—whether claims match their images. Unlike pixel-forensics tools that detect manipulated images, MedContext addresses the more common threat: **authentic images used in fake or misleading contexts**.
 
 **Key Innovation:** Hierarchical optimization transforms weak individual signals (veracity 79.8%, alignment 86.5%) into a robust 92.0% accurate detector through smart thresholds (0.65/0.30) and VERACITY_FIRST logic. Simple combination plateaus at ~83%; optimization achieves the breakthrough.
 
@@ -103,7 +103,7 @@ The optimization breakthrough demonstrates that **smart arrangement achieves dra
 
 ## Key Insights
 
-1. **Contextual authenticity ≠ pixel authenticity.** The majority of medical misinformation uses authentic images in misleading contexts—not manipulated images.
+1. **Contextual authenticity ≠ pixel authenticity.** The majority of medical misinformation uses authentic images in fake or misleading contexts—not manipulated images.
 
 2. **Optimization > Combination.** Simply combining signals plateaus at ~83%. Hierarchical optimization with smart thresholds (0.65/0.30) and VERACITY_FIRST logic achieves 92.0%.
 

@@ -76,7 +76,7 @@ First agentic AI system optimized for real-world threat distribution:
 
 ### Quality (Production-Ready)
 
-- **45/45 unit tests passing** (comprehensive test suite for core modules)
+- **62/62 unit tests passing (3 skipped)** (comprehensive test suite for core modules)
 - 4,100+ lines production Python
 - 4 MedGemma providers (HuggingFace, vLLM, Vertex AI, Local)
 - Full-stack: FastAPI backend + React frontend + PostgreSQL
@@ -95,14 +95,14 @@ First agentic AI system optimized for real-world threat distribution:
 
 **Technical:** Multi-modal system leveraging MedGemma's medical vision-language training for dual contextual signals (veracity + alignment), with hierarchical optimization framework that transforms weak signals into reliable detector
 
-**Practical:** To our knowledge, first contextual authenticity system with field deployment partnership targeting under-resourced clinical settings in Africa via HERO Lab, UBC
+**Practical:** To our knowledge, first contextual authenticity system with field deployment partnership targeting patients, teachers, students, journalists and many others
 
 ### Why MedContext Wins
 
 ✅ **Problem understanding:** Evidence-based from ~100-source literature review documenting that the majority of threat is authentic images in misleading context
 ✅ **Scientific rigor:** Empirical evaluation on 163-sample Med-MMHL stratified random subset proving hierarchical optimization achieves breakthrough performance (veracity 79.8%, alignment 86.5%, simple combination ~83%, optimized 92.0% with 95% CI: [87.7%, 95.7%]). Thresholds (0.65/0.30) determined via 5-fold cross-validation using Q4_KM quantized model for efficient deployment
-✅ **Technical quality:** Production-ready code with 45/45 tests, 4 MedGemma providers, full-stack architecture
-✅ **Real-world path:** Field deployment partnership with HERO Lab, UBC targeting African Ministries of Health
+✅ **Technical quality:** Production-ready code with 62/62 tests, 4 MedGemma providers, full-stack architecture
+✅ **Real-world path:** Partnership with Counterforce AI & UBC for deployment reaching millions
 ✅ **Honest science:** Stratified random sampling with proper cross-validation to avoid test-set contamination, and results interpreted with appropriate uncertainty
 
 ## Quick Start for Judges

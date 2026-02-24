@@ -6,7 +6,7 @@
 
 **Medical images don't need to be fake to cause harm.**
 
-[![Tests](https://img.shields.io/badge/tests-65%2F65%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-62%2F62%20passing-brightgreen-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12+-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-CC--BY--4.0-blue.svg)](LICENSE)
 [![MedGemma](https://img.shields.io/badge/MedGemma-4B%20Quantized-ff6f00)](https://huggingface.co/google/medgemma-1.1-4b-it)
@@ -232,8 +232,8 @@ The live demo requires an access code to prevent abuse and control API costs.
 - ✅ **Real-world optimization** — Addresses authentic images with misleading context (the dominant threat pattern)
 - ✅ **Contextual authenticity focus** — Detects misuse of genuine images, not just fake pixels
 - ✅ **Empirically proven approach** — Demonstrated that hierarchical optimization (92.0%) achieves breakthrough performance over individual signals (79.8%/86.5%)
-- ✅ **Production deployment partner** — HERO Lab, UBC collaboration with field-ready Telegram bot
-- ✅ **Production-ready implementation** — 65/65 tests passing, comprehensive validation
+- ✅ **Production deployment partner** — Counterforce AI & the University of British Columbia for deployment with a web app and Telegram bot
+- ✅ **Production-ready implementation** — 62/62 tests passing (3 skipped), comprehensive validation
 
 ---
 
@@ -242,7 +242,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 ### Production-Ready Quality
 
 - **Code:** 4,100+ lines Python, 527 lines React
-- **Tests:** 65/65 unit tests passing (comprehensive test suite with mocked integrations)
+- **Tests:** 62/62 unit tests passing (comprehensive test suite with mocked integrations)
 - **Architecture:** FastAPI + React + PostgreSQL
 - **Security:** Tool whitelist, prompt injection protection, SSRF prevention
 - **Providers:** 5 MedGemma options (HuggingFace, LM Studio, llama-cpp, vLLM, Vertex AI)
@@ -297,16 +297,16 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 Watch the 3-minute demonstration:
 
-[![MedContext Demo](https://img.youtube.com/vi/uoD6gL2l934/maxresdefault.jpg)](https://www.youtube.com/watch?v=uoD6gL2l934)
+[![MedContext Demo](https://img.youtube.com/vi/22UJ9-lFwe0/maxresdefault.jpg)](https://www.youtube.com/watch?v=22UJ9-lFwe0)
 
-**🎥 [Watch on YouTube](https://www.youtube.com/watch?v=uoD6gL2l934)**
+**🎥 [Watch on YouTube](https://www.youtube.com/watch?v=22UJ9-lFwe0)**
 
 **Covers (3 minutes):**
 
-1. The Problem (authentic images used in misleading contexts)
+1. The Problem (authentic images used in fake or misleading contexts)
 2. Med-MMHL Validation (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
 3. Live Demo (upload → analysis → verdict)
-4. Impact (HERO Lab, UBC partnership and Telegram bot deployment)
+4. Impact (Counterforce AI & UBC partnership and Telegram bot deployment)
 
 ---
 
@@ -422,7 +422,7 @@ medcontext/
 │   ├── metrics/                    ← Integrity scoring
 │   └── api/v1/endpoints/           ← REST API
 ├── ui/                             ← React frontend
-├── tests/                          ← 65 passing tests
+├── tests/                          ← 62 passing tests
 └── scripts/                        ← Utilities
 ```
 

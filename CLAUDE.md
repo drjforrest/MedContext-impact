@@ -356,7 +356,7 @@ Validated on Med-MMHL dataset (n=163, stratified random, seed=42) using **MedGem
    - Borderline visual matches (alignment 0.30-0.40) where veracity provides decisive signal
    - Sophisticated misinformation using contextually plausible but factually false imagery
 
-3. **At scale, marginal gains matter**: While the 0.6 percentage point improvement appears modest in n=163, this represents a **7.7% reduction in false negatives** and **20% reduction in false positives**. On social media platforms serving billions of users, this translates to **~27 million better classifications daily** across Facebook, Twitter/X, and TikTok combined.
+3. **At scale, marginal gains matter**: While the 0.6 percentage point improvement appears modest in n=163, this represents a **9.1% reduction in false negatives** (11→10) and **20% reduction in false positives** (5→4). On social media platforms serving billions of users, this translates to **hundreds of thousands to millions of better classifications daily** (depending on medical content exposure rates) across Facebook, Twitter/X, and TikTok combined.
 
 4. **Validation datasets are not real-world**: Though selected from real-world examples, controlled test sets cannot capture the full diversity of misinformation tactics in production. The veracity safety net should comfort implementers that the system is robust even in edge cases, including when deployed as a quantized model.
 

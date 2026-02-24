@@ -5,6 +5,8 @@ import json
 import sys
 from pathlib import Path
 
+from app.validation.metrics import compute_misinformation_metrics
+
 
 def load_validation_results(results_dir: Path):
     """Load validation results."""
@@ -342,6 +344,29 @@ def generate_metric_summary(predictions):
     }
 
 
+def _backfill_misinformation_metrics(results_dir: Path, raw_predictions: list, report: dict) -> dict:
+    """Add metrics.misinformation to report if missing (backfill for older runs)."""
+    if report.get("metrics", {}).get("misinformation") is not None:
+        return report
+    preds = [
+        {
+            "veracity_score": r["predictions"]["contextual_analysis"].get("veracity_score", 0.5),
+            "alignment_score": r["predictions"]["contextual_analysis"].get("alignment_score", 0.5),
+        }
+        for r in raw_predictions
+    ]
+    gt = [
+        {"is_misinformation": r["ground_truth"].get("is_misinformation", False)}
+        for r in raw_predictions
+    ]
+    mi_metrics = compute_misinformation_metrics(preds, gt)
+    report["metrics"]["misinformation"] = mi_metrics
+    with open(results_dir / "validation_report.json", "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)
+    print("  Backfilled metrics.misinformation into validation_report.json")
+    return report
+
+
 def generate_charts(results_dir: Path) -> None:
     """Generate chart_data.json from a completed validation results directory.
 
@@ -353,6 +378,7 @@ def generate_charts(results_dir: Path) -> None:
 
     print(f"Loading validation results from {results_dir}...")
     predictions, report = load_validation_results(results_dir)
+    report = _backfill_misinformation_metrics(results_dir, predictions, report)
 
     print(f"Generating chart data for {len(predictions)} samples...")
 

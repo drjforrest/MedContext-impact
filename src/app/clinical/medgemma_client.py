@@ -54,7 +54,7 @@ class MedGemmaClient:
             )
         except MedGemmaClientError:
             fallback_provider = settings.medgemma_fallback_provider or None
-            if not fallback_provider or fallback_provider == current_provider:
+            if not fallback_provider or fallback_provider == self.provider:
                 raise
             try:
                 fallback_client = create_client(fallback_provider)

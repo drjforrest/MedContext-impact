@@ -57,7 +57,7 @@ cp .env.example .env
 
 # 3. Run tests
 uv run pytest tests/ -v
-# Expected: 45/45 passed
+# Expected: 62/62 passed (3 skipped)
 
 # 4. Start system
 uv run uvicorn app.main:app --reload --app-dir src
@@ -146,7 +146,7 @@ medcontext/
 │   ├── AGENTIC_WORKFLOW.md        ← Technical deep dive
 │   └── COMPETITION_RULES.md       ← Competition requirements
 ├── src/                           ← Source code (4,100+ lines Python)
-├── tests/                         ← 45 passing tests
+├── tests/                         ← 62 passing tests
 └── ui/                            ← React frontend
 ```
 
@@ -155,7 +155,7 @@ medcontext/
 ## ✅ Verification Checklist
 
 - [ ] **Innovation?** ✅ Agentic system for contextual authenticity
-- [ ] **Works?** ✅ 51/51 tests passing, full-stack implementation
+- [ ] **Works?** ✅ 62/62 tests passing (3 skipped), full-stack implementation
 - [ ] **Evidence?** ✅ Empirical validation with confidence intervals
 - [ ] **Impact?** ✅ HERO Lab partnership and Telegram bot deployment ready
 - [ ] **Documentation?** ✅ 5 comprehensive documents, white paper
@@ -171,10 +171,10 @@ Watch the 3-minute demonstration:
 
 **Covers:**
 
-1. The problem (authentic images used in misleading contexts)
+1. The problem (authentic images used in fake or misleading contexts)
 2. Med-MMHL validation results (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
 3. Live demo (upload → analysis → verdict)
-4. Impact (HERO Lab, UBC partnership and Telegram bot deployment)
+4. Impact (Counterforce AI & UBC partnership and Telegram bot deployment)
 
 > Note: Competition requirement is 3 minutes maximum
 
