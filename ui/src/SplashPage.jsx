@@ -113,7 +113,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
           <iframe
             width="100%"
             height="100%"
-            src="https://www.youtube.com/embed/uQJ_-zAW4h4"
+            src="https://www.youtube.com/embed/LMYX565fgjE"
             title="MedContext Demo"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -121,7 +121,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
           />
         </div>
         <a
-          href="https://www.youtube.com/watch?v=uQJ_-zAW4h4&feature=youtu.be"
+          href="https://www.youtube.com/watch?v=LMYX565fgjE&feature=youtu.be"
           target="_blank"
           rel="noopener noreferrer"
           className="splash-watch-youtube-link"

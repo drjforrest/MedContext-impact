@@ -2,7 +2,7 @@
 ---
 **Project URL:** https://medcontext.drjforrest.com
 **Repository:** https://github.com/drjforrest/medcontext
-**Demo Video:** https://www.youtube.com/watch?v=uQJ_-zAW4h4&feature=youtu.be
+**Demo Video:** https://www.youtube.com/watch?v=LMYX565fgjE&feature=youtu.be
 **Date:** February 24, 2026
 ---
 
@@ -10,7 +10,7 @@
 
 Watch the 3-minute demonstration:
 
-[![MedContext Demo](https://img.youtube.com/vi/uQJ_-zAW4h4/maxresdefault.jpg)](https://www.youtube.com/watch?v=uQJ_-zAW4h4&feature=youtu.be)
+[![MedContext Demo](https://img.youtube.com/vi/LMYX565fgjE/maxresdefault.jpg)](https://www.youtube.com/watch?v=LMYX565fgjE&feature=youtu.be)
 
 **Video covers:**
 1. The problem (authentic images used in fake or misleading contexts)
