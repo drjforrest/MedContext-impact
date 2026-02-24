@@ -62,7 +62,8 @@ fi
 # ── 2. Deploy to VPS ─────────────────────────────────────────────────────────
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 step "Ensuring target directory exists on VPS..."
-ssh $VPS_HOST "if [ -e $VPS_DIR ] && [ ! -d $VPS_DIR ]; then rm -rf $VPS_DIR; fi; mkdir -p $VPS_DIR"
+# Remove if not a directory (handles file, symlink, broken symlink)
+ssh $VPS_HOST "if [ ! -d $VPS_DIR ]; then rm -rf $VPS_DIR 2>/dev/null; fi; mkdir -p $VPS_DIR"
 
 step "Syncing code to VPS..."
 
