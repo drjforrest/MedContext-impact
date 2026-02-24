@@ -1,0 +1,23 @@
+# MedContext Caddyfile — API handles MUST come before file_server
+medcontext.drjforrest.com {
+    # API — reverse proxy to uvicorn (must be FIRST)
+    handle /api/* {
+        reverse_proxy localhost:8000
+    }
+    handle /health {
+        reverse_proxy localhost:8000
+    }
+
+    # Static UI files
+    root * /var/www/medcontext/dist
+    try_files {path} {path}/ /index.html
+    encode gzip
+    file_server
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}

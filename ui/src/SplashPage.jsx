@@ -120,6 +120,14 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
             allowFullScreen
           />
         </div>
+        <a
+          href="https://www.youtube.com/watch?v=uQJ_-zAW4h4&feature=youtu.be"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="splash-watch-youtube-link"
+        >
+          Watch on YouTube
+        </a>
       </section>
 
       {/* Card Carousel Section - MOVED DOWN */}

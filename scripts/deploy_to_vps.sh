@@ -122,6 +122,28 @@ sudo cp -r dist/* /var/www/medcontext/dist/
 sudo chown -R caddy:caddy /var/www/medcontext/dist/
 
 echo ""
+echo "=== Updating Caddy config ==="
+# Ensure API handles come before file_server (fixes 404 on /api and /health)
+sudo tee /etc/caddy/Caddyfile > /dev/null << 'CADDYEOF'
+medcontext.drjforrest.com {
+    handle /api/* {
+        reverse_proxy localhost:8000
+    }
+    handle /health {
+        reverse_proxy localhost:8000
+    }
+    root * /var/www/medcontext/dist
+    try_files {path} {path}/ /index.html
+    encode gzip
+    file_server
+    header X-Content-Type-Options nosniff
+    header X-Frame-Options DENY
+    header Referrer-Policy strict-origin-when-cross-origin
+}
+CADDYEOF
+sudo systemctl reload caddy
+
+echo ""
 echo "✅ Deployment complete!"
 ENDSSH
 
