@@ -79,6 +79,13 @@ set -euo pipefail
 
 cd /var/www/medcontext/medcontext
 
+# Fix systemd service if it references old MedContext-impact path
+if grep -q MedContext-impact /etc/systemd/system/medcontext.service 2>/dev/null; then
+    echo "Updating medcontext.service to use /var/www/medcontext/medcontext..."
+    sudo sed -i 's|MedContext-impact|medcontext|g' /etc/systemd/system/medcontext.service
+    sudo systemctl daemon-reload
+fi
+
 echo ""
 echo "=== Restarting backend ==="
 sudo systemctl restart medcontext
