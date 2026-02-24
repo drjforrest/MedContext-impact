@@ -61,11 +61,8 @@ echo ""
 # ── 2. Upload DNS fix script to VPS ──────────────────────────────────────────
 step "Uploading DNS fix script to VPS..."
 
-# Ensure scripts directory exists on VPS
-ssh "$VPS_HOST" "mkdir -p $VPS_DIR/scripts" || {
-    error "Failed to create scripts directory on VPS"
-    exit 1
-}
+# Ensure scripts directory exists on VPS (ignore if exists)
+ssh "$VPS_HOST" "mkdir -p $VPS_DIR/scripts" 2>/dev/null || true
 
 # Upload the fix script
 scp "$REPO_ROOT/scripts/fix_vps_dns.sh" "$VPS_HOST:$VPS_DIR/scripts/" || {
