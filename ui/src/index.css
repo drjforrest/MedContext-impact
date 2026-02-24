@@ -25,6 +25,17 @@
   --accent-green: #4e9a34;
   --accent-green-dark: #357a25;
   --accent-teal: #2A9D8F;
+  --accent-purple: #7C3AED;
+  --accent-red: #DC2626;
+  --accent-orange: #EA580C;
+
+  /* Softer, muted stat colors */
+  --stat-red: #c96868;
+  --stat-orange: #d4915d;
+  --stat-green: #5fa35c;
+  --stat-purple: #8b7ab8;
+  --stat-teal: #5da8a0;
+
   --warning: #f1b355;
   --error: #b91c1c;
 }

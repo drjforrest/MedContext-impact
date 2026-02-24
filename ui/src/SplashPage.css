@@ -129,6 +129,11 @@
   padding: 1rem 0;
 }
 
+.splash-carousel-section .card {
+  animation: fadeSlideUp 0.7s ease-out both;
+  animation-delay: 0.3s;
+}
+
 .carousel-wrapper {
   display: flex;
   align-items: center;
@@ -177,6 +182,18 @@
   top: 50%;
   transition: transform 0.5s ease, opacity 0.5s ease, z-index 0s;
   cursor: default;
+  animation: cardEnter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 30px)) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .carousel-card-center {
@@ -585,6 +602,16 @@
   opacity: 0.8;
 }
 
+.stat-item-benchmark {
+  min-width: 120px;
+}
+
+.stat-benchmark-name {
+  font-size: 1.4rem !important;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
 .stat-value {
   font-size: 1.4rem;
   font-weight: 800;
@@ -592,16 +619,29 @@
   line-height: 1.2;
 }
 
-.stat-value-warn {
-  color: #d94a4a;
+.stat-value-red {
+  color: #5a8ab8;
+  font-size: 1.4rem;
 }
 
-.stat-value-caution {
-  color: #c87f20;
+.stat-value-orange {
+  color: #4a7fb5;
+  font-size: 1.4rem;
 }
 
-.stat-value-primary {
-  color: var(--accent-teal, #2A9D8F);
+.stat-value-green {
+  color: var(--accent-teal);
+  font-size: 1.4rem;
+}
+
+.stat-value-purple {
+  color: #3d6fa0;
+  font-size: 1.4rem;
+}
+
+.stat-value-blue {
+  color: var(--accent-blue);
+  font-size: 1.4rem;
 }
 
 .stat-label {
@@ -619,6 +659,127 @@
   height: 36px;
   background: var(--border);
   flex-shrink: 0;
+}
+
+/* --- Why This Matters Section --- */
+.splash-why-matters {
+  text-align: center;
+  padding: 2.5rem 2rem;
+}
+
+.splash-why-matters .splash-section-subtitle {
+  margin-bottom: 2.5rem;
+  font-size: 1.1rem;
+}
+
+.use-cases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0 2.5rem;
+  text-align: left;
+}
+
+.use-case {
+  padding: 2rem;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.use-case:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(11, 31, 58, 0.12);
+  border-color: var(--accent-blue);
+}
+
+.use-case-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.use-case h3 {
+  font-size: 1.2rem;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.use-case p {
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.impact-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.impact-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  line-height: 1.2;
+}
+
+.impact-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+.why-cta-wrapper {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.why-cta-wrapper .teaser-cta {
+  min-width: 180px;
+}
+
+.why-cta-wrapper .teaser-cta:first-child {
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+}
+
+.why-cta-wrapper .teaser-cta:first-child:hover {
+  background: #4a7ac9;
+  border-color: #4a7ac9;
+}
+
+.why-cta-wrapper .teaser-cta.ghost {
+  background: transparent;
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.why-cta-wrapper .teaser-cta.ghost:hover {
+  background: rgba(91, 141, 239, 0.15);
 }
 
 /* --- Responsive --- */
@@ -693,5 +854,23 @@
   .stat-divider {
     width: 60px;
     height: 1px;
+  }
+
+  .use-cases {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .use-case {
+    padding: 1.5rem;
+  }
+
+  .why-cta-wrapper {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .why-cta-wrapper .teaser-cta {
+    width: 100%;
   }
 }

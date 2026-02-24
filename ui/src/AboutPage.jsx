@@ -37,6 +37,14 @@ function AboutPage() {
           medical misinformation.
         </p>
 
+        <h2 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.5rem', color: 'var(--ink)' }}>Acknowledgements</h2>
+
+        <p className="about-page-text">
+          The developer would like to thank Dr. Meaghan Thumath and Brayden Jordan of the
+          University of British Columbia and Counterforce AI for their invaluable guidance
+          and support throughout the development of MedContext.
+        </p>
+
         <p className="about-page-text">
           For more information on MedContext, please contact the developer on{' '}
           <a href="https://github.com/drjforrest" target="_blank" rel="noopener noreferrer">

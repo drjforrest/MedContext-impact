@@ -61,8 +61,12 @@ echo ""
 # ── 2. Upload DNS fix script to VPS ──────────────────────────────────────────
 step "Uploading DNS fix script to VPS..."
 
-# Ensure scripts directory exists on VPS (ignore if exists)
-ssh "$VPS_HOST" "mkdir -p $VPS_DIR/scripts" 2>/dev/null || true
+# Create scripts directory inside the symlink target
+ssh "$VPS_HOST" "cd $VPS_DIR && mkdir -p scripts" || {
+    error "Failed to create scripts directory on VPS"
+    echo "  VPS directory: $VPS_DIR"
+    exit 1
+}
 
 # Upload the fix script
 scp "$REPO_ROOT/scripts/fix_vps_dns.sh" "$VPS_HOST:$VPS_DIR/scripts/" || {

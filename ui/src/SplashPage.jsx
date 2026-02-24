@@ -103,7 +103,26 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
         </div>
       </section>
 
-      {/* Card Carousel Section */}
+      {/* Video Section - MOVED UP */}
+      <section className="card splash-video-section">
+        <h2 className="splash-section-title">See It In Action</h2>
+        <p className="splash-section-subtitle">
+          Watch how MedContext analyzes real medical misinformation in under three minutes.
+        </p>
+        <div className="video-embed-wrapper">
+          <iframe
+            width="100%"
+            height="100%"
+            src="https://www.youtube.com/embed/22UJ9-lFwe0"
+            title="MedContext Demo"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      </section>
+
+      {/* Card Carousel Section - MOVED DOWN */}
       <section className="splash-carousel-section">
         <h2 className="splash-section-title">Real Examples. Real Threats.</h2>
         <p className="splash-section-subtitle">
@@ -243,115 +262,157 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
         </div>
       </section>
 
-      {/* Video + Description Section */}
-      <section className="card splash-video-section">
-        <h2 className="splash-section-title">See It In Action</h2>
+      {/* Why This Matters - Use Cases */}
+      <section className="card splash-why-matters">
+        <h2 className="splash-section-title">Why This Matters</h2>
         <p className="splash-section-subtitle">
-          Watch how MedContext analyzes real medical misinformation in under three minutes.
+          Medical misinformation can cost lives. Here&apos;s where MedContext makes a real-world impact.
         </p>
-        <div className="video-embed-wrapper">
-          <iframe
-            width="100%"
-            height="100%"
-            src="https://www.youtube.com/embed/22UJ9-lFwe0"
-            title="MedContext Demo"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-        </div>
-      </section>
 
-      {/* How It Works */}
-      <section className="card splash-how">
-        <h2 className="splash-section-title">How It Works</h2>
-        <div className="how-steps">
-          <div className="how-step">
-            <div className="how-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
+        <div className="use-cases">
+          <div className="use-case">
+            <div className="use-case-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#5a8ab8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                <line x1="6" y1="1" x2="6" y2="4" />
+                <line x1="10" y1="1" x2="10" y2="4" />
+                <line x1="14" y1="1" x2="14" y2="4" />
               </svg>
             </div>
-            <h3>Submit Image + Claim</h3>
-            <p>Upload a medical image and the claim being made about it.</p>
+            <h3>Public Health Crises</h3>
+            <p>During pandemics, unrelated medical images get repurposed with false claims about new diseases. MedContext detects when a chest X-ray labeled as "new COVID variant" is actually tuberculosis from 2015.</p>
+            <div className="impact-stat">
+              <span className="impact-number">Viral spread</span>
+              <span className="impact-label">of repurposed medical imagery</span>
+            </div>
           </div>
-          <div className="how-arrow">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </div>
-          <div className="how-step">
-            <div className="how-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a10 10 0 1 0 10 10" />
-                <path d="M12 12l7-7" />
-                <circle cx="12" cy="12" r="3" />
+
+          <div className="use-case">
+            <div className="use-case-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4a7fb5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                <path d="M12 7v5" />
+                <path d="M9.5 9.5l5 5" />
+                <path d="M14.5 9.5l-5 5" />
               </svg>
             </div>
-            <h3>AI Analyzes Context</h3>
-            <p>MedGemma assesses claim veracity and image-claim alignment.</p>
+            <h3>Journalism &amp; Fact-Checking</h3>
+            <p>Journalists racing to verify viral medical claims during public health emergencies need rapid, reliable tools. MedContext helps newsrooms distinguish legitimate medical evidence from contextually misleading imagery before publication.</p>
+            <div className="impact-stat">
+              <span className="impact-number">Real-time</span>
+              <span className="impact-label">verification during breaking news</span>
+            </div>
           </div>
-          <div className="how-arrow">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </div>
-          <div className="how-step">
-            <div className="how-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
+
+          <div className="use-case">
+            <div className="use-case-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
               </svg>
             </div>
-            <h3>Get Verdict</h3>
-            <p>Receive a clear misinformation verdict with rationale.</p>
+            <h3>Social Media Moderation</h3>
+            <p>Platforms struggle to verify medical content at scale. A "miracle cure" post with legitimate medical imaging but fraudulent claims needs human expertise &mdash; or MedContext's automated analysis.</p>
+            <div className="impact-stat">
+              <span className="impact-number">At scale</span>
+              <span className="impact-label">automated content verification</span>
+            </div>
+          </div>
+
+          <div className="use-case">
+            <div className="use-case-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <h3>Clinical Decision Support</h3>
+            <p>Healthcare providers encounter medical images shared by patients from unreliable sources. MedContext helps clinicians quickly assess whether patient-provided "diagnostic evidence" is contextually accurate.</p>
+            <div className="impact-stat">
+              <span className="impact-number">Point of care</span>
+              <span className="impact-label">verification for clinicians</span>
+            </div>
+          </div>
+
+          <div className="use-case">
+            <div className="use-case-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3d6fa0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                <path d="M12 6v6" />
+                <path d="M9 9h6" />
+              </svg>
+            </div>
+            <h3>Medical Education</h3>
+            <p>Students, residents, and lifelong learners encounter mislabeled or misrepresented medical images in textbooks, online courses, and study forums. MedContext ensures educational materials accurately represent the pathology they claim to illustrate.</p>
+            <div className="impact-stat">
+              <span className="impact-number">91.4%</span>
+              <span className="impact-label">accuracy on Med-MMHL benchmark</span>
+            </div>
+          </div>
+
+          <div className="use-case">
+            <div className="use-case-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2d5f8d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+            </div>
+            <h3>Public Health Communication</h3>
+            <p>Health agencies and NGOs need to ensure their outreach materials use medically accurate imagery that aligns with their messaging. Mismatched image-claim pairs undermine trust in public health guidance and vaccine campaigns.</p>
+            <div className="impact-stat">
+              <span className="impact-number">Trust</span>
+              <span className="impact-label">through accuracy and transparency</span>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Validation Teaser */}
-      <section className="card splash-teaser">
-        <p className="teaser-text">
-          Neither veracity alone nor image-claim alignment alone is sufficient for detecting
-          medical misinformation. <strong>Veracity scored 80%, alignment 87%</strong> on the Med-MMHL benchmark.
-          But through threshold optimization, <strong>MedContext's Contextual Authenticity achieves
-          92% accuracy</strong> — where one method fails, the other catches it.
-        </p>
-        <button
-          type="button"
-          className="teaser-cta"
-          onClick={onNavigateToValidation}
-        >
-          See the Validation Results
-        </button>
+        <div className="why-cta-wrapper">
+          <button
+            type="button"
+            className="teaser-cta"
+            onClick={onNavigateToVerify}
+          >
+            Try It Now
+          </button>
+          <button
+            type="button"
+            className="teaser-cta ghost"
+            onClick={onNavigateToValidation}
+          >
+            See the Validation Results
+          </button>
+        </div>
       </section>
 
       {/* Stats Bar */}
       <section className="card splash-stats">
         <div className="stat-item">
-          <span className="stat-value stat-value-warn">80%</span>
+          <span className="stat-value stat-value-red">73.6%</span>
           <span className="stat-label">Veracity Alone</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
-          <span className="stat-value stat-value-caution">87%</span>
+          <span className="stat-value stat-value-orange">90.8%</span>
           <span className="stat-label">Alignment Alone</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
-          <span className="stat-value stat-value-primary">92%</span>
+          <span className="stat-value stat-value-green">91.4%</span>
           <span className="stat-label">Combined</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
-          <span className="stat-value">163</span>
+          <span className="stat-value stat-value-purple">163</span>
           <span className="stat-label">Samples</span>
         </div>
         <div className="stat-divider" />
         <div
-          className="stat-item stat-item-link"
+          className="stat-item stat-item-link stat-item-benchmark"
           onClick={onNavigateToValidation}
           role="button"
           tabIndex={0}
@@ -362,7 +423,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
             }
           }}
         >
-          <span className="stat-value">Med-MMHL</span>
+          <span className="stat-value stat-benchmark-name stat-value-blue">Med-MMHL</span>
           <span className="stat-label">Benchmark</span>
         </div>
       </section>
