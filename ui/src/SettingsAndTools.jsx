@@ -73,7 +73,7 @@ function SettingsAndTools({
     }
   }, [availableModels, selectedModel])
 
-  // Poll /api/v1/config/provider-status every 5s while the settings page is open
+  // Poll /api/v1/config/provider-status every 30s while the settings page is open
   useEffect(() => {
     const fetchLiveStatus = async () => {
       try {
@@ -90,7 +90,7 @@ function SettingsAndTools({
     }
 
     fetchLiveStatus()
-    pollRef.current = setInterval(fetchLiveStatus, 5000)
+    pollRef.current = setInterval(fetchLiveStatus, 30000)
     return () => clearInterval(pollRef.current)
   }, [apiBase, accessCode, defaultApiBase])
 

@@ -20,7 +20,7 @@ if (typeof document !== 'undefined' && !document.getElementById(KEYFRAMES_ID)) {
 
 /**
  * LlamaCppStatus — polls the /api/v1/config/provider-status endpoint every
- * 5 seconds and surfaces the current provider state to the rest of the app.
+ * 15s (or 5s when busy) and surfaces the current provider state to the rest of the app.
  *
  * Props:
  *   apiBase        — base URL for the API
@@ -79,7 +79,7 @@ const LlamaCppStatus = forwardRef(function LlamaCppStatus(
 
   // Polling interval setup — depends only on fetchStatus and status?.busy
   useEffect(() => {
-    const interval = status?.busy ? 2000 : 5000
+    const interval = status?.busy ? 5000 : 15000
     intervalRef.current = setInterval(fetchStatus, interval)
     return () => {
       if (intervalRef.current) {
