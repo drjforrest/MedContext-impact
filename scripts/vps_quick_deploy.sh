@@ -8,11 +8,22 @@ set -euo pipefail
 # Run this FROM YOUR LOCAL MACHINE
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Find repo root (works whether run from repo root or scripts/)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/../.git/config" ]; then
+    REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+    REPO_ROOT="$(cd "$SCRIPT_DIR" && pwd)"
+fi
+
+cd "$REPO_ROOT"
+
 VPS_HOST="${VPS_HOST:-Contabo-admin}"
 VPS_DIR="/var/www/medcontext/medcontext"
 
 echo "=== MedContext VPS Quick Deploy ==="
 echo "VPS: $VPS_HOST"
+echo "Repo: $REPO_ROOT"
 echo ""
 
 # Colors
@@ -50,9 +61,16 @@ echo ""
 # ── 2. Upload DNS fix script to VPS ──────────────────────────────────────────
 step "Uploading DNS fix script to VPS..."
 
-scp scripts/fix_vps_dns.sh "$VPS_HOST:$VPS_DIR/scripts/" || {
+# Ensure scripts directory exists on VPS
+ssh "$VPS_HOST" "mkdir -p $VPS_DIR/scripts" || {
+    error "Failed to create scripts directory on VPS"
+    exit 1
+}
+
+# Upload the fix script
+scp "$REPO_ROOT/scripts/fix_vps_dns.sh" "$VPS_HOST:$VPS_DIR/scripts/" || {
     error "Failed to upload fix script"
-    echo "  Try: ssh $VPS_HOST 'mkdir -p $VPS_DIR/scripts'"
+    echo "  Script location: $REPO_ROOT/scripts/fix_vps_dns.sh"
     exit 1
 }
 
