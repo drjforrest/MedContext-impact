@@ -87,7 +87,7 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
             self._llm_instance = Llama(
                 model_path=settings.medgemma_local_path,
                 chat_handler=chat_handler,
-                n_ctx=4096,
+                n_ctx=settings.medgemma_n_ctx,
                 n_gpu_layers=0,
                 verbose=False,
             )

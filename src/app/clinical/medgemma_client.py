@@ -31,8 +31,9 @@ class MedGemmaClient:
 
     def __init__(self, model: Optional[str] = None) -> None:
         self.model = model or settings.medgemma_model
-        self.provider = determine_provider(self.model)
-        self._client: BaseMedGemmaClient = create_client(self.provider)
+        # Let factory determine provider (respects MEDGEMMA_PROVIDER setting)
+        self._client: BaseMedGemmaClient = create_client(provider=None)
+        self.provider = self._client.provider_name
 
     def analyze_image(
         self,
@@ -41,12 +42,9 @@ class MedGemmaClient:
         model: Optional[str] = None,
     ) -> MedGemmaResult:
         current_model = model or self.model
-        current_provider = determine_provider(current_model) if model else self.provider
 
-        # If the requested provider differs from our cached client, create a new one
+        # Use cached client (factory already selected correct provider)
         client = self._client
-        if current_provider != self.provider:
-            client = create_client(current_provider)
 
         try:
             return client.analyze_image(

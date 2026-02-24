@@ -189,8 +189,9 @@ ui/dist/
 # macOS
 .DS_Store
 
-# JetBrains IDEs
+# IDEs
 .idea/
+.vscode/
 
 # Local sample data
 samples/
@@ -198,13 +199,14 @@ samples/
 # Data
 src/data/
 data/
+demo_video/
+logs/
 
 # Docker
 docker-compose.override.yml
 .dockerignore
 *.dockerfile
 docs_archive/
-.vscode/
-.idea/
-logs/
-demo_video/
+
+
+

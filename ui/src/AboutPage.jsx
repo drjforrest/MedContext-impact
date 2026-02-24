@@ -7,11 +7,7 @@ function AboutPage() {
         <h1>About MedContext</h1>
 
         <p className="about-page-text">
-          MedContext was developed by Jamie Forrest (Github:{' '}
-          <a href="https://github.com/drjforrest" target="_blank" rel="noopener noreferrer">
-            drjforrest
-          </a>
-          ) as a submission to the Kaggle Google MedGemma Impact Challenge submitted on
+          MedContext was developed by Jamie Forrest for submission to the Kaggle Google MedGemma Impact Challenge submitted on
           February 23, 2026. MedContext is an agentic AI application that uses the multimodal
           MedGemma model to detect medical misinformation by testing image-claim pair contextual
           authenticity.

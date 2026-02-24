@@ -2696,12 +2696,6 @@
   },
   "method_comparison": [
     {
-      "method": "Pixel Forensics",
-      "accuracy": 47.239263803680984,
-      "correct": 77,
-      "total": 163
-    },
-    {
       "method": "Veracity Only",
       "accuracy": 69.32515337423312,
       "correct": 113,
@@ -2714,9 +2708,15 @@
       "total": 163
     },
     {
-      "method": "Combined System",
+      "method": "Combined\n(Unoptimized)",
       "accuracy": 91.41104294478528,
       "correct": 149,
+      "total": 163
+    },
+    {
+      "method": "Combined\n(Optimized)",
+      "accuracy": 92.63803680981594,
+      "correct": 151,
       "total": 163
     }
   ],

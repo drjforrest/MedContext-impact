@@ -163,14 +163,10 @@ def resize_image(image_bytes: bytes, max_size: int = 1024, quality: int = 80) ->
         img.save(buffer, format="JPEG", quality=quality)
         resized = buffer.getvalue()
 
-        # Always use the resized version when dimensions were reduced —
-        # pixel count is what matters for vision model memory, not file size.
-        if was_resized:
-            return resized
-        # Dimensions fit already; only re-encode if it saves bytes.
-        if len(resized) < len(image_bytes):
-            return resized
-        return image_bytes
+        # Always return the JPEG re-encoded version. Even when dimensions
+        # weren't reduced, the original might be a format (palette PNG,
+        # WebP, etc.) that downstream vision APIs can't handle.
+        return resized
     except Exception as e:
         logger.warning(f"Image resize failed: {e}")
         return image_bytes

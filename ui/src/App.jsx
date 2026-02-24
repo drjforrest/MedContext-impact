@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import AboutPage from './AboutPage'
 import './App.css'
-import SplashPage from './SplashPage'
-import ValidationStory from './ValidationStory'
 import OptimizationStory from './OptimizationStory'
 import SettingsAndTools from './SettingsAndTools'
-import AboutPage from './AboutPage'
+import SplashPage from './SplashPage'
+import ValidationStory from './ValidationStory'
 import LlamaCppStatus from './components/LlamaCppStatus'
 
 
@@ -693,21 +693,21 @@ function App() {
             className={`tab-button ${activeView === 'main' ? 'tab-active' : ''}`}
             onClick={() => setActiveView('main')}
           >
-            Verify Image
+            Verification
           </button>
           <button
             type="button"
             className={`tab-button ${activeView === 'validation' ? 'tab-active' : ''}`}
             onClick={() => setActiveView('validation')}
           >
-            Validation Methodology
+            Validation
           </button>
           <button
             type="button"
             className={`tab-button ${activeView === 'optimization' ? 'tab-active' : ''}`}
             onClick={() => setActiveView('optimization')}
           >
-            Optimization Story
+            Optimization
           </button>
           <button
             type="button"
@@ -1410,93 +1410,19 @@ function App() {
                   </div>
                 </section>
 
-                {/* Card 5: Image Integrity (Pixel Forensics) — always shown */}
+                {/* Card 5: Image Integrity (Pixel Forensics) — add-on */}
                 <section className="card">
-                  <h2>Image Integrity (Pixel Forensics)</h2>
+                  <h2>Image Integrity</h2>
                   <p className="helper">
-                    Pixel-level forensics is an optional add-on for detecting image manipulation, separate from contextual authenticity.
+                    Pixel-level forensics for detecting image manipulation. Optional add-on, separate from contextual authenticity.
                   </p>
-                  {forensicsData ? (
-                    <div style={{ marginTop: '1rem' }}>
-                      <div
-                        className={`quadrant-verdict ${forensicsData.results?.layer_1?.verdict === 'AUTHENTIC' ? 'quadrant-verdict-high' : 'quadrant-verdict-danger'}`}
-                        style={{ marginBottom: '1rem' }}
-                      >
-                        <strong>{forensicsData.results?.layer_1?.verdict || 'Unknown'}</strong>
-                        {forensicsData.results?.layer_1?.confidence != null && (
-                          <span style={{ marginLeft: '0.75rem', opacity: 0.85 }}>
-                            {Math.round(forensicsData.results.layer_1.confidence * 100)}% confidence
-                          </span>
-                        )}
-                      </div>
-                      {forensicsData.results && Object.entries(forensicsData.results).map(([layerName, layerData]) => (
-                        <div key={layerName} className="result-block">
-                          <h3>
-                            {layerName === 'layer_1' ? 'Pixel Forensics' :
-                             layerName === 'layer_2' ? 'Semantic Analysis' :
-                             'Metadata & EXIF'}
-                          </h3>
-                          <div className="forensics-verdict">
-                            <span className={`pill ${layerData.verdict === 'AUTHENTIC' ? 'pill-success' : layerData.verdict === 'MANIPULATED' ? 'pill-error' : 'pill-warning'}`}>
-                              {layerData.verdict}
-                            </span>
-                            {layerData.confidence != null && (
-                              <span className="pill pill-muted">
-                                {Math.round(layerData.confidence * 100)}% confidence
-                              </span>
-                            )}
-                          </div>
-                          {layerData.details && (
-                            <div className="forensics-details">
-                              {layerData.details.method && <p><strong>Method:</strong> {layerData.details.method}</p>}
-                              {layerData.details.copy_move_score !== undefined && (
-                                <div className="forensics-stats">
-                                  <p><strong>Copy-Move Score:</strong> {layerData.details.copy_move_score}</p>
-                                  {layerData.details.image_size && (
-                                    <p><strong>Image Size:</strong> {layerData.details.image_size[0]} x {layerData.details.image_size[1]}</p>
-                                  )}
-                                  {layerData.details.image_mode && (
-                                    <p><strong>Mode:</strong> {layerData.details.image_mode}</p>
-                                  )}
-                                </div>
-                              )}
-                              {layerData.details.has_exif !== undefined && (
-                                <div>
-                                  <p><strong>EXIF Data:</strong> {layerData.details.has_exif ? 'Present' : 'Missing'}</p>
-                                  {layerData.details.exif_fields_count && (
-                                    <p><strong>EXIF Fields:</strong> {layerData.details.exif_fields_count}</p>
-                                  )}
-                                  {layerData.details.suspicious_patterns?.length > 0 && (
-                                    <div className="suspicious-patterns">
-                                      <p><strong>Suspicious Patterns:</strong></p>
-                                      <ul>
-                                        {layerData.details.suspicious_patterns.map((pattern, idx) => (
-                                          <li key={idx} className="error">{pattern}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                  {layerData.details.software_tags?.length > 0 && (
-                                    <p><strong>Software:</strong> {layerData.details.software_tags.join(', ')}</p>
-                                  )}
-                                </div>
-                              )}
-                              {layerData.details.note && <p className="helper">{layerData.details.note}</p>}
-                              {layerData.details.error && <p className="error">Error: {layerData.details.error}</p>}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                  <div style={{ marginTop: '1rem' }}>
+                    <div className="score-pill score-neutral">
+                      <span className="score-label">Image Integrity</span>
+                      <span className="score-value-text">Not assessed</span>
+                      <span>{isAddonEnabled('forensics') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</span>
                     </div>
-                  ) : (
-                    <div style={{ marginTop: '1rem' }}>
-                      <div className="score-pill score-neutral">
-                        <span className="score-label">Image Integrity (Pixel Forensics)</span>
-                        <span className="score-value-text">Not assessed</span>
-                        <span>{isAddonEnabled('forensics') ? 'Module not selected by triage agent' : 'Add-on module disabled'}</span>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </section>
 
                 {/* Card 6: Source Verification — always shown */}

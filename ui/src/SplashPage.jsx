@@ -331,18 +331,18 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       {/* Stats Bar */}
       <section className="card splash-stats">
         <div className="stat-item">
-          <span className="stat-value" style={{ color: '#E63946' }}>80%</span>
+          <span className="stat-value stat-value-warn">80%</span>
           <span className="stat-label">Veracity Alone</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
-          <span className="stat-value" style={{ color: '#F4A261' }}>87%</span>
+          <span className="stat-value stat-value-caution">87%</span>
           <span className="stat-label">Alignment Alone</span>
         </div>
         <div className="stat-divider" />
-        <div className="stat-item stat-item-highlight">
-          <span className="stat-value" style={{ color: '#2A9D8F', fontSize: '1.8rem' }}>92%</span>
-          <span className="stat-label"><strong>Combined</strong></span>
+        <div className="stat-item">
+          <span className="stat-value stat-value-primary">92%</span>
+          <span className="stat-label">Combined</span>
         </div>
         <div className="stat-divider" />
         <div className="stat-item">
@@ -362,7 +362,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
             }
           }}
         >
-          <span className="stat-value stat-value-small">Med-MMHL</span>
+          <span className="stat-value">Med-MMHL</span>
           <span className="stat-label">Benchmark</span>
         </div>
       </section>

@@ -46,6 +46,11 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("MEDGEMMA_MMPROJ_PATH"),
     )
+    # Context window for llama.cpp models (must be large enough for base64 images + output)
+    medgemma_n_ctx: int = Field(
+        default=8192,
+        validation_alias=AliasChoices("MEDGEMMA_N_CTX"),
+    )
     medgemma_vllm_url: str = "http://localhost:8001/v1/chat/completions"
     medgemma_vertex_project: str = ""
     medgemma_vertex_location: str = "us-central1"

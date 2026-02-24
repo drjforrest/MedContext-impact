@@ -9,7 +9,6 @@ from app.core.config import settings
 from app.core import provider_state
 from app.core.utils import (
     clean_llm_text,
-    detect_image_format,
     parse_llm_json,
     resize_image,
 )
@@ -70,11 +69,11 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
         model: Optional[str] = None,
     ) -> MedGemmaResult:
         current_model = model or settings.medgemma_model
-        image_bytes = resize_image(image_bytes, max_size=512)
+        # Balance: 512px worked in testing, lower quality to reduce context usage
+        image_bytes = resize_image(image_bytes, max_size=512, quality=65)
 
-        image_format = detect_image_format(image_bytes)
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
-        image_url = f"data:image/{image_format};base64,{encoded_image}"
+        image_url = f"data:image/jpeg;base64,{encoded_image}"
 
         content = [
             {"type": "text", "text": prompt or "Describe the medical image."},
@@ -91,15 +90,7 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
         }
 
         local_url = self._effective_url().rstrip("/")
-        candidate_urls = list(
-            dict.fromkeys(
-                [
-                    f"{local_url}/v1/chat/completions",
-                    f"{local_url}/api/v1/chat",
-                    f"{local_url}/chat/completions",
-                ]
-            )
-        )
+        url = f"{local_url}/v1/chat/completions"
 
         # Build auth header: BYO GPU key takes priority, then HF token
         headers: dict[str, str] = {"Content-Type": "application/json"}
@@ -111,52 +102,43 @@ class LocalApiMedGemmaClient(BaseMedGemmaClient):
         if self._is_byo_gpu:
             provider_state.record_byo_gpu_request()
 
-        all_errors: list[str] = []
-        for url in candidate_urls:
-            try:
-                timeout = httpx.Timeout(300.0, read=300.0, write=30.0, connect=10.0)
-                with httpx.Client(timeout=timeout) as client:
-                    response = client.post(url, json=payload, headers=headers)
-                    response.raise_for_status()
-                    data = response.json()
+        try:
+            timeout = httpx.Timeout(300.0, read=300.0, write=30.0, connect=10.0)
+            with httpx.Client(timeout=timeout) as client:
+                response = client.post(url, json=payload, headers=headers)
+                response.raise_for_status()
+                data = response.json()
 
-                    text = extract_openai_chat_content(data)
+                text = extract_openai_chat_content(data)
 
-                    if not text:
-                        if isinstance(data, dict) and "error" in data:
-                            all_errors.append(
-                                f"URL {url} returned error: {data['error']}"
-                            )
-                            continue
-                        all_errors.append(
-                            f"URL {url} returned OK but no content found in JSON."
+                if not text:
+                    if isinstance(data, dict) and "error" in data:
+                        raise MedGemmaClientError(
+                            f"Local API returned error: {data['error']}"
                         )
-                        continue
-
-                    cleaned = clean_llm_text(text)
-                    parsed = parse_llm_json(cleaned)
-
-                    return MedGemmaResult(
-                        provider="local_api",
-                        model=current_model,
-                        output=parsed,
-                        raw_text=cleaned,
+                    raise MedGemmaClientError(
+                        "Local API returned OK but no content found in response."
                     )
-            except httpx.HTTPStatusError as exc:
-                error_detail = exc.response.text if exc.response else "No response body"
-                all_errors.append(
-                    f"URL {url} failed with {exc.response.status_code}. "
-                    f"Response: {error_detail[:500]}"
-                )
-            except httpx.HTTPError as exc:
-                all_errors.append(f"URL {url} failed with HTTP error: {exc}")
-            except Exception as exc:
-                all_errors.append(f"URL {url} failed with error: {exc}")
 
-        error_summary = "\n".join(all_errors)
-        raise MedGemmaClientError(
-            f"Local API request failed for all URLs. Errors:\n{error_summary}"
-        )
+                cleaned = clean_llm_text(text)
+                parsed = parse_llm_json(cleaned)
+
+                return MedGemmaResult(
+                    provider="local_api",
+                    model=current_model,
+                    output=parsed,
+                    raw_text=cleaned,
+                )
+        except httpx.HTTPStatusError as exc:
+            error_detail = exc.response.text if exc.response else "No response body"
+            raise MedGemmaClientError(
+                f"Local API request failed ({exc.response.status_code}): "
+                f"{error_detail[:500]}"
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise MedGemmaClientError(
+                f"Local API HTTP error: {exc}"
+            ) from exc
 
     async def check_health(self) -> bool:
         ok, _ = await self.check_health_with_model()

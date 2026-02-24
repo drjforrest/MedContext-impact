@@ -153,7 +153,7 @@ def generate_method_comparison(chart_data: dict, output_dir: Path):
     accuracies = [m["accuracy"] for m in method_comparison]
 
     plt.figure(figsize=(10, 6))
-    colors = ["#e74c3c", "#f39c12", "#3498db", "#2ecc71"]
+    colors = ["#f39c12", "#3498db", "#95a5a6", "#2ecc71"]
     bars = plt.bar(methods, accuracies, color=colors, alpha=0.8, edgecolor="black")
 
     # Add value labels on bars

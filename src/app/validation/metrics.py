@@ -81,7 +81,7 @@ def compute_three_dimensional_metrics(
         veracity_auc = np.nan
 
     # Dimension 3: Alignment
-    # expected_misalignment=True means fake (misaligned)
+    # expected_misalignment=True means misaligned, False means aligned
     alignment_score = [
         p.get("alignment_score", p.get("alignment", 0.5)) for p in predictions
     ]
@@ -91,10 +91,18 @@ def compute_three_dimensional_metrics(
         alignment_pred = [
             s > 0.5 for s in alignment_score
         ]  # high = aligned = not misaligned
-    alignment_truth = [
-        g.get("alignment", "").lower() in ("aligned", "aligns_fully")
-        for g in ground_truth
-    ]  # aligned = not misaligned
+
+    # Handle both key formats: "alignment" string or "expected_misalignment" boolean
+    alignment_truth = []
+    for g in ground_truth:
+        if "expected_misalignment" in g:
+            # expected_misalignment=True means misaligned, so aligned = not expected_misalignment
+            alignment_truth.append(not g["expected_misalignment"])
+        else:
+            # Fall back to alignment string key
+            alignment_truth.append(
+                g.get("alignment", "").lower() in ("aligned", "aligns_fully")
+            )
 
     alignment_acc = accuracy_score(alignment_truth, alignment_pred)
     alignment_pr, alignment_re, alignment_f1, _ = precision_recall_fscore_support(

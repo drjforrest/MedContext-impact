@@ -35,6 +35,7 @@ import json
 import random
 import signal
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -274,6 +275,10 @@ def run_validation(
         claim = record["claim"]
         image_id = record["image_id"]
         gt = record["ground_truth"]
+
+        # Brief pause between requests to avoid overwhelming local inference
+        if i > 0:
+            time.sleep(2)
 
         print(f"\n[{i+1}/{len(records)}] {image_id}")
 

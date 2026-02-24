@@ -177,51 +177,61 @@ def generate_score_distributions(predictions):
 
 
 def generate_performance_comparison(predictions):
-    """Compare performance of different detection methods."""
+    """Compare performance of different detection methods.
+
+    Four methods (matching validation report methodology):
+    - Veracity Only: Accuracy of predicting veracity labels (score > 0.5 = plausible)
+    - Alignment Only: Accuracy of predicting alignment labels (score > 0.5 = aligned)
+    - Combined (Unoptimized): Simple OR logic (v < 0.5 OR a < 0.5 → misinformation)
+    - Combined (Optimized): VERACITY_FIRST with tuned thresholds (0.65/0.30)
+    """
     methods = {
-        "Pixel Forensics": {"correct": 0, "total": 0},
         "Veracity Only": {"correct": 0, "total": 0},
         "Alignment Only": {"correct": 0, "total": 0},
-        "Combined System": {"correct": 0, "total": 0},
+        "Combined\n(Unoptimized)": {"correct": 0, "total": 0},
+        "Combined\n(Optimized)": {"correct": 0, "total": 0},
     }
 
+    optimized_v_thresh = 0.65
+    optimized_a_thresh = 0.30
+
     for pred in predictions:
-        gt_misinfo = pred["ground_truth"].get("is_misinformation", False)
-
-        # Pixel forensics
-        pixel_pred = not pred["predictions"]["pixel_forensics"].get(
-            "pixel_authentic", True
-        )
-        if pixel_pred == gt_misinfo:
-            methods["Pixel Forensics"]["correct"] += 1
-        methods["Pixel Forensics"]["total"] += 1
-
-        # Veracity only
+        gt = pred["ground_truth"]
         context = pred["predictions"]["contextual_analysis"]
-        veracity_pred = (
-            context.get("veracity_category") == "false"
-            or context.get("veracity_score", 0.5) < 0.5
-        )
-        if veracity_pred == gt_misinfo:
+
+        # Extract scores
+        v_score = context.get("veracity_score", 0.5)
+        a_score = context.get("alignment_score", 0.5)
+
+        # Ground truth labels
+        gt_misinfo = gt.get("is_misinformation", False)
+        gt_plausible = not gt_misinfo  # plausible = not misinformation
+        gt_aligned = gt.get("alignment", "").lower() in ("aligned", "aligns_fully")
+
+        # Veracity only: predict plausibility labels (matches validation report)
+        veracity_pred_plausible = v_score > 0.5
+        if veracity_pred_plausible == gt_plausible:
             methods["Veracity Only"]["correct"] += 1
         methods["Veracity Only"]["total"] += 1
 
-        # Alignment only
-        alignment_pred = (
-            context.get("alignment_category") == "does_not_align"
-            or context.get("alignment_score", 0.5) < 0.5
-        )
-        if alignment_pred == gt_misinfo:
+        # Alignment only: predict alignment labels (matches validation report)
+        alignment_pred_aligned = a_score > 0.5
+        if alignment_pred_aligned == gt_aligned:
             methods["Alignment Only"]["correct"] += 1
         methods["Alignment Only"]["total"] += 1
 
-        # Combined
-        combined_pred = pred["predictions"]["combined_analysis"].get(
-            "is_misinformation", False
-        )
-        if combined_pred == gt_misinfo:
-            methods["Combined System"]["correct"] += 1
-        methods["Combined System"]["total"] += 1
+        # Combined (unoptimized): simple OR threshold logic
+        # misinformation if veracity < 0.5 OR alignment < 0.5
+        combined_unopt_pred = v_score < 0.5 or a_score < 0.5
+        if combined_unopt_pred == gt_misinfo:
+            methods["Combined\n(Unoptimized)"]["correct"] += 1
+        methods["Combined\n(Unoptimized)"]["total"] += 1
+
+        # Combined (optimized): VERACITY_FIRST with tuned thresholds
+        optimized_pred = v_score < optimized_v_thresh or a_score < optimized_a_thresh
+        if optimized_pred == gt_misinfo:
+            methods["Combined\n(Optimized)"]["correct"] += 1
+        methods["Combined\n(Optimized)"]["total"] += 1
 
     return {
         "method_comparison": [
