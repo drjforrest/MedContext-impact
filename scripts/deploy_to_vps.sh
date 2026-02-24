@@ -5,7 +5,16 @@ set -euo pipefail
 # deploy_to_vps.sh
 #
 # Deploy backend + frontend changes to VPS
+#
+# To capture full output to a log file:
+#   ./deploy_to_vps.sh 2>&1 | tee deploy_$(date +%Y%m%d_%H%M%S).log
 # ─────────────────────────────────────────────────────────────────────────────
+
+DEPLOY_LOG="${DEPLOY_LOG:-}"
+if [[ -n "$DEPLOY_LOG" ]]; then
+  exec > >(tee -a "$DEPLOY_LOG") 2>&1
+  echo "Logging to $DEPLOY_LOG"
+fi
 
 echo "=== MedContext VPS Deployment ==="
 echo ""
