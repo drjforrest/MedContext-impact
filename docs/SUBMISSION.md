@@ -3,7 +3,7 @@
 **Project URL:** https://medcontext.drjforrest.com
 **Repository:** https://github.com/drjforrest/medcontext
 **Demo Video:** https://www.youtube.com/watch?v=22UJ9-lFwe0
-**Date:** February 20, 2026
+**Date:** February 24, 2026
 ---
 
 ## Demo Video
@@ -142,4 +142,4 @@ MedContext demonstrates that **optimization, not just combination**, is the key 
 
 **Contact:** Jamie Forrest (james.forrest@ubc.ca | forrest.jamie@gmail.com)  
 **Institution:** University of British Columbia, HERO Lab  
-**Date:** February 20, 2026
+**Date:** February 24, 2026
