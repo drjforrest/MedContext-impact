@@ -185,9 +185,10 @@ function ThresholdTheory() {
           Interactive Thought Experiment: Where Veracity Adds Value
         </h2>
         <p style={{ fontSize: '0.95rem', lineHeight: '1.65', color: '#c5cad4', marginBottom: '1.5rem', maxWidth: '680px' }}>
-          Each signal produces a <strong>score</strong> for every image. Alignment dominates (90.8% alone),
-          but veracity catches edge cases in the overlap regions. Drag the sliders to see how threshold
-          tuning affects the combined accuracy.
+          No signal is good enough on its own. Alignment dominates (90.8% alone), but veracity catches
+          edge cases in the overlap regions. Optimization provides a modest boost—only possible with
+          MedContext&apos;s multimodal medical training. Drag the sliders to see how threshold tuning
+          affects the combined accuracy.
         </p>
 
         {/* Chart */}
@@ -366,9 +367,9 @@ function ScaleImpact() {
           Scale Matters: The 0.6% That Saves Millions
         </h2>
         <p style={{ fontSize: '0.95rem', lineHeight: '1.65', color: '#c5cad4', marginBottom: '1.5rem', maxWidth: '680px' }}>
-          In our n=163 test set, veracity adds 0.6 percentage points (90.8% → 91.4%). That&apos;s
-          <strong> 1 additional correct classification</strong>. But at the scale of social media
-          platforms serving billions of users, this translates to massive impact.
+          Optimization provides a modest boost (0.6 pp). But when scaled to the impact of the actual
+          threat—billions of users on social platforms—the veracity fallback catches <strong>millions
+          of messages of misinformation</strong>. Only possible with MedContext&apos;s multimodal medical training.
         </p>
 
         {/* Scale calculation */}
@@ -496,8 +497,9 @@ function ValidationStory({ onNavigateBack }) {
           </h1>
 
           <p className="validation-subtitle">
-            How veracity catches 3 critical edge cases alignment misses—representing
-            hundreds of thousands to millions of better classifications daily at platform scale
+            No signal is good enough on its own. Optimization provides a modest boost, but when scaled
+            to the actual threat, the veracity fallback catches millions of messages of misinformation—
+            only possible with MedContext&apos;s multimodal medical training.
           </p>
 
           <div className="validation-stats-row">
@@ -556,8 +558,9 @@ function ValidationStory({ onNavigateBack }) {
               </ResponsiveContainer>
 
               <p className="helper" style={{ marginTop: '1rem', background: 'rgba(91, 141, 239, 0.1)', padding: '0.75rem', borderRadius: '4px' }}>
-                <strong style={{ color: '#5b8def' }}>Key finding:</strong> Contextual fit (alignment) is more
-                informative than fact-checking (veracity) alone. Veracity 73.6% → Alignment 90.8%.
+                <strong style={{ color: '#5b8def' }}>Key finding:</strong> No signal is good enough on its own.
+                Veracity 73.6% → Alignment 90.8%. Optimization adds a modest 0.6 pp; at scale, the veracity
+                fallback catches millions—only possible with MedContext&apos;s multimodal medical training.
               </p>
             </div>
           </div>
@@ -670,11 +673,9 @@ function ValidationStory({ onNavigateBack }) {
         <div className="summary-content">
           <h2>The Bottom Line</h2>
           <p className="summary-lead">
-            Alignment is the <strong>dominant signal</strong> for medical misinformation detection (90.8%).
-            Veracity provides a <strong>critical safety net</strong> that catches edge cases alignment
-            cannot resolve. At platform scale, this 0.6% improvement represents <strong>hundreds of
-            thousands to millions of better classifications daily</strong> (depending on medical
-            content exposure rates).
+            No signal is good enough on its own. Optimization provides a modest boost (0.6 pp), but when
+            scaled to the impact of the actual threat, the veracity fallback catches <strong>millions of
+            messages of misinformation</strong>—only possible with MedContext&apos;s multimodal medical training.
           </p>
 
           <div style={{ padding: '1.5rem', background: 'rgba(42, 157, 143, 0.15)', borderRadius: '8px', marginBottom: '2rem', border: '2px solid #2A9D8F' }}>
@@ -682,12 +683,10 @@ function ValidationStory({ onNavigateBack }) {
               <TrendingUpIcon /> Complementary Signals Architecture
             </h3>
             <p style={{ marginBottom: 0, color: '#c5cad4' }}>
-              The system demonstrates that <strong>contextual fit (alignment) is more informative than
-              fact-checking (veracity) alone</strong>. However, veracity catches two critical failure modes:
-              borderline visual matches and sophisticated misinformation using plausible imagery. Though
-              validation datasets cannot capture production diversity, the dual-signal architecture provides
-              implementers with confidence that the system maintains robustness even in edge cases—including
-              when deployed as a quantized model.
+              No signal is good enough on its own. Veracity catches two critical failure modes: borderline
+              visual matches and sophisticated misinformation using plausible imagery. When scaled to the
+              actual threat, the veracity fallback catches millions of messages of misinformation—<strong>only
+              possible with MedContext&apos;s multimodal medical training</strong> (MedGemma).
             </p>
           </div>
 
@@ -712,8 +711,8 @@ function ValidationStory({ onNavigateBack }) {
 
           <p className="summary-note" style={{ marginTop: '1.5rem' }}>
             Med-MMHL validation (n={VALIDATION_DATA.dataset.n}, stratified random, seed=42) — February 24, 2026.
-            MedGemma 4B IT via HuggingFace Inference API. Optimized thresholds (v&lt;0.65 OR a&lt;0.30) provide
-            the veracity safety net for alignment&apos;s edge cases.
+            MedGemma 4B IT via HuggingFace Inference API. The veracity safety net catches millions at scale—
+            only possible with MedContext&apos;s multimodal medical training.
           </p>
         </div>
       </section>

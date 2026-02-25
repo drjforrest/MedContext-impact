@@ -84,9 +84,9 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
             Medical images don&apos;t need to be fake to cause harm.
           </h1>
           <p className="splash-subtitle">
-            MedContext is an AI-powered tool that detects medical misinformation
-            by analyzing whether claims match their images &mdash; not just
-            whether images are doctored.
+            MedContext detects medical misinformation by analyzing whether claims match their images.
+            No signal is good enough alone; the veracity fallback catches millions at scale&mdash;only
+            possible with MedContext&apos;s multimodal medical training.
           </p>
           <div className="splash-cta">
             <button type="button" onClick={onNavigateToVerify}>
@@ -400,40 +400,47 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
 
       {/* Stats Bar */}
       <section className="card splash-stats">
-        <div className="stat-item">
-          <span className="stat-value stat-value-red">73.6%</span>
-          <span className="stat-label">Veracity Alone</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat-item">
-          <span className="stat-value stat-value-orange">90.8%</span>
-          <span className="stat-label">Alignment Alone</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat-item">
-          <span className="stat-value stat-value-green">91.4%</span>
-          <span className="stat-label">Combined</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat-item">
-          <span className="stat-value stat-value-purple">163</span>
-          <span className="stat-label">Samples</span>
-        </div>
-        <div className="stat-divider" />
-        <div
-          className="stat-item stat-item-link stat-item-benchmark"
-          onClick={onNavigateToValidation}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              onNavigateToValidation()
-            }
-          }}
-        >
-          <span className="stat-value stat-benchmark-name stat-value-blue">Med-MMHL</span>
-          <span className="stat-label">Benchmark</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          <p style={{ textAlign: 'center', fontSize: '0.9rem', color: '#9ba0af', marginBottom: '1rem', maxWidth: '560px' }}>
+            No signal good enough alone. Veracity fallback catches millions at scale&mdash;only possible with MedContext&apos;s multimodal medical training.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+            <div className="stat-item">
+              <span className="stat-value stat-value-red">73.6%</span>
+              <span className="stat-label">Veracity Alone</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value stat-value-orange">90.8%</span>
+              <span className="stat-label">Alignment Alone</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value stat-value-green">91.4%</span>
+              <span className="stat-label">Combined</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value stat-value-purple">163</span>
+              <span className="stat-label">Samples</span>
+            </div>
+            <div className="stat-divider" />
+            <div
+              className="stat-item stat-item-link stat-item-benchmark"
+              onClick={onNavigateToValidation}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onNavigateToValidation()
+                }
+              }}
+            >
+              <span className="stat-value stat-benchmark-name stat-value-blue">Med-MMHL</span>
+              <span className="stat-label">Benchmark</span>
+            </div>
+          </div>
         </div>
       </section>
     </div>

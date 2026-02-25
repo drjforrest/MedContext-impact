@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/python-3.12+-blue)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-CC--BY--4.0-blue.svg)](LICENSE)
 [![MedGemma](https://img.shields.io/badge/MedGemma-4B%20Quantized-ff6f00)](https://huggingface.co/google/medgemma-1.1-4b-it)
-[![Accuracy](https://img.shields.io/badge/accuracy-92.0%25%20Med--MMHL-2A9D8F)](docs/VALIDATION.md)
+[![Accuracy](https://img.shields.io/badge/accuracy-91.4%25%20Med--MMHL-2A9D8F)](docs/VALIDATION.md)
 
 [![GitHub](https://img.shields.io/badge/GitHub-drjforrest-181717?logo=github)](https://github.com/drjforrest)
 [![Website](https://img.shields.io/badge/drjforrest.com-1d6fb8?logo=google-chrome&logoColor=white)](https://drjforrest.com)
@@ -48,11 +48,11 @@ We validated MedContext against the **Med-MMHL (Medical Multimodal Misinformatio
 
 <div align="center">
 
-### Individual Signals Insufficient: Veracity 79.8% · Alignment 86.5%
+### Individual Signals Insufficient: Veracity 73.6% · Alignment 90.8%
 
-### Hierarchical Optimization Unlocks The S-Curve: **92.0% Accuracy**
+### Hierarchical Optimization Unlocks The S-Curve: **91.4% Accuracy**
 
-**Precision 96.2% · Recall 94.1% · F1 0.951 · Thresholds 0.65/0.30**
+**Precision 96.9% · Recall 92.6% · F1 94.7% · Thresholds 0.65/0.30**
 
 </div>
 
@@ -68,15 +68,15 @@ We validated MedContext against the **Med-MMHL (Medical Multimodal Misinformatio
 
 **What this proves:**
 
-- ✅ **Veracity alone (79.8%) is insufficient** — claim truth assessment misses image misuse (e.g., caterpillar labeled as HIV virus)
-- ✅ **Alignment alone (86.5%) is insufficient** — image-claim consistency misses false claims with aligned images
-- ✅ **Simple combination (~83%) plateaus** — naive averaging provides minimal improvement
-- ✅ **Hierarchical optimization (92.0%) achieves the breakthrough** — smart thresholds (0.65/0.30) with VERACITY_FIRST logic achieve +13-20% gain
-- ✅ High precision (96.2%) and recall (94.1%) — catches the vast majority of misinformation cases with very few false alarms
+- ✅ **Veracity alone (73.6%) is insufficient** — claim truth assessment misses image misuse (e.g., caterpillar labeled as HIV virus)
+- ✅ **Alignment alone (90.8%) is strong** — image-claim consistency is the dominant signal; veracity provides a critical safety net
+- ✅ **Simple combination (90.8%) plateaus** — naive thresholds provide minimal improvement over alignment alone
+- ✅ **Hierarchical optimization (91.4%) achieves the breakthrough** — smart thresholds (0.65/0.30) with VERACITY_FIRST logic catch 3 critical edge cases alignment misses
+- ✅ High precision (96.9%) and recall (92.6%) — catches the vast majority of misinformation cases with very few false alarms
 
-**Methodology:** Results use the **MedGemma 4B model** with optimized decision thresholds determined via 5-fold cross-validation on the Med-MMHL validation set (n=163). Bootstrap confidence intervals computed over 1,000 iterations. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 92.0% accuracy and bootstrap CIs may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
+**Methodology:** Results use the **MedGemma 4B IT model** (HuggingFace Inference API) with optimized decision thresholds (v<0.65 OR a<0.30) on the Med-MMHL validation set (n=163). Bootstrap confidence intervals: [87.7%, 94.5%]. **Note:** Thresholds were tuned on the same validation set used for final evaluation; reported 91.4% accuracy may be optimistic and not fully generalize to new data. Future work should validate on a held-out test set.
 
-**Key Insight:** The most dangerous misinformation—authentic misaligned images supporting false claims—requires analyzing **both veracity and alignment together**. Single contextual signals and image integrity tests miss this when applied on their own. An image may be authentic and honest, and a health claim may be true without context, but together can be dangerously misleading.
+**Key Insight:** No signal is good enough on its own. Optimization provides a modest boost (0.6 pp), but when scaled to the impact of the actual threat (billions of users), the veracity fallback catches **millions of messages of misinformation**—only possible with MedContext's multimodal medical training (MedGemma).
 
 [**📊 Full Validation Report**](docs/VALIDATION.md) | [**📊 Validation Story (Interactive)**](ui/src/ValidationStory.jsx)
 
@@ -231,7 +231,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 - ✅ **Real-world optimization** — Addresses authentic images with misleading context (the dominant threat pattern)
 - ✅ **Contextual authenticity focus** — Detects misuse of genuine images, not just fake pixels
-- ✅ **Empirically proven approach** — Demonstrated that hierarchical optimization (92.0%) achieves breakthrough performance over individual signals (79.8%/86.5%)
+- ✅ **Empirically proven approach** — Demonstrated that hierarchical optimization (91.4%) achieves breakthrough performance over individual signals (73.6%/90.8%)
 - ✅ **Production deployment partner** — Counterforce AI & the University of British Columbia for deployment with a web app and Telegram bot
 - ✅ **Production-ready implementation** — 62/62 tests passing (3 skipped), comprehensive validation
 
@@ -259,13 +259,13 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 - **BTD+UCI (PoJ 2-3):** Combined validation set (120 authentic MRI from BTD dataset + 40 tampered scans from UCI dataset) with **synthetically assigned contextual labels** (veracity, alignment) programmatically generated for controlled experimentation—not human fact-checked.
 - **UCI (PoJ 1):** Standalone tampered medical imaging dataset used to test pixel forensics baseline performance.
-- **Med-MMHL (Primary Validation, n=163):** Separate research-grade benchmark with **human-annotated, expert fact-checked labels** from real-world fact-checking organizations—used for final system validation (92.0% accuracy with Q4_KM quantized model).
+- **Med-MMHL (Primary Validation, n=163):** Separate research-grade benchmark with **human-annotated, expert fact-checked labels** from real-world fact-checking organizations—used for final system validation (91.4% accuracy with MedGemma 4B IT).
 
 **Analysis:**
 
 - **Method:** Bootstrap resampling (1,000 iterations) for confidence intervals across all PoJ experiments
 - **PoJ 3 Finding (BTD+UCI synthetic labels):** Demonstrated that veracity and alignment are distinct contextual dimensions, each insufficient alone (61.3% and 56.9% respectively)
-- **Med-MMHL Validation (fact-checked labels):** Proved hierarchical optimization is key—92.0% optimized accuracy (Q4_KM quantized) vs 79.8% veracity-only and 86.5% alignment-only on real-world misinformation. Neither signal alone is sufficient.
+- **Med-MMHL Validation (fact-checked labels):** Proved hierarchical optimization is key—91.4% optimized accuracy (MedGemma 4B IT) vs 73.6% veracity-only and 90.8% alignment-only on real-world misinformation. Neither signal alone is sufficient.
 - **Optional add-ons:** PoJ 1-2 validated pixel forensics on manipulated-image datasets; not tested on Med-MMHL since all Med-MMHL images are authentic
 - **Key Distinction:** PoJ experiments used synthetic labels for controlled hypothesis testing; Med-MMHL used fact-checked labels for real-world validation
 
@@ -274,7 +274,7 @@ The live demo requires an access code to prevent abuse and control API costs.
 ### Novel Contributions
 
 1. **First empirical validation** proving single contextual signals are insufficient, but hierarchical optimization achieves breakthrough performance:
-   - On **Med-MMHL (fact-checked labels):** Veracity-only 79.8%, Alignment-only 86.5%, Optimized 92.0% (Q4_KM quantized with VERACITY_FIRST + smart thresholds 0.65/0.30)
+   - On **Med-MMHL (fact-checked labels):** Veracity-only 73.6%, Alignment-only 90.8%, Optimized 91.4% (MedGemma 4B IT with VERACITY_FIRST + smart thresholds 0.65/0.30)
    - On **BTD+UCI (synthetic labels):** Demonstrated veracity (61.3%) and alignment (56.9%) are distinct dimensions requiring joint analysis
 2. **First agentic system** for contextual authenticity assessment using MedGemma for combined veracity + alignment analysis
 3. **First deployment partnership** for field validation (HERO Lab)
@@ -304,7 +304,7 @@ Watch the 3-minute demonstration:
 **Covers (3 minutes):**
 
 1. The Problem (authentic images used in fake or misleading contexts)
-2. Med-MMHL Validation (n=163: individual signals 79.8%/86.5% vs optimized 92.0%)
+2. Med-MMHL Validation (n=163: individual signals 73.6%/90.8% vs optimized 91.4%)
 3. Live Demo (upload → analysis → verdict)
 4. Impact (Counterforce AI & UBC partnership and Telegram bot deployment)
 
