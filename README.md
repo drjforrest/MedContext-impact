@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![MedContext Logo](ui/public/logo-w-tagline.png)
+![MedContext Logo](ui/public/MedContext-Logo-Set/logo-w-tagline.png)
 
 **Medical images don't need to be fake to cause harm.**
 
@@ -86,7 +86,7 @@ We validated MedContext against the **Med-MMHL (Medical Multimodal Misinformatio
 
 MedContext uses a **3-phase agentic workflow** to assess whether image content aligns with its claim:
 
-![Agentic Workflow](ui/public/the-solution-visual.jpeg)
+![Agentic Workflow](ui/public/images/the-solution-visual.jpeg)
 
 ### How It Works
 
@@ -109,7 +109,7 @@ See [AGENTIC_WORKFLOW.md](docs/AGENTIC_WORKFLOW.md) for complete pipeline visual
 
 ## 🌍 Real-World Impact
 
-![Real-World Deployment](ui/public/the-use-case-visual.jpeg)
+![Real-World Deployment](ui/public/images/the-use-case-visual.jpeg)
 
 ### Deployment Partner: HERO Lab, UBC
 
