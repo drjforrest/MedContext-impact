@@ -126,10 +126,7 @@
 
 /* --- Card Carousel --- */
 .splash-carousel-section {
-  padding: 1rem 0;
-}
-
-.splash-carousel-section {
+  padding: 1.75rem;
   animation: fadeSlideUp 0.7s ease-out both;
   animation-delay: 0.3s;
 }
@@ -201,14 +198,8 @@
 }
 
 @keyframes cardEnter {
-  from {
-    opacity: 0;
-    transform: translate(-50%, calc(-50% + 30px)) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .carousel-card-center {
@@ -238,7 +229,7 @@
   pointer-events: none;
 }
 
-.card-inner {
+.carousel-card .card-inner {
   width: 100%;
   height: 100%;
   position: relative;
@@ -247,12 +238,12 @@
   transition: transform 0.6s ease;
 }
 
-.card-inner.card-flipped {
+.carousel-card .card-inner.card-flipped {
   transform: rotateY(180deg);
 }
 
-/* --- Card Front --- */
-.card-front {
+/* --- Card Front (scoped to carousel) --- */
+.carousel-card .card-front {
   position: absolute;
   inset: 0;
   -webkit-backface-visibility: hidden;
@@ -264,14 +255,14 @@
   border: 1px solid var(--border);
 }
 
-.card-image {
+.carousel-card .card-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.card-overlay {
+.carousel-card .card-overlay {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -285,7 +276,7 @@
   gap: 0.5rem;
 }
 
-.card-claim {
+.carousel-card .card-claim {
   margin: 0;
   font-size: 0.88rem;
   font-weight: 500;
@@ -298,7 +289,7 @@
   overflow: hidden;
 }
 
-.card-flip-hint {
+.carousel-card .card-flip-hint {
   margin: 0;
   font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.75);
@@ -307,8 +298,8 @@
   text-transform: uppercase;
 }
 
-/* --- Card Back --- */
-.card-back {
+/* --- Card Back (scoped to carousel) --- */
+.carousel-card .card-back {
   position: absolute;
   inset: 0;
   -webkit-backface-visibility: hidden;
@@ -325,7 +316,7 @@
   gap: 0.75rem;
 }
 
-.verdict-badge {
+.carousel-card .verdict-badge {
   display: inline-block;
   align-self: flex-start;
   padding: 0.3rem 0.75rem;
@@ -336,23 +327,23 @@
   text-transform: uppercase;
 }
 
-.verdict-misinfo {
+.carousel-card .verdict-misinfo {
   background: rgba(185, 28, 28, 0.9);
   color: #fff;
 }
 
-.verdict-legit {
+.carousel-card .verdict-legit {
   background: rgba(78, 154, 52, 0.9);
   color: #fff;
 }
 
-.card-back h3 {
+.carousel-card .card-back h3 {
   margin: 0;
   font-size: 1.1rem;
   color: var(--ink);
 }
 
-.card-back-text {
+.carousel-card .card-back-text {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.6;
@@ -360,13 +351,13 @@
   flex: 1;
 }
 
-.signal-bars {
+.carousel-card .signal-bars {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.signal-row {
+.carousel-card .signal-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -376,7 +367,7 @@
   border: 1px solid var(--border);
 }
 
-.signal-label {
+.carousel-card .signal-label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--muted);
@@ -384,29 +375,29 @@
   letter-spacing: 0.04em;
 }
 
-.signal-value {
+.carousel-card .signal-value {
   font-size: 0.85rem;
   font-weight: 700;
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
 }
 
-.signal-high {
+.carousel-card .signal-high {
   background: rgba(78, 154, 52, 0.15);
   color: var(--accent-green-dark);
 }
 
-.signal-medium {
+.carousel-card .signal-medium {
   background: rgba(241, 179, 85, 0.2);
   color: #8a5a1b;
 }
 
-.signal-low {
+.carousel-card .signal-low {
   background: rgba(185, 28, 28, 0.12);
   color: var(--error);
 }
 
-.card-back-hint {
+.carousel-card .card-back-hint {
   margin: 0;
   text-align: center;
   font-size: 0.75rem;
