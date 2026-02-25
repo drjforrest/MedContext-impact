@@ -1,24 +1,42 @@
-#!/bin/bash
-# Deploy MedContext Frontend to Web Server
-# Run this from the medcontext/ui directory
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+# ─────────────────────────────────────────────────────────────────────────────
+# deploy_frontend.sh
+#
+# Build frontend locally and rsync to VPS.
+# Use this when you only need to update the UI (faster than full deploy).
+# ─────────────────────────────────────────────────────────────────────────────
 
-echo "=== Deploying MedContext Frontend ==="
+VPS_HOST="${VPS_HOST:-Contabo-admin}"
+VPS_DIST="/var/www/medcontext/dist"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+UI_DIR="$REPO_ROOT/ui"
 
-# 1. Build the React app
-echo "Building React app..."
-cd /Users/drjforrest/dev/projects/hero-counterforce/medcontext/ui
+echo "=== MedContext Frontend Deploy ==="
+echo ""
+echo "  Host: $VPS_HOST"
+echo "  Target: $VPS_DIST"
+echo ""
+
+# Build
+echo "▶ Building frontend..."
+cd "$UI_DIR"
 npm run build
 
-# 2. Deploy to VPS (adjust user@host as needed)
-echo "Deploying to server..."
-rsync -avz --delete dist/ admin@vmi3089488.tail449a19.ts.net:/var/www/medcontext/dist/
+# Make dist writable on VPS (admin may not own it)
+echo "▶ Preparing remote dist..."
+ssh $VPS_HOST "sudo chown -R admin:admin $VPS_DIST 2>/dev/null || sudo mkdir -p $VPS_DIST && sudo chown -R admin:admin $VPS_DIST"
 
-# 3. Restart web server (if needed)
-echo "Restarting web server..."
-ssh admin@vmi3089488.tail449a19.ts.net "sudo systemctl restart caddy || sudo systemctl restart nginx"
+# Rsync
+echo "▶ Syncing to VPS..."
+rsync -avz --delete "$UI_DIR/dist/" "$VPS_HOST:$VPS_DIST/"
+
+# Restore ownership for Caddy
+echo "▶ Setting ownership for Caddy..."
+ssh $VPS_HOST "sudo chown -R caddy:caddy $VPS_DIST"
 
 echo ""
-echo "=== Deployment Complete ==="
-echo "Site: https://medcontext.drjforrest.com"
+echo "✅ Frontend deployed to https://medcontext.drjforrest.com"
+echo "   (Hard refresh: Cmd+Shift+R / Ctrl+Shift+R if you don't see changes)"
+echo ""

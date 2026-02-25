@@ -297,9 +297,9 @@ The live demo requires an access code to prevent abuse and control API costs.
 
 Watch the 3-minute demonstration:
 
-[![MedContext Demo](https://img.youtube.com/vi/LMYX565fgjE/maxresdefault.jpg)](https://www.youtube.com/watch?v=LMYX565fgjE&feature=youtu.be)
+[![MedContext Demo](https://img.youtube.com/vi/4NuGsrnuVk8/maxresdefault.jpg)](https://www.youtube.com/watch?v=4NuGsrnuVk8&feature=youtu.be)
 
-**🎥 [Watch on YouTube](https://www.youtube.com/watch?v=LMYX565fgjE&feature=youtu.be)**
+**🎥 [Watch on YouTube](https://www.youtube.com/watch?v=4NuGsrnuVk8&feature=youtu.be)**
 
 **Covers (3 minutes):**
 
