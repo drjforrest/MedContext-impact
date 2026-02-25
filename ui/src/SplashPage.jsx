@@ -132,7 +132,7 @@ function SplashPage({ onNavigateToVerify, onNavigateToValidation }) {
       </section>
 
       {/* Card Carousel Section - MOVED DOWN */}
-      <section className="splash-carousel-section">
+      <section className="card splash-carousel-section">
         <h2 className="splash-section-title">Real Examples. Real Threats.</h2>
         <p className="splash-section-subtitle">
           Click a card to reveal MedContext&apos;s analysis.

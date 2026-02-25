@@ -129,7 +129,7 @@
   padding: 1rem 0;
 }
 
-.splash-carousel-section .card {
+.splash-carousel-section {
   animation: fadeSlideUp 0.7s ease-out both;
   animation-delay: 0.3s;
 }
@@ -141,6 +141,16 @@
   gap: 1rem;
   position: relative;
   padding: 1rem 0;
+}
+
+.carousel-arrow-left {
+  flex-shrink: 0;
+  order: -1;
+}
+
+.carousel-arrow-right {
+  flex-shrink: 0;
+  order: 1;
 }
 
 .carousel-arrow {
