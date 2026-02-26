@@ -427,6 +427,17 @@
   border-color: rgba(239, 68, 68, 0.25);
 }
 
+.st-compare-card--teal {
+  background: rgba(20, 184, 166, 0.06);
+  border-color: rgba(20, 184, 166, 0.25);
+}
+
+.st-metric-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
 /* ── Model selection list ─────────────────────────────────────────── */
 
 .st-model-list {

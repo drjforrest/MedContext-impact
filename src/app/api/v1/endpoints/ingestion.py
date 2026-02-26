@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -10,6 +11,7 @@ from PIL import Image
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.analytics.service import record_run_event
 from app.core.config import settings
 from app.core.utils import detect_image_format
 from app.db.models import ImageSubmission, MedGemmaAnalysis, SubmissionContext
@@ -104,6 +106,7 @@ def ingest_and_run_agentic(
     )
 
     agent = MedContextLangGraphAgent()
+    started_at = datetime.utcnow()
     try:
         with db.begin():
             # Check if image already exists by hash
@@ -214,8 +217,19 @@ def ingest_and_run_agentic(
                 model_version=medgemma_model or settings.medgemma_model,
             )
             db.add(analysis)
-    except Exception:
+    except Exception as exc:
         _cleanup_image_file(stored_image_path)
+        try:
+            record_run_event(
+                db,
+                started_at=started_at,
+                completed_at=datetime.utcnow(),
+                outcome="error",
+                source_channel=source_channel,
+                error_message=str(exc)[:2000],
+            )
+        except Exception:
+            logger.warning("Failed to record run event for analytics", exc_info=True)
         raise
 
     # Extract final binary verdict from synthesis.contextual_integrity if available
@@ -230,6 +244,23 @@ def ingest_and_run_agentic(
     except Exception:
         # Be resilient: if structure changes, keep field None
         is_misinformation = None
+
+    verdict = (
+        "misinformation"
+        if is_misinformation is True
+        else ("legitimate" if is_misinformation is False else "unknown")
+    )
+    try:
+        record_run_event(
+            db,
+            started_at=started_at,
+            completed_at=datetime.utcnow(),
+            outcome="success",
+            source_channel=source_channel,
+            verdict=verdict,
+        )
+    except Exception:
+        logger.warning("Failed to record run event for analytics", exc_info=True)
 
     return AgentRunResponse(
         triage=result.triage,

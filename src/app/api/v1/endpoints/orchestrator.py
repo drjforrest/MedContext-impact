@@ -2,12 +2,14 @@ import asyncio
 import ipaddress
 import logging
 import socket
+from datetime import datetime
 from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.analytics.service import record_run_event
 from app.api.v1.endpoints.ingestion import ingest_and_run_agentic
 from app.clinical.medgemma_client import MedGemmaClientError
 from app.db.session import get_db
@@ -328,9 +330,11 @@ async def run_agent_langgraph(
     image_id: str | None = Form(default=None),
     force_tools: str | None = Form(default=None),
     medgemma_model: str | None = Form(default=None),
+    db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, context_source = _resolve_context(context, scraped_context)
+    started_at = datetime.utcnow()
     agent = MedContextLangGraphAgent()
     try:
         result = agent.run(
@@ -341,12 +345,51 @@ async def run_agent_langgraph(
             medgemma_model=medgemma_model,
         )
     except MedGemmaClientError as exc:
+        try:
+            record_run_event(
+                db,
+                started_at=started_at,
+                completed_at=datetime.utcnow(),
+                outcome="error",
+                source_channel="agentic",
+                error_message=str(exc)[:2000],
+            )
+        except Exception:
+            logger.warning("Failed to record run event for analytics", exc_info=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    is_misinformation = None
+    try:
+        if isinstance(result.synthesis, dict):
+            ci = result.synthesis.get("contextual_integrity")
+            if isinstance(ci, dict):
+                val = ci.get("is_misinformation")
+                if isinstance(val, bool):
+                    is_misinformation = val
+    except Exception:
+        pass
+    verdict = (
+        "misinformation"
+        if is_misinformation is True
+        else ("legitimate" if is_misinformation is False else "unknown")
+    )
+    try:
+        record_run_event(
+            db,
+            started_at=started_at,
+            completed_at=datetime.utcnow(),
+            outcome="success",
+            source_channel="agentic",
+            verdict=verdict,
+        )
+    except Exception:
+        logger.warning("Failed to record run event for analytics", exc_info=True)
 
     return AgentRunResponse(
         triage=result.triage,
         tool_results=result.tool_results,
         synthesis=result.synthesis,
+        is_misinformation=is_misinformation,
         context_used=context_used,
         context_source=context_source,
     )

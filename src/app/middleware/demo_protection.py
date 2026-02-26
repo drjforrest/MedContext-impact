@@ -60,6 +60,7 @@ class DemoProtectionMiddleware(BaseHTTPMiddleware):
             "/api/v1/ingestion",
             "/api/v1/forensics",
             "/api/v1/reverse-search",
+            "/api/v1/analytics",
         ]
         return any(path.startswith(prefix) for prefix in protected_prefixes)
 

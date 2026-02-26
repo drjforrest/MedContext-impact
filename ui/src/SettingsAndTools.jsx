@@ -39,6 +39,10 @@ function SettingsAndTools({
   const [optimizationStatus, setOptimizationStatus] = useState('')
   const [optimizationResults, setOptimizationResults] = useState(null)
 
+  // Analytics state
+  const [analyticsStats, setAnalyticsStats] = useState(null)
+  const [analyticsError, setAnalyticsError] = useState(null)
+
   // Live provider status (polled every 5s while this component is mounted)
   const [liveStatus, setLiveStatus] = useState(null)
   const pollRef = useRef(null)
@@ -92,6 +96,27 @@ function SettingsAndTools({
     fetchLiveStatus()
     pollRef.current = setInterval(fetchLiveStatus, 30000)
     return () => clearInterval(pollRef.current)
+  }, [apiBase, accessCode, defaultApiBase])
+
+  // Fetch analytics on mount
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const headers = {}
+        if (accessCode) headers['X-Demo-Access-Code'] = accessCode
+        const base = (apiBase || defaultApiBase || '').replace(/\/$/, '')
+        const res = await fetch(`${base}/api/v1/analytics/stats?days=30`, { headers })
+        if (res.ok) {
+          setAnalyticsStats(await res.json())
+          setAnalyticsError(null)
+        } else {
+          setAnalyticsError(res.status === 403 ? 'Access code required' : 'Failed to load')
+        }
+      } catch {
+        setAnalyticsError('Backend unavailable')
+      }
+    }
+    fetchAnalytics()
   }, [apiBase, accessCode, defaultApiBase])
 
   const handleActivateBYOGPU = async () => {
@@ -221,6 +246,52 @@ function SettingsAndTools({
         <h1>Settings &amp; Tools</h1>
         <p className="st-helper">Configure providers, model, and API settings</p>
       </div>
+
+      {/* ── Run Analytics ─────────────────────────────────────────── */}
+      <section className="st-card">
+        <h2>Run Analytics</h2>
+        <p className="st-helper">
+          Usage metrics for verification runs. Access via API: <code>GET /api/v1/analytics/stats?days=30</code>
+        </p>
+        {analyticsError ? (
+          <div className="st-notice st-notice--error">{analyticsError}</div>
+        ) : analyticsStats ? (
+          <div className="st-compare-grid" style={{ marginTop: '0.75rem' }}>
+            <div className="st-compare-card st-compare-card--green">
+              <h4>Total Runs</h4>
+              <div className="st-metric-value">{analyticsStats.total_runs ?? 0}</div>
+              <span className="st-helper">Last {analyticsStats.period_days} days</span>
+            </div>
+            <div className="st-compare-card st-compare-card--blue">
+              <h4>Success Rate</h4>
+              <div className="st-metric-value">
+                {analyticsStats.success_rate != null ? `${analyticsStats.success_rate.toFixed(1)}%` : '—'}
+              </div>
+              <span className="st-helper">{analyticsStats.success_count ?? 0} success / {analyticsStats.error_count ?? 0} errors</span>
+            </div>
+            <div className="st-compare-card st-compare-card--teal">
+              <h4>Avg Duration</h4>
+              <div className="st-metric-value">
+                {analyticsStats.avg_duration_ms != null ? `${(analyticsStats.avg_duration_ms / 1000).toFixed(1)}s` : '—'}
+              </div>
+              <span className="st-helper">Per successful run</span>
+            </div>
+            <div className="st-compare-card">
+              <h4>Verdict Distribution</h4>
+              <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                {Object.entries(analyticsStats.verdict_distribution || {}).map(([v, c]) => (
+                  <li key={v}><strong>{v}</strong>: {c}</li>
+                ))}
+                {(!analyticsStats.verdict_distribution || Object.keys(analyticsStats.verdict_distribution).length === 0) && (
+                  <li className="st-helper">No verdicts yet</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <div className="st-helper">Loading analytics…</div>
+        )}
+      </section>
 
       {/* ── Live Runtime Status ─────────────────────────────────────── */}
       {liveStatus && (

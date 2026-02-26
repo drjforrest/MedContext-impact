@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    analytics,
     analysis,
     config,
     forensics,
@@ -24,3 +25,4 @@ api_router.include_router(
 api_router.include_router(forensics.router, prefix="/forensics", tags=["forensics"])
 api_router.include_router(provenance.router, prefix="/provenance", tags=["provenance"])
 api_router.include_router(config.router, prefix="/config", tags=["config"])
+api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
