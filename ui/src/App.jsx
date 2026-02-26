@@ -47,6 +47,8 @@ function App() {
   const [providerStatus, setProviderStatus] = useState(null)
   const [showRunModal, setShowRunModal] = useState(false)
 
+  const llamaCppBusy = providerStatus?.active_provider === 'llama_cpp' && providerStatus?.busy === true
+
   // Threshold configuration
   const [veracityThreshold, setVeracityThreshold] = useState(0.65)
   const [alignmentThreshold, setAlignmentThreshold] = useState(0.30)
@@ -158,12 +160,22 @@ function App() {
   }
 
 
+  // Combined model-busy state: our request running OR local model busy from another request
+  const isModelBusy = status === 'loading' || llamaCppBusy
+
+  const displayStatus = useMemo(() => {
+    if (status === 'loading') return 'loading'
+    if (llamaCppBusy) return 'busy'
+    return status
+  }, [status, llamaCppBusy])
+
   const statusLabel = useMemo(() => {
     if (status === 'loading') return 'Running analysis...'
+    if (llamaCppBusy) return 'Model in use — please wait'
     if (status === 'success') return 'Analysis complete'
     if (status === 'error') return 'Request failed'
     return 'Ready'
-  }, [status])
+  }, [status, llamaCppBusy])
 
   // Progressive animation: stagger module activation for visual feedback
   useEffect(() => {
@@ -674,8 +686,6 @@ function App() {
   
   const isLanding = activeView === 'landing'
 
-  const llamaCppBusy = providerStatus?.active_provider === 'llama_cpp' && providerStatus?.busy === true
-
   return (
     <div className="page">
       {!isLanding && (
@@ -723,8 +733,13 @@ function App() {
           >
             About
           </button>
-          {/* Provider status chip — always visible in the nav bar */}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', paddingRight: '0.5rem' }}>
+          {/* Model status indicator + provider chip — always visible in the nav bar */}
+          <div className="tab-bar-status" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', paddingRight: '0.5rem' }}>
+            <span
+              className={`tab-indicator-dot ${isModelBusy ? 'tab-indicator-busy' : 'tab-indicator-ready'}`}
+              title={isModelBusy ? 'Model in use — please wait' : 'Model ready'}
+              aria-hidden="true"
+            />
             <LlamaCppStatus
               ref={statusRef}
               apiBase={apiBase}
@@ -786,7 +801,7 @@ function App() {
                 <div className="input-card-header">
                   <h2>Verify an Image</h2>
                   <div className="inline-status" aria-live="polite">
-                    <span className={`status-dot status-${status}`} />
+                    <span className={`status-dot status-${displayStatus}`} />
                     {status === 'loading' ? (
                       <span className="spinner" aria-hidden="true" />
                     ) : null}

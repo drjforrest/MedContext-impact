@@ -84,6 +84,23 @@
   border-radius: 8px 0 0 8px;
 }
 
+/* Tab bar model status indicator light */
+.tab-indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tab-indicator-ready {
+  background: var(--accent-green, #10b981);
+}
+
+.tab-indicator-busy {
+  background: var(--warning, #f59e0b);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
 .tab-settings-btn {
   margin-left: auto;
   font-size: 0.85rem;
@@ -139,6 +156,16 @@
 
 .status-dot.status-error {
   background: var(--error);
+}
+
+.status-dot.status-busy {
+  background: var(--warning);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
 }
 
 .spinner {
