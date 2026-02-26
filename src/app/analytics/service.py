@@ -22,7 +22,10 @@ def record_run_event(
     error_message: str | None = None,
 ) -> RunEvent:
     """Record a single run event."""
-    duration_ms = int((completed_at - started_at).total_seconds() * 1000)
+    delta = completed_at - started_at
+    if delta.total_seconds() < 0:
+        raise ValueError("completed_at must be >= started_at")
+    duration_ms = int(delta.total_seconds() * 1000)
     event = RunEvent(
         started_at=started_at,
         completed_at=completed_at,
@@ -47,9 +50,10 @@ def get_analytics_stats(
     since = datetime.utcnow() - timedelta(days=days)
 
     # Total runs
-    total = db.scalar(
-        select(func.count(RunEvent.id)).where(RunEvent.started_at >= since)
-    ) or 0
+    total = (
+        db.scalar(select(func.count(RunEvent.id)).where(RunEvent.started_at >= since))
+        or 0
+    )
 
     # Success/error counts
     outcome_counts = dict(
@@ -73,8 +77,7 @@ def get_analytics_stats(
 
     # Avg duration (successful runs only)
     avg_duration = db.scalar(
-        select(func.avg(RunEvent.duration_ms))
-        .where(
+        select(func.avg(RunEvent.duration_ms)).where(
             RunEvent.started_at >= since,
             RunEvent.outcome == "success",
         )
@@ -87,16 +90,21 @@ def get_analytics_stats(
     for i in range(7):
         day_start = today - timedelta(days=6 - i)
         day_end = day_start + timedelta(days=1)
-        count = db.scalar(
-            select(func.count(RunEvent.id)).where(
-                RunEvent.started_at >= day_start,
-                RunEvent.started_at < day_end,
+        count = (
+            db.scalar(
+                select(func.count(RunEvent.id)).where(
+                    RunEvent.started_at >= day_start,
+                    RunEvent.started_at < day_end,
+                )
             )
-        ) or 0
-        runs_per_day.append({
-            "date": day_start.strftime("%Y-%m-%d"),
-            "count": count,
-        })
+            or 0
+        )
+        runs_per_day.append(
+            {
+                "date": day_start.strftime("%Y-%m-%d"),
+                "count": count,
+            }
+        )
 
     # Source channel breakdown
     source_counts = dict(
@@ -114,7 +122,9 @@ def get_analytics_stats(
         "success_count": success_count,
         "error_count": error_count,
         "success_rate": (success_count / total * 100) if total > 0 else None,
-        "avg_duration_ms": round(avg_duration_ms, 1) if avg_duration_ms is not None else None,
+        "avg_duration_ms": round(avg_duration_ms, 1)
+        if avg_duration_ms is not None
+        else None,
         "verdict_distribution": verdict_counts,
         "source_distribution": source_counts,
         "runs_per_day": runs_per_day,

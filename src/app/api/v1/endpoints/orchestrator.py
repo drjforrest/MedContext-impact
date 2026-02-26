@@ -360,14 +360,37 @@ async def run_agent_langgraph(
 
     is_misinformation = None
     try:
-        if isinstance(result.synthesis, dict):
-            ci = result.synthesis.get("contextual_integrity")
+        syn = result.synthesis
+        if syn is None:
+            pass
+        elif isinstance(syn, dict):
+            ci = syn.get("contextual_integrity")
             if isinstance(ci, dict):
                 val = ci.get("is_misinformation")
                 if isinstance(val, bool):
                     is_misinformation = val
-    except Exception:
-        pass
+        elif hasattr(syn, "model_dump"):
+            d = syn.model_dump()
+            if isinstance(d, dict):
+                ci = d.get("contextual_integrity")
+                if isinstance(ci, dict):
+                    val = ci.get("is_misinformation")
+                    if isinstance(val, bool):
+                        is_misinformation = val
+        elif hasattr(syn, "dict"):
+            d = syn.dict()
+            if isinstance(d, dict):
+                ci = d.get("contextual_integrity")
+                if isinstance(ci, dict):
+                    val = ci.get("is_misinformation")
+                    if isinstance(val, bool):
+                        is_misinformation = val
+    except Exception as e:
+        logger.warning(
+            "Failed to extract is_misinformation from synthesis: %s; synthesis_repr=%r",
+            e,
+            getattr(result, "synthesis", None),
+        )
     verdict = (
         "misinformation"
         if is_misinformation is True

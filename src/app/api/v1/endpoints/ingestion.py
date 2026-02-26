@@ -15,7 +15,7 @@ from app.analytics.service import record_run_event
 from app.core.config import settings
 from app.core.utils import detect_image_format
 from app.db.models import ImageSubmission, MedGemmaAnalysis, SubmissionContext
-from app.db.session import get_db
+from app.db.session import SessionLocal, get_db
 from app.orchestrator.langgraph_agent import MedContextLangGraphAgent
 from app.provenance.service import store_provenance_manifest
 from app.schemas.orchestrator import AgentRunResponse
@@ -220,14 +220,19 @@ def ingest_and_run_agentic(
     except Exception as exc:
         _cleanup_image_file(stored_image_path)
         try:
-            record_run_event(
-                db,
-                started_at=started_at,
-                completed_at=datetime.utcnow(),
-                outcome="error",
-                source_channel=source_channel,
-                error_message=str(exc)[:2000],
-            )
+            # Use fresh session; db may be rolled back/invalid after exception
+            analytics_db = SessionLocal()
+            try:
+                record_run_event(
+                    analytics_db,
+                    started_at=started_at,
+                    completed_at=datetime.utcnow(),
+                    outcome="error",
+                    source_channel=source_channel,
+                    error_message=str(exc)[:2000],
+                )
+            finally:
+                analytics_db.close()
         except Exception:
             logger.warning("Failed to record run event for analytics", exc_info=True)
         raise
