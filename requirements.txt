@@ -60,7 +60,7 @@ pillow==11.1.0
 numpy==2.4.1
 
 # Local GGUF inference
-llama-cpp-python==0.3.7
+llama-cpp-python==0.3.16
 
 # Data analysis & validation
 pandas==3.0.0
