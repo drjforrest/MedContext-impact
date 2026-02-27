@@ -148,6 +148,7 @@
 
 .status-dot.status-loading {
   background: var(--warning);
+  animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
 .status-dot.status-success {
