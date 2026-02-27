@@ -302,21 +302,26 @@ async def run_agent(
 ) -> AgentRunResponse:
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, context_source = _resolve_context(context, scraped_context)
+    content_type = file.content_type if file else None
+    loop = asyncio.get_event_loop()
     try:
-        return ingest_and_run_agentic(
-            image_bytes=image_bytes,
-            context=context_used,
-            context_source=context_source,
-            db=db,
-            source_channel="agentic",
-            image_id=None if image_id is None else image_id,
-            content_type=file.content_type if file else None,
-            source_url=image_url,
-            force_tools=parse_force_tools(force_tools),
-            veracity_threshold=veracity_threshold,
-            alignment_threshold=alignment_threshold,
-            decision_logic=decision_logic,
-            medgemma_model=medgemma_model,
+        return await loop.run_in_executor(
+            None,
+            lambda: ingest_and_run_agentic(
+                image_bytes=image_bytes,
+                context=context_used,
+                context_source=context_source,
+                db=db,
+                source_channel="agentic",
+                image_id=None if image_id is None else image_id,
+                content_type=content_type,
+                source_url=image_url,
+                force_tools=parse_force_tools(force_tools),
+                veracity_threshold=veracity_threshold,
+                alignment_threshold=alignment_threshold,
+                decision_logic=decision_logic,
+                medgemma_model=medgemma_model,
+            ),
         )
     except MedGemmaClientError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -336,13 +341,17 @@ async def run_agent_langgraph(
     context_used, context_source = _resolve_context(context, scraped_context)
     started_at = datetime.utcnow()
     agent = MedContextLangGraphAgent()
+    loop = asyncio.get_event_loop()
     try:
-        result = agent.run(
-            image_bytes=image_bytes,
-            image_id=image_id,
-            context=context_used,
-            force_tools=parse_force_tools(force_tools),
-            medgemma_model=medgemma_model,
+        result = await loop.run_in_executor(
+            None,
+            lambda: agent.run(
+                image_bytes=image_bytes,
+                image_id=image_id,
+                context=context_used,
+                force_tools=parse_force_tools(force_tools),
+                medgemma_model=medgemma_model,
+            ),
         )
     except MedGemmaClientError as exc:
         try:
