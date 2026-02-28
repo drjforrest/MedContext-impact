@@ -88,7 +88,7 @@ const LlamaCppStatus = forwardRef(function LlamaCppStatus(
     }
   }, [fetchStatus, status?.busy])
 
-  if (error || !status) return null
+  if (error) return null
 
   return <StatusChip status={status} />
 })
@@ -97,7 +97,14 @@ const LlamaCppStatus = forwardRef(function LlamaCppStatus(
  * StatusChip — the visual component.  Can be used standalone anywhere.
  */
 export function StatusChip({ status }) {
-  if (!status) return null
+  if (!status) {
+    return (
+      <div style={chipStyle('#8aa0b8', 'rgba(138,160,184,0.08)')}>
+        <span style={dotStyle('#8aa0b8')} />
+        <span>Checking…</span>
+      </div>
+    )
+  }
 
   const { active_provider, busy, busy_since_secs, byo_gpu_configured, auto_revert_in_secs } = status
 
@@ -116,11 +123,11 @@ export function StatusChip({ status }) {
 
   // ── llama-cpp busy ──
   if (active_provider === 'llama_cpp' && busy) {
-    const sinceLabel = busy_since_secs != null ? ` · ${Math.round(busy_since_secs)}s` : ''
+    const sinceLabel = busy_since_secs != null ? ` (${Math.round(busy_since_secs)}s)` : ''
     return (
       <div style={{ ...chipStyle('#f59e0b', 'rgba(245,158,11,0.1)'), animation: 'pulse 1.5s infinite' }}>
         <span style={{ ...dotStyle('#f59e0b'), animation: 'pulse-dot 1.5s infinite' }} />
-        <span>Local AI Processing{sinceLabel} — please wait 2–3 min</span>
+        <span>Model in use{sinceLabel} — please wait</span>
       </div>
     )
   }
@@ -130,7 +137,7 @@ export function StatusChip({ status }) {
     return (
       <div style={chipStyle('#10b981', 'rgba(16,185,129,0.08)')}>
         <span style={dotStyle('#10b981')} />
-        <span>Local AI Ready</span>
+        <span>Model available</span>
       </div>
     )
   }

@@ -160,9 +160,6 @@ function App() {
   }
 
 
-  // Combined model-busy state: our request running OR local model busy from another request
-  const isModelBusy = status === 'loading' || llamaCppBusy
-
   const displayStatus = useMemo(() => {
     if (status === 'loading') return 'loading'
     if (llamaCppBusy) return 'busy'
@@ -733,13 +730,8 @@ function App() {
           >
             About
           </button>
-          {/* Model status indicator + provider chip — always visible in the nav bar */}
-          <div className="tab-bar-status" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', paddingRight: '0.5rem' }}>
-            <span
-              className={`tab-indicator-dot ${isModelBusy ? 'tab-indicator-busy' : 'tab-indicator-ready'}`}
-              title={isModelBusy ? 'Model in use — please wait' : 'Model ready'}
-              aria-hidden="true"
-            />
+          {/* Model status chip — always visible in the nav bar */}
+          <div className="tab-bar-status" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', paddingRight: '0.5rem' }}>
             <LlamaCppStatus
               ref={statusRef}
               apiBase={apiBase}
