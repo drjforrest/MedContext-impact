@@ -16,24 +16,24 @@ from app.core.utils import (
 )
 from app.clinical.types import BaseMedGemmaClient, MedGemmaClientError, MedGemmaResult
 
+# Module-level singleton so the GGUF model loads exactly once per process
+# lifetime, regardless of how many LlamaCppMedGemmaClient instances are created.
+_llm_singleton = None
+_singleton_lock = threading.Lock()
 
-class LlamaCppMedGemmaClient(BaseMedGemmaClient):
-    """Client for local GGUF models via llama-cpp-python."""
 
-    provider_name = "llama_cpp"
+def _get_or_load_model():
+    """Return the shared Llama instance, loading it on first call (thread-safe)."""
+    global _llm_singleton
 
-    def __init__(self) -> None:
-        self._llm_instance = None
-        self._model_lock = threading.Lock()
+    # Fast path — already loaded
+    if _llm_singleton is not None:
+        return _llm_singleton
 
-    def _load_model(self) -> None:
-        # Double-checked locking for thread safety
-        if self._llm_instance is not None:
-            return
-
-        with self._model_lock:
-            if self._llm_instance is not None:
-                return
+    with _singleton_lock:
+        # Re-check inside the lock to handle concurrent first calls
+        if _llm_singleton is not None:
+            return _llm_singleton
 
         try:
             from llama_cpp import Llama
@@ -48,7 +48,6 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
                 "MEDGEMMA_MMPROJ_PATH is required for vision with local GGUF models."
             )
 
-        # Validate medgemma_local_path before attempting to load model
         if not settings.medgemma_local_path:
             raise MedGemmaClientError(
                 "MEDGEMMA_LOCAL_PATH is required for local GGUF inference."
@@ -84,7 +83,7 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
             )
 
         try:
-            self._llm_instance = Llama(
+            _llm_singleton = Llama(
                 model_path=settings.medgemma_local_path,
                 chat_handler=chat_handler,
                 n_ctx=settings.medgemma_n_ctx,
@@ -94,6 +93,18 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
         except Exception as e:
             raise MedGemmaClientError(f"Failed to load GGUF model: {e}")
 
+        return _llm_singleton
+
+
+class LlamaCppMedGemmaClient(BaseMedGemmaClient):
+    """Client for local GGUF models via llama-cpp-python.
+
+    Uses a module-level singleton so the GGUF model loads once per process
+    lifetime, regardless of how many client instances are created.
+    """
+
+    provider_name = "llama_cpp"
+
     def analyze_image(
         self,
         image_bytes: bytes,
@@ -102,7 +113,7 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
     ) -> MedGemmaResult:
         current_model = model or settings.medgemma_model
         image_bytes = resize_image(image_bytes, max_size=512, quality=70)
-        self._load_model()
+        llm = _get_or_load_model()
 
         image_format = detect_image_format(image_bytes)
         encoded_image = base64.b64encode(image_bytes).decode("ascii")
@@ -110,7 +121,7 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
 
         provider_state.set_llama_cpp_busy(True)
         try:
-            response = self._llm_instance.create_chat_completion(
+            response = llm.create_chat_completion(
                 messages=[
                     {
                         "role": "user",
@@ -139,10 +150,9 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
         )
 
     async def check_health(self) -> bool:
-        if self._llm_instance is not None:
+        if _llm_singleton is not None:
             return True
         if settings.medgemma_local_path:
-
             return Path(settings.medgemma_local_path).exists()
         return False
 
@@ -151,5 +161,5 @@ class LlamaCppMedGemmaClient(BaseMedGemmaClient):
             "provider": self.provider_name,
             "model_path": settings.medgemma_local_path,
             "mmproj_path": settings.medgemma_mmproj_path,
-            "loaded": self._llm_instance is not None,
+            "loaded": _llm_singleton is not None,
         }

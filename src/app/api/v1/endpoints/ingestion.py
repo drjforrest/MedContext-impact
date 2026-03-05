@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from PIL import Image
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -56,6 +56,7 @@ def ingest_and_run_agentic(
     decision_logic: str = "OR",
     medgemma_model: str | None = None,
     show_threshold_recommendations: bool = False,
+    ip_address: str | None = None,
 ) -> AgentRunResponse:
     if image_id is None:
         resolved_image_id = uuid4()
@@ -229,6 +230,7 @@ def ingest_and_run_agentic(
                     completed_at=datetime.utcnow(),
                     outcome="error",
                     source_channel=source_channel,
+                    ip_address=ip_address,
                     error_message=str(exc)[:2000],
                 )
             finally:
@@ -263,6 +265,7 @@ def ingest_and_run_agentic(
             outcome="success",
             source_channel=source_channel,
             verdict=verdict,
+            ip_address=ip_address,
         )
     except Exception:
         logger.warning("Failed to record run event for analytics", exc_info=True)
@@ -279,6 +282,7 @@ def ingest_and_run_agentic(
 
 @router.post("/agentic", response_model=AgentRunResponse)
 async def ingest_and_run_agent(
+    request: Request,
     file: UploadFile = File(...),
     context: str = Form(...),
     force_tools: str | None = Form(default=None),
@@ -287,6 +291,9 @@ async def ingest_and_run_agent(
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
     from app.orchestrator.tool_utils import parse_force_tools
+
+    forwarded = request.headers.get("X-Forwarded-For")
+    ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
 
     image_bytes = await file.read()
     return ingest_and_run_agentic(
@@ -299,4 +306,5 @@ async def ingest_and_run_agent(
         force_tools=parse_force_tools(force_tools),
         medgemma_model=medgemma_model,
         show_threshold_recommendations=show_threshold_recommendations,
+        ip_address=ip,
     )

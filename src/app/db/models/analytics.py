@@ -23,6 +23,7 @@ class RunEvent(Base):
     outcome = Column(String(32), nullable=False)  # success | error
     verdict = Column(String(32), nullable=True)  # misinformation | legitimate | unknown
     source_channel = Column(String(64), nullable=False)  # agentic | telegram | api
+    ip_address = Column(String(45), nullable=True)  # IPv4 (15) or IPv6 (45)
     error_message = Column(Text, nullable=True)
     created_at = Column(
         DateTime,

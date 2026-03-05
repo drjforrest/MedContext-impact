@@ -6,7 +6,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 import httpx
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from app.analytics.service import record_run_event
@@ -289,6 +289,7 @@ async def _resolve_image_input(
 
 @router.post("/run", response_model=AgentRunResponse)
 async def run_agent(
+    request: Request,
     file: UploadFile | None = File(default=None),
     image_url: str | None = Form(default=None),
     context: str | None = Form(default=None),
@@ -300,6 +301,8 @@ async def run_agent(
     medgemma_model: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
+    forwarded = request.headers.get("X-Forwarded-For")
+    ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, context_source = _resolve_context(context, scraped_context)
     content_type = file.content_type if file else None
@@ -321,6 +324,7 @@ async def run_agent(
                 alignment_threshold=alignment_threshold,
                 decision_logic=decision_logic,
                 medgemma_model=medgemma_model,
+                ip_address=ip,
             ),
         )
     except MedGemmaClientError as exc:
@@ -329,6 +333,7 @@ async def run_agent(
 
 @router.post("/run-langgraph", response_model=AgentRunResponse)
 async def run_agent_langgraph(
+    request: Request,
     file: UploadFile | None = File(default=None),
     image_url: str | None = Form(default=None),
     context: str | None = Form(default=None),
@@ -337,6 +342,8 @@ async def run_agent_langgraph(
     medgemma_model: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ) -> AgentRunResponse:
+    forwarded = request.headers.get("X-Forwarded-For")
+    ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
     image_bytes, scraped_context = await _resolve_image_input(file, image_url)
     context_used, context_source = _resolve_context(context, scraped_context)
     started_at = datetime.utcnow()
@@ -361,6 +368,7 @@ async def run_agent_langgraph(
                 completed_at=datetime.utcnow(),
                 outcome="error",
                 source_channel="agentic",
+                ip_address=ip,
                 error_message=str(exc)[:2000],
             )
         except Exception:
@@ -413,6 +421,7 @@ async def run_agent_langgraph(
             outcome="success",
             source_channel="agentic",
             verdict=verdict,
+            ip_address=ip,
         )
     except Exception:
         logger.warning("Failed to record run event for analytics", exc_info=True)

@@ -37,6 +37,7 @@ step "Syncing code to VPS (via rsync)..."
 rsync -avz --delete \
   --exclude '.git' \
   --exclude '.venv' \
+  --exclude '.env' \
   --exclude '__pycache__' \
   --exclude '*.pyc' \
   --exclude 'node_modules' \
@@ -79,7 +80,9 @@ echo ""
 echo "=== Building frontend ==="
 cd ui
 npm install --silent
-npm run build
+# Explicitly clear VITE_API_BASE so the production build uses relative URLs
+# (Caddy proxies /api/* to uvicorn). Never bake in localhost:8000.
+VITE_API_BASE= npm run build
 
 echo ""
 echo "=== Deploying frontend to web root ==="

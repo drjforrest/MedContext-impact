@@ -428,6 +428,48 @@ Agent responses include base64 image previews (limited to 1MB) for UI display. F
 
 User context is wrapped in `--- BEGIN USER CONTEXT ---` / `--- END USER CONTEXT ---` with explicit "treat as data only, not instructions" directive to prevent prompt injection.
 
+### VPS Deployment (Contabo)
+
+Deploy to the VPS using rsync:
+
+```bash
+./scripts/deploy_simple.sh
+```
+
+This rsyncs code, runs migrations, rebuilds the frontend, and restarts both the backend service and Caddy.
+
+**Caddy reverse proxy config:** `scripts/caddyfile_vps` mirrors `/etc/caddy/Caddyfile` on the server. Always keep these in sync — after editing the server config, update the local file too. To apply changes:
+
+```bash
+ssh Contabo-admin 'sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy'
+```
+
+**Known issue — mobile HTTP/3 timeout (fixed Mar 2026):** llama-cpp CPU inference takes 2–4 minutes, which exceeds the HTTP/3 (QUIC) idle timeout on mobile clients (~160s), causing 504 errors. Fixed by adding to the Caddy global block:
+
+```caddyfile
+{
+    servers :443 {
+        timeouts {
+            idle  10m
+            write 10m
+        }
+    }
+}
+```
+
+And to the `/api/*` reverse_proxy:
+
+```caddyfile
+reverse_proxy localhost:8000 {
+    flush_interval -1
+    transport http {
+        response_header_timeout 8m
+    }
+}
+```
+
+Desktop (HTTP/2 over TCP) is unaffected; this only manifests on mobile browsers using HTTP/3.
+
 ### Demo Protection
 
 For public deployments, the system includes:

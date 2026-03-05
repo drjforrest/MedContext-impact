@@ -1416,6 +1416,8 @@ details summary:hover {
   gap: 0.35rem;
   transition: border-color 0.3s ease, background 0.3s ease;
   min-height: 7.5rem;
+  max-height: 11rem;
+  overflow: hidden;
 }
 
 .signal-block-veracity.signal-pass,
@@ -1502,6 +1504,10 @@ details summary:hover {
   margin: 0;
   margin-top: auto;
   padding-top: 0.3rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Signal verdict panel */

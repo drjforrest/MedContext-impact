@@ -1,20 +1,57 @@
-# MedContext Caddyfile — API handles MUST come before file_server
+# MedContext Caddyfile
+{
+    servers :443 {
+        timeouts {
+            idle  10m
+            write 10m
+        }
+    }
+}
+
 medcontext.drjforrest.com {
-    # API — reverse proxy to uvicorn (must be FIRST)
+    # API — reverse proxy to uvicorn, with generous timeouts for long inference
     handle /api/* {
-        reverse_proxy localhost:8000
+        reverse_proxy localhost:8000 {
+            flush_interval -1
+            transport http {
+                response_header_timeout 8m
+            }
+        }
     }
     handle /health {
         reverse_proxy localhost:8000
     }
 
-    # Static UI files
-    root * /var/www/medcontext/dist
-    try_files {path} {path}/ /index.html
-    encode gzip
-    file_server
+    # Static UI files (catch-all — only if no handle above matched)
+    handle {
+        root * /var/www/medcontext/dist
+        try_files {path} {path}/ /index.html
+        encode gzip
+        file_server
+    }
 
     # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}
+
+# Citation Network
+citation-network.drjforrest.com {
+    handle /api/* {
+        reverse_proxy localhost:8001
+    }
+    handle /health {
+        reverse_proxy localhost:8001
+    }
+    handle {
+        root * /var/www/citation-network/dist
+        try_files {path} {path}/ /index.html
+        encode gzip
+        file_server
+    }
     header {
         X-Content-Type-Options nosniff
         X-Frame-Options DENY
